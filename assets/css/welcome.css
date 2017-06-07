@@ -1,0 +1,288 @@
+.about-wrap-redsys .notice, .about-wrap-redsys div.error, .about-wrap-redsys div.updated{
+	display: none !important;
+}
+
+.wrap div.woocommerce-message{
+	margin: 5px 0 15px;
+	background: #fff;
+	border-left: 4px solid #fff;
+	-webkit-box-shadow: 0 1px 1px 0 rgba(0, 0, 0, .1);
+	box-shadow: 0 1px 1px 0 rgba(0, 0, 0, .1);
+	margin: 5px 15px 2px;
+	padding: 1px 12px;
+	text-align: center;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+}
+a, div{
+	outline: 0;
+}
+.about-wrap-redsys{
+	position: relative;
+	margin: 25px 40px 0 20px;
+	max-width: 1050px;
+	font-size: 15px;
+}
+.about-wrap-redsys .wp-badge{
+	background: url(../images/icono-redsys.png?ver=20170603) center 2px no-repeat #c474b6 !important;
+	-webkit-background-size: 80px 80px;
+	background-size: 80px 80px;
+	color: #fff;
+	font-size: 14px;
+	text-align: center;
+	font-weight: 600;
+	margin: 5px 0 0;
+	padding-top: 140px;
+	height: 30px;
+	display: inline-block;
+	width: 140px;
+	text-rendering: optimizeLegibility;
+	-webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+	box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+}
+.about-wrap-redsys .wp-badge{
+	position: absolute;
+	top: 0;
+	right: 0
+}
+h1{
+	display: block;
+	font-size: 2em;
+	-webkit-margin-before: 0.67em;
+	-webkit-margin-after: 0.67em;
+	-webkit-margin-start: 0px;
+	-webkit-margin-end: 0px;
+	font-weight: bold;
+}
+.about-wrap-redsys h1{
+	margin: .2em 200px 0 0;
+	padding: 0;
+	color: #32373c;
+	line-height: 1.2em;
+	font-size: 2.8em;
+	font-weight: 400;
+}
+p{
+	display: block;
+	-webkit-margin-before: 1em;
+	-webkit-margin-after: 1em;
+	-webkit-margin-start: 0px;
+	-webkit-margin-end: 0px;
+}
+.about-wrap-redsys .about-text {
+	margin: 1em 200px 1em 0;
+	min-height: 60px;
+	color: #555d66;
+}
+.about-wrap-redsys .about-description, .about-wrap-redsys .about-text{
+	margin-top: 1.4em;
+	font-weight: 400;
+	line-height: 1.6em;
+	font-size: 19px;
+}
+h2{
+	display: block;
+	font-size: 1.5em;
+	-webkit-margin-before: 0.83em;
+	-webkit-margin-after: 0.83em;
+	-webkit-margin-start: 0px;
+	-webkit-margin-end: 0px;
+	font-weight: bold;
+}
+h1, h2, h3 {
+	color: #23282d;
+}
+.wp-clearfix:after{
+	content: "";
+	display: table;
+	clear: both;
+}
+.about-wrap-redsys h2 {
+	margin: 40px 0 .6em;
+	font-size: 2.7em;
+	line-height: 1.3;
+	font-weight: 300;
+	text-align: center;
+}
+.nav-tab-wrapper, .wrap h2.nav-tab-wrapper, h1.nav-tab-wrapper {
+	border-bottom: 1px solid #ccc;
+	margin: 0;
+	padding-top: 9px;
+	padding-bottom: 0;
+	line-height: inherit;
+}
+.about-wrap-redsys .feature-section {
+	overflow: hidden;
+	padding: 0 0 40px;
+}
+.about-wrap-redsys .feature-section.one-col {
+	margin: 0 auto;
+	max-width: 700px;
+}
+hr{
+	display: block;
+	-webkit-margin-before: 0.5em;
+	-webkit-margin-after: 0.5em;
+	-webkit-margin-start: auto;
+	-webkit-margin-end: auto;
+	border-top-style: inset;
+	border-right-style: inset;
+	border-bottom-style: inset;
+	border-left-style: inset;
+	border-top-width: 1px;
+	border-right-width: 1px;
+	border-bottom-width: 1px;
+	border-left-width: 1px;
+	border-bottom: 1px solid #fafafa;
+}
+.about-wrap-redsys hr{
+	border: 0;
+	height: 0;
+	margin: 0;
+	border-top: 1px solid rgba(0, 0, 0, .1);
+}
+h2{
+	display: block;
+	font-size: 1.5em;
+	-webkit-margin-before: 0.83em;
+	-webkit-margin-after: 0.83em;
+	-webkit-margin-start: 0px;
+	-webkit-margin-end: 0px;
+	font-weight: bold;
+}
+.about-wrap-redsys h2{
+	margin: 40px 0 .6em;
+	font-size: 2.7em;
+	line-height: 1.3;
+	font-weight: 300;
+	text-align: center;
+}
+#namediv td.first, .nav-tab, .no-break, .star-rating{
+	white-space: nowrap;
+}
+#templateside ul li a, .contextual-help-tabs a, .nav-tab{
+	text-decoration: none;
+}
+.nav-tab {
+	font-weight: 600;
+	float: left;
+	border: 1px solid #ccc;
+	border-bottom: none;
+	margin-left: .5em;
+	padding: 5px 10px;
+	font-size: 14px;
+	line-height: 24px;
+	background: #e5e5e5;
+	color: #555;
+}
+.nav-tab-active, .nav-tab:focus:active{
+	-webkit-box-shadow: none;
+	box-shadow: none;
+}
+.nav-tab-active{
+	margin-bottom: -1px;
+	color: #444;
+}
+.nav-tab:hover{
+	background-color: #fff;
+	color: #444;
+}
+.nav-tab-active, .nav-tab-active:focus, .nav-tab-active:focus:active, .nav-tab-active:hover{
+	border-bottom: 1px solid #f1f1f1;
+	background: #f1f1f1;
+	color: #000;
+}
+.about-wrap-redsys .nav-tab{
+	padding-right: 15px;
+	padding-left: 15px;
+	font-size: 18px;
+}
+.about-wrap-redsys p{
+	line-height: 1.5;
+	font-size: 14px;
+}
+.about-wrap-redsys .embed-container, .about-wrap-redsys .featured-image, .about-wrap-redsys .lead-description{
+	text-align: center;
+}
+.about-wrap-redsys .lead-description{
+	font-size: 1.5em;
+}
+.about-wrap-redsys .feature-section p{
+	max-width: 55em;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: .6em;
+}
+.about-wrap-redsys [class$="-col"]{
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+}
+.about-wrap-redsys [class$="-col"] .col{
+	-webkit-flex: 1;
+	-ms-flex: 1;
+	flex: 1
+}
+.about-wrap-redsys .two-col .col{
+	min-width: 47%;
+	max-width: 47%;
+}
+.about-wrap-redsys .feature-section .col{
+	margin-top: 40px;
+}
+.about-wrap-redsys h3{
+	margin: 1.25em 0 .6em;
+	font-size: 1.4em;
+	line-height: 1.5;
+}
+.about-wrap-redsys .feature-section.two-col h3{
+	margin-top: 0;
+}
+.about-wrap-redsys .feature-section p{
+	max-width: 55em;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: .6em;
+}
+iframe, img{
+	border: 0;
+}
+img{
+	border: none;
+}
+.about-wrap-redsys img{
+	margin: 0;
+	max-width: 100%;
+	height: auto;
+	vertical-align: middle;
+	border: 1px solid rgba(0, 0, 0, .1);
+}
+.about-wrap-redsys .headline-feature img{
+	border: none;
+}
+.about-wrap-redsys .changelog{
+	margin-bottom: 40px;
+}
+.about-wrap-redsys .changelog h2{
+	font-size: 1.4em;
+	font-weight: 600;
+	text-align: left;
+}
+.about-wrap-redsys .three-col .col{
+	align-self: flex-start;
+	min-width: 31%;
+	max-width: 31%;
+}
+.about-wrap-redsys .changelog h3{
+	margin: 1.33em 0;
+	font-size: 1em;
+	line-height: inherit;
+	color: #23282d;
+}
+.about-wrap-redsys .return-to-dashboard{
+	margin: 30px 0 0 -5px;
+	font-size: 14px;
+	font-weight: 600;
+}
