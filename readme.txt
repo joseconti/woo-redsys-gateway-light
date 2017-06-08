@@ -9,11 +9,11 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 2.9
 WC tested up to: 3.0
 
-Add Redsys Gateway to WooCommerce.
+Add Redsys Gateway to WooCommerce. This is the Light version of the official WooCommerce Redsys plugin at WooCommerce.com
 
 == Description ==
 
-Add Redsys Gateway to WooCommerce.
+This is the Light version of the official WooCommerce Redsys plugin at WooCommerce.com
 
 You can find the PRO version here https://woocommerce.com/products/redsys-gateway/
 
@@ -40,7 +40,7 @@ Answer to foo bar dilemma.
 
 == Changelog ==
 
-= 1.0 =
+= 1.0.0 =
 * First public release.
 
 
