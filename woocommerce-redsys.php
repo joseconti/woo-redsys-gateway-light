@@ -1,9 +1,9 @@
 <?php
 /*
 Plugin Name: WooCommerce Redsys Gateway Light
-Plugin URI: http://woothemes.com/woocommerce
-Description: Extends WooCommerce with a RedSys gateway, supported banks here: http://www.redsys.es/wps/wcm/connect/Redsys_es/redsys.es/areaCorporativa/nuestrosSocios/. Only support EUROS &euro; currency.
-Version: 1.0.0
+Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
+Description: Extends WooCommerce with a RedSys gateway, supported banks here: http://www.redsys.es/wps/wcm/connect/Redsys_es/redsys.es/areaCorporativa/nuestrosSocios/
+Version: 1.0.1
 Author: José Conti
 Author URI: https://www.joseconti.com/
 Tested up to: 4.7
@@ -15,7 +15,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 */
 
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '1.0.0' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '1.0.1' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 add_action('plugins_loaded', 'woocommerce_gateway_redsys_init', 0);
@@ -229,6 +229,12 @@ function woocommerce_gateway_redsys_init() {
 					'type'			=> 'textarea',
 					'description'	=> __( 'This controls the description which the user sees during checkout.', 'woo-redsys-gateway-light' ),
 					'default'		=> __( 'Pay via Servired/RedSys; you can pay with your credit card.', 'woo-redsys-gateway-light' )
+				),
+				'logo'   => array(
+					'title'			=> __( 'Logo', 'woo-redsys-gateway-light' ),
+					'type'			=> 'text',
+					'description'	=> __( 'Add link to image logo.', 'woo-redsys-gateway-light' ),
+					'desc_tip'		=> true,
 				),
 				'customer'  => array(
 					'title'			=> __( 'Commerce number (FUC)', 'woo-redsys-gateway-light' ),
