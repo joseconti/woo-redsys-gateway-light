@@ -17,7 +17,7 @@ Add Redsys Gateway (and Iupay) to WooCommerce. This is the Light version of the 
 
 This is the Light version of the official WooCommerce Redsys plugin at WooCommerce.com
 
-You can find the PRO version here https://woocommerce.com/products/redsys-gateway/
+You can find the PRO version at [WooCommerce.com](https://woocommerce.com/products/redsys-gateway/)
 
 With this extension you get all you need for use Redsys & Iupay Gateway.
 
