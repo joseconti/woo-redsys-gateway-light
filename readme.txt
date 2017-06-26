@@ -25,6 +25,7 @@ With this extension you get all you need for use Redsys & Iupay Gateway.
 * WPML compatible.
 * Works with SNI certificates like Let's Encrypt, EX: SiteGround, HostFusion, etc
 * Gateway language selection from settings.
+* Checkout logo customization.
 * Iupay Gateway is included with its own setting page
 
 As this is WooCommerce official extension, always will be compatible with the latest WooCommerce version.
@@ -37,6 +38,7 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 * WPML compatible.
 * Works with SNI certificates like Let's Encrypt, EX: SiteGround, HostFusion, etc
 * Gateway language selection from settings.
+* Checkout logo customization.
 * Iupay Gateway is included with its own setting page
 * Second Terminal number. Very useful for security purpose.
 * Sequential Invoice Number, essential in Spain by the Public Treasury.
@@ -67,6 +69,10 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 4. Language: Set the Redsys Gateway Language.
 
 == Changelog ==
+
+= 1.0.1 =
+* NEW: Added logo customization
+* Updated spinner. This update improve gateway redirection.
 
 = 1.0.0 =
 * First public release.
