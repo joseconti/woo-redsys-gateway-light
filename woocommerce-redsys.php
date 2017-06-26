@@ -102,7 +102,12 @@ function woocommerce_gateway_redsys_init() {
 		public function __construct() {
 			global $woocommerce, $checkfor254;
 			$this->id				= 'redsys';
-			$this->icon				= apply_filters( 'woocommerce_redsys_icon', plugins_url( basename( plugin_dir_path(__FILE__) ), basename( __FILE__ ) ) . '/assets/images/redsys.png' );
+			if ( ! empty( $this->get_option( 'logo' ) ) ) {
+				$logo_url           = $this->get_option( 'logo' );
+				$this->icon			= apply_filters( 'woocommerce_redsys_icon', $logo_url );
+			} else {
+				$this->icon			= apply_filters( 'woocommerce_redsys_icon', plugins_url( basename( plugin_dir_path(__FILE__) ), basename( __FILE__ ) ) . '/assets/images/redsys.png' );
+			}
 			$this->has_fields		= false;
 			$this->liveurl			= 'https://sis.redsys.es/sis/realizarPago';
 			$this->testurl			= 'https://sis-t.redsys.es:25443/sis/realizarPago';
@@ -117,6 +122,7 @@ function woocommerce_gateway_redsys_init() {
 			// Define user set variables
 			$this->title			= $this->get_option( 'title'			);
 			$this->description		= $this->get_option( 'description' 		);
+			$this->logo				= $this->get_option( 'logo'             );
 			$this->customer			= $this->get_option( 'customer' 		);
 			$this->commercename		= $this->get_option( 'commercename' 	);
 			$this->terminal			= $this->get_option( 'terminal' 		);
@@ -420,7 +426,7 @@ function woocommerce_gateway_redsys_init() {
 				}
 				wc_enqueue_js( '
 				jQuery("body").block({
-					message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', $woocommerce->plugin_url() . '/assets/images/ajax-loader.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />'.__( 'Thank you for your order. We are now redirecting you to Servired/RedSys to make the payment.', 'woo-redsys-gateway-light' ).'",
+					message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', $woocommerce->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />'.__( 'Thank you for your order. We are now redirecting you to Servired/RedSys to make the payment.', 'woo-redsys-gateway-light' ).'",
 					overlayCSS:
 					{
 						background: "#fff",
@@ -456,7 +462,7 @@ function woocommerce_gateway_redsys_init() {
 				}
 				wc_enqueue_js( '
 				jQuery("body").block({
-					message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', $woocommerce->plugin_url() . '/assets/images/ajax-loader.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />'.__( 'Thank you for your order. We are now redirecting you to Servired/RedSys to make the payment.', 'woo-redsys-gateway-light' ).'",
+					message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', $woocommerce->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />'.__( 'Thank you for your order. We are now redirecting you to Servired/RedSys to make the payment.', 'woo-redsys-gateway-light' ).'",
 					overlayCSS:
 					{
 						background: "#fff",
