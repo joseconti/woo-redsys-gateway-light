@@ -189,7 +189,7 @@
 		*/
 		function get_iupay_args( $order ) {
 			global $woocommerce;
-					$order_id = $order->id;
+					$order_id = $order->get_id();
 					$currency_codes = array(
 						'EUR' => 978,
 						'USD' => 840,
@@ -493,17 +493,17 @@
 					}
 					$authorisation_code = $id_trans;
 					if ( ! empty( $order1 ) )
-						update_post_meta( $order->id, '_payment_order_number_iupay', $order1 );
+						update_post_meta( $order->get_id(), '_payment_order_number_iupay', $order1 );
 					if ( ! empty( $dsdate ) )
-						update_post_meta( $order->id, '_payment_date_iupay',   $dsdate );
+						update_post_meta( $order->get_id(), '_payment_date_iupay',   $dsdate );
 					if ( ! empty( $dshour ) )
-						update_post_meta( $order->id, '_payment_hour_iupay',   $dshour );
+						update_post_meta( $order->get_id(), '_payment_hour_iupay',   $dshour );
 					if ( ! empty( $id_trans ) )
-						update_post_meta( $order->id, '_authorisation_code_iupay', $authorisation_code );
+						update_post_meta( $order->get_id(), '_authorisation_code_iupay', $authorisation_code );
 					if ( ! empty( $dscardcountry ) )
-						update_post_meta( $order->id, '_card_country_iupay',   $dscardcountry );
+						update_post_meta( $order->get_id(), '_card_country_iupay',   $dscardcountry );
 					if ( ! empty( $dscargtype ) )
-						update_post_meta( $order->id, '_card_type_iupay',   $dscargtype == 'C' ? 'Credit' : 'Debit' );
+						update_post_meta( $order->get_id(), '_card_type_iupay',   $dscargtype == 'C' ? 'Credit' : 'Debit' );
 					// Payment completed
 					$order->add_order_note( __( 'HTTP Notification received - payment completed', 'woo-redsys-gateway-light' ) );
 					$order->add_order_note( __( 'Authorisation code: ',  'woo-redsys-gateway-light' ) . $authorisation_code );

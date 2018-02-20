@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce Redsys Gateway Light
 Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
 Description: Extends WooCommerce with a RedSys gateway, supported banks here: http://www.redsys.es/wps/wcm/connect/Redsys_es/redsys.es/areaCorporativa/nuestrosSocios/
-Version: 1.0.1
+Version: 1.1.0
 Author: José Conti
 Author URI: https://www.joseconti.com/
 Tested up to: 4.7
@@ -15,7 +15,7 @@ License URI: http://www.gnu.org/licenses/gpl-3.0.html
 */
 
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '1.0.1' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '1.1.0' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 add_action('plugins_loaded', 'woocommerce_gateway_redsys_init', 0);
@@ -24,7 +24,11 @@ add_action('plugins_loaded', 'woocommerce_gateway_redsys_init', 0);
  * Required API
  */
  	if( ! class_exists( 'RedsysAPI' ) ) {
-		require_once( 'includes/apiRedsys.php' );
+		if ( version_compare( PHP_VERSION, '7.0.0', '<' ) ) {
+    	require_once( 'includes/apiRedsys5.php' );
+	    	} else {
+		    	require_once( 'includes/apiRedsys7.php' );
+	    	}
 		}
 	require_once( 'woocommerce-redsys-sort-invoice.php' );
 	require_once( 'woocommerce-redsys-export-csv.php'   );
@@ -307,7 +311,7 @@ function woocommerce_gateway_redsys_init() {
 		}
 		function get_redsys_args( $order ) {
 			global $woocommerce;
-				$order_id       = $order->id;
+				$order_id       = $order->get_id();
 				$currency_codes = array(
 						'EUR' => 978,
 						'USD' => 840,
@@ -629,17 +633,17 @@ function woocommerce_gateway_redsys_init() {
 					}
 					$authorisation_code = $id_trans;
 					if ( ! empty( $order1 ) )
-						update_post_meta( $order->id, '_payment_order_number_redsys', $order1 );
+						update_post_meta( $order->get_id(), '_payment_order_number_redsys', $order1 );
 					if ( ! empty( $dsdate ) )
-						update_post_meta( $order->id, '_payment_date_redsys',   $dsdate );
+						update_post_meta( $order->get_id(), '_payment_date_redsys',   $dsdate );
 					if ( ! empty( $dshour ) )
-						update_post_meta( $order->id, '_payment_hour_redsys',   $dshour );
+						update_post_meta( $order->get_id(), '_payment_hour_redsys',   $dshour );
 					if ( ! empty( $id_trans ) )
-						update_post_meta( $order->id, '_authorisation_code_redsys', $authorisation_code );
+						update_post_meta( $order->get_id(), '_authorisation_code_redsys', $authorisation_code );
 					if ( ! empty( $dscardcountry ) )
-						update_post_meta( $order->id, '_card_country_redsys',   $dscardcountry );
+						update_post_meta( $order->get_id(), '_card_country_redsys',   $dscardcountry );
 					if ( ! empty( $dscargtype ) )
-						update_post_meta( $order->id, '_card_type_redsys',   $dscargtype == 'C' ? 'Credit' : 'Debit' );
+						update_post_meta( $order->get_id(), '_card_type_redsys',   $dscargtype == 'C' ? 'Credit' : 'Debit' );
 					// Payment completed
 					$order->add_order_note( __( 'HTTP Notification received - payment completed', 'woo-redsys-gateway-light' ) );
 					$order->add_order_note( __( 'Authorisation code: ',  'woo-redsys-gateway-light' ) . $authorisation_code );

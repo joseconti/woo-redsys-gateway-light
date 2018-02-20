@@ -20,7 +20,7 @@
 				<h2><?php _e( 'The official WooCommerce extension', 'woo-redsys-gateway-light' ); ?></h2>
 				<p class="lead-description"><?php _e( 'This gateway is the light version of official WooCommerce Redsys plugin at WooCommerce.com', 'woo-redsys-gateway-light' ); ?></p>
 				<p><?php printf( __( 'This WooCommerce extension has all you need for start selling through Redsys. It is full compatible with WPML. If you need more power, you can buy the premium extension at %s.', 'woo-redsys-gateway-light' ), $link_shop ); ?></p>
-				<p><?php printf( __( 'With the premium version you get many important features like two terminals, error actions, Sequential Invoice Number, invoice export, etc. See all features %s', 'woo-redsys-gateway-light' ), $link_support ); ?></p>
+				<p><?php printf( __( 'With the premium version you get many important features like tokenization, refund, two terminals, error actions, Sequential Invoice Number, invoice export, etc. See all features %s', 'woo-redsys-gateway-light' ), $link_support ); ?></p>
 			</div>
 		</div>
 		<div class="woocommerce-message inline">
@@ -55,6 +55,34 @@
 		<hr />
 
 		<h2><?php _e( 'Features of Premium Version', 'woo-redsys-gateway-light' ); ?></h2>
+
+		<div class="feature-section two-col">
+			<div class="col">
+				<h3><?php _e( 'Refund from Order', 'woo-redsys-gateway-light' ); ?></h3>
+
+				<p><?php _e( 'With Refund, you can refund an Order from admin, you dont need to go to Redsys.', 'woo-redsys-gateway-light' ); ?></p>
+
+			</div>
+			<div class="col">
+				<img src="<?php echo REDSYS_PLUGIN_URL . 'assets/images/refund.png' ?>" alt="" />
+			</div>
+		</div>
+
+		<hr />
+
+		<div class="feature-section two-col">
+			<div class="col">
+				<h3><?php _e( 'Tokenization', 'woo-redsys-gateway-light' ); ?></h3>
+
+				<p><?php _e( 'With Tokenization, your customers can Pay with one click, after first order', 'woo-redsys-gateway-light' ); ?></p>
+
+			</div>
+			<div class="col">
+				<img src="<?php echo REDSYS_PLUGIN_URL . 'assets/images/tokenization.png' ?>" alt="" />
+			</div>
+		</div>
+
+		<hr />
 
 		<div class="feature-section two-col">
 			<div class="col">
@@ -108,7 +136,7 @@
 
 				<p><?php _e( 'With the select error action, you can set what happen when a customer make an error typing his credit card.', 'woo-redsys-gateway-light' ); ?></p>
 
-				<p><?php _e( 'By default, the order is cancelled, but with this option you can redirect the customer to the checkout page without cancelling the order, so You get a new opportunity for get a conversion!.', 'woo-redsys-gateway-light' ); ?>
+				<p><?php _e( 'By default, the order is cancelled, but with this option you can redirect the customer to the checkout page without cancelling the order, so You get a new opportunity for get a conversion!.', 'woo-redsys-gateway-light' ); ?></p>
 
 			</div>
 			<div class="col">
@@ -124,7 +152,7 @@
 
 				<p><?php _e( 'Export Orders to CSV for has all needed data. With this feature, you can easily get all the data you need.', 'woo-redsys-gateway-light' ); ?></p>
 
-				<p><?php _e( 'With Export Orders to CSV, you will download a CSV with all your orders between two dates, so you will be able to import that CSV to your contatibility software or in an Excel or similar to Excel.', 'woo-redsys-gateway-light' ); ?>
+				<p><?php _e( 'With Export Orders to CSV, you will download a CSV with all your orders between two dates, so you will be able to import that CSV to your contatibility software or in an Excel or similar to Excel.', 'woo-redsys-gateway-light' ); ?></p>
 
 			</div>
 			<div class="col">
@@ -133,7 +161,6 @@
 		</div>
 
 		<hr />
-
 
 	</div>
 
