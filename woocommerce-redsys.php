@@ -11,7 +11,7 @@
  * Plugin Name: WooCommerce Redsys Gateway Light
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway, supported banks here: http://www.redsys.es/wps/wcm/connect/Redsys_es/redsys.es/areaCorporativa/nuestrosSocios/
- * Version: 1.1.0
+ * Version: 1.1.1
  * Author: José Conti
  * Author URI: https://www.joseconti.com/
  * Tested up to: 4.7
@@ -22,7 +22,7 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '1.1.0' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '1.1.1' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 add_action( 'plugins_loaded', 'woocommerce_gateway_redsys_init', 0 );
@@ -190,18 +190,18 @@ function woocommerce_gateway_redsys_init() {
 		 */
 		public function admin_options() {
 ?>
-			<h3><?php _esc_html_e( 'Servired/RedSys Spain', 'woo-redsys-gateway-light' ); ?></h3>
+			<h3><?php esc_html_e( 'Servired/RedSys Spain', 'woo-redsys-gateway-light' ); ?></h3>
 			<div class="updated woocommerce-message inline">
 				<p>
 					<a href="https://woocommerce.com/products/redsys-gateway/" target="_blank" rel="noopener"><img class="aligncenter wp-image-211 size-full" title="Consigue la versión Pro en WooCommerce.com" src="<?php echo esc_attr( REDSYS_PLUGIN_URL ) . 'assets/images/banner.png'; ?>" alt="Consigue la versión Pro en WooCommerce.com" width="800" height="150" /></a>
 				</p>
 			</div>
-			<p><?php _esc_html_e( 'Servired/RedSys works by sending the user to your bank TPV to enter their payment information.', 'woo-redsys-gateway-light' ); ?></p>
+			<p><?php esc_html_e( 'Servired/RedSys works by sending the user to your bank TPV to enter their payment information.', 'woo-redsys-gateway-light' ); ?></p>
 				<?php
 				if ( class_exists( 'SitePress' ) ) {
 					?>
-				<div class="updated fade"><h4><?php _esc_html_e( 'Attention! WPML detected.', 'woo-redsys-gateway-light' ); ?></h4>
-				<p><?php _esc_html_e( 'The Gateway will be shown in the customer language. The option "Language Gateway" is not taken into consideration', 'woo-redsys-gateway-light' ); ?></p>
+				<div class="updated fade"><h4><?php esc_html_e( 'Attention! WPML detected.', 'woo-redsys-gateway-light' ); ?></h4>
+				<p><?php esc_html_e( 'The Gateway will be shown in the customer language. The option "Language Gateway" is not taken into consideration', 'woo-redsys-gateway-light' ); ?></p>
 				</div>
 				<?php } ?>
 			<?php if ( $this->is_valid_for_use() ) : ?>
@@ -212,7 +212,7 @@ function woocommerce_gateway_redsys_init() {
 ?>
 				</table><!--/.form-table-->
 			<?php else : ?>
-				<div class="inline error"><p><strong><?php _esc_html_e( 'Gateway Disabled', 'woo-redsys-gateway-light' ); ?></strong>: <?php _esc_html_e( 'Servired/RedSys only support EUROS &euro; and BRL currency.', 'woo-redsys-gateway-light' ); ?></p></div>
+				<div class="inline error"><p><strong><?php esc_html_e( 'Gateway Disabled', 'woo-redsys-gateway-light' ); ?></strong>: <?php esc_html_e( 'Servired/RedSys only support EUROS &euro; and BRL currency.', 'woo-redsys-gateway-light' ); ?></p></div>
 				<?php
 			endif;
 		}
@@ -452,7 +452,7 @@ function woocommerce_gateway_redsys_init() {
 					$form_inputs .= '<input type="hidden" name="' . $key . '" value="' . esc_attr( $value ) . '" />';
 				}
 				wc_enqueue_js( '
-				jQuery("body").block({
+				$("body").block({
 					message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', $woocommerce->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . __( 'Thank you for your order. We are now redirecting you to Servired/RedSys to make the payment.', 'woo-redsys-gateway-light' ) . '",
 					overlayCSS:
 					{
@@ -535,7 +535,7 @@ function woocommerce_gateway_redsys_init() {
 		 */
 		function receipt_page( $order ) {
 			echo '<p>' . esc_html__( 'Thank you for your order, please click the button below to pay with Credit Card via Servired/RedSys.', 'woo-redsys-gateway-light' ) . '</p>';
-			echo esc_attr( $this->generate_redsys_form( $order ) );
+			echo $this->generate_redsys_form( $order );
 		}
 		/**
 		 * Check redsys IPN validity
