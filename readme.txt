@@ -2,8 +2,8 @@
 Contributors: j.conti
 Tags: woocommerce, redsys, pasarela redsys, gateway, redsys gateway, redsys pasarela, redsys woocommerce, woocommerce redsys, iupay, Iupay gateway, Iupay woocommerce, woocommerce iupay, iupay pasarela, pasarela iupay
 Requires at least: 4.0
-Tested up to: 4.9.6
-Stable tag: 1.1.0
+Tested up to: 4.9.8
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 3.0
@@ -41,12 +41,18 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 * Gateway language selection from settings.
 * Checkout logo customization.
 * Iupay Gateway is included with its own setting page
+* Tokenization
+* Pay with one click
+* Preauthorizations
+* Approve preauthorizations from WooCommerce order
+* Direct Debit
+* Private Products
 * Second Terminal number. Very useful for security purpose.
 * Sequential Invoice Number, essential in Spain by the Public Treasury.
+* Refund from Order.
 * Error action selection, what do you want that happen when a user make an error on the Gateway?
 * Export Order to CSV, export all date orders between two dates to CSV.
 * Pay with 1 click.
-* Refund from Order.
 * And more to come.
 
 == Installation ==
@@ -72,6 +78,10 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 4. Language: Set the Redsys Gateway Language.
 
 == Changelog ==
+
+== 1.1.1 ==
+
+* Removed message about Mcrypt when PHP is 7.0 or above
 
 == 1.1.0 ==
 * Added Redsys API for PHP 5.x and 7.x

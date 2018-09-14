@@ -14,7 +14,7 @@
  * Version: 1.1.1
  * Author: José Conti
  * Author URI: https://www.joseconti.com/
- * Tested up to: 4.7
+ * Tested up to: 4.8
  * Text Domain: woo-redsys-gateway-light
  * Domain Path: /languages/
  * Copyright: (C) 2017 José Conti.
@@ -153,7 +153,7 @@ function woocommerce_gateway_redsys_init() {
 			}
 		}
 		public static function admin_notice_mcrypt_encrypt() {
-			if ( ! function_exists( 'mcrypt_encrypt' ) ) {
+			if ( ! function_exists( 'mcrypt_encrypt' ) && ( version_compare( PHP_VERSION, '7.0', '!<' ) ) ) {
 				$class   = 'error';
 				$message = __( 'WARNING: The PHP mcrypt_encrypt module is not installed on your server. The API Redsys SHA-256 needs this module in order to work.	Please contact your hosting provider and ask them to install it. Otherwise, your shop will stop working.', 'woo-redsys-gateway-light' );
 				echo '<div class=' . esc_attr( $class ) . '> <p>' . esc_attr( $message ) . '</p></div>';
