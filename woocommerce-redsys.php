@@ -10,11 +10,13 @@
  *
  * Plugin Name: WooCommerce Redsys Gateway Light
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
- * Description: Extends WooCommerce with a RedSys gateway, supported banks here: http://www.redsys.es/wps/wcm/connect/Redsys_es/redsys.es/areaCorporativa/nuestrosSocios/
- * Version: 1.1.1
+ * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
+ * Version: 1.2.0
  * Author: José Conti
  * Author URI: https://www.joseconti.com/
- * Tested up to: 4.8
+ * Tested up to: 4.9
+ * WC requires at least: 3.0
+ * WC tested up to: 3.4
  * Text Domain: woo-redsys-gateway-light
  * Domain Path: /languages/
  * Copyright: (C) 2017 José Conti.
@@ -22,7 +24,7 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '1.1.1' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '1.2.0' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 add_action( 'plugins_loaded', 'woocommerce_gateway_redsys_init', 0 );
@@ -45,10 +47,9 @@ if ( ! class_exists( 'RedsysAPI' ) ) {
  * Plugin updates
  */
 
-
 // SEUR Get Parent Page.
 function redsys_get_parent_page() {
-	$seur_parent = basename( $_SERVER[ 'SCRIPT_NAME' ] );
+	$seur_parent = basename( $_SERVER['SCRIPT_NAME'] );
 	return $seur_parent;
 }
 
@@ -58,7 +59,6 @@ function redsys_menu() {
 	$redsys_about = add_submenu_page( 'woocommerce', __( 'About Redsys', 'woo-redsys-gateway-light' ), __( 'About Redsys', 'woo-redsys-gateway-light' ), 'manage_options', 'redsys-about-page', 'redsys_about_page' );
 
 }
-
 add_action( 'admin_menu', 'redsys_menu' );
 
 function redsys_styles_css( $hook ) {
@@ -66,7 +66,7 @@ function redsys_styles_css( $hook ) {
 
 	if ( $redsys_about !== $hook ) {
 		return; } else {
-		wp_register_style( 'aboutRedsys', REDSYS_PLUGIN_URL . 'assets/css/welcome.css', array(), '1.0.4' );
+		wp_register_style( 'aboutRedsys', REDSYS_PLUGIN_URL . 'assets/css/welcome.css', array(), '1.2.0' );
 		wp_enqueue_style( 'aboutRedsys' );
 		}
 }
@@ -135,6 +135,7 @@ function woocommerce_gateway_redsys_init() {
 			$this->logo           = $this->get_option( 'logo' );
 			$this->customer       = $this->get_option( 'customer' );
 			$this->commercename   = $this->get_option( 'commercename' );
+			$this->payoptions     = $this->get_option( 'payoptions' );
 			$this->terminal       = $this->get_option( 'terminal' );
 			$this->secret         = $this->get_option( 'secret' );
 			$this->secretsha256   = $this->get_option( 'secretsha256' );
@@ -161,7 +162,7 @@ function woocommerce_gateway_redsys_init() {
 				return;
 			}
 		}
-		function checkfor254testredsys(){
+		function checkfor254testredsys() {
 			$usesecretsha256 = $this->secretsha256;
 			if ( ! $usesecretsha256 ) {
 				$checkfor254 = true;
@@ -189,7 +190,7 @@ function woocommerce_gateway_redsys_init() {
 		 * @since 1.0.0
 		 */
 		public function admin_options() {
-?>
+			?>
 			<h3><?php esc_html_e( 'Servired/RedSys Spain', 'woo-redsys-gateway-light' ); ?></h3>
 			<div class="updated woocommerce-message inline">
 				<p>
@@ -209,7 +210,7 @@ function woocommerce_gateway_redsys_init() {
 				<?php
 				// Generate the HTML For the settings form.
 				$this->generate_settings_html();
-?>
+				?>
 				</table><!--/.form-table-->
 			<?php else : ?>
 				<div class="inline error"><p><strong><?php esc_html_e( 'Gateway Disabled', 'woo-redsys-gateway-light' ); ?></strong>: <?php esc_html_e( 'Servired/RedSys only support EUROS &euro; and BRL currency.', 'woo-redsys-gateway-light' ); ?></p></div>
@@ -260,6 +261,17 @@ function woocommerce_gateway_redsys_init() {
 					'type'        => 'text',
 					'description' => __( 'Commerce Name', 'woo-redsys-gateway-light' ),
 					'desc_tip'    => true,
+				),
+				'payoptions'     => array(
+					'title'       => __( 'Pay Options', 'woo-redsys-gateway-light' ),
+					'type'        => 'select',
+					'description' => __( 'Chose options in Redsys Gateway (by Default Credit Cart + iUpay)', 'woo-redsys-gateway-light' ),
+					'default'     => 'T',
+					'options'     => array(
+						' ' => __( 'All Methods', 'woocommerce-redsys' ),
+						'T' => __( 'Credit Cart & iUpay', 'woocommerce-redsys' ),
+						'C' => __( 'Credit Cart', 'woocommerce-redsys' ),
+					),
 				),
 				'terminal'       => array(
 					'title'       => __( 'Terminal number', 'woo-redsys-gateway-light' ),
@@ -339,7 +351,7 @@ function woocommerce_gateway_redsys_init() {
 				'TRY' => 949,
 			);
 			$transaction_id   = str_pad( $order_id, 12, '0', STR_PAD_LEFT );
-			$transaction_id1  = mt_rand( 1, 999 ); // lets to create a random number.
+			$transaction_id1  = wp_rand( 1, 999 ); // lets to create a random number.
 			$transaction_id2  = substr_replace( $transaction_id, $transaction_id1, 0, -9 ); // new order number.
 			$order_total      = number_format( $order->get_total(), 2, ',', '' );
 			$order_total_sign = number_format( $order->get_total(), 2, '', '' );
@@ -393,6 +405,7 @@ function woocommerce_gateway_redsys_init() {
 			$miobj->setParameter( 'DS_MERCHANT_ORDER', $transaction_id2 );
 			$miobj->setParameter( 'DS_MERCHANT_MERCHANTCODE', $this->customer );
 			$miobj->setParameter( 'DS_MERCHANT_CURRENCY', $currency_codes[ get_woocommerce_currency() ] );
+			$miobj->setParameter( 'DS_MERCHANT_PAYMETHODS', $payment_option );
 			$miobj->setParameter( 'DS_MERCHANT_TRANSACTIONTYPE', $transaction_type );
 			$miobj->setParameter( 'DS_MERCHANT_TERMINAL', $dsmerchantterminal );
 			$miobj->setParameter( 'DS_MERCHANT_MERCHANTURL', $final_notify_url );
@@ -401,6 +414,9 @@ function woocommerce_gateway_redsys_init() {
 			$miobj->setParameter( 'DS_MERCHANT_CONSUMERLANGUAGE', $gatewaylanguage );
 			$miobj->setParameter( 'DS_MERCHANT_PRODUCTDESCRIPTION', __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number() );
 			$miobj->setParameter( 'DS_MERCHANT_MERCHANTNAME', $this->commercename );
+			if ( ! empty( $this->payoptions ) || ' ' !== $this->payoptions ) {
+				$miobj->setParameter( 'DS_MERCHANT_PAYMETHODS', $this->payoptions );
+			}
 			$version = 'HMAC_SHA256_V1';
 			// Se generan los parámetros de la petición.
 			$request     = '';
@@ -425,6 +441,7 @@ function woocommerce_gateway_redsys_init() {
 				$this->log->add( 'redsys', 'DS_MERCHANT_URLKO: ' . $returnfromredsys );
 				$this->log->add( 'redsys', 'DS_MERCHANT_CONSUMERLANGUAGE: ' . $gatewaylanguage );
 				$this->log->add( 'redsys', 'DS_MERCHANT_PRODUCTDESCRIPTION: ' . __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number() );
+				$this->log->add( 'redsys', 'DS_MERCHANT_PAYMETHODS: ' . $this->payoptions );
 			}
 				$redsys_args = apply_filters( 'woocommerce_redsys_args', $redsys_args );
 				return $redsys_args;
@@ -570,7 +587,7 @@ function woocommerce_gateway_redsys_init() {
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'redsys', 'HTTP Notification received: ' . print_r( $_POST, true ) );
 				}
-				if ( $_POST[ 'Ds_MerchantCode' ] === $this->customer ) {
+				if ( $_POST['Ds_MerchantCode'] === $this->customer ) {
 					if ( 'yes' === $this->debug ) {
 						$this->log->add( 'redsys', 'Received valid notification from Servired/RedSys' );
 					}
@@ -637,7 +654,9 @@ function woocommerce_gateway_redsys_init() {
 			$response = intval( $response );
 			if ( $response <= 99 ) {
 				// authorized.
-				$order_total_compare = number_format( $order->get_total(), 2, '', '' );
+				$order_total_compare_0 = number_format( $order->get_total(), 2, '', '' );
+				// remove 0 from bigining
+				$order_total_compare = ltrim( $order_total_compare_0, '0' );
 				if ( $order_total_compare !== $total ) {
 					// amount does not match.
 					if ( 'yes' === $this->debug ) {
@@ -724,7 +743,4 @@ function woocommerce_gateway_redsys_init() {
 		echo '<p><strong>' . esc_html__( 'Redsys Authorisation Code', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_attr( get_post_meta( get_the_ID(), '_authorisation_code_redsys', true ) ) . '</p>';
 	}
 	add_action( 'woocommerce_admin_order_data_after_billing_address', 'add_redsys_meta_box' );
-
-	// Adding Iupay.
-	require_once plugin_dir_path( __FILE__ ) . 'class-wc-gateway-iupay.php';
 }

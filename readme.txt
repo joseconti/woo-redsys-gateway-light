@@ -3,6 +3,7 @@ Contributors: j.conti
 Tags: woocommerce, redsys, pasarela redsys, gateway, redsys gateway, redsys pasarela, redsys woocommerce, woocommerce redsys, iupay, Iupay gateway, Iupay woocommerce, woocommerce iupay, iupay pasarela, pasarela iupay
 Requires at least: 4.0
 Tested up to: 4.9.8
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=U7XNYWPL8VRHE
 Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -26,7 +27,6 @@ With this extension you get all you need for use Redsys & Iupay Gateway.
 * Works with SNI certificates like Let's Encrypt, EX: SiteGround, HostFusion, etc
 * Gateway language selection from settings.
 * Checkout logo customization.
-* Iupay Gateway is included with its own setting page.
 * Added checkout logo customization.
 
 As this is WooCommerce official extension, always will be compatible with the latest WooCommerce version.
@@ -79,8 +79,11 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 
 == Changelog ==
 
-== 1.1.1 ==
+== 1.2.0 ==
+* Removed iupay and added payment options in Redsys setting page. Now you can select if you want iupay or not form settings.
+* Fix: Fixed a bug with amounts less than 1â‚¬.
 
+== 1.1.1 ==
 * Removed message about Mcrypt when PHP is 7.0 or above
 
 == 1.1.0 ==

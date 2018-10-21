@@ -1,7 +1,6 @@
 .about-wrap-redsys .notice, .about-wrap-redsys div.error, .about-wrap-redsys div.updated{
 	display: none !important;
 }
-
 .wrap div.woocommerce-message{
 	margin: 5px 0 15px;
 	background: #fff;
