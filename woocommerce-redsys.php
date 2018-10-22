@@ -11,7 +11,7 @@
  * Plugin Name: WooCommerce Redsys Gateway Light
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
- * Version: 1.2.0
+ * Version: 1.2.1
  * Author: José Conti
  * Author URI: https://www.joseconti.com/
  * Tested up to: 4.9
@@ -24,7 +24,7 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '1.2.0' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '1.2.1' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 add_action( 'plugins_loaded', 'woocommerce_gateway_redsys_init', 0 );
@@ -112,7 +112,8 @@ function woocommerce_gateway_redsys_init() {
 		public function __construct() {
 			global $woocommerce, $checkfor254;
 			$this->id = 'redsys';
-			if ( ! empty( $this->get_option( 'logo' ) ) ) {
+			$logo_url = $this->get_option( 'logo' );
+			if ( ! empty( $logo_url ) ) {
 				$logo_url   = $this->get_option( 'logo' );
 				$this->icon = apply_filters( 'woocommerce_redsys_icon', $logo_url );
 			} else {
@@ -268,9 +269,9 @@ function woocommerce_gateway_redsys_init() {
 					'description' => __( 'Chose options in Redsys Gateway (by Default Credit Cart + iUpay)', 'woo-redsys-gateway-light' ),
 					'default'     => 'T',
 					'options'     => array(
-						' ' => __( 'All Methods', 'woocommerce-redsys' ),
-						'T' => __( 'Credit Cart & iUpay', 'woocommerce-redsys' ),
-						'C' => __( 'Credit Cart', 'woocommerce-redsys' ),
+						' ' => __( 'All Methods', 'woo-redsys-gateway-light' ),
+						'T' => __( 'Credit Cart & iUpay', 'woo-redsys-gateway-light' ),
+						'C' => __( 'Credit Cart', 'woo-redsys-gateway-light' ),
 					),
 				),
 				'terminal'       => array(

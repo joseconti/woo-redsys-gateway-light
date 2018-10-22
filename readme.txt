@@ -4,7 +4,7 @@ Tags: woocommerce, redsys, pasarela redsys, gateway, redsys gateway, redsys pasa
 Requires at least: 4.0
 Tested up to: 4.9.8
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=U7XNYWPL8VRHE
-Stable tag: 1.1.1
+Stable tag: 1.2.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 3.0
@@ -79,9 +79,16 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 
 == Changelog ==
 
+
+== 1.2.2 ==
+* Fixed a translation error.
+
+== 1.2.1 ==
+* Fixed a problem in some server settings that the plugin crash at activation.
+
 == 1.2.0 ==
 * Removed iupay and added payment options in Redsys setting page. Now you can select if you want iupay or not form settings.
-* Fix: Fixed a bug with amounts less than 1â‚¬.
+* Fix: Fixed a bug with amounts less than 1€.
 
 == 1.1.1 ==
 * Removed message about Mcrypt when PHP is 7.0 or above
