@@ -11,12 +11,12 @@
  * Plugin Name: WooCommerce Redsys Gateway Light
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
- * Version: 1.2.1
+ * Version: 1.3.1
  * Author: José Conti
  * Author URI: https://www.joseconti.com/
- * Tested up to: 4.9
+ * Tested up to: 5.0
  * WC requires at least: 3.0
- * WC tested up to: 3.4
+ * WC tested up to: 3.5
  * Text Domain: woo-redsys-gateway-light
  * Domain Path: /languages/
  * Copyright: (C) 2017 José Conti.
@@ -24,7 +24,7 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '1.2.1' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '1.3.1' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 add_action( 'plugins_loaded', 'woocommerce_gateway_redsys_init', 0 );
@@ -90,6 +90,19 @@ function redsys_welcome_splash() {
 }
 add_action( 'admin_init', 'redsys_welcome_splash', 1 );
 
+function redsys_css_lite() {
+		global $post_type;
+
+		$current_screen = get_current_screen();
+
+		if ( 'woocommerce_page_wc-settings' === $current_screen->id ) {
+			wp_register_style( 'redsys-css', plugins_url( 'assets/css/redsys-css.css', __FILE__ ), array(), REDSYS_WOOCOMMERCE_VERSION );
+			wp_enqueue_style( 'redsys-css' );
+		}
+
+	}
+	add_action( 'admin_enqueue_scripts', 'redsys_css_lite' );
+
 function woocommerce_gateway_redsys_init() {
 	if ( ! class_exists( 'WC_Payment_Gateway' ) ) {
 		return;
@@ -134,6 +147,7 @@ function woocommerce_gateway_redsys_init() {
 			$this->title          = $this->get_option( 'title' );
 			$this->description    = $this->get_option( 'description' );
 			$this->logo           = $this->get_option( 'logo' );
+			$this->orderdo        = $this->get_option( 'orderdo' );
 			$this->customer       = $this->get_option( 'customer' );
 			$this->commercename   = $this->get_option( 'commercename' );
 			$this->payoptions     = $this->get_option( 'payoptions' );
@@ -197,6 +211,10 @@ function woocommerce_gateway_redsys_init() {
 				<p>
 					<a href="https://woocommerce.com/products/redsys-gateway/" target="_blank" rel="noopener"><img class="aligncenter wp-image-211 size-full" title="Consigue la versión Pro en WooCommerce.com" src="<?php echo esc_attr( REDSYS_PLUGIN_URL ) . 'assets/images/banner.png'; ?>" alt="Consigue la versión Pro en WooCommerce.com" width="800" height="150" /></a>
 				</p>
+			</div>
+			<div class="redsysnotice">
+				<span class="dashicons dashicons-welcome-learn-more redsysnotice-dash"></span>
+				<span class="redsysnotice__content"><?php printf( __( 'check <a href="%1$s" target="_blank" rel="noopener">FAQ page</a> for working problems, or open a <a href="%2$s" target="_blank" rel="noopener">thread on WordPress.org</a> for support. Please, add a <a href="%3$s" target="_blank" rel="noopener">review on WordPress.org</a>', 'woo-redsys-gateway-light' ), 'https://www.joseconti.com/faq-plugin-redsys-woocommerce-com/', 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/', 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/reviews/?rate=5#new-post' ); ?><span>
 			</div>
 			<p><?php esc_html_e( 'Servired/RedSys works by sending the user to your bank TPV to enter their payment information.', 'woo-redsys-gateway-light' ); ?></p>
 				<?php
@@ -286,6 +304,16 @@ function woocommerce_gateway_redsys_init() {
 					'label'       => __( 'Activate SNI Compatibility.', 'woo-redsys-gateway-light' ),
 					'default'     => 'no',
 					'description' => sprintf( __( 'If you are using HTTPS and Redsys don\'t support your certificate, example Lets Encrypt, you can deactivate HTTPS notifications. WARNING: If you are forcing redirection to HTTPS with htaccess, you need to add an exception for notification URL', 'woo-redsys-gateway-light' ) ),
+				),
+				'orderdo'     => array(
+					'title'       => __( 'What to do after payment?', 'woo-redsys-gateway-light' ),
+					'type'        => 'select',
+					'description' => __( 'Chose what to do after the customer pay the order.', 'woo-redsys-gateway-light' ),
+					'default'     => 'processing',
+					'options'     => array(
+						'processing' => __( 'Mark as Processing (default & recomended)', 'woo-redsys-gateway-light' ),
+						'completed'  => __( 'Mark as Complete', 'woo-redsys-gateway-light' ),
+					),
 				),
 				'secretsha256'   => array(
 					'title'       => __( 'Encryption secret passphrase SHA-256', 'woo-redsys-gateway-light' ),
@@ -690,7 +718,13 @@ function woocommerce_gateway_redsys_init() {
 				// Payment completed.
 				$order->add_order_note( __( 'HTTP Notification received - payment completed', 'woo-redsys-gateway-light' ) );
 				$order->add_order_note( __( 'Authorisation code: ', 'woo-redsys-gateway-light' ) . $authorisation_code );
-				$order->payment_complete();
+				if ( 'completed' === $this->orderdo ) {
+					sleep(5);
+					$order->update_status( 'completed', __( 'Order Completed by Redsys', 'woo-redsys-gateway-light' ) );
+				} else {
+					$order->payment_complete();
+				}
+
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'redsys', 'Payment complete.' );
 				}

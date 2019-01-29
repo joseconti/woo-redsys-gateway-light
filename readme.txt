@@ -2,13 +2,13 @@
 Contributors: j.conti
 Tags: woocommerce, redsys, pasarela redsys, gateway, redsys gateway, redsys pasarela, redsys woocommerce, woocommerce redsys, iupay, Iupay gateway, Iupay woocommerce, woocommerce iupay, iupay pasarela, pasarela iupay
 Requires at least: 4.0
-Tested up to: 4.9.8
+Tested up to: 5.0
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=U7XNYWPL8VRHE
-Stable tag: 1.2.1
+Stable tag: 1.3.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 3.0
-WC tested up to: 3.4
+WC tested up to: 3.5
 
 Add Redsys Gateway (and Iupay) to WooCommerce. This is the Light version of the official WooCommerce Redsys plugin at WooCommerce.com
 
@@ -79,6 +79,11 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 
 == Changelog ==
 
+== 1.3.1 ==
+* Added useful links on Redsys Settings.
+
+== 1.3.0 ==
+* Now you can select if the order has to be marked as complete or as Processing (WooCommerce Default).
 
 == 1.2.2 ==
 * Fixed a translation error.
