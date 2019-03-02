@@ -45,13 +45,13 @@ function redsys_about_page() {
 				<p>
 					<?php
 					/* translators: link to woocommerce.com */
-					printf( esc_html_e( 'This WooCommerce extension has all you need for start selling through Redsys. It is full compatible with WPML. If you need more power, you can buy the premium extension at %s.', 'woo-redsys-gateway-light' ), esc_url( $link_shop ) );
+					printf( __( 'This WooCommerce extension has all you need for start selling through Redsys. It is full compatible with WPML. If you need more power, you can buy the premium extension at %s.', 'woo-redsys-gateway-light' ), $link_shop );
 					?>
 				</p>
 				<p>
 					<?php
 					/* translators: link to woocommerce.com */
-					printf( esc_html_e( 'With the premium version you get many important features like tokenization, refund, two terminals, error actions, Sequential Invoice Number, invoice export, etc. See all features %s', 'woo-redsys-gateway-light' ), esc_url( $link_support ) );
+					printf( __( 'With the premium version you get many important features like tokenization, refund, two terminals, error actions, Sequential Invoice Number, invoice export, etc. See all features %s', 'woo-redsys-gateway-light' ), $link_support );
 					?>
 				</p>
 			</div>
@@ -177,5 +177,5 @@ function redsys_about_page() {
 		<hr />
 
 	</div>
-<?php
+	<?php
 }

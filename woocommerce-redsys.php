@@ -5,16 +5,16 @@
  *
  * @package WooCommerce Redsys Gateway Ligh
  * @author José Conti
- * @copyright 2018 José Conti
+ * @copyright 2018-2019 José Conti
  * @license GPL-3.0+
  *
  * Plugin Name: WooCommerce Redsys Gateway Light
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
- * Version: 1.3.1
+ * Version: 1.3.3
  * Author: José Conti
  * Author URI: https://www.joseconti.com/
- * Tested up to: 5.0
+ * Tested up to: 5.1
  * WC requires at least: 3.0
  * WC tested up to: 3.5
  * Text Domain: woo-redsys-gateway-light
@@ -24,7 +24,7 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '1.3.1' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '1.3.3' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 add_action( 'plugins_loaded', 'woocommerce_gateway_redsys_init', 0 );
@@ -82,6 +82,11 @@ function redsys_welcome_splash() {
 	} elseif ( 'update-core.php' === $seur_parent ) {
 		return;
 	} else {
+		$rate = get_option( 'woocommerce-redsys-rate' );
+
+		if ( ! $rate ) {
+			update_option( 'woocommerce-redsys-rate', time() );
+		}
 		update_option( 'woocommerce-redsys-version', REDSYS_WOOCOMMERCE_VERSION );
 		$seurredirect = esc_url( admin_url( add_query_arg( array( 'page' => 'redsys-about-page' ), 'admin.php' ) ) );
 		wp_safe_redirect( $seurredirect );
@@ -177,15 +182,7 @@ function woocommerce_gateway_redsys_init() {
 				return;
 			}
 		}
-		function checkfor254testredsys() {
-			$usesecretsha256 = $this->secretsha256;
-			if ( ! $usesecretsha256 ) {
-				$checkfor254 = true;
-			} else {
-				$checkfor254 = false;
-			}
-			return $checkfor254;
-		}
+
 		/**
 		 * Check if this gateway is enabled and available in the user's country
 		 *
@@ -751,30 +748,54 @@ function woocommerce_gateway_redsys_init() {
 			return $order;
 		}
 	}
-	function admin_notice_redsys_sha256() {
-		$sha = new WC_Gateway_Redsys();
-		if ( $sha->checkfor254testredsys() ) {
-			$class   = 'error';
-			$message = __( 'WARNING: You need to add Encryption secret passphrase SHA-256 to Redsys Gateway Settings.', 'woo-redsys-gateway-light' );
-			echo '<div class="' . esc_attr( $class ) . '"> <p>' . esc_attr( $message ) . '</p></div>';
-		} else {
-			return;
-		}
-	}
-	add_action( 'admin_notices', 'admin_notice_redsys_sha256' );
 
 	add_action( 'admin_notices', function() {
 		WC_Gateway_Redsys::admin_notice_mcrypt_encrypt();
 	});
+
+	function redsys_help_admin_notice() {
+
+		$class = 'notice notice-info is-dismissible';
+		$message = '<a href="https://wordpress.org/support/plugin/woo-redsys-gateway-light/" target="_blank">WordPress.org</a>';
+
+
+		printf( '<div class="%1$s"><p>', esc_attr( $class ) );
+		printf( __( 'If your orders are kept on waiting for Redsys payment, please open a thread in %s Forums, it has solution and it is not the fault of the plugin.', 'woo-redsys-gateway-light' ), $message );
+		echo '</p></div>';
+	}
+
+	add_action('admin_notices', 'redsys_help_admin_notice');
+
+
+	function redsys_ask_for_rating() {
+
+		$activation_date    = get_option( 'woocommerce-redsys-rate' );
+		$activation_date_30 = $activation_date + ( 30 * 24 * 60 * 60 );
+
+		if ( time() > $activation_date_30 ) {
+			$class   = 'notice notice-info is-dismissible';
+			$message = '<a href="https://wordpress.org/support/plugin/woo-redsys-gateway-light/reviews/?rate=5#new-post" target="_blank">WordPress.org</a>';
+
+
+			printf( '<div class="%1$s"><p>', esc_attr( $class ) );
+			printf( __( 'You have been using Redsys Lite plugin for more than 30 days, please, if you like, write a %s review. You will only need a moment and you will make me very happy. Thanks a lot', 'woo-redsys-gateway-light' ), $message );
+			echo '</p></div>';
+		}
+
+	}
+	add_action('admin_notices', 'redsys_ask_for_rating');
+
 	function woocommerce_add_gateway_redsys_gateway( $methods ) {
 		$methods[] = 'WC_Gateway_redsys';
 		return $methods;
 	}
 	add_filter( 'woocommerce_payment_gateways', 'woocommerce_add_gateway_redsys_gateway' );
 	function add_redsys_meta_box() {
+		$date_decoded = str_replace( '%2F', '/', get_post_meta( get_the_ID(), '_payment_date_redsys', true ) );
+		$hour_decoded = str_replace( '%3A', ':', get_post_meta( get_the_ID(), '_payment_hour_redsys', true ) );
 		echo '<h4>' . esc_html__( 'Payment Details', 'woo-redsys-gateway-light' ) . '</h4>';
-		echo '<p><strong>' . esc_html__( 'Redsys Date', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_attr( get_post_meta( get_the_ID(), '_payment_date_redsys', true ) ) . '</p>';
-		echo '<p><strong>' . esc_html__( 'Redsys Hour', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_attr( get_post_meta( get_the_ID(), '_payment_hour_redsys', true ) ) . '</p>';
+		echo '<p><strong>' . esc_html__( 'Redsys Date', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_html( $date_decoded ) . '</p>';
+		echo '<p><strong>' . esc_html__( 'Redsys Hour', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_html( $hour_decoded ) . '</p>';
 		echo '<p><strong>' . esc_html__( 'Redsys Authorisation Code', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_attr( get_post_meta( get_the_ID(), '_authorisation_code_redsys', true ) ) . '</p>';
 	}
 	add_action( 'woocommerce_admin_order_data_after_billing_address', 'add_redsys_meta_box' );
