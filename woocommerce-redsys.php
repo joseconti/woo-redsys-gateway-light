@@ -11,7 +11,7 @@
  * Plugin Name: WooCommerce Redsys Gateway Light
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
- * Version: 1.3.3
+ * Version: 1.3.4
  * Author: José Conti
  * Author URI: https://www.joseconti.com/
  * Tested up to: 5.1
@@ -24,7 +24,7 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '1.3.3' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '1.3.4' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 add_action( 'plugins_loaded', 'woocommerce_gateway_redsys_init', 0 );
@@ -753,13 +753,20 @@ function woocommerce_gateway_redsys_init() {
 		WC_Gateway_Redsys::admin_notice_mcrypt_encrypt();
 	});
 
+	include_once 'includes/persist-admin-notices-dismissal.php';
+	add_action( 'admin_init', array( 'PAnD', 'init' ) );
+
 	function redsys_help_admin_notice() {
 
-		$class = 'notice notice-info is-dismissible';
+		if ( ! PAnD::is_admin_notice_active( 'redsys-help-admin-notice-forever' ) ) {
+			return;
+		}
+
+		$class   = 'notice notice-info is-dismissible';
 		$message = '<a href="https://wordpress.org/support/plugin/woo-redsys-gateway-light/" target="_blank">WordPress.org</a>';
 
 
-		printf( '<div class="%1$s"><p>', esc_attr( $class ) );
+		printf( '<div data-dismissible="redsys-help-admin-notice-forever" class="%1$s"><p>', esc_attr( $class ) );
 		printf( __( 'If your orders are kept on waiting for Redsys payment, please open a thread in %s Forums, it has solution and it is not the fault of the plugin.', 'woo-redsys-gateway-light' ), $message );
 		echo '</p></div>';
 	}
@@ -769,6 +776,10 @@ function woocommerce_gateway_redsys_init() {
 
 	function redsys_ask_for_rating() {
 
+		if ( ! PAnD::is_admin_notice_active( 'redsys-ask-for-ratin-forever' ) ) {
+			return;
+		}
+
 		$activation_date    = get_option( 'woocommerce-redsys-rate' );
 		$activation_date_30 = $activation_date + ( 30 * 24 * 60 * 60 );
 
@@ -777,7 +788,7 @@ function woocommerce_gateway_redsys_init() {
 			$message = '<a href="https://wordpress.org/support/plugin/woo-redsys-gateway-light/reviews/?rate=5#new-post" target="_blank">WordPress.org</a>';
 
 
-			printf( '<div class="%1$s"><p>', esc_attr( $class ) );
+			printf( '<div data-dismissible="redsys-ask-for-ratin-forever" class="%1$s"><p>', esc_attr( $class ) );
 			printf( __( 'You have been using Redsys Lite plugin for more than 30 days, please, if you like, write a %s review. You will only need a moment and you will make me very happy. Thanks a lot', 'woo-redsys-gateway-light' ), $message );
 			echo '</p></div>';
 		}
