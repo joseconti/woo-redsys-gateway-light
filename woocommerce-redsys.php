@@ -11,12 +11,12 @@
  * Plugin Name: WooCommerce Redsys Gateway Light
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
- * Version: 1.3.4
+ * Version: 1.3.6
  * Author: José Conti
  * Author URI: https://www.joseconti.com/
  * Tested up to: 5.1
  * WC requires at least: 3.0
- * WC tested up to: 3.5
+ * WC tested up to: 3.6
  * Text Domain: woo-redsys-gateway-light
  * Domain Path: /languages/
  * Copyright: (C) 2017 José Conti.
@@ -24,7 +24,7 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '1.3.4' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '1.3.6' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 
 add_action( 'plugins_loaded', 'woocommerce_gateway_redsys_init', 0 );
@@ -714,12 +714,10 @@ function woocommerce_gateway_redsys_init() {
 				}
 				// Payment completed.
 				$order->add_order_note( __( 'HTTP Notification received - payment completed', 'woo-redsys-gateway-light' ) );
-				$order->add_order_note( __( 'Authorisation code: ', 'woo-redsys-gateway-light' ) . $authorisation_code );
+				$order->add_order_note( __( 'Authorization code: ', 'woo-redsys-gateway-light' ) . $authorisation_code );
+				$order->payment_complete();
 				if ( 'completed' === $this->orderdo ) {
-					sleep(5);
 					$order->update_status( 'completed', __( 'Order Completed by Redsys', 'woo-redsys-gateway-light' ) );
-				} else {
-					$order->payment_complete();
 				}
 
 				if ( 'yes' === $this->debug ) {
@@ -728,11 +726,11 @@ function woocommerce_gateway_redsys_init() {
 			} elseif ( 101 === $response ) {
 				// Tarjeta caducada.
 				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'redsys', 'Pedido cancelado por Redsys: Tarjeta caducada' );
+					$this->log->add( 'redsys', 'Order cancelled by Redsys: Expired credit card' );
 				}
 				// Order cancelled.
 				$order->update_status( 'cancelled', __( 'Cancelled by Redsys', 'woo-redsys-gateway-light' ) );
-				$order->add_order_note( __( 'Pedido cancelado por Redsys: Tarjeta caducada', 'woo-redsys-gateway-light' ) );
+				$order->add_order_note( __( 'Order cancelled by Redsys: Expired credit card', 'woo-redsys-gateway-light' ) );
 				WC()->cart->empty_cart();
 			}
 		}

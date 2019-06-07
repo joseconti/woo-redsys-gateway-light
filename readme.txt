@@ -2,13 +2,13 @@
 Contributors: j.conti
 Tags: woocommerce, redsys, pasarela redsys, gateway, redsys gateway, redsys pasarela, redsys woocommerce, woocommerce redsys, iupay, Iupay gateway, Iupay woocommerce, woocommerce iupay, iupay pasarela, pasarela iupay
 Requires at least: 4.0
-Tested up to: 5.1
+Tested up to: 5.2
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=U7XNYWPL8VRHE
-Stable tag: 1.3.4
+Stable tag: 1.3.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 3.0
-WC tested up to: 3.5
+WC tested up to: 3.6
 
 Add Redsys Gateway (and Iupay) to WooCommerce. This is the Lite version of the official WooCommerce Redsys plugin at WooCommerce.com
 
@@ -42,7 +42,7 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 * Checkout logo customization.
 * Iupay Gateway is included with its own setting page
 * Tokenization
-* Pay with 1 click.
+* Pay with 1 click
 * Preauthorizations
 * Approve preauthorizations from WooCommerce order
 * Direct Debit
@@ -52,6 +52,7 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 * Refund from Order.
 * Error action selection, what do you want that happen when a user make an error on the Gateway?
 * Export Order to CSV, export all date orders between two dates to CSV.
+* Pay with 1 click.
 * Virtually Unlimited Terminals, FUC's, etc. Special developed Filter for it.
 * emails to admin and customers when there is an error paying at Redsys.
 * And more to come.
@@ -75,6 +76,13 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 4. Language: Set the Redsys Gateway Language.
 
 == Changelog ==
+
+== 1.3.6 ==
+* Improved WooCommerce Order processing when "Mark as completed" is selected.
+* Improved some string translations.
+
+== 1.3.5 ==
+* Now, if an Order is cancelled by Redsys, it is cancelled at WooCommerce
 
 == 1.3.4 ==
 * Fixed dismissible admin_notice. Now you can dismiss it forever.
