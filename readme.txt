@@ -43,6 +43,7 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 * Iupay Gateway is included with its own setting page
 * Tokenization
 * Pay with 1 click
+* Pay with 1 click without leaving the website 
 * Preauthorizations
 * Approve preauthorizations from WooCommerce order
 * Direct Debit
@@ -55,6 +56,7 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 * Pay with 1 click.
 * Virtually Unlimited Terminals, FUC's, etc. Special developed Filter for it.
 * emails to admin and customers when there is an error paying at Redsys.
+* Compatible with WooCommerce Subscriptions
 * And more to come.
 
 == Installation ==
