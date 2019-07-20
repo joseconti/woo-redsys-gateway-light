@@ -57,6 +57,7 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 * Virtually Unlimited Terminals, FUC's, etc. Special developed Filter for it.
 * emails to admin and customers when there is an error paying at Redsys.
 * Compatible with WooCommerce Subscriptions
+* Check at Thank you page. If a customer arrive to Thank you page, and the order has not been market as paid, and email is send to administrator. 
 * And more to come.
 
 == Installation ==
