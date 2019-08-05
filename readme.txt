@@ -80,6 +80,10 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 
 == Changelog ==
 
+== 1.3.7 ==
+* Added +230 new currencies supported by Redsys.
+* Added an admin notice for link to a post explaining new features.
+
 == 1.3.6 ==
 * Improved WooCommerce Order processing when "Mark as completed" is selected.
 * Improved some string translations.
