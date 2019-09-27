@@ -4,11 +4,11 @@ Tags: woocommerce, redsys, pasarela redsys, gateway, redsys gateway, redsys pasa
 Requires at least: 4.0
 Tested up to: 5.2
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=U7XNYWPL8VRHE
-Stable tag: 1.3.6
+Stable tag: 1.3.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 3.0
-WC tested up to: 3.6
+WC tested up to: 3.7
 
 Add Redsys Gateway (and Iupay) to WooCommerce. This is the Lite version of the official WooCommerce Redsys plugin at WooCommerce.com
 
@@ -35,7 +35,8 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 
 = Premium version Features =
 
-* Always compatible with Continuous audits by WooCommerce Team.
+* Always compatible with WooCommerce & Continuous audits by WooCommerce Team.
+* Compatible with WooCommerce Subscriptions
 * WPML compatible.
 * Works with SNI certificates like Let's Encrypt, EX: SiteGround, HostFusion, etc
 * Gateway language selection from settings.
@@ -46,6 +47,8 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 * Pay with 1 click without leaving the website 
 * Preauthorizations
 * Approve preauthorizations from WooCommerce order
+* Bulk approve Pre-authorizations from Orders List
+* Bulk Charge orders from Orders List (With Tokens).
 * Direct Debit
 * Private Products
 * Second Terminal number. Very useful for security purpose.
@@ -56,8 +59,8 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 * Pay with 1 click.
 * Virtually Unlimited Terminals, FUC's, etc. Special developed Filter for it.
 * emails to admin and customers when there is an error paying at Redsys.
-* Compatible with WooCommerce Subscriptions
-* Check at Thank you page. If a customer arrive to Thank you page, and the order has not been market as paid, and email is send to administrator. 
+* Check at Thank you page. If a customer arrive to Thank you page, and the order has not been market as paid, and email is send to administrator.
+* Widget to easily add the Credit Card image required by redsys
 * And more to come.
 
 == Installation ==
@@ -79,6 +82,16 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 4. Language: Set the Redsys Gateway Language.
 
 == Changelog ==
+
+== 1.3.9 ==
+* Fixed ARS (Peso argentino) currency
+* Added a notice linking to PSD2 / SCA. Post.
+* Fixed translation domain on some strings
+
+== 1.3.8 ==
+* Added MXN currency
+* Fixed a problem with amounts less than 1.
+* Declared compatibility with WooCommerce 3.7
 
 == 1.3.7 ==
 * Added +230 new currencies supported by Redsys.

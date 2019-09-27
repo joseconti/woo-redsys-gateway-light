@@ -11,12 +11,12 @@
  * Plugin Name: WooCommerce Redsys Gateway Light
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
- * Version: 1.3.7
+ * Version: 1.3.9
  * Author: José Conti
  * Author URI: https://www.joseconti.com/
- * Tested up to: 5.1
+ * Tested up to: 5.2
  * WC requires at least: 3.0
- * WC tested up to: 3.6
+ * WC tested up to: 3.7
  * Text Domain: woo-redsys-gateway-light
  * Domain Path: /languages/
  * Copyright: (C) 2017 José Conti.
@@ -24,9 +24,10 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '1.3.7' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '1.3.9' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'REDSYS_POST_UPDATE_URL', 'https://redsys.joseconti.com/2019/07/23/redsys-gateway-ligth-1-3-7/' );
+define( 'REDSYS_POST_UPDATE_URL', 'https://redsys.joseconti.com/2019/09/06/redsys-gateway-ligth-1-3-9-para-woocommerce/' );
+define( 'REDSYS_POST_PSD2_URL', 'https://redsys.joseconti.com/2019/09/05/redsys-y-psd2-o-sca/' );
 
 add_action( 'plugins_loaded', 'woocommerce_gateway_redsys_init', 0 );
 
@@ -50,8 +51,8 @@ if ( ! class_exists( 'RedsysAPI' ) ) {
 
 // SEUR Get Parent Page.
 function redsys_get_parent_page() {
-	$seur_parent = basename( $_SERVER['SCRIPT_NAME'] );
-	return $seur_parent;
+	$redsys_parent = basename( $_SERVER['SCRIPT_NAME'] );
+	return $redsys_parent;
 }
 
 function redsys_menu() {
@@ -190,13 +191,11 @@ function woocommerce_gateway_redsys_init() {
 		 * @access public
 		 * @return bool
 		 */
-		function is_valid_for_use() {
-			if ( ! in_array( get_woocommerce_currency(), array( 'ALL', 'DZD', 'AOK', 'MON', 'AZM', 'ARP', 'ARP', 'AUD', 'BSD', 'BHD', 'BDT', 'AMD', 'BBD', 'BMD', 'BTN', 'BOP', 'BAD', 'BWP', 'BRC', 'BZD', 'SBD', 'BND', 'BGL', 'BUK', 'BIF', 'BYB', 'KHR', 'CAD', 'CAD', 'CVE', 'LKR', 'CLP', 'CLP', 'CNY', 'CNH', 'COP', 'COP', 'KMF', 'ZRZ', 'CRC', 'CRC', 'CUP', 'CYP', 'CSK', 'CZK', 'DKK', 'DOP', 'ECS', 'SVC', 'GQE', 'ETB', 'ERN', 'FKP', 'FJD', 'DJF', 'GEL', 'GMD', 'DDM', 'GHC', 'GIP', 'GTQ', 'GNS', 'GYD', 'HTG', 'HNL', 'HKD', 'HUF', 'ISK', 'INR', 'ISK', 'IDR', 'IRR', 'IRA', 'IQD', 'ILS', 'JMD', 'JPY', 'JPY', 'KZT', 'JOD', 'KES', 'KPW', 'KRW', 'KWD', 'KGS', 'LAK', 'LBP', 'LSM', 'LVL', 'LRD', 'LYD', 'LTL', 'MOP', 'MGF', 'MWK', 'MYR', 'MVR', 'MLF', 'MTL', 'MRO', 'MUR', 'MXP', 'MXP', 'MNT', 'MDL', 'MAD', 'MZM', 'OMR', 'NAD', 'NPR', 'ANG', 'AWG', 'NTZ', 'VUV', 'NZD', 'NIC', 'NGN', 'NOK', 'PCI', 'PKR', 'PAB', 'PGK', 'PYG', 'PEI', 'PEI', 'PHP', 'PLZ', 'TPE', 'QAR', 'ROL', 'RUB', 'RWF', 'SHP', 'STD', 'SAR', 'SCR', 'SLL', 'SGD', 'SKK', 'VND', 'SIT', 'SOS', 'ZAR', 'ZWD', 'YDD', 'SSP', 'SDP', 'SDA', 'SRG', 'SZL', 'SEK', 'CHF', 'CHF', 'SYP', 'TJR', 'THB', 'TOP', 'TTD', 'AED', 'TND', 'TRL', 'PTL', 'TMM', 'UGS', 'UAK', 'MKD', 'RUR', 'EGP', 'GBP', 'TZS', 'USD', 'UYP', 'UYP', 'UZS', 'VEB', 'WST', 'YER', 'YUD', 'YUG', 'ZMK', 'TWD', 'TMT', 'GHS', 'RSD', 'MZN', 'AZN', 'RON', 'TRY', 'TRY', 'XAF', 'XCD', 'XOF', 'XPF', 'XEU', 'ZMW', 'SRD', 'MGA', 'AFN', 'TJS', 'AOA', 'BYR', 'BGN', 'CDF', 'BAM', 'EUR', 'UAH', 'GEL', 'PLN', 'BRL', 'BRL', 'ZAL', 'EEK' ), true ) ) {
-				return false;
-			} else {
-				return true;
-			}
-		}
+	function is_valid_for_use() {
+			if ( ! in_array( get_woocommerce_currency(), array( 'ALL', 'DZD', 'AOK', 'ARS', 'MON', 'AZM', 'ARP', 'ARP', 'AUD', 'BSD', 'BHD', 'BDT', 'AMD', 'BBD', 'BMD', 'BTN', 'BOP', 'BAD', 'BWP', 'BRC', 'BZD', 'SBD', 'BND', 'BGL', 'BUK', 'BIF', 'BYB', 'KHR', 'CAD', 'CAD', 'CVE', 'LKR', 'CLP', 'CLP', 'CNY', 'CNH', 'COP', 'COP', 'KMF', 'ZRZ', 'CRC', 'CRC', 'CUP', 'CYP', 'CSK', 'CZK', 'DKK', 'DOP', 'ECS', 'SVC', 'GQE', 'ETB', 'ERN', 'FKP', 'FJD', 'DJF', 'GEL', 'GMD', 'DDM', 'GHC', 'GIP', 'GTQ', 'GNS', 'GYD', 'HTG', 'HNL', 'HKD', 'HUF', 'ISK', 'INR', 'ISK', 'IDR', 'IRR', 'IRA', 'IQD', 'ILS', 'JMD', 'JPY', 'JPY', 'KZT', 'JOD', 'KES', 'KPW', 'KRW', 'KWD', 'KGS', 'LAK', 'LBP', 'LSM', 'LVL', 'LRD', 'LYD', 'LTL', 'MOP', 'MGF', 'MWK', 'MYR', 'MVR', 'MLF', 'MTL', 'MRO', 'MUR', 'MXP', 'MXP', 'MNT', 'MDL', 'MAD', 'MZM', 'OMR', 'NAD', 'NPR', 'ANG', 'AWG', 'NTZ', 'VUV', 'NZD', 'NIC', 'NGN', 'NOK', 'PCI', 'PKR', 'PAB', 'PGK', 'PYG', 'PEI', 'PEI', 'PHP', 'PLZ', 'TPE', 'QAR', 'ROL', 'RUB', 'RWF', 'SHP', 'STD', 'SAR', 'SCR', 'SLL', 'SGD', 'SKK', 'VND', 'SIT', 'SOS', 'ZAR', 'ZWD', 'YDD', 'SSP', 'SDP', 'SDA', 'SRG', 'SZL', 'SEK', 'CHF', 'CHF', 'SYP', 'TJR', 'THB', 'TOP', 'TTD', 'AED', 'TND', 'TRL', 'PTL', 'TMM', 'UGS', 'UAK', 'MKD', 'RUR', 'EGP', 'GBP', 'TZS', 'USD', 'UYP', 'UYP', 'UZS', 'VEB', 'WST', 'YER', 'YUD', 'YUG', 'ZMK', 'TWD', 'TMT', 'GHS', 'RSD', 'MZN', 'AZN', 'RON', 'TRY', 'TRY', 'XAF', 'XCD', 'XOF', 'XPF', 'XEU', 'ZMW', 'SRD', 'MGA', '', 'TJS', 'AOA', 'BYR', 'BGN', 'CDF', 'BAM', 'EUR', 'UAH', 'GEL', 'PLN', 'BRL', 'BRL', 'ZAL', 'EEK', 'MXN' ), true ) )
+		return false;
+		return true;
+	}
 		/**
 		 * Admin Panel Options
 		 *
@@ -366,8 +365,7 @@ function woocommerce_gateway_redsys_init() {
 				'AOK' => 24,
 				'MON' => 30,
 				'AZM' => 31,
-				'ARP' => 32,
-				'ARP' => 32,
+				'ARS' => 32,
 				'AUD' => 36,
 				'BSD' => 44,
 				'BHD' => 48,
@@ -463,7 +461,7 @@ function woocommerce_gateway_redsys_init() {
 				'MRO' => 478,
 				'MUR' => 480,
 				'MXP' => 484,
-				'MXP' => 484,
+				'MXN' => 484,
 				'MNT' => 496,
 				'MDL' => 498,
 				'MAD' => 504,
@@ -878,9 +876,10 @@ function woocommerce_gateway_redsys_init() {
 			$response = intval( $response );
 			if ( $response <= 99 ) {
 				// authorized.
-				$order_total_compare_0 = number_format( $order->get_total(), 2, '', '' );
+				$order_total_compare = number_format( $order->get_total(), 2, '', '' );
 				// remove 0 from bigining
-				$order_total_compare = ltrim( $order_total_compare_0, '0' );
+				$order_total_compare = ltrim( $order_total_compare, '0' );
+				$total               = ltrim( $total, '0' );
 				if ( $order_total_compare !== $total ) {
 					// amount does not match.
 					if ( 'yes' === $this->debug ) {
@@ -991,11 +990,11 @@ function woocommerce_gateway_redsys_init() {
 
 	}
 	add_action('admin_notices', 'redsys_ask_for_rating');
-	
+
 	function redsys_lite_add_notice_new_version() {
-	
+
 	$version = get_option( 'hide-new-version-redsys-notice' );
-	
+
 	if ( $version !== REDSYS_WOOCOMMERCE_VERSION ) {
 		if ( isset( $_REQUEST['redsys-hide-new-version'] ) &&  'hide-new-version-redsys' === $_REQUEST['redsys-hide-new-version'] ) {
 			$nonce = sanitize_text_field( $_REQUEST['_redsys_hide_new_version_nonce'] );
@@ -1005,12 +1004,12 @@ function woocommerce_gateway_redsys_init() {
 		} else {
 			?>
 			<div id="message" class="updated woocommerce-message woocommerce-redsys-messages">
-				<a class="woocommerce-message-close notice-dismiss" style="top:0;" href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'redsys-hide-new-version', 'hide-new-version-redsys' ), 'redsys_hide_new_version_nonce', '_redsys_hide_new_version_nonce' ) ); ?>"><?php esc_html_e( 'Dismiss', 'woocommerce-redsys' ); ?></a>
+				<a class="woocommerce-message-close notice-dismiss" style="top:0;" href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'redsys-hide-new-version', 'hide-new-version-redsys' ), 'redsys_hide_new_version_nonce', '_redsys_hide_new_version_nonce' ) ); ?>"><?php esc_html_e( 'Dismiss', 'woo-redsys-gateway-light' ); ?></a>
 				<p>
-					<?php echo esc_html__( 'WooCommerce Redsys Gateway Light has been updated to version', 'woocommerce-redsys' ) . ' ' . REDSYS_WOOCOMMERCE_VERSION; ?>
+					<?php echo esc_html__( 'WooCommerce Redsys Gateway Light has been updated to version', 'woo-redsys-gateway-light' ) . ' ' . REDSYS_WOOCOMMERCE_VERSION; ?>
 				</p>
 				<p>
-					<?php printf( __( 'Discover the improvements that have been made in this version, and how to take advantage of them <a href="%s" target="_blank">here</a>', 'woocommerce-redsys' ), esc_url( REDSYS_POST_UPDATE_URL ) ); ?>
+					<?php printf( __( 'Discover the improvements that have been made in this version, and how to take advantage of them <a href="%s" target="_blank">here</a>', 'woo-redsys-gateway-light' ), esc_url( REDSYS_POST_UPDATE_URL ) ); ?>
 				</p>
 			</div>
 		<?php }
@@ -1019,6 +1018,33 @@ function woocommerce_gateway_redsys_init() {
 
 	add_action( 'admin_notices', 'redsys_lite_add_notice_new_version' );
 	
+	function redsys_add_notice_psd2_sca_lite() {
+	
+		$status = get_option( 'hide-psd2-sca-redsys-notice-lite' );
+		
+		if ( $status !== 'yes' ) {
+			if ( isset( $_REQUEST['redsys-hide-psd2-sca'] ) &&  'hide-psd2-sca-redsys' === $_REQUEST['redsys-hide-psd2-sca'] ) {
+				$nonce = sanitize_text_field( $_REQUEST['_redsys_hide_psd2_sca_nonce'] );
+				if ( wp_verify_nonce( $nonce, 'redsys_hide_psd2_sca_nonce' ) ) {
+					update_option( 'hide-psd2-sca-redsys-notice-lite', 'yes' );
+				}
+			} else {
+				?>
+				<div id="message" class="updated woocommerce-message woocommerce-redsys-messages">
+					<a class="woocommerce-message-close notice-dismiss" style="top:0;" href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'redsys-hide-psd2-sca', 'hide-psd2-sca-redsys' ), 'redsys_hide_psd2_sca_nonce', '_redsys_hide_psd2_sca_nonce' ) ); ?>"><?php esc_html_e( 'Dismiss', 'woo-redsys-gateway-light' ); ?></a>
+					<p>
+						<?php echo '<h2>' . esc_html__( 'READ THIS, IT IS VERY IMPORTANT PSD2 SCA', 'woo-redsys-gateway-light' ) . '<h2>'; ?>
+					</p>
+					<p>
+						<?php printf( __( 'Surely you are worried about the new European regulation PSD2 SCA to be implemented next September 12, 2019. Read about it in this <a href="%s" target="_blank">link</a>', 'woo-redsys-gateway-light' ), esc_url( REDSYS_POST_PSD2_URL ) ); ?>
+					</p>
+				</div>
+			<?php }
+		}
+	}
+
+	add_action( 'admin_notices', 'redsys_add_notice_psd2_sca_lite' );
+
 	function redsys_lite_notice_style() {
 		wp_register_style( 'redsys_notice_css', REDSYS_PLUGIN_URL . 'assets/css/redsys-notice.css', false, REDSYS_WOOCOMMERCE_VERSION );
 		wp_enqueue_style( 'redsys_notice_css' );
@@ -1030,7 +1056,7 @@ function woocommerce_gateway_redsys_init() {
 		return $methods;
 	}
 	add_filter( 'woocommerce_payment_gateways', 'woocommerce_add_gateway_redsys_gateway' );
-	
+
 	function add_redsys_meta_box() {
 		$date_decoded = str_replace( '%2F', '/', get_post_meta( get_the_ID(), '_payment_date_redsys', true ) );
 		$hour_decoded = str_replace( '%3A', ':', get_post_meta( get_the_ID(), '_payment_hour_redsys', true ) );
