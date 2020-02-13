@@ -4,7 +4,7 @@ Tags: woocommerce, redsys, pasarela redsys, gateway, redsys gateway, redsys pasa
 Requires at least: 4.0
 Tested up to: 5.3
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=U7XNYWPL8VRHE
-Stable tag: 1.3.10
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 3.0
@@ -83,6 +83,9 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 4. Language: Set the Redsys Gateway Language.
 
 == Changelog ==
+
+== 1.4.1 ==
+* Fixed a bug with SHA256 Test field
 
 == 1.4.0 ==
 * NEW: Added a new settings field for SHA256 Test mode.

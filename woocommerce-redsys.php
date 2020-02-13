@@ -11,7 +11,7 @@
  * Plugin Name: WooCommerce Redsys Gateway Light
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
- * Version: 1.4.0
+ * Version: 1.4.1
  * Author: José Conti
  * Author URI: https://www.joseconti.com/
  * Tested up to: 5.3
@@ -24,9 +24,9 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '1.4.0' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '1.4.1' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'REDSYS_POST_UPDATE_URL', 'https://redsys.joseconti.com/2020/02/08/redsys-gateway-ligth-1-4-0-para-woocommerce/' );
+define( 'REDSYS_POST_UPDATE_URL', 'https://redsys.joseconti.com/2020/02/11/redsys-gateway-light-1-4-1-para-woocommerce/' );
 define( 'REDSYS_TELEGRAM_URL', 'https://t.me/wooredsys' );
 define( 'REDSYS_REVIEW', 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/reviews/?rate=5#new-post' );
 define( 'REDSYS_TELEGRAM_SIGNUP', 'https://t.me/wooredsys' );
@@ -587,7 +587,16 @@ function woocommerce_gateway_redsys_init() {
 			$order_total      = number_format( $order->get_total(), 2, ',', '' );
 			$order_total_sign = number_format( $order->get_total(), 2, '', '' );
 			$transaction_type = '0';
-			$secretsha256     = utf8_decode( $this->secretsha256 );
+			if ( 'yes' === $this->testmode ) {
+				$secretsha256 = $this->customtestsha256;
+				if ( ! empty( $secretsha256 ) ) {
+					$secretsha256 = $this->customtestsha256;
+				} else {
+					$secretsha256 = $this->secretsha256;
+				}
+			} else {
+				$secretsha256 = $this->secretsha256;
+			}
 			if ( class_exists( 'SitePress' ) ) {
 				if ( ICL_LANGUAGE_CODE === 'es' ) {
 					$gatewaylanguage = '001';
@@ -636,7 +645,6 @@ function woocommerce_gateway_redsys_init() {
 			$miobj->setParameter( 'DS_MERCHANT_ORDER', $transaction_id2 );
 			$miobj->setParameter( 'DS_MERCHANT_MERCHANTCODE', $this->customer );
 			$miobj->setParameter( 'DS_MERCHANT_CURRENCY', $currency_codes[ get_woocommerce_currency() ] );
-			$miobj->setParameter( 'DS_MERCHANT_PAYMETHODS', $payment_option );
 			$miobj->setParameter( 'DS_MERCHANT_TRANSACTIONTYPE', $transaction_type );
 			$miobj->setParameter( 'DS_MERCHANT_TERMINAL', $dsmerchantterminal );
 			$miobj->setParameter( 'DS_MERCHANT_MERCHANTURL', $final_notify_url );
@@ -647,6 +655,8 @@ function woocommerce_gateway_redsys_init() {
 			$miobj->setParameter( 'DS_MERCHANT_MERCHANTNAME', $this->commercename );
 			if ( ! empty( $this->payoptions ) || ' ' !== $this->payoptions ) {
 				$miobj->setParameter( 'DS_MERCHANT_PAYMETHODS', $this->payoptions );
+			} else {
+				$miobj->setParameter( 'DS_MERCHANT_PAYMETHODS', 'T' );
 			}
 			$version = 'HMAC_SHA256_V1';
 			// Se generan los parámetros de la petición.
@@ -878,6 +888,18 @@ function woocommerce_gateway_redsys_init() {
 		 */
 		function successful_request( $posted ) {
 			global $woocommerce;
+			
+			if ( 'yes' === $this->testmode ) {
+				$usesecretsha256 = $this->customtestsha256;
+				if ( ! empty( $usesecretsha256 ) ) {
+					$usesecretsha256 = $this->customtestsha256;
+				} else {
+					$usesecretsha256 = $this->secretsha256;
+				}
+			} else {
+				$usesecretsha256 = $this->secretsha256;
+			}
+			
 			$version           = sanitize_text_field( $_POST['Ds_SignatureVersion'] );
 			$data              = sanitize_text_field( $_POST['Ds_MerchantParameters'] );
 			$remote_sign       = sanitize_text_field( $_POST['Ds_Signature'] );
