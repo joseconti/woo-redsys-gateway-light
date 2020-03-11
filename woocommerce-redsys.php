@@ -11,12 +11,12 @@
  * Plugin Name: WooCommerce Redsys Gateway Light
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
- * Version: 1.4.1
+ * Version: 1.5.0
  * Author: José Conti
  * Author URI: https://www.joseconti.com/
  * Tested up to: 5.3
  * WC requires at least: 3.0
- * WC tested up to: 3.9
+ * WC tested up to: 4.0
  * Text Domain: woo-redsys-gateway-light
  * Domain Path: /languages/
  * Copyright: (C) 2017 José Conti.
@@ -24,11 +24,12 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '1.4.1' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '1.5.0' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'REDSYS_POST_UPDATE_URL', 'https://redsys.joseconti.com/2020/02/11/redsys-gateway-light-1-4-1-para-woocommerce/' );
+define( 'REDSYS_POST_UPDATE_URL', 'https://redsys.joseconti.com/2020/03/11/redsys-gateway-light-1-5-0-para-woocommerce/' );
 define( 'REDSYS_TELEGRAM_URL', 'https://t.me/wooredsys' );
 define( 'REDSYS_REVIEW', 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/reviews/?rate=5#new-post' );
+define( 'REDSYS_DONATION', 'https://www.joseconti.com/cursos-online/micropatrocinio/' );
 define( 'REDSYS_TELEGRAM_SIGNUP', 'https://t.me/wooredsys' );
 
 add_action( 'plugins_loaded', 'woocommerce_gateway_redsys_init', 0 );
@@ -44,7 +45,6 @@ if ( ! class_exists( 'RedsysAPI' ) ) {
 	}
 }
 	require_once 'class-wc-settings-tab-redsys-sort-invoices.php';
-	require_once 'class-wc-settings-tab-redsys-order-export.php';
 	require_once 'about-redsys.php';
 
 /**
@@ -209,7 +209,7 @@ function woocommerce_gateway_redsys_init() {
 			<h3><?php esc_html_e( 'Servired/RedSys Spain', 'woo-redsys-gateway-light' ); ?></h3>
 			<div class="updated woocommerce-message inline">
 				<p>
-					<a href="https://woocommerce.com/products/redsys-gateway/" target="_blank" rel="noopener"><img class="aligncenter wp-image-211 size-full" title="Consigue la versión Pro en WooCommerce.com" src="<?php echo esc_attr( REDSYS_PLUGIN_URL ) . 'assets/images/banner.png'; ?>" alt="Consigue la versión Pro en WooCommerce.com" width="800" height="150" /></a>
+					<a href="https://woocommerce.com/products/redsys-gateway/" target="_blank" rel="noopener"><img class="aligncenter wp-image-211 size-full" title="Consigue la versión Pro en WooCommerce.com" src="<?php echo esc_url( REDSYS_PLUGIN_URL ) . 'assets/images/banner.png'; ?>" alt="Consigue la versión Pro en WooCommerce.com" width="800" height="150" /></a>
 				</p>
 			</div>
 			<div class="redsysnotice">
@@ -333,20 +333,37 @@ function woocommerce_gateway_redsys_init() {
 					'description' => __( 'Choose the language for the Gateway. Not all Banks accept all languages', 'woo-redsys-gateway-light' ),
 					'default'     => '001',
 					'options'     => array(
-						'001' => __( 'Spanish', 'woo-redsys-gateway-light' ),
-						'002' => __( 'English', 'woo-redsys-gateway-light' ),
-						'003' => __( 'Catalan', 'woo-redsys-gateway-light' ),
-						'004' => __( 'French', 'woo-redsys-gateway-light' ),
-						'005' => __( 'German', 'woo-redsys-gateway-light' ),
-						'006' => __( 'Dutch', 'woo-redsys-gateway-light' ),
-						'007' => __( 'Italian', 'woo-redsys-gateway-light' ),
-						'008' => __( 'Swedish', 'woo-redsys-gateway-light' ),
-						'009' => __( 'Portuguese', 'woo-redsys-gateway-light' ),
-						'010' => __( 'Valencian', 'woo-redsys-gateway-light' ),
-						'011' => __( 'Polish', 'woo-redsys-gateway-light' ),
-						'012' => __( 'Galician', 'woo-redsys-gateway-light' ),
-						'013' => __( 'Basque', 'woo-redsys-gateway-light' ),
-						'208' => __( 'Danish', 'woo-redsys-gateway-light' ),
+						'001' => 'Español',
+						'002' => 'English - Inglés',
+						'003' => 'Català',
+						'004' => 'Français - Frances',
+						'005' => 'Deutsch - Aleman',
+						'006' => 'Nederlands - Holandes',
+						'007' => 'Italiano',
+						'008' => 'Svenska - Sueco',
+						'009' => 'Português',
+						'010' => 'Valencià',
+						'011' => 'Polski - Polaco',
+						'012' => 'Galego',
+						'013' => 'Euskara',
+						'100' => 'български език - Bulgaro',
+						'156' => 'Chino',
+						'191' => 'Hrvatski - Croata',
+						'203' => 'Čeština - Checo',
+						'208' => 'Dansk - Danes',
+						'233' => 'Eesti keel - Estonio',
+						'246' => 'Suomi - Finlandes',
+						'300' => 'ελληνικά - Griego',
+						'348' => 'Magyar - Hungaro',
+						'392' => 'Japonés',
+						'428' => 'Latviešu valoda - Leton',
+						'440' => 'Lietuvių kalba - Lituano',
+						'470' => 'Malti - Maltés',
+						'642' => 'Română - Rumano',
+						'643' => 'ру́сский язы́к – Ruso',
+						'703' => 'Slovenský jazyk - Eslovaco',
+						'705' => 'Slovenski jezik - Esloveno',
+						'792' => 'Türkçe - Turco',
 					),
 				),
 				'testmode'       => array(
@@ -696,7 +713,7 @@ function woocommerce_gateway_redsys_init() {
 		 */
 		function generate_redsys_form( $order_id ) {
 			global $woocommerce;
-			
+
 			if ( 'yes' === $this->testmode ) {
 				$usesecretsha256 = $this->customtestsha256;
 				if ( ! empty( $usesecretsha256 ) ) {
@@ -707,7 +724,7 @@ function woocommerce_gateway_redsys_init() {
 			} else {
 				$usesecretsha256 = $this->secretsha256;
 			}
-			
+
 			if ( ! $usesecretsha256 ) {
 				$order = new WC_Order( $order_id );
 				if ( 'yes' === $this->testmode ) :
@@ -826,7 +843,7 @@ function woocommerce_gateway_redsys_init() {
 			} else {
 				$usesecretsha256 = $this->secretsha256;
 			}
-			
+
 			if ( $usesecretsha256 ) {
 				$version     = sanitize_text_field( $_POST['Ds_SignatureVersion'] );
 				$data        = sanitize_text_field( $_POST['Ds_MerchantParameters'] );
@@ -888,7 +905,7 @@ function woocommerce_gateway_redsys_init() {
 		 */
 		function successful_request( $posted ) {
 			global $woocommerce;
-			
+
 			if ( 'yes' === $this->testmode ) {
 				$usesecretsha256 = $this->customtestsha256;
 				if ( ! empty( $usesecretsha256 ) ) {
@@ -899,7 +916,7 @@ function woocommerce_gateway_redsys_init() {
 			} else {
 				$usesecretsha256 = $this->secretsha256;
 			}
-			
+
 			$version           = sanitize_text_field( $_POST['Ds_SignatureVersion'] );
 			$data              = sanitize_text_field( $_POST['Ds_MerchantParameters'] );
 			$remote_sign       = sanitize_text_field( $_POST['Ds_Signature'] );
@@ -1015,7 +1032,7 @@ function woocommerce_gateway_redsys_init() {
 
 
 		printf( '<div data-dismissible="redsys-help-admin-notice-forever" class="%1$s"><p>', esc_attr( $class ) );
-		printf( __( 'If your orders are kept on waiting for Redsys payment, please open a thread in %s Forums, it has solution and it is not the fault of the plugin.', 'woo-redsys-gateway-light' ), $message );
+		printf( esc_attr__( 'If your orders are kept on waiting for Redsys payment, please open a thread in %s Forums, it has solution and it is not the fault of the plugin.', 'woo-redsys-gateway-light' ), esc_attr( $message) );
 		echo '</p></div>';
 	}
 
@@ -1037,17 +1054,17 @@ function woocommerce_gateway_redsys_init() {
 
 
 			printf( '<div data-dismissible="redsys-ask-for-ratin-forever" class="%1$s"><p>', esc_attr( $class ) );
-			printf( __( 'You have been using Redsys Lite plugin for more than 30 days, please, if you like, write a %s review. You will only need a moment and you will make me very happy. Thanks a lot', 'woo-redsys-gateway-light' ), $message );
+			printf( esc_attr__( 'You have been using Redsys Lite plugin for more than 30 days, please, if you like, write a %s review. You will only need a moment and you will make me very happy. Thanks a lot', 'woo-redsys-gateway-light' ), $message );
 			echo '</p></div>';
 		}
 
 	}
 	add_action('admin_notices', 'redsys_ask_for_rating');
-	
+
 	function redsys_lite_add_notice_new_version() {
-	
+
 		$version = get_option( 'hide-new-version-redsys-notice' );
-		
+
 		if ( $version !== REDSYS_WOOCOMMERCE_VERSION ) {
 			if ( isset( $_REQUEST['redsys-hide-new-version'] ) &&  'hide-new-version-redsys' === $_REQUEST['redsys-hide-new-version'] ) {
 				$nonce = sanitize_text_field( $_REQUEST['_redsys_hide_new_version_nonce'] );
@@ -1061,16 +1078,17 @@ function woocommerce_gateway_redsys_init() {
 						<a class="woocommerce-message-close notice-dismiss" style="top:0;" href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'redsys-hide-new-version', 'hide-new-version-redsys' ), 'redsys_hide_new_version_nonce', '_redsys_hide_new_version_nonce' ) ); ?>"><?php esc_html_e( 'Dismiss', 'woo-redsys-gateway-light' ); ?></a>
 						<p>
 						    <h3>
-							    <?php echo esc_html__( 'WooCommerce Redsys Gateway has been updated to version', 'woo-redsys-gateway-light' ) . ' ' . REDSYS_WOOCOMMERCE_VERSION; ?>
+							    <?php esc_html_e( 'WooCommerce Redsys Gateway has been updated to version ', 'woo-redsys-gateway-light' ) . ' ' . esc_html_e( REDSYS_WOOCOMMERCE_VERSION ); ?>
 							</h3>
 						</p>
 						<p>
 							<?php esc_html_e( 'Discover the improvements that have been made in this version, and how to take advantage of them ', 'woo-redsys-gateway-light' ); ?>
 						</p>
 						<p class="submit">
-							<a href="<?php echo REDSYS_POST_UPDATE_URL; ?>" class="button-primary" target="_blank"><?php esc_html_e( 'Discover the improvements', 'woo-redsys-gateway-light' );  ?></a>
-							<a href="<?php echo REDSYS_REVIEW; ?>" class="button-primary" target="_blank"><?php esc_html_e( 'Leave a review', 'woo-redsys-gateway-light' );  ?></a>
-							<a href="<?php echo REDSYS_TELEGRAM_SIGNUP; ?>" class="button-primary" target="_blank"><?php esc_html_e( 'Sign up for the Telegram channel', 'woo-redsys-gateway-light' );  ?></a>
+							<a href="<?php esc_html_e( REDSYS_POST_UPDATE_URL ); ?>" class="button-primary" target="_blank"><?php esc_html_e( 'Discover the improvements', 'woo-redsys-gateway-light' );  ?></a>
+							<a href="<?php esc_html_e( REDSYS_DONATION ); ?>" class="button-primary" target="_blank"><?php esc_html_e( 'Make a Microsponsor', 'woo-redsys-gateway-light' );  ?></a>
+							<a href="<?php esc_html_e( REDSYS_REVIEW ); ?>" class="button-primary" target="_blank"><?php esc_html_e( 'Leave a review', 'woo-redsys-gateway-light' );  ?></a>
+							<a href="<?php esc_html_e( REDSYS_TELEGRAM_SIGNUP ); ?>" class="button-primary" target="_blank"><?php esc_html_e( 'Sign up for the Telegram channel', 'woo-redsys-gateway-light' );  ?></a>
 						</p>
 					</div>
 				</div>
@@ -1078,11 +1096,11 @@ function woocommerce_gateway_redsys_init() {
 		}
 	}
 	add_action( 'admin_notices', 'redsys_lite_add_notice_new_version' );
-	
+
 	function redsys_lite_ask_for_telegram() {
 
 		$status = get_option( 'telegram-redsys-notice' );
-	
+
 		if ( $status !== 'yes' ) {
 			if ( isset( $_REQUEST['redsys-telegram'] ) &&  'telegram-redsys' === $_REQUEST['redsys-telegram'] ) {
 				$nonce = sanitize_text_field( $_REQUEST['_redsys_telegram_nonce'] );
@@ -1099,14 +1117,14 @@ function woocommerce_gateway_redsys_init() {
 					<p>
 						<?php esc_html_e( 'Sign up for the WooCommerce Redsys Gateway Telegram channel, and be the first to know everything.', 'woo-redsys-gateway-light' ); ?>
 					</p>
-					<p><a href="<?php echo REDSYS_TELEGRAM_URL; ?>" class="button" target="_blank"><?php esc_html_e( 'Don&#39;t miss a single thing!', 'woocommerce-redsys' );  ?></a></p>
+					<p><a href="<?php esc_html_e( REDSYS_TELEGRAM_URL ); ?>" class="button" target="_blank"><?php esc_html_e( 'Don&#39;t miss a single thing!', 'woocommerce-redsys' );  ?></a></p>
 				</div>
 			<?php }
 		}
 	}
 
 	add_action( 'admin_notices', 'redsys_lite_ask_for_telegram' );
-	
+
 	function redsys_lite_notice_style() {
 		wp_register_style( 'redsys_notice_css', REDSYS_PLUGIN_URL . 'assets/css/redsys-notice.css', false, REDSYS_WOOCOMMERCE_VERSION );
 		wp_enqueue_style( 'redsys_notice_css' );
