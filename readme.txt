@@ -4,13 +4,13 @@ Tags: woocommerce, redsys, pasarela redsys, gateway, redsys gateway, redsys pasa
 Requires at least: 4.0
 Tested up to: 5.4
 Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=U7XNYWPL8VRHE
-Stable tag: 1.5.0
+Stable tag: 2.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 3.0
 WC tested up to: 4.0
 
-Add Redsys Gateway (and Iupay) to WooCommerce. This is the Lite version of the official WooCommerce Redsys plugin at WooCommerce.com
+Add Redsys Gateway to WooCommerce. This is the Lite version of the official WooCommerce Redsys plugin at WooCommerce.com
 
 == Description ==
 
@@ -20,7 +20,7 @@ This is the Light version of the official WooCommerce Redsys plugin at WooCommer
 
 You can find the PRO version at [WooCommerce.com](https://woocommerce.com/products/redsys-gateway/)
 
-With this extension you get all you need for use Redsys & Iupay Gateway.
+With this extension you get all you need for use Redsys Gateway.
 
 * Always compatible with latest WooCommerce version & continuous audits by WooCommerce Team.
 * WPML compatible.
@@ -42,7 +42,6 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 * Works with SNI certificates like Let's Encrypt, EX: SiteGround, HostFusion, etc
 * Gateway language selection from settings.
 * Checkout logo customization.
-* Iupay Gateway is included with its own setting page
 * Tokenization
 * Pay with 1 click
 * Pay with 1 click without leaving the website 
@@ -83,6 +82,9 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 4. Language: Set the Redsys Gateway Language.
 
 == Changelog ==
+
+== 2.0.0 ==
+* New: Added refunds.
 
 == 1.5.0 ==
 * New: Added new Redsys Languages.
