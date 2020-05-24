@@ -30,15 +30,8 @@ function redsys_about_page() {
 				<h2><?php esc_html_e( 'The official WooCommerce.com extension', 'woo-redsys-gateway-light' ); ?></h2>
 				<div class="woocommerce-message inline">
 					<p class="lead-description">
-						<?php esc_html_e( 'Please, make a donation', 'woo-redsys-gateway-light' ); ?>
-						<center>
-							<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-								<input type="hidden" name="cmd" value="_s-xclick">
-								<input type="hidden" name="hosted_button_id" value="U7XNYWPL8VRHE">
-								<input type="image" src="https://www.paypalobjects.com/es_ES/ES/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal, la forma rápida y segura de pagar en Internet.">
-								<img alt="" border="0" src="https://www.paypalobjects.com/es_ES/i/scr/pixel.gif" width="1" height="1">
-							</form>
-						</center>
+						<?php esc_html_e( 'Please, test the plugin, and if you are happy with it, consider to make a ', 'woo-redsys-gateway-light' ); ?>
+						<?php echo '<a href="https://www.joseconti.com/cursos-online/micropatrocinio/" target="_blank">Microsponsor</a>'; ?>
 					</p>
 				</div>
 				<p class="lead-description"><?php esc_html_e( 'This gateway is the light version of official WooCommerce Redsys plugin at WooCommerce.com', 'woo-redsys-gateway-light' ); ?></p>

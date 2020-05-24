@@ -11,12 +11,12 @@
  * Plugin Name: WooCommerce Redsys Gateway Light
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
- * Version: 2.0.0
+ * Version: 2.1.0
  * Author: José Conti
  * Author URI: https://www.joseconti.com/
  * Tested up to: 5.3
  * WC requires at least: 3.0
- * WC tested up to: 4.0
+ * WC tested up to: 4.2
  * Text Domain: woo-redsys-gateway-light
  * Domain Path: /languages/
  * Copyright: (C) 2017 José Conti.
@@ -24,9 +24,9 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '2.0.0' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '2.1.0' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'REDSYS_POST_UPDATE_URL', 'https://redsys.joseconti.com/2020/04/21/redsys-gateway-light-2-0-0-para-woocommerce/' );
+define( 'REDSYS_POST_UPDATE_URL', 'https://redsys.joseconti.com/2020/05/24/redsys-gateway-light-2-1-0-para-woocommerce/' );
 define( 'REDSYS_TELEGRAM_URL', 'https://t.me/wooredsys' );
 define( 'REDSYS_REVIEW', 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/reviews/?rate=5#new-post' );
 define( 'REDSYS_DONATION', 'https://www.joseconti.com/cursos-online/micropatrocinio/' );
@@ -44,7 +44,6 @@ if ( ! class_exists( 'RedsysAPI' ) ) {
 		require_once 'includes/apiRedsys7.php';
 	}
 }
-	require_once 'class-wc-settings-tab-redsys-sort-invoices.php';
 	require_once 'about-redsys.php';
 
 /**
@@ -178,6 +177,7 @@ function woocommerce_gateway_redsys_init() {
 			add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 			// Payment listener/API hook.
 			add_action( 'woocommerce_api_wc_gateway_redsys', array( $this, 'check_ipn_response' ) );
+			add_action( 'woocommerce_before_checkout_form', array( $this, 'warning_checkout_test_mode' ) );
 			if ( ! $this->is_valid_for_use() ) {
 				$this->enabled = false;
 			}
@@ -849,9 +849,25 @@ function woocommerce_gateway_redsys_init() {
 			}
 
 			if ( $usesecretsha256 ) {
-				$version     = sanitize_text_field( $_POST['Ds_SignatureVersion'] );
-				$data        = sanitize_text_field( $_POST['Ds_MerchantParameters'] );
-				$remote_sign = sanitize_text_field( $_POST['Ds_Signature'] );
+				
+				if ( isset( $_POST['Ds_SignatureVersion'] ) ) {
+				    $version = sanitize_text_field( $_POST['Ds_SignatureVersion'] );
+				} else {
+				    $version = '';
+				}
+				
+				if ( isset( $_POST['Ds_MerchantParameters'] ) ) {
+				    $data = sanitize_text_field( $_POST['Ds_MerchantParameters'] );
+				} else {
+				     $data = '';
+				}
+				
+				if ( isset( $_POST['Ds_Signature'] ) ) {
+				    $remote_sign = sanitize_text_field( $_POST['Ds_Signature'] );
+				} else {
+				     $remote_sign = '';
+				}
+				
 				$miobj       = new RedsysAPI();
 				$localsecret = $miobj->createMerchantSignatureNotif( $usesecretsha256, $data );
 
@@ -1511,6 +1527,23 @@ function woocommerce_gateway_redsys_init() {
 				return new WP_Error( 'error', __( 'Refund Failed: No transaction ID', 'woo-redsys-gateway-light' ) );
 			}
 		}
+		
+		public function warning_checkout_test_mode() {
+			if ( 'yes' === $this->testmode ) {
+				echo '<div class="checkout-message" style="
+				background-color: #f39c12;
+				padding: 1em 1.618em;
+				margin-bottom: 2.617924em;
+				margin-left: 0;
+				border-radius: 2px;
+				color: #fff;
+				clear: both;
+				border-left: 0.6180469716em solid rgb(228, 120, 51);
+				">';
+				echo __( 'Warning: WooCommerce Redsys Gateway Light is in test mode. Remember to uncheck it when you go live', 'woo-redsys-gateway-light' );
+				echo '</div>';
+			}
+		}
 	}
 
 	add_action( 'admin_notices', function() {
@@ -1531,7 +1564,7 @@ function woocommerce_gateway_redsys_init() {
 
 
 		printf( '<div data-dismissible="redsys-help-admin-notice-forever" class="%1$s"><p>', esc_attr( $class ) );
-		printf( esc_attr__( 'If your orders are kept on waiting for Redsys payment, please open a thread in %s Forums, it has solution and it is not the fault of the plugin.', 'woo-redsys-gateway-light' ), esc_attr( $message) );
+		printf( esc_attr__( 'If your orders are kept on waiting for Redsys payment, please open a thread in %s Forums, it has solution and it is not the fault of the plugin.', 'woo-redsys-gateway-light' ), $message );
 		echo '</p></div>';
 	}
 

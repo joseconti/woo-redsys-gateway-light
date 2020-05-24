@@ -3,12 +3,12 @@ Contributors: j.conti
 Tags: woocommerce, redsys, pasarela redsys, gateway, redsys gateway, redsys pasarela, redsys woocommerce, woocommerce redsys, iupay, Iupay gateway, Iupay woocommerce, woocommerce iupay, iupay pasarela, pasarela iupay
 Requires at least: 4.0
 Tested up to: 5.4
-Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=U7XNYWPL8VRHE
-Stable tag: 2.0.0
+Donate link: https://www.joseconti.com/cursos-online/micropatrocinio/
+Stable tag: 2.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 3.0
-WC tested up to: 4.0
+WC tested up to: 4.1
 
 Add Redsys Gateway to WooCommerce. This is the Lite version of the official WooCommerce Redsys plugin at WooCommerce.com
 
@@ -82,6 +82,15 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 4. Language: Set the Redsys Gateway Language.
 
 == Changelog ==
+
+== 2.1.0 ==
+* New: Added a notice in the checkout when WooCommerce Redsys Gateway is in Test Mode.
+* Fixed PHP Notices when you visit the callback URL.
+* Fixed the Admin Notice URL.
+* Declared compatibility with WooCommerce 4.2
+
+== 2.0.1 ==
+* Declared compatibility with WooCommerce 4.1
 
 == 2.0.0 ==
 * New: Added refunds.
