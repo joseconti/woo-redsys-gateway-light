@@ -4,11 +4,11 @@ Tags: woocommerce, redsys, pasarela redsys, gateway, redsys gateway, redsys pasa
 Requires at least: 4.0
 Tested up to: 5.4
 Donate link: https://www.joseconti.com/cursos-online/micropatrocinio/
-Stable tag: 2.0.1
+Stable tag: 2.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 3.0
-WC tested up to: 4.1
+WC tested up to: 4.2
 
 Add Redsys Gateway to WooCommerce. This is the Lite version of the official WooCommerce Redsys plugin at WooCommerce.com
 
@@ -38,6 +38,7 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 * Always compatible with WooCommerce & Continuous audits by WooCommerce Team.
 * Compatible with WooCommerce Subscriptions
 * Add Bizum gateway
++ Add MasterPass
 * WPML compatible.
 * Works with SNI certificates like Let's Encrypt, EX: SiteGround, HostFusion, etc
 * Gateway language selection from settings.
