@@ -35,10 +35,14 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 
 = Premium version Features =
 
+* Add Bizum
+* Add MasterPass
+* Add InSite
+* Add Preauthorizations
+* Add Bank transfers
+* Add Direct debits
 * Always compatible with WooCommerce & Continuous audits by WooCommerce Team.
 * Compatible with WooCommerce Subscriptions
-* Add Bizum gateway
-+ Add MasterPass
 * WPML compatible.
 * Works with SNI certificates like Let's Encrypt, EX: SiteGround, HostFusion, etc
 * Gateway language selection from settings.

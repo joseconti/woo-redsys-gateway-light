@@ -660,6 +660,7 @@ function woocommerce_gateway_redsys_init() {
 			} else {
 				$final_notify_url = $this->notify_url;
 			}
+			$merchant_module = 'WooCommerce_Redsys_Gateway_Light_' . REDSYS_WOOCOMMERCE_VERSION . '_WordPress.org';
 			// redsys Args.
 			$miobj = new RedsysAPI();
 			$miobj->setParameter( 'DS_MERCHANT_AMOUNT', $order_total_sign );
@@ -674,6 +675,7 @@ function woocommerce_gateway_redsys_init() {
 			$miobj->setParameter( 'DS_MERCHANT_CONSUMERLANGUAGE', $gatewaylanguage );
 			$miobj->setParameter( 'DS_MERCHANT_PRODUCTDESCRIPTION', __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number() );
 			$miobj->setParameter( 'DS_MERCHANT_MERCHANTNAME', $this->commercename );
+			$miobj->setParameter( 'DS_MERCHANT_MODULE', $merchant_module );
 			if ( ! empty( $this->payoptions ) || ' ' !== $this->payoptions ) {
 				$miobj->setParameter( 'DS_MERCHANT_PAYMETHODS', $this->payoptions );
 			} else {
@@ -704,6 +706,7 @@ function woocommerce_gateway_redsys_init() {
 				$this->log->add( 'redsys', 'DS_MERCHANT_CONSUMERLANGUAGE: ' . $gatewaylanguage );
 				$this->log->add( 'redsys', 'DS_MERCHANT_PRODUCTDESCRIPTION: ' . __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number() );
 				$this->log->add( 'redsys', 'DS_MERCHANT_PAYMETHODS: ' . $this->payoptions );
+				$this->log->add( 'redsys', 'DS_MERCHANT_MODULE: ' . $merchant_module );
 			}
 				$redsys_args = apply_filters( 'woocommerce_redsys_args', $redsys_args );
 				return $redsys_args;
@@ -1337,6 +1340,7 @@ function woocommerce_gateway_redsys_init() {
 			$autorization_code = get_post_meta( $order_id, '_authorisation_code_redsys', true );
 			$autorization_date = get_post_meta( $order_id, '_payment_date_redsys', true );
 			$currencycode      = get_post_meta( $order_id, '_corruncy_code_redsys', true );
+			$merchant_module   = 'WooCommerce_Redsys_Gateway_Light_' . REDSYS_WOOCOMMERCE_VERSION . '_WordPress.org';
 	
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'redsys', ' ' );
@@ -1360,8 +1364,11 @@ function woocommerce_gateway_redsys_init() {
 					$currency = $currency_codes[ get_woocommerce_currency() ];
 				}
 			}
-	
+			$merchant_module = 'WooCommerce_Redsys_Gateway_Light_' . REDSYS_WOOCOMMERCE_VERSION . '_WordPress.org';
+			
 			$miObj = new RedsysAPI();
+			
+			$miObj->setParameter( 'DS_MERCHANT_MODULE', $merchant_module );
 			$miObj->setParameter( 'DS_MERCHANT_AMOUNT', $amount );
 			$miObj->setParameter( 'DS_MERCHANT_ORDER', $transaction_id );
 			$miObj->setParameter( 'DS_MERCHANT_MERCHANTCODE', $this->customer );
@@ -1678,4 +1685,18 @@ function woocommerce_gateway_redsys_init() {
 		echo '<p><strong>' . esc_html__( 'Redsys Authorisation Code', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_attr( get_post_meta( get_the_ID(), '_authorisation_code_redsys', true ) ) . '</p>';
 	}
 	add_action( 'woocommerce_admin_order_data_after_billing_address', 'add_redsys_meta_box' );
+	
+	function mostrar_numero_autentificacion( $text, $order ) {
+		
+		$order_id            = $order->get_id();
+		$numero_autorizacion = get_post_meta( $order_id, '_authorisation_code_redsys', true );
+		$text                .= '<p>' . esc_html__( 'The Redsys Authorization number is: ' ) . $numero_autorizacion . '</br >';
+		return $text;
+	}
+	add_filter( 'woocommerce_thankyou_order_received_text', 'mostrar_numero_autentificacion', 20, 2 );
 }
+
+function redsys_lite_add_head_text() {
+	echo '<!-- This site is powered by WooCommerce Redsys Gateway Light v.' . REDSYS_WOOCOMMERCE_VERSION . ' - https://es.wordpress.org/plugins/woo-redsys-gateway-light/ -->';
+}
+add_action( 'wp_head', 'redsys_lite_add_head_text' );
