@@ -91,7 +91,7 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 
 == 3.0.0 ==
 * New: Added PSD2 Compatibility.
-* Declared compatibility with WooCommerce 4.5
+* Declared compatibility with WooCommerce 4.6
 
 == 2.1.0 ==
 * New: Added a notice in the checkout when WooCommerce Redsys Gateway is in Test Mode.
