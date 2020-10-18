@@ -698,7 +698,12 @@ function woocommerce_gateway_redsys_init() {
 			}
 			if ( 'yes' === $this->psd2 ) {
 				$psd2 = WCPSD2L()->get_acctinfo( $order );
-				$miObj->setParameter( 'Ds_Merchant_EMV3DS', $psd2 );
+				);
+				if ( 'yes' === $this->debug ) {
+					$this->log->add( 'redsys', 'PSD2 activado' );
+					$this->log->add( 'redsys', '$psd2: ' . $psd2 );
+				}
+				$miobj->setParameter( 'Ds_Merchant_EMV3DS', $psd2 );
 			}
 			$version = 'HMAC_SHA256_V1';
 			// Se generan los parámetros de la petición.
