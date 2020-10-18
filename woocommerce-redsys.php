@@ -111,6 +111,14 @@ function redsys_css_lite() {
 	}
 	add_action( 'admin_enqueue_scripts', 'redsys_css_lite' );
 
+/**
+* Copyright: (C) 2013 - 2021 José Conti
+*/
+function WCPSD2L() {
+	require_once 'class-wc-gateway-redsys-psd2.php'; // PSD2 class for Redsys
+	return new WC_Gateway_Redsys_PSD2_Light();
+}
+
 function woocommerce_gateway_redsys_init() {
 	if ( ! class_exists( 'WC_Payment_Gateway' ) ) {
 		return;
@@ -152,6 +160,7 @@ function woocommerce_gateway_redsys_init() {
 			$this->init_form_fields();
 			$this->init_settings();
 			// Define user set variables.
+			$this->psd2                 = $this->get_option( 'psd2' );
 			$this->title                = $this->get_option( 'title' );
 			$this->description          = $this->get_option( 'description' );
 			$this->logo                 = $this->get_option( 'logo' );
@@ -252,6 +261,12 @@ function woocommerce_gateway_redsys_init() {
 					'title'   => __( 'Enable/Disable', 'woo-redsys-gateway-light' ),
 					'type'    => 'checkbox',
 					'label'   => __( 'Enable Servired/RedSys', 'woo-redsys-gateway-light' ),
+					'default' => 'no',
+				),
+				'psd2'              => array(
+					'title'   => __( 'Enable PSD2', 'woocommerce-redsys' ),
+					'type'    => 'checkbox',
+					'label'   => __( 'Enable PSD2', 'woocommerce-redsys' ),
 					'default' => 'no',
 				),
 				'title'          => array(
@@ -680,6 +695,10 @@ function woocommerce_gateway_redsys_init() {
 				$miobj->setParameter( 'DS_MERCHANT_PAYMETHODS', $this->payoptions );
 			} else {
 				$miobj->setParameter( 'DS_MERCHANT_PAYMETHODS', 'T' );
+			}
+			if ( 'yes' === $this->psd2 ) {
+				$psd2 = WCPSD2L()->get_acctinfo( $order );
+				$miObj->setParameter( 'Ds_Merchant_EMV3DS', $psd2 );
 			}
 			$version = 'HMAC_SHA256_V1';
 			// Se generan los parámetros de la petición.
