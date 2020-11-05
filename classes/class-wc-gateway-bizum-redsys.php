@@ -31,8 +31,8 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		$this->testurlws            = 'https://sis-t.redsys.es:25443/sis/services/SerClsWSEntrada?wsdl';
 		$this->testsha256           = 'sq7HjrUOBfKmC576ILgskD5srU870gJ7';
 		$this->testmode             = $this->get_option( 'testmode' );
-		$this->method_title         = __( 'Bizum (by José Conti)', 'woocommerce-redsys' );
-		$this->method_description   = __( 'Bizum works redirecting customers to Bizum.', 'woocommerce-redsys' );
+		$this->method_title         = __( 'Bizum Lite (by José Conti)', 'woocommerce-redsys' );
+		$this->method_description   = __( 'Bizum Lite  works redirecting customers to Bizum.', 'woocommerce-redsys' );
 		$this->not_use_https        = $this->get_option( 'not_use_https' );
 		$this->notify_url           = add_query_arg( 'wc-api', 'WC_Gateway_' . $this->id, home_url( '/' ) );
 		$this->notify_url_not_https = str_replace( 'https:', 'http:', add_query_arg( 'wc-api', 'WC_Gateway_' . $this->id, home_url( '/' ) ) );
