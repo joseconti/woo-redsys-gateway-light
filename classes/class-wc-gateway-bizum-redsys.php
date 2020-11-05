@@ -173,23 +173,6 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				'description' => __( 'This controls the description which the user sees during checkout.', 'woocommerce-redsys' ),
 				'default'     => __( 'Pay via Bizum you can pay with your Bizum account.', 'woocommerce-redsys' ),
 			),
-			'buttoncheckout'      => array(
-				'title'       => __( 'Button Checkout Text', 'woocommerce-redsys' ),
-				'type'        => 'text',
-				'description' => __( 'Add the button text at the checkout.', 'woocommerce-redsys' ),
-			),
-			'butonbgcolor'          => array(
-				'title'       => __( 'Button Color Background', 'woocommerce-redsys' ),
-				'type'        => 'text',
-				'description' => __( 'This if button Color Background Place Order at Checkout', 'woocommerce-redsys' ),
-				'class'       => 'colorpick',
-			),
-			'butontextcolor'          => array(
-				'title'       => __( 'Color text Button', 'woocommerce-redsys' ),
-				'type'        => 'text',
-				'description' => __( 'This if button text color Place Order at Checkout', 'woocommerce-redsys' ),
-				'class'       => 'colorpick',
-			),
 			'customer'         => array(
 				'title'       => __( 'Commerce number (FUC)', 'woocommerce-redsys' ),
 				'type'        => 'text',
@@ -252,23 +235,6 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				'label'       => __( 'Running in test mode', 'woocommerce-redsys' ),
 				'default'     => 'yes',
 				'description' => sprintf( __( 'Select this option for the initial testing required by your bank, deselect this option once you pass the required test phase and your production environment is active.', 'woocommerce-redsys' ) ),
-			),
-			'testforuser'      => array(
-				'title'       => __( 'Running in test mode for a user', 'woocommerce-redsys' ),
-				'type'        => 'checkbox',
-				'label'       => __( 'Running in test mode for a user', 'woocommerce-redsys' ),
-				'default'     => 'yes',
-				'description' => sprintf( __( 'The user selected below will use the terminal in test mode. Other users will continue to use live mode unless you have the "Running in test mode" option checked.', 'woocommerce-redsys' ) ),
-			),
-			'testforuserid'    => array(
-				'title'       => __( 'Users', 'woocommerce-redsys' ),
-				'type'        => 'multiselect',
-				'label'       => __( 'Users running in test mode', 'woocommerce-redsys' ),
-				'class'       => 'js-woo-allowed-users-settings',
-				'id'          => 'woocommerce_redsys_testforuserid',
-				'options'     => $options,
-				'default'     => '',
-				'description' => sprintf( __( 'Select users running in test mode', 'woocommerce-redsys' ) ),
 			),
 			'debug'            => array(
 				'title'       => __( 'Debug Log', 'woocommerce-redsys' ),
