@@ -1745,12 +1745,12 @@ function woocommerce_gateway_redsys_init() {
 		return $text;
 	}
 	add_filter( 'woocommerce_thankyou_order_received_text', 'mostrar_numero_autentificacion', 20, 2 );
+	
+	// Adding Bizum
+	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-bizum-redsys.php'; // Bizum Version 3.0
 }
 
 function redsys_lite_add_head_text() {
 	echo '<!-- This site is powered by WooCommerce Redsys Gateway Light v.' . REDSYS_WOOCOMMERCE_VERSION . ' - https://es.wordpress.org/plugins/woo-redsys-gateway-light/ -->';
 }
 add_action( 'wp_head', 'redsys_lite_add_head_text' );
-
-// Adding Bizum
-	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-bizum-redsys.php'; // Bizum Version 3.0
