@@ -26,11 +26,24 @@
 
 define( 'REDSYS_WOOCOMMERCE_VERSION', '3.0.0' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+if ( ! defined( 'REDSYS_PLUGIN_PATH' ) ) {
+	define( 'REDSYS_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
+}
 define( 'REDSYS_POST_UPDATE_URL', 'https://redsys.joseconti.com/2020/05/24/redsys-gateway-light-2-1-0-para-woocommerce/' );
 define( 'REDSYS_TELEGRAM_URL', 'https://t.me/wooredsys' );
 define( 'REDSYS_REVIEW', 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/reviews/?rate=5#new-post' );
 define( 'REDSYS_DONATION', 'https://www.joseconti.com/cursos-online/micropatrocinio/' );
 define( 'REDSYS_TELEGRAM_SIGNUP', 'https://t.me/wooredsys' );
+
+if ( ! defined( 'REDSYS_PLUGIN_DATA_PATH' ) ) {
+	define( 'REDSYS_PLUGIN_DATA_PATH', REDSYS_PLUGIN_PATH . 'includes/data/' );
+}
+if ( ! defined( 'REDSYS_PLUGIN_DATA_URL' ) ) {
+	define( 'REDSYS_PLUGIN_DATA_URL', REDSYS_PLUGIN_URL . 'includes/data/' );
+}
+if ( ! defined( 'REDSYS_PLUGIN_CLASS_PATH' ) ) {
+	define( 'REDSYS_PLUGIN_CLASS_PATH', REDSYS_PLUGIN_PATH . 'classes/'  );
+}
 
 add_action( 'plugins_loaded', 'woocommerce_gateway_redsys_init', 0 );
 
@@ -74,7 +87,7 @@ function redsys_styles_css( $hook ) {
 		}
 }
 add_action( 'admin_enqueue_scripts', 'redsys_styles_css' );
-// SEUR Redirect to Welcome/About Page.
+// REDSYS Redirect to Welcome/About Page.
 function redsys_welcome_splash() {
 	$seur_parent = redsys_get_parent_page();
 
@@ -114,8 +127,22 @@ function redsys_css_lite() {
 /**
 * Copyright: (C) 2013 - 2021 José Conti
 */
+function WCRedL() {
+	/**
+	* Copyright: (C) 2013 - 2021 José Conti
+	*/
+	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-redsys-global.php'; // Global class for global functions
+	return new WC_Gateway_Redsys_Global();
+}
+
+/**
+* Copyright: (C) 2013 - 2021 José Conti
+*/
 function WCPSD2L() {
-	require_once 'class-wc-gateway-redsys-psd2.php'; // PSD2 class for Redsys
+	/**
+	* Copyright: (C) 2013 - 2021 José Conti
+	*/
+	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-redsys-psd2.php'; // PSD2 class for Redsys
 	return new WC_Gateway_Redsys_PSD2_Light();
 }
 
@@ -1724,3 +1751,6 @@ function redsys_lite_add_head_text() {
 	echo '<!-- This site is powered by WooCommerce Redsys Gateway Light v.' . REDSYS_WOOCOMMERCE_VERSION . ' - https://es.wordpress.org/plugins/woo-redsys-gateway-light/ -->';
 }
 add_action( 'wp_head', 'redsys_lite_add_head_text' );
+
+// Adding Bizum
+	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-bizum-redsys.php'; // Bizum Version 3.0
