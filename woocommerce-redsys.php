@@ -179,7 +179,8 @@ function woocommerce_gateway_redsys_init() {
 			$this->liveurl              = 'https://sis.redsys.es/sis/realizarPago';
 			$this->testurl              = 'https://sis-t.redsys.es:25443/sis/realizarPago';
 			$this->testmode             = $this->get_option( 'testmode' );
-			$this->method_title         = __( 'Servired/RedSys', 'woo-redsys-gateway-light' );
+			$this->method_title         = __( 'Redsys Lite (by Jose Conti)', 'woo-redsys-gateway-light' );
+			$this->method_description   = __( 'Redsys Lite  works redirecting customers to Redsys.', 'woocommerce-redsys' );
 			$this->not_use_https        = $this->get_option( 'not_use_https' );
 			$this->notify_url           = add_query_arg( 'wc-api', 'WC_Gateway_redsys', home_url( '/' ) );
 			$this->notify_url_not_https = str_replace( 'https:', 'http:', add_query_arg( 'wc-api', 'WC_Gateway_redsys', home_url( '/' ) ) );
