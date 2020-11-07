@@ -248,47 +248,186 @@ class WC_Gateway_Redsys_PSD2_Light {
 		*/
 		return get_post_meta( $order_id, '_accept_haders', true );
 	}
-	
+
 	function get_agente_navegador( $order_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
-		return get_post_meta( $order_id, '_billing_agente_navegador_field', true );
+		$data = get_post_meta( $order_id, '_billing_agente_navegador_field', true );
+		
+		if ( $data ) {
+			return $data;
+		} else {
+			return '';
+		}
 	}
 
 	function get_idioma_navegador( $order_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
-		return get_post_meta( $order_id, '_billing_idioma_navegador_field', true );
+		$data = get_post_meta( $order_id, '_billing_idioma_navegador_field', true );
+		
+		if ( $data ) {
+			return $data;
+		} else {
+			return '';
+		}
 	}
 
 	function get_altura_pantalla( $order_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
-		return get_post_meta( $order_id, '_billing_altura_pantalla_field', true );
+		$data = get_post_meta( $order_id, '_billing_altura_pantalla_field', true );
+		
+		if ( $data ) {
+			return $data;
+		} else {
+			return '0';
+		}
 	}
 
 	function get_anchura_pantalla( $order_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
-		return get_post_meta( $order_id, '_billing_anchura_pantalla_field', true );
+		$data = get_post_meta( $order_id, '_billing_anchura_pantalla_field', true );
+		
+		if ( $data ) {
+			return $data;
+		} else {
+			return '0';
+		}
 	}
 
 	function get_profundidad_color( $order_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
-		return get_post_meta( $order_id, '_billing_profundidad_color_field', true );
+		$data = get_post_meta( $order_id, '_billing_profundidad_color_field', true );
+		
+		if ( $data ) {
+			return $data;
+		} else {
+			return '1';
+		}
 	}
 
 	function get_diferencia_horaria( $order_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
-		return get_post_meta( $order_id, '_billing_diferencia_horaria_field', true );
+		$data = get_post_meta( $order_id, '_billing_diferencia_horaria_field', true );
+		
+		if ( $data ) {
+			return $data;
+		} else {
+			return '0';
+		}
+	}
+	
+	function get_browserjavaenabled( $order_id ) {
+		$data = $this->get_idioma_navegador( $order_id );
+		if ( '' !== $data ) {
+			return '1';
+		} else {
+			return 'false';
+		}
+	}
+
+	function get_accept_headers_user( $user_id ) {
+		/**
+		* Copyright: (C) 2013 - 2021 José Conti
+		*/
+		return get_user_meta( $user_id, '_accept_haders', true );
+	}
+	
+	function get_agente_navegador_user( $user_id ) {
+		/**
+		* Copyright: (C) 2013 - 2021 José Conti
+		*/
+		$data = get_user_meta( $user_id, '_billing_agente_navegador_field', true );
+		
+		if ( $data ) {
+			return $data;
+		} else {
+			return '';
+		}
+	}
+
+	function get_idioma_navegador_user( $user_id ) {
+		/**
+		* Copyright: (C) 2013 - 2021 José Conti
+		*/
+		$data = get_user_meta( $user_id, '_billing_idioma_navegador_field', true );
+		
+		if ( $data ) {
+			return $data;
+		} else {
+			return '';
+		}
+	}
+
+	function get_altura_pantalla_user( $user_id ) {
+		/**
+		* Copyright: (C) 2013 - 2021 José Conti
+		*/
+		$data = get_user_meta( $user_id, '_billing_altura_pantalla_field', true );
+		
+		if ( $data ) {
+			return $data;
+		} else {
+			return '0';
+		}
+	}
+
+	function get_anchura_pantalla_user( $user_id ) {
+		/**
+		* Copyright: (C) 2013 - 2021 José Conti
+		*/
+		$data = get_user_meta( $user_id, '_billing_anchura_pantalla_field', true );
+		
+		if ( $data ) {
+			return $data;
+		} else {
+			return '0';
+		}
+	}
+
+	function get_profundidad_color_user( $user_id ) {
+		/**
+		* Copyright: (C) 2013 - 2021 José Conti
+		*/
+		$data = get_user_meta( $user_id, '_billing_profundidad_color_field', true );
+		
+		if ( $data ) {
+			return $data;
+		} else {
+			return '1';
+		}
+	}
+
+	function get_diferencia_horaria_user( $user_id ) {
+		/**
+		* Copyright: (C) 2013 - 2021 José Conti
+		*/
+		$data = get_user_meta( $user_id, '_billing_diferencia_horaria_field', true );
+		
+		if ( $data ) {
+			return $data;
+		} else {
+			return '0';
+		}
+	}
+	
+	function get_browserjavaenabled_user( $user_id ) {
+		$data = $this->get_idioma_navegador_user( $user_id );
+		if ( '' !== $data ) {
+			return '1';
+		} else {
+			return 'false';
+		}
 	}
 
 	function shipnameindicator( $order ) {
@@ -316,7 +455,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 		return $shipnameindicator;
 	}
 
-	function get_acctinfo( $order, $user_data_3ds = false ) {
+	function get_acctinfo( $order, $user_data_3ds = false, $user_id = false ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
@@ -331,9 +470,13 @@ class WC_Gateway_Redsys_PSD2_Light {
 				04 = Entre 30 y 60días
 				05 = Más de 60 días
 			*/
-			if ( is_user_logged_in() ) {
+			if ( is_user_logged_in() ||  $user_id ) {
 				
-				$user_id         = get_current_user_id();
+				if ( is_user_logged_in() ) {
+					$user_id = get_current_user_id();
+				} else {
+					$user_id = $user_id;
+				}
 				$usr_data        = get_userdata( $user_id );
 				$usr_registered  = $usr_data->user_registered;
 				$dt              = new DateTime( $usr_registered );
@@ -401,23 +544,30 @@ class WC_Gateway_Redsys_PSD2_Light {
 						),
 						'order' => 'ASC',
 					));
-					if ( count( $query ) > 0 ) {
-						$date             = new DateTime( $query[0]->post_date );
-						$shipAddressUsage = $date->format('Ymd');
-						$days             = intval( ( ( strtotime( 'now' ) - strtotime( $query[0]->post_date ) ) / MINUTE_IN_SECONDS ) / HOUR_IN_SECONDS );
-						if ( $days < 30 ) {
-							$shipAddressUsageInd = '02';
-						}
-						elseif ( $Days >= 30 && $Days <= 60) {
-							$shipAddressUsageInd = '03';
-						}
-						else{
-							$shipAddressUsageInd = '04';
+					if ( function_exists( 'DateTime' ) ) {
+						if ( count( $query ) > 0 ) {
+							$date             = new DateTime( $query[0]->post_date );
+							$shipAddressUsage = $date->format( 'Ymd' );
+							$days             = intval( ( ( strtotime( 'now' ) - strtotime( $query[0]->post_date ) ) / MINUTE_IN_SECONDS ) / HOUR_IN_SECONDS );
+							if ( $days < 30 ) {
+								$shipAddressUsageInd = '02';
+							}
+							elseif ( $Days >= 30 && $Days <= 60 ) {
+								$shipAddressUsageInd = '03';
+							}
+							else{
+								$shipAddressUsageInd = '04';
+							}
+						} else {
+							$todaynow            = '';
+							$date                = '';
+							$shipAddressUsage    = date( 'Ymd' );
+							$shipAddressUsageInd = '01';
 						}
 					} else {
-						$todaynow            = strtotime( 'now' );
-						$date                = new DateTime( $todaynow );
-						$shipAddressUsage    = $date->format( 'Ymd' );
+						$todaynow            = '';
+						$date                = '';
+						$shipAddressUsage    = date( 'Ymd' );
 						$shipAddressUsageInd = '01';
 					}
 				}
