@@ -1,6 +1,6 @@
 === WooCommerce Redsys Gateway Light ===
 Contributors: j.conti
-Tags: woocommerce, redsys, pasarela redsys, gateway, redsys gateway, redsys pasarela, redsys woocommerce, woocommerce redsys, iupay, Iupay gateway, Iupay woocommerce, woocommerce iupay, iupay pasarela, pasarela iupay
+Tags: woocommerce, redsys, pasarela redsys, bizum, gateway, redsys gateway, redsys pasarela, redsys woocommerce, woocommerce redsys, iupay, Iupay gateway, Iupay woocommerce, woocommerce iupay, iupay pasarela, pasarela iupay
 Requires at least: 4.0
 Tested up to: 5.5
 Donate link: https://www.joseconti.com/cursos-online/micropatrocinio/
@@ -8,7 +8,7 @@ Stable tag: 3.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 3.0
-WC tested up to: 4.6
+WC tested up to: 4.7
 
 Add Redsys Gateway to WooCommerce. This is the Lite version of the official WooCommerce Redsys plugin at WooCommerce.com
 
@@ -24,6 +24,8 @@ With this extension you get all you need for use Redsys Gateway.
 
 * Always compatible with latest WooCommerce version & continuous audits by WooCommerce Team.
 * PSD2 Compatible
+* Redsys Redirection Lite
+* Bizum Lite
 * WPML compatible.
 * Works with SNI certificates like Let's Encrypt, EX: SiteGround, HostFusion, etc
 * Gateway language selection from settings.
@@ -42,6 +44,7 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 * Add Preauthorizations
 * Add Bank transfers
 * Add Direct debits
+* Browser iFrame
 * Always compatible with WooCommerce & Continuous audits by WooCommerce Team.
 * Compatible with WooCommerce Subscriptions
 * WPML compatible.
@@ -90,8 +93,10 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 == Changelog ==
 
 == 3.0.0 ==
-* New: Added PSD2 Compatibility.
+* New: Added PSD2 Compatibility
+* New: Added Bizum
 * Declared compatibility with WooCommerce 4.6
+* Declared compatibility with WordPress 5.5
 
 == 2.1.0 ==
 * New: Added a notice in the checkout when WooCommerce Redsys Gateway is in Test Mode.

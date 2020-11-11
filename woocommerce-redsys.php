@@ -16,7 +16,7 @@
  * Author URI: https://www.joseconti.com/
  * Tested up to: 5.5
  * WC requires at least: 3.0
- * WC tested up to: 4.6
+ * WC tested up to: 4.7
  * Text Domain: woo-redsys-gateway-light
  * Domain Path: /languages/
  * Copyright: (C) 2017 José Conti.
