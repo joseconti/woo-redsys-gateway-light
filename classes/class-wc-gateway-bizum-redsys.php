@@ -97,9 +97,9 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		<h3><?php esc_html_e( 'Bizum', 'woocommerce-redsys' ); ?></h3>
 		<p><?php esc_html_e( 'Bizum works by sending the user to Bizum Gateway', 'woocommerce-redsys' ); ?></p>
 		<div class="redsysnotice">
-			<span class="dashicons dashicons-welcome-learn-more redsysnotice-dash"></span>
-			<span class="redsysnotice__content"><?php printf( __( 'For Redsys Help: Check WooCommerce.com Plugin <a href="%1$s" target="_blank" rel="noopener">Documentation page</a> for setup, <a href="%2$s" target="_blank" rel="noopener">FAQ page</a> for working problems, or open a <a href="%3$s" target="_blank" rel="noopener">Ticket</a> for support', 'woocommerce-redsys' ), 'https://docs.woocommerce.com/document/redsys-servired-sermepa-gateway/', 'https://redsys.joseconti.com/redsys-para-woocommerce/', 'https://woocommerce.com/my-account/tickets/' ); ?><span>
-		</div>
+				<span class="dashicons dashicons-welcome-learn-more redsysnotice-dash"></span>
+				<span class="redsysnotice__content"><?php printf( __( 'check <a href="%1$s" target="_blank" rel="noopener">FAQ page</a> for working problems, or open a <a href="%2$s" target="_blank" rel="noopener">thread on WordPress.org</a> for support. Please, add a <a href="%3$s" target="_blank" rel="noopener">review on WordPress.org</a>', 'woo-redsys-gateway-light' ), 'https://www.joseconti.com/faq-plugin-redsys-woocommerce-com/', 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/', 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/reviews/?rate=5#new-post' ); ?><span>
+			</div>
 		<?php if ( class_exists( 'SitePress' ) ) { ?>
 			<div class="updated fade"><h4><?php esc_html_e( 'Attention! WPML detected.', 'woocommerce-redsys' ); ?></h4>
 				<p><?php esc_html_e( 'The Gateway will be shown in the customer language. The option "Language Gateway" is not taken into consideration', 'woocommerce-redsys' ); ?></p>
