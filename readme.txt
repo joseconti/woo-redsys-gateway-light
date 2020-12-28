@@ -8,7 +8,7 @@ Stable tag: 2.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 3.0
-WC tested up to: 4.9
+WC tested up to: 4.8
 
 Add Redsys Gateway to WooCommerce. This is the Lite version of the official WooCommerce Redsys plugin at WooCommerce.com
 
@@ -95,8 +95,8 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 == 3.0.0 ==
 * New: Added PSD2 Compatibility
 * New: Added Bizum
-* Declared compatibility with WooCommerce 4.6
-* Declared compatibility with WordPress 5.5
+* Declared compatibility with WooCommerce 4.7
+* Declared compatibility with WordPress 5.6
 
 == 2.1.0 ==
 * New: Added a notice in the checkout when WooCommerce Redsys Gateway is in Test Mode.

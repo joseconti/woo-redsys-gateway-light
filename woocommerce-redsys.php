@@ -16,7 +16,7 @@
  * Author URI: https://www.joseconti.com/
  * Tested up to: 5.6
  * WC requires at least: 3.0
- * WC tested up to: 4.9
+ * WC tested up to: 4.8
  * Text Domain: woo-redsys-gateway-light
  * Domain Path: /languages/
  * Copyright: (C) 2017 José Conti.
@@ -29,7 +29,7 @@ define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 if ( ! defined( 'REDSYS_PLUGIN_PATH' ) ) {
 	define( 'REDSYS_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 }
-define( 'REDSYS_POST_UPDATE_URL', 'https://redsys.joseconti.com/2020/05/24/redsys-gateway-light-2-1-0-para-woocommerce/' );
+define( 'REDSYS_POST_UPDATE_URL', 'https://redsys.joseconti.com/2020/12/28/redsys-gateway-light-3-0-x-para-woocommerce/' );
 define( 'REDSYS_TELEGRAM_URL', 'https://t.me/wooredsys' );
 define( 'REDSYS_REVIEW', 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/reviews/?rate=5#new-post' );
 define( 'REDSYS_DONATION', 'https://www.joseconti.com/cursos-online/micropatrocinio/' );
