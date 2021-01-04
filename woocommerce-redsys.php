@@ -11,12 +11,12 @@
  * Plugin Name: WooCommerce Redsys Gateway Light
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
- * Version: 3.0.0
+ * Version: 3.0.1
  * Author: José Conti
  * Author URI: https://www.joseconti.com/
  * Tested up to: 5.6
  * WC requires at least: 3.0
- * WC tested up to: 4.8
+ * WC tested up to: 4.9
  * Text Domain: woo-redsys-gateway-light
  * Domain Path: /languages/
  * Copyright: (C) 2017 José Conti.
@@ -24,7 +24,7 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '3.0.0' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '3.0.1' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 if ( ! defined( 'REDSYS_PLUGIN_PATH' ) ) {
 	define( 'REDSYS_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
@@ -220,7 +220,7 @@ function woocommerce_gateway_redsys_init() {
 			}
 		}
 		public static function admin_notice_mcrypt_encrypt() {
-			if ( ! function_exists( 'mcrypt_encrypt' ) && ( version_compare( PHP_VERSION, '7.0', '!<' ) ) ) {
+			if ( ! function_exists( 'mcrypt_encrypt' ) && ( version_compare( PHP_VERSION, '7.0', '<' ) ) ) {
 				$class   = 'error';
 				$message = __( 'WARNING: The PHP mcrypt_encrypt module is not installed on your server. The API Redsys SHA-256 needs this module in order to work.	Please contact your hosting provider and ask them to install it. Otherwise, your shop will stop working.', 'woo-redsys-gateway-light' );
 				echo '<div class=' . esc_attr( $class ) . '> <p>' . esc_attr( $message ) . '</p></div>';
@@ -1740,9 +1740,11 @@ function woocommerce_gateway_redsys_init() {
 	
 	function mostrar_numero_autentificacion( $text, $order ) {
 		
-		$order_id            = $order->get_id();
-		$numero_autorizacion = get_post_meta( $order_id, '_authorisation_code_redsys', true );
-		$text                .= '<p>' . esc_html__( 'The Redsys Authorization number is: ' ) . $numero_autorizacion . '</br >';
+		if ( $order ) {
+			$order_id            = $order->get_id();
+			$numero_autorizacion = get_post_meta( $order_id, '_authorisation_code_redsys', true );
+			$text               .= '<p>' . esc_html__( 'The Redsys Authorization number is: ' ) . $numero_autorizacion . '</br >';
+		}
 		return $text;
 	}
 	add_filter( 'woocommerce_thankyou_order_received_text', 'mostrar_numero_autentificacion', 20, 2 );

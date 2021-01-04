@@ -92,6 +92,9 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 
 == Changelog ==
 
+== 3.0.1 ==
+* Fixed a problem with PHP 8.0
+
 == 3.0.0 ==
 * New: Added PSD2 Compatibility
 * New: Added Bizum
