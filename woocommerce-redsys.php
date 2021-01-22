@@ -1740,9 +1740,10 @@ function woocommerce_gateway_redsys_init() {
 	
 	function mostrar_numero_autentificacion( $text, $order ) {
 		$redsys = new WC_Gateway_Redsys();
-		$is_redsys_order = WCRedL()->is_redsys_order( $order );
+		$order_id = WCRedL()->get_order( $order );
+		$is_redsys_order = WCRedL()->is_redsys_order( $order_id );
 		if ( 'yes' === $redsys->debug ) {
-			$redsys->log->add( 'redsys', '$is_redsys_order: ' . $is_redsys_order )
+			$redsys->log->add( 'redsys', '$is_redsys_order: ' . $is_redsys_order );
 		}
 		if ( $order && $is_redsys_order ) {
 			$order_id            = $order->get_id();
