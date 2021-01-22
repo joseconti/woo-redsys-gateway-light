@@ -1588,7 +1588,7 @@ function woocommerce_gateway_redsys_init() {
 		}
 		
 		public function warning_checkout_test_mode() {
-			if ( 'yes' === $this->testmode ) {
+			if ( 'yes' === $this->testmode && WCRedL()->is_gateway_enabled( $this->id ) ) {
 				echo '<div class="checkout-message" style="
 				background-color: #f39c12;
 				padding: 1em 1.618em;
@@ -1740,7 +1740,8 @@ function woocommerce_gateway_redsys_init() {
 	
 	function mostrar_numero_autentificacion( $text, $order ) {
 		
-		if ( $order ) {
+		$is_redsys_order = WCRedL()->is_redsys_order( $order );
+		if ( $order && $is_redsys_order ) {
 			$order_id            = $order->get_id();
 			$numero_autorizacion = get_post_meta( $order_id, '_authorisation_code_redsys', true );
 			$text               .= '<p>' . esc_html__( 'The Redsys Authorization number is: ' ) . $numero_autorizacion . '</br >';
