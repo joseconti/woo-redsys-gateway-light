@@ -1739,8 +1739,10 @@ function woocommerce_gateway_redsys_init() {
 	add_action( 'woocommerce_admin_order_data_after_billing_address', 'add_redsys_meta_box' );
 	
 	function mostrar_numero_autentificacion( $text, $order ) {
-		
 		$is_redsys_order = WCRedL()->is_redsys_order( $order );
+		if ( 'yes' === $this->debug ) {
+			$this->log->add( 'redsys', '$is_redsys_order: ' . $is_redsys_order );
+		}
 		if ( $order && $is_redsys_order ) {
 			$order_id            = $order->get_id();
 			$numero_autorizacion = get_post_meta( $order_id, '_authorisation_code_redsys', true );
