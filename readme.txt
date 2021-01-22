@@ -4,11 +4,11 @@ Tags: woocommerce, redsys, pasarela redsys, bizum, gateway, redsys gateway, reds
 Requires at least: 4.0
 Tested up to: 5.6
 Donate link: https://www.joseconti.com/cursos-online/micropatrocinio/
-Stable tag: 3.0.1
+Stable tag: 3.0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 3.0
-WC tested up to: 4.8
+WC tested up to: 4.9
 
 Add Redsys Gateway and BIZUM to WooCommerce. This is the Lite version of the official WooCommerce Redsys plugin at WooCommerce.com
 
@@ -93,7 +93,10 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 == Changelog ==
 
 == 3.0.2 ==
+* Fixed an issue where the Redsys authorization number message was displayed on the thank you page even if the order was not with Redsys.
+* Fixed all Bizum textdomain that I had inherited from the premium plugin.
 * Fixed: Now the checkout warning about test mode is not shown is the gateway is disabled in WooCommerce.
+* Declared compatibility with WooCommerce 4.9
 
 == 3.0.1 ==
 * Fixed a problem with PHP 8.0
