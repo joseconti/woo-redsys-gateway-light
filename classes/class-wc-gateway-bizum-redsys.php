@@ -477,7 +477,6 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		$miobj->setParameter( 'DS_MERCHANT_ORDER', $transaction_id2 );
 		$miobj->setParameter( 'DS_MERCHANT_MERCHANTCODE', $this->customer );
 		$miobj->setParameter( 'DS_MERCHANT_CURRENCY', $currency_codes[ get_woocommerce_currency() ] );
-		$miobj->setParameter( 'DS_MERCHANT_PAYMETHODS', $payment_option );
 		$miobj->setParameter( 'DS_MERCHANT_TRANSACTIONTYPE', $transaction_type );
 		$miobj->setParameter( 'DS_MERCHANT_TERMINAL', $dsmerchantterminal );
 		$miobj->setParameter( 'DS_MERCHANT_MERCHANTURL', $final_notify_url );
