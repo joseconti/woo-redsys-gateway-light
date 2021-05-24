@@ -361,9 +361,9 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	* Copyright: (C) 2013 - 2021 José Conti
 	*/	
 	function disable_bizum( $available_gateways ) {
-		global $woocommerce;
+
 		if ( ! is_admin() ) {
-			$total  = (int)$woocommerce->cart->get_cart_total();
+			$total  = (int)WC()->cart->total;
 			$limit  = (int)$this->transactionlimit;
 			$result = $limit - $total;
 			if ( 'yes' === $this->debug ) {
