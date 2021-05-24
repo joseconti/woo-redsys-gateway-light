@@ -94,7 +94,9 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 == Changelog ==
 
 == 3.0.4 ==
+* NEW: Now you can set a limit cart amount for use Bizum.
 * Fixed Thank you page error when directly acceded without associated order ID.
+
 
 == 3.0.3 ==
 * Fixed missing translation string (The Redsys Authorization number is:)
