@@ -43,6 +43,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		$this->title                = $this->get_option( 'title' );
 		$this->description          = $this->get_option( 'description' );
 		$this->customer             = $this->get_option( 'customer' );
+		$this->transaclimitmonth    = $this->get_option( 'transaclimitmonth' );
 		$this->commercename         = $this->get_option( 'commercename' );
 		$this->terminal             = $this->get_option( 'terminal' );
 		$this->secretsha256         = $this->get_option( 'secretsha256' );
@@ -64,6 +65,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		add_action( 'woocommerce_receipt_' . $this->id, array( $this, 'receipt_page' ) );
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 		add_action( 'woocommerce_before_checkout_form', array( $this, 'warning_checkout_test_mode_bizum' ) );
+		add_filter( 'woocommerce_available_payment_gateways', array( $this, 'disable_bizum' ) );
 	
 		// Payment listener/API hook
 		add_action( 'woocommerce_api_wc_gateway_' . $this->id, array( $this, 'check_ipn_response' ) );
@@ -188,6 +190,12 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				'title'       => __( 'Terminal number', 'woo-redsys-gateway-light' ),
 				'type'        => 'text',
 				'description' => __( 'Terminal number provided by your bank.', 'woo-redsys-gateway-light' ),
+				'desc_tip'    => true,
+			),
+			'transaclimitmonth' => array(
+				'title'       => __( 'Monthly transactions', 'woo-redsys-gateway-light' ),
+				'type'        => 'text',
+				'description' => __( 'Maximum number of monthly transactions. Some banks set a maximum number of transactions in a month.', 'woo-redsys-gateway-light' ),
 				'desc_tip'    => true,
 			),
 			'not_use_https'    => array(
@@ -323,7 +331,45 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			return false;
 		}
 	}
-
+	/**
+	* Copyright: (C) 2013 - 2021 José Conti
+	*/
+	function get_number_transaction_bizum() {
+		$transaction = get_option( 'bizum_transaction');
+		$saved_month = get_option( 'bizum_month');
+		$month       = date('m');
+		if ( ! $saved_month || $saved_month !==  $month ) {
+			return 0;
+		} else {
+			return $transaction;
+		}
+	}
+	/**
+	* Copyright: (C) 2013 - 2021 José Conti
+	*/
+	function can_use_bizum() {
+		$number     = $this->get_number_transaction_bizum();
+		$max_number = $this->transaclimitmonth;
+		$result     = (int)$max_number - (int)$number;
+		if ( $result > 0 ) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	/**
+	* Copyright: (C) 2013 - 2021 José Conti
+	*/	
+	function disable_bizum( $available_gateways ) {
+		if ( ! is_admin() ) {
+			$chosen_methods = WC()->session->get( 'chosen_shipping_methods' );
+			$chosen_shipping = $chosen_methods[0];
+			if ( isset( $available_gateways['bizumredsys'] ) && ! $this->can_use_bizum() ) {
+				unset( $available_gateways['bizumredsys'] );
+			}
+		}
+		return $available_gateways;
+	}
 	/**
 	* Copyright: (C) 2013 - 2021 José Conti
 	*/

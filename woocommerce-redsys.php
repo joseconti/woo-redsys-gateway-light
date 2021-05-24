@@ -1739,19 +1739,22 @@ function woocommerce_gateway_redsys_init() {
 	add_action( 'woocommerce_admin_order_data_after_billing_address', 'add_redsys_meta_box' );
 	
 	function mostrar_numero_autentificacion( $text, $order ) {
-		$redsys          = new WC_Gateway_Redsys();
-		$is_redsys_order = WCRedL()->is_redsys_order( $order->get_id() );
-		if ( 'yes' === $redsys->debug ) {
-			if ( $is_redsys_order ) {
-			 $redsys->log->add( 'redsys', '$is_redsys_order: YES' );
-			} else {
-				$redsys->log->add( 'redsys', '$is_redsys_order: NO' );
+
+		if ( ! empty( $order ) ) {
+			$redsys          = new WC_Gateway_Redsys();
+			$is_redsys_order = WCRedL()->is_redsys_order( $order->get_id() );
+			if ( 'yes' === $redsys->debug ) {
+				if ( $is_redsys_order ) {
+				 $redsys->log->add( 'redsys', '$is_redsys_order: YES' );
+				} else {
+					$redsys->log->add( 'redsys', '$is_redsys_order: NO' );
+				}
 			}
-		}
-		if ( $order && $is_redsys_order ) {
-			$order_id            = $order->get_id();
-			$numero_autorizacion = get_post_meta( $order_id, '_authorisation_code_redsys', true );
-			$text               .= '<p>' . esc_html__( 'The Redsys Authorization number is: ', 'woo-redsys-gateway-light' ) . $numero_autorizacion . '</br >';
+			if ( $order && $is_redsys_order ) {
+				$order_id            = $order->get_id();
+				$numero_autorizacion = get_post_meta( $order_id, '_authorisation_code_redsys', true );
+				$text               .= '<p>' . esc_html__( 'The Redsys Authorization number is: ', 'woo-redsys-gateway-light' ) . $numero_autorizacion . '</br >';
+			}
 		}
 		return $text;
 	}

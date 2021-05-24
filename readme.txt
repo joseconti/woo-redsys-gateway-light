@@ -38,6 +38,7 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 
 = Premium version Features =
 
+* Credit card Form in the Checkout as Stripe
 * Add Bizum
 * Add MasterPass
 * Add InSite
@@ -91,6 +92,9 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 4. Language: Set the Redsys Gateway Language.
 
 == Changelog ==
+
+== 3.0.4 ==
+* Fixed Thank you page error when directly acceded without associated order ID.
 
 == 3.0.3 ==
 * Fixed missing translation string (The Redsys Authorization number is:)
