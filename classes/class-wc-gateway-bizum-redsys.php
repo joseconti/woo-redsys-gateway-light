@@ -43,7 +43,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		$this->title                = $this->get_option( 'title' );
 		$this->description          = $this->get_option( 'description' );
 		$this->customer             = $this->get_option( 'customer' );
-		$this->transaclimitmonth    = $this->get_option( 'transaclimitmonth' );
+		$this->transactionlimit     = $this->get_option( 'transactionlimit' );
 		$this->commercename         = $this->get_option( 'commercename' );
 		$this->terminal             = $this->get_option( 'terminal' );
 		$this->secretsha256         = $this->get_option( 'secretsha256' );
@@ -192,10 +192,10 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				'description' => __( 'Terminal number provided by your bank.', 'woo-redsys-gateway-light' ),
 				'desc_tip'    => true,
 			),
-			'transaclimitmonth' => array(
-				'title'       => __( 'Monthly transactions', 'woo-redsys-gateway-light' ),
+			'transactionlimit' => array(
+				'title'       => __( 'Transaction Limit', 'woo-redsys-gateway-light' ),
 				'type'        => 'text',
-				'description' => __( 'Maximum number of monthly transactions. Some banks set a maximum number of transactions in a month.', 'woo-redsys-gateway-light' ),
+				'description' => __( 'Maximum transaction price for the cart.', 'woo-redsys-gateway-light' ),
 				'desc_tip'    => true,
 			),
 			'not_use_https'    => array(
@@ -362,9 +362,12 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	*/	
 	function disable_bizum( $available_gateways ) {
 		if ( ! is_admin() ) {
-			$chosen_methods = WC()->session->get( 'chosen_shipping_methods' );
-			$chosen_shipping = $chosen_methods[0];
-			if ( isset( $available_gateways['bizumredsys'] ) && ! $this->can_use_bizum() ) {
+			$total  = (int)WC()->cart->get_cart_total();
+			$limit  = (int)$this->transactionlimit;
+			$result = $limit - $total;
+			if ( $result > 0 ) {
+				return $available_gateways;
+			} else {
 				unset( $available_gateways['bizumredsys'] );
 			}
 		}
@@ -1026,6 +1029,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				}
 			}
 			// Payment completed.
+
 			$order->add_order_note( __( 'HTTP Notification received - payment completed', 'woo-redsys-gateway-light' ) );
 			$order->add_order_note( __( 'Authorization code: ', 'woo-redsys-gateway-light' ) . $authorisation_code );
 			$order->payment_complete();
