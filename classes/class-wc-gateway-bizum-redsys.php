@@ -365,6 +365,13 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			$total  = (int)WC()->cart->get_cart_total();
 			$limit  = (int)$this->transactionlimit;
 			$result = $limit - $total;
+			if ( 'yes' === $this->debug ) {
+				$this->log->add( 'bizumredsys', ' ' );
+				$this->log->add( 'bizumredsys', '$total: ' . $total );
+				$this->log->add( 'bizumredsys', '$limit: ' . $limit );
+				$this->log->add( 'bizumredsys', '$result: ' . $result );
+				$this->log->add( 'bizumredsys', ' ' );
+			}
 			if ( $result > 0 ) {
 				return $available_gateways;
 			} else {
