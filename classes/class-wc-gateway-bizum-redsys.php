@@ -333,32 +333,6 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	}
 	/**
 	* Copyright: (C) 2013 - 2021 José Conti
-	*/
-	function get_number_transaction_bizum() {
-		$transaction = get_option( 'bizum_transaction');
-		$saved_month = get_option( 'bizum_month');
-		$month       = date('m');
-		if ( ! $saved_month || $saved_month !==  $month ) {
-			return 0;
-		} else {
-			return $transaction;
-		}
-	}
-	/**
-	* Copyright: (C) 2013 - 2021 José Conti
-	*/
-	function can_use_bizum() {
-		$number     = $this->get_number_transaction_bizum();
-		$max_number = $this->transaclimitmonth;
-		$result     = (int)$max_number - (int)$number;
-		if ( $result > 0 ) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-	/**
-	* Copyright: (C) 2013 - 2021 José Conti
 	*/	
 	function disable_bizum( $available_gateways ) {
 
