@@ -504,6 +504,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		} else {
 			$final_notify_url = $this->notify_url;
 		}
+		$nombr_apellidos    = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
 		// redsys Args.
 		$miobj = new RedsysAPI();
 		$miobj->setParameter( 'DS_MERCHANT_AMOUNT', $order_total_sign );
@@ -513,6 +514,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		$miobj->setParameter( 'DS_MERCHANT_TRANSACTIONTYPE', $transaction_type );
 		$miobj->setParameter( 'DS_MERCHANT_TERMINAL', $dsmerchantterminal );
 		$miobj->setParameter( 'DS_MERCHANT_MERCHANTURL', $final_notify_url );
+		$miobj->setParameter( 'DS_MERCHANT_TITULAR', $nombr_apellidos );
 		$miobj->setParameter( 'DS_MERCHANT_URLOK', add_query_arg( 'utm_nooverride', '1', $this->get_return_url( $order ) ) );
 		$miobj->setParameter( 'DS_MERCHANT_URLKO', $returnfromredsys );
 		$miobj->setParameter( 'DS_MERCHANT_CONSUMERLANGUAGE', $gatewaylanguage );

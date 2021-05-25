@@ -698,7 +698,7 @@ function woocommerce_gateway_redsys_init() {
 			}
 			$returnfromredsys   = $order->get_cancel_order_url();
 			$dsmerchantterminal = $this->terminal;
-			$nombr_apellidos    = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();;
+			$nombr_apellidos    = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
 			if ( 'yes' === $this->not_use_https ) {
 					$final_notify_url = $this->notify_url_not_https;
 			} else {
