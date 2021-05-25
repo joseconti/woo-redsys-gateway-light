@@ -4,7 +4,7 @@ Tags: woocommerce, redsys, pasarela redsys, bizum, gateway, redsys gateway, reds
 Requires at least: 4.0
 Tested up to: 5.7
 Donate link: https://www.joseconti.com/cursos-online/micropatrocinio/
-Stable tag: 3.0.3
+Stable tag: 3.0.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 3.0
@@ -95,6 +95,7 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 
 == 3.0.4 ==
 * NEW: Now you can set a limit cart amount for use Bizum.
+* NEW: Now the customer name is send to Redsys.
 * Fixed Thank you page error when directly acceded without associated order ID.
 
 
