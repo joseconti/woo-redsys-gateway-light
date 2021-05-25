@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
 * Copyright: (C) 2013 - 2021 José Conti
 */
-class WC_Gateway_Redsys_Global {
+class WC_Gateway_Redsys_Global_lite {
 	
 	public function __construct() {
 		$this->log   = new WC_Logger();

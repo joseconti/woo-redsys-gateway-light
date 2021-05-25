@@ -132,7 +132,7 @@ function WCRedL() {
 	* Copyright: (C) 2013 - 2021 José Conti
 	*/
 	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-redsys-global.php'; // Global class for global functions
-	return new WC_Gateway_Redsys_Global();
+	return new WC_Gateway_Redsys_Global_Lite();
 }
 
 /**
@@ -698,6 +698,7 @@ function woocommerce_gateway_redsys_init() {
 			}
 			$returnfromredsys   = $order->get_cancel_order_url();
 			$dsmerchantterminal = $this->terminal;
+			$nombr_apellidos    = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();;
 			if ( 'yes' === $this->not_use_https ) {
 					$final_notify_url = $this->notify_url_not_https;
 			} else {
@@ -713,6 +714,7 @@ function woocommerce_gateway_redsys_init() {
 			$miobj->setParameter( 'DS_MERCHANT_TRANSACTIONTYPE', $transaction_type );
 			$miobj->setParameter( 'DS_MERCHANT_TERMINAL', $dsmerchantterminal );
 			$miobj->setParameter( 'DS_MERCHANT_MERCHANTURL', $final_notify_url );
+			$miobj->setParameter( 'DS_MERCHANT_TITULAR', $nombr_apellidos );
 			$miobj->setParameter( 'DS_MERCHANT_URLOK', add_query_arg( 'utm_nooverride', '1', $this->get_return_url( $order ) ) );
 			$miobj->setParameter( 'DS_MERCHANT_URLKO', $returnfromredsys );
 			$miobj->setParameter( 'DS_MERCHANT_CONSUMERLANGUAGE', $gatewaylanguage );

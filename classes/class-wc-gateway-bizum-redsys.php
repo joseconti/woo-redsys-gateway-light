@@ -339,7 +339,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		if ( ! is_admin() ) {
 			$total  = (int)WC()->cart->total;
 			$limit  = (int)$this->transactionlimit;
-			if ( $limit > 0 ) {
+			if ( ! empty( $limit ) && $limit > 0 ) {
 				$result = $limit - $total;
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', ' ' );
