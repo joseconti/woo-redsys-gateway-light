@@ -1,0 +1,14 @@
+{
+        "security.workspace.trust.untrustedFiles": "open",
+        "php.validate.executablePath": "C:/Users/jcont/Dropbox/php-7.4.21-nts-Win32-vc15-x64/php.exe",
+        "phpcs.standard": "WooCommerce-Core",
+        "phpcbf.onsave": true,
+        "phpcbf.executablePath": "phpcbf.bat",
+        "files.eol": "\n",
+        "phpcbf.standard": "WooCommerce-Core",
+        "phpcs.showSources": true,
+        "phpcs.autoConfigSearch": false,
+        "files.associations": {
+            "*.php": "php"
+        }
+}
