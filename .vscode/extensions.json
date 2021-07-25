@@ -1,6 +1,6 @@
 {
     "recommendations": [
-        "ikappas.phpcs",
-        "shevaua.phpcs"
+        "obliviousharmony.vscode-php-codesniffer",
+        "ms-ceintl.vscode-language-pack-es"
     ]
 }
