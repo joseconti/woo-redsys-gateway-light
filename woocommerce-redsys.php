@@ -42,7 +42,7 @@ if ( ! defined( 'REDSYS_PLUGIN_DATA_URL' ) ) {
 	define( 'REDSYS_PLUGIN_DATA_URL', REDSYS_PLUGIN_URL . 'includes/data/' );
 }
 if ( ! defined( 'REDSYS_PLUGIN_CLASS_PATH' ) ) {
-	define( 'REDSYS_PLUGIN_CLASS_PATH', REDSYS_PLUGIN_PATH . 'classes/'  );
+	define( 'REDSYS_PLUGIN_CLASS_PATH', REDSYS_PLUGIN_PATH . 'classes/' );
 }
 
 add_action( 'plugins_loaded', 'woocommerce_gateway_redsys_init', 0 );
@@ -116,17 +116,17 @@ function redsys_css_lite() {
 
 		$current_screen = get_current_screen();
 
-		if ( 'woocommerce_page_wc-settings' === $current_screen->id ) {
-			wp_register_style( 'redsys-css', plugins_url( 'assets/css/redsys-css.css', __FILE__ ), array(), REDSYS_WOOCOMMERCE_VERSION );
-			wp_enqueue_style( 'redsys-css' );
-		}
-
+	if ( 'woocommerce_page_wc-settings' === $current_screen->id ) {
+		wp_register_style( 'redsys-css', plugins_url( 'assets/css/redsys-css.css', __FILE__ ), array(), REDSYS_WOOCOMMERCE_VERSION );
+		wp_enqueue_style( 'redsys-css' );
 	}
+
+}
 	add_action( 'admin_enqueue_scripts', 'redsys_css_lite' );
 
 /**
-* Copyright: (C) 2013 - 2021 José Conti
-*/
+ * Copyright: (C) 2013 - 2021 José Conti
+ */
 function WCRedL() {
 	/**
 	* Copyright: (C) 2013 - 2021 José Conti
@@ -136,8 +136,8 @@ function WCRedL() {
 }
 
 /**
-* Copyright: (C) 2013 - 2021 José Conti
-*/
+ * Copyright: (C) 2013 - 2021 José Conti
+ */
 function WCPSD2L() {
 	/**
 	* Copyright: (C) 2013 - 2021 José Conti
@@ -188,25 +188,25 @@ function woocommerce_gateway_redsys_init() {
 			$this->init_form_fields();
 			$this->init_settings();
 			// Define user set variables.
-			$this->psd2                 = $this->get_option( 'psd2' );
-			$this->title                = $this->get_option( 'title' );
-			$this->description          = $this->get_option( 'description' );
-			$this->logo                 = $this->get_option( 'logo' );
-			$this->orderdo              = $this->get_option( 'orderdo' );
-			$this->customer             = $this->get_option( 'customer' );
-			$this->commercename         = $this->get_option( 'commercename' );
-			$this->payoptions           = $this->get_option( 'payoptions' );
-			$this->terminal             = $this->get_option( 'terminal' );
-			$this->secret               = $this->get_option( 'secret' );
-			$this->secretsha256         = $this->get_option( 'secretsha256' );
-			$this->customtestsha256     = $this->get_option( 'customtestsha256' );
-			$this->debug                = $this->get_option( 'debug' );
-			$this->hashtype             = $this->get_option( 'hashtype' );
-			$this->redsyslanguage       = $this->get_option( 'redsyslanguage' );
-			$this->log                  = new WC_Logger();
-			$this->supports             = array(
-			'products',
-			'refunds',
+			$this->psd2             = $this->get_option( 'psd2' );
+			$this->title            = $this->get_option( 'title' );
+			$this->description      = $this->get_option( 'description' );
+			$this->logo             = $this->get_option( 'logo' );
+			$this->orderdo          = $this->get_option( 'orderdo' );
+			$this->customer         = $this->get_option( 'customer' );
+			$this->commercename     = $this->get_option( 'commercename' );
+			$this->payoptions       = $this->get_option( 'payoptions' );
+			$this->terminal         = $this->get_option( 'terminal' );
+			$this->secret           = $this->get_option( 'secret' );
+			$this->secretsha256     = $this->get_option( 'secretsha256' );
+			$this->customtestsha256 = $this->get_option( 'customtestsha256' );
+			$this->debug            = $this->get_option( 'debug' );
+			$this->hashtype         = $this->get_option( 'hashtype' );
+			$this->redsyslanguage   = $this->get_option( 'redsyslanguage' );
+			$this->log              = new WC_Logger();
+			$this->supports         = array(
+				'products',
+				'refunds',
 			);
 			// Actions.
 			add_action( 'valid_redsys_standard_ipn_request', array( $this, 'successful_request' ) );
@@ -235,11 +235,12 @@ function woocommerce_gateway_redsys_init() {
 		 * @access public
 		 * @return bool
 		 */
-	function is_valid_for_use() {
-			if ( ! in_array( get_woocommerce_currency(), array( 'ALL', 'DZD', 'AOK', 'ARS', 'MON', 'AZM', 'ARP', 'ARP', 'AUD', 'BSD', 'BHD', 'BDT', 'AMD', 'BBD', 'BMD', 'BTN', 'BOP', 'BAD', 'BWP', 'BRC', 'BZD', 'SBD', 'BND', 'BGL', 'BUK', 'BIF', 'BYB', 'KHR', 'CAD', 'CAD', 'CVE', 'LKR', 'CLP', 'CLP', 'CNY', 'CNH', 'COP', 'COP', 'KMF', 'ZRZ', 'CRC', 'CRC', 'CUP', 'CYP', 'CSK', 'CZK', 'DKK', 'DOP', 'ECS', 'SVC', 'GQE', 'ETB', 'ERN', 'FKP', 'FJD', 'DJF', 'GEL', 'GMD', 'DDM', 'GHC', 'GIP', 'GTQ', 'GNS', 'GYD', 'HTG', 'HNL', 'HKD', 'HUF', 'ISK', 'INR', 'ISK', 'IDR', 'IRR', 'IRA', 'IQD', 'ILS', 'JMD', 'JPY', 'JPY', 'KZT', 'JOD', 'KES', 'KPW', 'KRW', 'KWD', 'KGS', 'LAK', 'LBP', 'LSM', 'LVL', 'LRD', 'LYD', 'LTL', 'MOP', 'MGF', 'MWK', 'MYR', 'MVR', 'MLF', 'MTL', 'MRO', 'MUR', 'MXP', 'MXP', 'MNT', 'MDL', 'MAD', 'MZM', 'OMR', 'NAD', 'NPR', 'ANG', 'AWG', 'NTZ', 'VUV', 'NZD', 'NIC', 'NGN', 'NOK', 'PCI', 'PKR', 'PAB', 'PGK', 'PYG', 'PEI', 'PEI', 'PHP', 'PLZ', 'TPE', 'QAR', 'ROL', 'RUB', 'RWF', 'SHP', 'STD', 'SAR', 'SCR', 'SLL', 'SGD', 'SKK', 'VND', 'SIT', 'SOS', 'ZAR', 'ZWD', 'YDD', 'SSP', 'SDP', 'SDA', 'SRG', 'SZL', 'SEK', 'CHF', 'CHF', 'SYP', 'TJR', 'THB', 'TOP', 'TTD', 'AED', 'TND', 'TRL', 'PTL', 'TMM', 'UGS', 'UAK', 'MKD', 'RUR', 'EGP', 'GBP', 'TZS', 'USD', 'UYP', 'UYP', 'UZS', 'VEB', 'WST', 'YER', 'YUD', 'YUG', 'ZMK', 'TWD', 'TMT', 'GHS', 'RSD', 'MZN', 'AZN', 'RON', 'TRY', 'TRY', 'XAF', 'XCD', 'XOF', 'XPF', 'XEU', 'ZMW', 'SRD', 'MGA', '', 'TJS', 'AOA', 'BYR', 'BGN', 'CDF', 'BAM', 'EUR', 'UAH', 'GEL', 'PLN', 'BRL', 'BRL', 'ZAL', 'EEK', 'MXN' ), true ) )
-		return false;
-		return true;
-	}
+		function is_valid_for_use() {
+			if ( ! in_array( get_woocommerce_currency(), array( 'ALL', 'DZD', 'AOK', 'ARS', 'MON', 'AZM', 'ARP', 'ARP', 'AUD', 'BSD', 'BHD', 'BDT', 'AMD', 'BBD', 'BMD', 'BTN', 'BOP', 'BAD', 'BWP', 'BRC', 'BZD', 'SBD', 'BND', 'BGL', 'BUK', 'BIF', 'BYB', 'KHR', 'CAD', 'CAD', 'CVE', 'LKR', 'CLP', 'CLP', 'CNY', 'CNH', 'COP', 'COP', 'KMF', 'ZRZ', 'CRC', 'CRC', 'CUP', 'CYP', 'CSK', 'CZK', 'DKK', 'DOP', 'ECS', 'SVC', 'GQE', 'ETB', 'ERN', 'FKP', 'FJD', 'DJF', 'GEL', 'GMD', 'DDM', 'GHC', 'GIP', 'GTQ', 'GNS', 'GYD', 'HTG', 'HNL', 'HKD', 'HUF', 'ISK', 'INR', 'ISK', 'IDR', 'IRR', 'IRA', 'IQD', 'ILS', 'JMD', 'JPY', 'JPY', 'KZT', 'JOD', 'KES', 'KPW', 'KRW', 'KWD', 'KGS', 'LAK', 'LBP', 'LSM', 'LVL', 'LRD', 'LYD', 'LTL', 'MOP', 'MGF', 'MWK', 'MYR', 'MVR', 'MLF', 'MTL', 'MRO', 'MUR', 'MXP', 'MXP', 'MNT', 'MDL', 'MAD', 'MZM', 'OMR', 'NAD', 'NPR', 'ANG', 'AWG', 'NTZ', 'VUV', 'NZD', 'NIC', 'NGN', 'NOK', 'PCI', 'PKR', 'PAB', 'PGK', 'PYG', 'PEI', 'PEI', 'PHP', 'PLZ', 'TPE', 'QAR', 'ROL', 'RUB', 'RWF', 'SHP', 'STD', 'SAR', 'SCR', 'SLL', 'SGD', 'SKK', 'VND', 'SIT', 'SOS', 'ZAR', 'ZWD', 'YDD', 'SSP', 'SDP', 'SDA', 'SRG', 'SZL', 'SEK', 'CHF', 'CHF', 'SYP', 'TJR', 'THB', 'TOP', 'TTD', 'AED', 'TND', 'TRL', 'PTL', 'TMM', 'UGS', 'UAK', 'MKD', 'RUR', 'EGP', 'GBP', 'TZS', 'USD', 'UYP', 'UYP', 'UZS', 'VEB', 'WST', 'YER', 'YUD', 'YUG', 'ZMK', 'TWD', 'TMT', 'GHS', 'RSD', 'MZN', 'AZN', 'RON', 'TRY', 'TRY', 'XAF', 'XCD', 'XOF', 'XPF', 'XEU', 'ZMW', 'SRD', 'MGA', '', 'TJS', 'AOA', 'BYR', 'BGN', 'CDF', 'BAM', 'EUR', 'UAH', 'GEL', 'PLN', 'BRL', 'BRL', 'ZAL', 'EEK', 'MXN' ), true ) ) {
+				return false;
+			}
+			return true;
+		}
 		/**
 		 * Admin Panel Options
 		 *
@@ -285,50 +286,50 @@ function woocommerce_gateway_redsys_init() {
 		 */
 		function init_form_fields() {
 			$this->form_fields = array(
-				'enabled'        => array(
+				'enabled'          => array(
 					'title'   => __( 'Enable/Disable', 'woo-redsys-gateway-light' ),
 					'type'    => 'checkbox',
 					'label'   => __( 'Enable Servired/RedSys', 'woo-redsys-gateway-light' ),
 					'default' => 'no',
 				),
-				'psd2'              => array(
+				'psd2'             => array(
 					'title'   => __( 'Enable PSD2', 'woocommerce-redsys' ),
 					'type'    => 'checkbox',
 					'label'   => __( 'Enable PSD2', 'woocommerce-redsys' ),
 					'default' => 'no',
 				),
-				'title'          => array(
+				'title'            => array(
 					'title'       => __( 'Title', 'woo-redsys-gateway-light' ),
 					'type'        => 'text',
 					'description' => __( 'This controls the title which the user sees during checkout.', 'woo-redsys-gateway-light' ),
 					'default'     => __( 'Servired/RedSys', 'woo-redsys-gateway-light' ),
 					'desc_tip'    => true,
 				),
-				'description'    => array(
+				'description'      => array(
 					'title'       => __( 'Description', 'woo-redsys-gateway-light' ),
 					'type'        => 'textarea',
 					'description' => __( 'This controls the description which the user sees during checkout.', 'woo-redsys-gateway-light' ),
 					'default'     => __( 'Pay via Servired/RedSys; you can pay with your credit card.', 'woo-redsys-gateway-light' ),
 				),
-				'logo'           => array(
+				'logo'             => array(
 					'title'       => __( 'Logo', 'woo-redsys-gateway-light' ),
 					'type'        => 'text',
 					'description' => __( 'Add link to image logo.', 'woo-redsys-gateway-light' ),
 					'desc_tip'    => true,
 				),
-				'customer'       => array(
+				'customer'         => array(
 					'title'       => __( 'Commerce number (FUC)', 'woo-redsys-gateway-light' ),
 					'type'        => 'text',
 					'description' => __( 'Commerce number (FUC) provided by your bank.', 'woo-redsys-gateway-light' ),
 					'desc_tip'    => true,
 				),
-				'commercename'   => array(
+				'commercename'     => array(
 					'title'       => __( 'Commerce Name', 'woo-redsys-gateway-light' ),
 					'type'        => 'text',
 					'description' => __( 'Commerce Name', 'woo-redsys-gateway-light' ),
 					'desc_tip'    => true,
 				),
-				'payoptions'     => array(
+				'payoptions'       => array(
 					'title'       => __( 'Pay Options', 'woo-redsys-gateway-light' ),
 					'type'        => 'select',
 					'description' => __( 'Chose options in Redsys Gateway (by Default Credit Card + iUpay)', 'woo-redsys-gateway-light' ),
@@ -339,20 +340,20 @@ function woocommerce_gateway_redsys_init() {
 						'C' => __( 'Credit Card', 'woo-redsys-gateway-light' ),
 					),
 				),
-				'terminal'       => array(
+				'terminal'         => array(
 					'title'       => __( 'Terminal number', 'woo-redsys-gateway-light' ),
 					'type'        => 'text',
 					'description' => __( 'Terminal number provided by your bank.', 'woo-redsys-gateway-light' ),
 					'desc_tip'    => true,
 				),
-				'not_use_https'  => array(
+				'not_use_https'    => array(
 					'title'       => __( 'HTTPS SNI Compatibility', 'woo-redsys-gateway-light' ),
 					'type'        => 'checkbox',
 					'label'       => __( 'Activate SNI Compatibility.', 'woo-redsys-gateway-light' ),
 					'default'     => 'no',
 					'description' => sprintf( __( 'If you are using HTTPS and Redsys don\'t support your certificate, example Lets Encrypt, you can deactivate HTTPS notifications. WARNING: If you are forcing redirection to HTTPS with htaccess, you need to add an exception for notification URL', 'woo-redsys-gateway-light' ) ),
 				),
-				'orderdo'     => array(
+				'orderdo'          => array(
 					'title'       => __( 'What to do after payment?', 'woo-redsys-gateway-light' ),
 					'type'        => 'select',
 					'description' => __( 'Chose what to do after the customer pay the order.', 'woo-redsys-gateway-light' ),
@@ -362,7 +363,7 @@ function woocommerce_gateway_redsys_init() {
 						'completed'  => __( 'Mark as Complete', 'woo-redsys-gateway-light' ),
 					),
 				),
-				'secretsha256'   => array(
+				'secretsha256'     => array(
 					'title'       => __( 'Encryption secret passphrase SHA-256', 'woo-redsys-gateway-light' ),
 					'type'        => 'text',
 					'description' => __( 'Encryption secret passphrase SHA-256 provided by your bank.', 'woo-redsys-gateway-light' ),
@@ -374,7 +375,7 @@ function woocommerce_gateway_redsys_init() {
 					'description' => __( 'Encryption secret passphrase SHA-256 provided by your bank for test mode.', 'woo-redsys-gateway-light' ),
 					'desc_tip'    => true,
 				),
-				'redsyslanguage' => array(
+				'redsyslanguage'   => array(
 					'title'       => __( 'Language Gateway', 'woo-redsys-gateway-light' ),
 					'type'        => 'select',
 					'description' => __( 'Choose the language for the Gateway. Not all Banks accept all languages', 'woo-redsys-gateway-light' ),
@@ -413,14 +414,14 @@ function woocommerce_gateway_redsys_init() {
 						'792' => 'Türkçe - Turco',
 					),
 				),
-				'testmode'       => array(
+				'testmode'         => array(
 					'title'       => __( 'Running in test mode', 'woo-redsys-gateway-light' ),
 					'type'        => 'checkbox',
 					'label'       => __( 'Running in test mode', 'woo-redsys-gateway-light' ),
 					'default'     => 'yes',
 					'description' => sprintf( __( 'Select this option for the initial testing required by your bank, deselect this option once you pass the required test phase and your production environment is active.', 'woo-redsys-gateway-light' ) ),
 				),
-				'debug'          => array(
+				'debug'            => array(
 					'title'       => __( 'Debug Log', 'woo-redsys-gateway-light' ),
 					'type'        => 'checkbox',
 					'label'       => __( 'Enable logging', 'woo-redsys-gateway-light' ),
@@ -729,7 +730,7 @@ function woocommerce_gateway_redsys_init() {
 			if ( 'yes' === $this->psd2 ) {
 				$psd2 = WCPSD2L()->get_acctinfo( $order );
 				$miobj->setParameter( 'Ds_Merchant_EMV3DS', $psd2 );
-			
+
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'redsys', 'PSD2 activado' );
 					$this->log->add( 'redsys', '$psd2: ' . $psd2 );
@@ -798,7 +799,8 @@ function woocommerce_gateway_redsys_init() {
 				foreach ( $redsys_args as $key => $value ) {
 					$form_inputs .= '<input type="hidden" name="' . $key . '" value="' . esc_attr( $value ) . '" />';
 				}
-				wc_enqueue_js( '
+				wc_enqueue_js(
+					'
 				$("body").block({
 					message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', $woocommerce->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . __( 'Thank you for your order. We are now redirecting you to Servired/RedSys to make the payment.', 'woo-redsys-gateway-light' ) . '",
 					overlayCSS:
@@ -817,7 +819,8 @@ function woocommerce_gateway_redsys_init() {
 					}
 				});
 			jQuery("#submit_redsys_payment_form").click();
-			' );
+			'
+				);
 				return '<form action="' . esc_url( $redsys_adr ) . '" method="post" id="redsys_payment_form" target="_top">
 				' . $form_inputs . '
 				<input type="submit" class="button-alt" id="submit_redsys_payment_form" value="' . __( 'Pay with Credit Card via Servired/RedSys', 'woo-redsys-gateway-light' ) . '" /> <a class="button cancel" href="' . esc_url( $order->get_cancel_order_url() ) . '">' . __( 'Cancel order &amp; restore cart', 'woo-redsys-gateway-light' ) . '</a>
@@ -834,7 +837,8 @@ function woocommerce_gateway_redsys_init() {
 				foreach ( $redsys_args as $key => $value ) {
 					$form_inputs[] .= '<input type="hidden" name="' . $key . '" value="' . esc_attr( $value ) . '" />';
 				}
-				wc_enqueue_js( '
+				wc_enqueue_js(
+					'
 				$("body").block({
 					message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', $woocommerce->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . __( 'Thank you for your order. We are now redirecting you to Servired/RedSys to make the payment.', 'woo-redsys-gateway-light' ) . '",
 					overlayCSS:
@@ -853,7 +857,8 @@ function woocommerce_gateway_redsys_init() {
 					}
 				});
 			jQuery("#submit_redsys_payment_form").click();
-			' );
+			'
+				);
 				return '<form action="' . esc_url( $redsys_adr ) . '" method="post" id="redsys_payment_form" target="_top">
 				' . implode( '', $form_inputs ) . '
 				<input type="submit" class="button-alt" id="submit_redsys_payment_form" value="' . __( 'Pay with Credit Card via Servired/RedSys', 'woo-redsys-gateway-light' ) . '" /> <a class="button cancel" href="' . esc_url( $order->get_cancel_order_url() ) . '">' . __( 'Cancel order &amp; restore cart', 'woo-redsys-gateway-light' ) . '</a>
@@ -906,25 +911,25 @@ function woocommerce_gateway_redsys_init() {
 			}
 
 			if ( $usesecretsha256 ) {
-				
+
 				if ( isset( $_POST['Ds_SignatureVersion'] ) ) {
-				    $version = sanitize_text_field( $_POST['Ds_SignatureVersion'] );
+					$version = sanitize_text_field( $_POST['Ds_SignatureVersion'] );
 				} else {
-				    $version = '';
+					$version = '';
 				}
-				
+
 				if ( isset( $_POST['Ds_MerchantParameters'] ) ) {
-				    $data = sanitize_text_field( $_POST['Ds_MerchantParameters'] );
+					$data = sanitize_text_field( $_POST['Ds_MerchantParameters'] );
 				} else {
-				     $data = '';
+					$data = '';
 				}
-				
+
 				if ( isset( $_POST['Ds_Signature'] ) ) {
-				    $remote_sign = sanitize_text_field( $_POST['Ds_Signature'] );
+					$remote_sign = sanitize_text_field( $_POST['Ds_Signature'] );
 				} else {
-				     $remote_sign = '';
+					$remote_sign = '';
 				}
-				
+
 				$miobj       = new RedsysAPI();
 				$localsecret = $miobj->createMerchantSignatureNotif( $usesecretsha256, $data );
 
@@ -1030,11 +1035,22 @@ function woocommerce_gateway_redsys_init() {
 			$order1            = $ordermi;
 			$order2            = substr( $order1, 3 ); // cojo los 9 digitos del final.
 			$order             = $this->get_redsys_order( (int) $order2 );
+			$is_paid           = WCRedL()->is_paid( $order->get_id() );
 			if ( 'yes' === $this->debug ) {
-					$this->log->add( 'redsys', 'Ds_Amount: ' . $total . ', Ds_Order: ' . $order1 . ',	Ds_MerchantCode: ' . $dscode . ', Ds_Currency: ' . $currency_code . ', Ds_Response: ' . $response . ', Ds_AuthorisationCode: ' . $id_trans . ', $order2: ' . $order2 );
+				$this->log->add( 'redsys', 'Ds_Amount: ' . $total . ', Ds_Order: ' . $order1 . ',	Ds_MerchantCode: ' . $dscode . ', Ds_Currency: ' . $currency_code . ', Ds_Response: ' . $response . ', Ds_AuthorisationCode: ' . $id_trans . ', $order2: ' . $order2 );
+			}
+			if ( 'yes' === $this->debug ) {
+				if ( $is_paid ) {
+					$this->log->add( 'redsys', 'Order is Paid: TRUE' );
+				} else {
+					$this->log->add( 'redsys', 'Order is Paid: FALSE' );
+				}
+			}
+			if ( $is_paid ) {
+				exit();
 			}
 			$response = intval( $response );
-			
+
 			// refund.
 
 			if ( '3' === $dstransactiontype ) {
@@ -1043,7 +1059,7 @@ function woocommerce_gateway_redsys_init() {
 						$this->log->add( 'redsys', 'Response 900 (refund)' );
 					}
 					set_transient( $order->get_id() . '_redsys_refund', 'yes' );
-	
+
 					if ( 'yes' === $this->debug ) {
 						$this->log->add( 'redsys', 'update_post_meta to "refund yes"' );
 					}
@@ -1125,15 +1141,15 @@ function woocommerce_gateway_redsys_init() {
 			$order = new WC_Order( $order_id );
 			return $order;
 		}
-		
+
 		// refunds
-		
+
 		function ask_for_refund( $order_id, $transaction_id, $amount ) {
 
-			//post code to REDSYS
+			// post code to REDSYS
 			$order          = $this->get_redsys_order( $order_id );
 			$terminal       = $this->terminal;
-			$currency_codes   = array(
+			$currency_codes = array(
 				'ALL' => 8,
 				'DZD' => 12,
 				'AOK' => 24,
@@ -1346,7 +1362,7 @@ function woocommerce_gateway_redsys_init() {
 				'ZAL' => 991,
 				'EEK' => 2333,
 			);
-			$currencycode = $currency_codes[ get_woocommerce_currency() ];
+			$currencycode   = $currency_codes[ get_woocommerce_currency() ];
 			$user_id        = $order->get_user_id();
 			if ( 'yes' === $this->testmode ) {
 				$secretsha256 = $this->customtestsha256;
@@ -1358,7 +1374,7 @@ function woocommerce_gateway_redsys_init() {
 			} else {
 				$secretsha256 = $this->secretsha256;
 			}
-	
+
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'redsys', ' ' );
 				$this->log->add( 'redsys', ' ' );
@@ -1395,7 +1411,7 @@ function woocommerce_gateway_redsys_init() {
 			$autorization_date = get_post_meta( $order_id, '_payment_date_redsys', true );
 			$currencycode      = get_post_meta( $order_id, '_corruncy_code_redsys', true );
 			$merchant_module   = 'WooCommerce_Redsys_Gateway_Light_' . REDSYS_WOOCOMMERCE_VERSION . '_WordPress.org';
-	
+
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'redsys', ' ' );
 				$this->log->add( 'redsys', __( 'All data from meta', 'woo-redsys-gateway-light' ) );
@@ -1410,7 +1426,7 @@ function woocommerce_gateway_redsys_init() {
 				$this->log->add( 'redsys', __( 'Terminal : ', 'woo-redsys-gateway-light' ) . $terminal );
 				$this->log->add( 'redsys', __( 'SHA256 : ', 'woo-redsys-gateway-light' ) . $secretsha256_meta );
 			}
-	
+
 			if ( ! empty( $currencycode ) ) {
 				$currency = $currencycode;
 			} else {
@@ -1419,9 +1435,9 @@ function woocommerce_gateway_redsys_init() {
 				}
 			}
 			$merchant_module = 'WooCommerce_Redsys_Gateway_Light_' . REDSYS_WOOCOMMERCE_VERSION . '_WordPress.org';
-			
+
 			$miObj = new RedsysAPI();
-			
+
 			$miObj->setParameter( 'DS_MERCHANT_MODULE', $merchant_module );
 			$miObj->setParameter( 'DS_MERCHANT_AMOUNT', $amount );
 			$miObj->setParameter( 'DS_MERCHANT_ORDER', $transaction_id );
@@ -1435,7 +1451,7 @@ function woocommerce_gateway_redsys_init() {
 			$miObj->setParameter( 'DS_MERCHANT_CONSUMERLANGUAGE', '001' );
 			$miObj->setParameter( 'DS_MERCHANT_PRODUCTDESCRIPTION', __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number() );
 			$miObj->setParameter( 'DS_MERCHANT_MERCHANTNAME', $this->commercename );
-	
+
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'redsys', ' ' );
 				$this->log->add( 'redsys', __( 'Data sent to Redsys for refund', 'woo-redsys-gateway-light' ) );
@@ -1459,12 +1475,12 @@ function woocommerce_gateway_redsys_init() {
 				$this->log->add( 'redsys', __( 'ask_for_refund Asking por order #: ', 'woo-redsys-gateway-light' ) . $order_id );
 				$this->log->add( 'redsys', ' ' );
 			}
-	
+
 			$version   = 'HMAC_SHA256_V1';
 			$request   = '';
 			$params    = $miObj->createMerchantParameters();
 			$signature = $miObj->createMerchantSignature( $secretsha256 );
-	
+
 			$post_arg = wp_remote_post(
 				$redsys_adr,
 				array(
@@ -1486,12 +1502,12 @@ function woocommerce_gateway_redsys_init() {
 					$this->log->add( 'redsys', '*********************************' );
 					$this->log->add( 'redsys', ' ' );
 					$this->log->add( 'redsys', __( 'The error is : ', 'woo-redsys-gateway-light' ) . $post_arg );
-					}
+				}
 				return $post_arg;
 			}
 			return true;
 		}
-		
+
 		function check_redsys_refund( $order_id ) {
 			// check postmeta
 			$order        = wc_get_order( (int) $order_id );
@@ -1510,13 +1526,13 @@ function woocommerce_gateway_redsys_init() {
 				return false;
 			}
 		}
-		
+
 		public function process_refund( $order_id, $amount = null, $reason = '' ) {
-			
+
 			// Do your refund here. Refund $amount for the order with ID $order_id _transaction_id
 			set_time_limit( 0 );
 			$order = wc_get_order( $order_id );
-	
+
 			$transaction_id = get_post_meta( $order_id, '_payment_order_number_redsys', true );
 			if ( ! $amount ) {
 				$order_total      = number_format( $order->get_total(), 2, ',', '' );
@@ -1524,7 +1540,7 @@ function woocommerce_gateway_redsys_init() {
 			} else {
 				$order_total_sign = number_format( $amount, 2, '', '' );
 			}
-	
+
 			if ( ! empty( $transaction_id ) ) {
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'redsys', ' ' );
@@ -1534,9 +1550,9 @@ function woocommerce_gateway_redsys_init() {
 					$this->log->add( 'redsys', ' ' );
 					$this->log->add( 'redsys', __( 'check_redsys_refund Asking por order #: ', 'woo-redsys-gateway-light' ) . $order_id );
 				}
-	
+
 				$refund_asked = $this->ask_for_refund( $order_id, $transaction_id, $order_total_sign );
-	
+
 				if ( is_wp_error( $refund_asked ) ) {
 					if ( 'yes' === $this->debug ) {
 						$this->log->add( 'redsys', __( 'Refund Failed: ', 'woo-redsys-gateway-light' ) . $refund_asked->get_error_message() );
@@ -1588,7 +1604,7 @@ function woocommerce_gateway_redsys_init() {
 				return new WP_Error( 'error', __( 'Refund Failed: No transaction ID', 'woo-redsys-gateway-light' ) );
 			}
 		}
-		
+
 		public function warning_checkout_test_mode() {
 			if ( 'yes' === $this->testmode && WCRedL()->is_gateway_enabled( $this->id ) ) {
 				echo '<div class="checkout-message" style="
@@ -1607,9 +1623,12 @@ function woocommerce_gateway_redsys_init() {
 		}
 	}
 
-	add_action( 'admin_notices', function() {
-		WC_Gateway_Redsys::admin_notice_mcrypt_encrypt();
-	});
+	add_action(
+		'admin_notices',
+		function() {
+			WC_Gateway_Redsys::admin_notice_mcrypt_encrypt();
+		}
+	);
 
 	include_once 'includes/persist-admin-notices-dismissal.php';
 	add_action( 'admin_init', array( 'PAnD', 'init' ) );
@@ -1623,14 +1642,12 @@ function woocommerce_gateway_redsys_init() {
 		$class   = 'notice notice-info is-dismissible';
 		$message = '<a href="https://wordpress.org/support/plugin/woo-redsys-gateway-light/" target="_blank">WordPress.org</a>';
 
-
 		printf( '<div data-dismissible="redsys-help-admin-notice-forever" class="%1$s"><p>', esc_attr( $class ) );
 		printf( esc_attr__( 'If your orders are kept on waiting for Redsys payment, please open a thread in %s Forums, it has solution and it is not the fault of the plugin.', 'woo-redsys-gateway-light' ), $message );
 		echo '</p></div>';
 	}
 
-	add_action('admin_notices', 'redsys_help_admin_notice');
-
+	add_action( 'admin_notices', 'redsys_help_admin_notice' );
 
 	function redsys_ask_for_rating() {
 
@@ -1645,21 +1662,20 @@ function woocommerce_gateway_redsys_init() {
 			$class   = 'notice notice-info is-dismissible';
 			$message = '<a href="https://wordpress.org/support/plugin/woo-redsys-gateway-light/reviews/?rate=5#new-post" target="_blank">WordPress.org</a>';
 
-
 			printf( '<div data-dismissible="redsys-ask-for-ratin-forever" class="%1$s"><p>', esc_attr( $class ) );
 			printf( esc_attr__( 'You have been using Redsys Lite plugin for more than 30 days, please, if you like, write a %s review. You will only need a moment and you will make me very happy. Thanks a lot', 'woo-redsys-gateway-light' ), $message );
 			echo '</p></div>';
 		}
 
 	}
-	add_action('admin_notices', 'redsys_ask_for_rating');
+	add_action( 'admin_notices', 'redsys_ask_for_rating' );
 
 	function redsys_lite_add_notice_new_version() {
 
 		$version = get_option( 'hide-new-version-redsys-notice' );
 
 		if ( $version !== REDSYS_WOOCOMMERCE_VERSION ) {
-			if ( isset( $_REQUEST['redsys-hide-new-version'] ) &&  'hide-new-version-redsys' === $_REQUEST['redsys-hide-new-version'] ) {
+			if ( isset( $_REQUEST['redsys-hide-new-version'] ) && 'hide-new-version-redsys' === $_REQUEST['redsys-hide-new-version'] ) {
 				$nonce = sanitize_text_field( $_REQUEST['_redsys_hide_new_version_nonce'] );
 				if ( wp_verify_nonce( $nonce, 'redsys_hide_new_version_nonce' ) ) {
 					update_option( 'hide-new-version-redsys-notice', REDSYS_WOOCOMMERCE_VERSION );
@@ -1670,22 +1686,23 @@ function woocommerce_gateway_redsys_init() {
 					<div class="contenido-redsys-notice">
 						<a class="woocommerce-message-close notice-dismiss" style="top:0;" href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'redsys-hide-new-version', 'hide-new-version-redsys' ), 'redsys_hide_new_version_nonce', '_redsys_hide_new_version_nonce' ) ); ?>"><?php esc_html_e( 'Dismiss', 'woo-redsys-gateway-light' ); ?></a>
 						<p>
-						    <h3>
-							    <?php esc_html_e( 'WooCommerce Redsys Gateway has been updated to version ', 'woo-redsys-gateway-light' ) . ' ' . esc_html_e( REDSYS_WOOCOMMERCE_VERSION ); ?>
+							<h3>
+								<?php esc_html_e( 'WooCommerce Redsys Gateway has been updated to version ', 'woo-redsys-gateway-light' ) . ' ' . esc_html_e( REDSYS_WOOCOMMERCE_VERSION ); ?>
 							</h3>
 						</p>
 						<p>
 							<?php esc_html_e( 'Discover the improvements that have been made in this version, and how to take advantage of them ', 'woo-redsys-gateway-light' ); ?>
 						</p>
 						<p class="submit">
-							<a href="<?php esc_html_e( REDSYS_POST_UPDATE_URL ); ?>" class="button-primary" target="_blank"><?php esc_html_e( 'Discover the improvements', 'woo-redsys-gateway-light' );  ?></a>
-							<a href="<?php esc_html_e( REDSYS_DONATION ); ?>" class="button-primary" target="_blank"><?php esc_html_e( 'Make a Microsponsor', 'woo-redsys-gateway-light' );  ?></a>
-							<a href="<?php esc_html_e( REDSYS_REVIEW ); ?>" class="button-primary" target="_blank"><?php esc_html_e( 'Leave a review', 'woo-redsys-gateway-light' );  ?></a>
-							<a href="<?php esc_html_e( REDSYS_TELEGRAM_SIGNUP ); ?>" class="button-primary" target="_blank"><?php esc_html_e( 'Sign up for the Telegram channel', 'woo-redsys-gateway-light' );  ?></a>
+							<a href="<?php esc_html_e( REDSYS_POST_UPDATE_URL ); ?>" class="button-primary" target="_blank"><?php esc_html_e( 'Discover the improvements', 'woo-redsys-gateway-light' ); ?></a>
+							<a href="<?php esc_html_e( REDSYS_DONATION ); ?>" class="button-primary" target="_blank"><?php esc_html_e( 'Make a Microsponsor', 'woo-redsys-gateway-light' ); ?></a>
+							<a href="<?php esc_html_e( REDSYS_REVIEW ); ?>" class="button-primary" target="_blank"><?php esc_html_e( 'Leave a review', 'woo-redsys-gateway-light' ); ?></a>
+							<a href="<?php esc_html_e( REDSYS_TELEGRAM_SIGNUP ); ?>" class="button-primary" target="_blank"><?php esc_html_e( 'Sign up for the Telegram channel', 'woo-redsys-gateway-light' ); ?></a>
 						</p>
 					</div>
 				</div>
-			<?php }
+				<?php
+			}
 		}
 	}
 	add_action( 'admin_notices', 'redsys_lite_add_notice_new_version' );
@@ -1695,7 +1712,7 @@ function woocommerce_gateway_redsys_init() {
 		$status = get_option( 'telegram-redsys-notice' );
 
 		if ( $status !== 'yes' ) {
-			if ( isset( $_REQUEST['redsys-telegram'] ) &&  'telegram-redsys' === $_REQUEST['redsys-telegram'] ) {
+			if ( isset( $_REQUEST['redsys-telegram'] ) && 'telegram-redsys' === $_REQUEST['redsys-telegram'] ) {
 				$nonce = sanitize_text_field( $_REQUEST['_redsys_telegram_nonce'] );
 				if ( wp_verify_nonce( $nonce, 'redsys_telegram_nonce' ) ) {
 					update_option( 'telegram-redsys-notice', 'yes' );
@@ -1710,9 +1727,10 @@ function woocommerce_gateway_redsys_init() {
 					<p>
 						<?php esc_html_e( 'Sign up for the WooCommerce Redsys Gateway Telegram channel, and be the first to know everything.', 'woo-redsys-gateway-light' ); ?>
 					</p>
-					<p><a href="<?php esc_html_e( REDSYS_TELEGRAM_URL ); ?>" class="button" target="_blank"><?php esc_html_e( 'Don&#39;t miss a single thing!', 'woo-redsys-gateway-light' );  ?></a></p>
+					<p><a href="<?php esc_html_e( REDSYS_TELEGRAM_URL ); ?>" class="button" target="_blank"><?php esc_html_e( 'Don&#39;t miss a single thing!', 'woo-redsys-gateway-light' ); ?></a></p>
 				</div>
-			<?php }
+				<?php
+			}
 		}
 	}
 
@@ -1739,7 +1757,7 @@ function woocommerce_gateway_redsys_init() {
 		echo '<p><strong>' . esc_html__( 'Redsys Authorisation Code', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_attr( get_post_meta( get_the_ID(), '_authorisation_code_redsys', true ) ) . '</p>';
 	}
 	add_action( 'woocommerce_admin_order_data_after_billing_address', 'add_redsys_meta_box' );
-	
+
 	function mostrar_numero_autentificacion( $text, $order ) {
 
 		if ( ! empty( $order ) ) {
@@ -1747,7 +1765,7 @@ function woocommerce_gateway_redsys_init() {
 			$is_redsys_order = WCRedL()->is_redsys_order( $order->get_id() );
 			if ( 'yes' === $redsys->debug ) {
 				if ( $is_redsys_order ) {
-				 $redsys->log->add( 'redsys', '$is_redsys_order: YES' );
+					$redsys->log->add( 'redsys', '$is_redsys_order: YES' );
 				} else {
 					$redsys->log->add( 'redsys', '$is_redsys_order: NO' );
 				}
@@ -1761,7 +1779,7 @@ function woocommerce_gateway_redsys_init() {
 		return $text;
 	}
 	add_filter( 'woocommerce_thankyou_order_received_text', 'mostrar_numero_autentificacion', 20, 2 );
-	
+
 	// Adding Bizum
 	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-bizum-redsys.php'; // Bizum Version 3.0
 }
