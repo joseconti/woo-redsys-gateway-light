@@ -93,6 +93,9 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 
 == Changelog ==
 
+== 3.0.6 ==
+* FIXED: fixed a bug introduced in v3.0.5. Now refunds are marked again as refunds.
+
 == 3.0.5 ==
 * NEW: Now check if the Order is paid before take actions. Related problem > https://wordpress.org/support/topic/pedido-cancelado-por-redsys-despues-del-pago/#post-15280747
 
