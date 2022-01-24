@@ -1038,16 +1038,7 @@ function woocommerce_gateway_redsys_init() {
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'redsys', 'Ds_Amount: ' . $total . ', Ds_Order: ' . $order1 . ',	Ds_MerchantCode: ' . $dscode . ', Ds_Currency: ' . $currency_code . ', Ds_Response: ' . $response . ', Ds_AuthorisationCode: ' . $id_trans . ', $order2: ' . $order2 );
 			}
-			if ( 'yes' === $this->debug ) {
-				if ( $is_paid ) {
-					$this->log->add( 'redsys', 'Order is Paid: TRUE' );
-				} else {
-					$this->log->add( 'redsys', 'Order is Paid: FALSE' );
-				}
-			}
-			if ( $is_paid ) {
-				exit();
-			}
+
 			$response = intval( $response );
 
 			// refund.
@@ -1071,6 +1062,16 @@ function woocommerce_gateway_redsys_init() {
 				}
 				$order->add_order_note( __( 'There was an error refunding', 'woo-redsys-gateway-light' ) );
 				exit;
+			}
+			if ( 'yes' === $this->debug ) {
+				if ( $is_paid ) {
+					$this->log->add( 'redsys', 'Order is Paid: TRUE' );
+				} else {
+					$this->log->add( 'redsys', 'Order is Paid: FALSE' );
+				}
+			}
+			if ( $is_paid ) {
+				exit();
 			}
 			if ( $response <= 99 ) {
 				// authorized.
