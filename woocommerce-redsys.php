@@ -44,7 +44,7 @@ if ( ! defined( 'REDSYS_PLUGIN_CLASS_PATH' ) ) {
 	define( 'REDSYS_PLUGIN_CLASS_PATH', REDSYS_PLUGIN_PATH . 'classes/' );
 }
 
-add_action( 'plugins_loaded', 'woocommerce_gateway_redsys_init', 0 );
+add_action( 'plugins_loaded', 'woocommerce_gateway_redsys_init', 11 );
 
 /**
  * Required API
@@ -164,20 +164,19 @@ function woocommerce_gateway_redsys_init() {
 			WC_Gateway_Redsys::admin_notice_mcrypt_encrypt();
 		}
 	);
-}
-require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-redirection-redsys.php'; // Redsys redirection
-function redsys_lite_add_notice_new_version() {
 
-	$version = get_option( 'hide-new-version-redsys-notice' );
+	function redsys_lite_add_notice_new_version() {
 
-	if ( $version !== REDSYS_WOOCOMMERCE_VERSION ) {
-		if ( isset( $_REQUEST['redsys-hide-new-version'] ) && 'hide-new-version-redsys' === $_REQUEST['redsys-hide-new-version'] ) {
-			$nonce = sanitize_text_field( $_REQUEST['_redsys_hide_new_version_nonce'] );
-			if ( wp_verify_nonce( $nonce, 'redsys_hide_new_version_nonce' ) ) {
-				update_option( 'hide-new-version-redsys-notice', REDSYS_WOOCOMMERCE_VERSION );
-			}
-		} else {
-			?>
+		$version = get_option( 'hide-new-version-redsys-notice' );
+
+		if ( $version !== REDSYS_WOOCOMMERCE_VERSION ) {
+			if ( isset( $_REQUEST['redsys-hide-new-version'] ) && 'hide-new-version-redsys' === $_REQUEST['redsys-hide-new-version'] ) {
+				$nonce = sanitize_text_field( $_REQUEST['_redsys_hide_new_version_nonce'] );
+				if ( wp_verify_nonce( $nonce, 'redsys_hide_new_version_nonce' ) ) {
+					update_option( 'hide-new-version-redsys-notice', REDSYS_WOOCOMMERCE_VERSION );
+				}
+			} else {
+				?>
 				<div id="message" class="updated woocommerce-message woocommerce-redsys-messages">
 					<div class="contenido-redsys-notice">
 						<a class="woocommerce-message-close notice-dismiss" style="top:0;" href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'redsys-hide-new-version', 'hide-new-version-redsys' ), 'redsys_hide_new_version_nonce', '_redsys_hide_new_version_nonce' ) ); ?>"><?php esc_html_e( 'Dismiss', 'woo-redsys-gateway-light' ); ?></a>
@@ -198,23 +197,23 @@ function redsys_lite_add_notice_new_version() {
 					</div>
 				</div>
 				<?php
+			}
 		}
 	}
-}
-add_action( 'admin_notices', 'redsys_lite_add_notice_new_version' );
+	add_action( 'admin_notices', 'redsys_lite_add_notice_new_version' );
 
-function redsys_lite_ask_for_telegram() {
+	function redsys_lite_ask_for_telegram() {
 
-	$status = get_option( 'telegram-redsys-notice' );
+		$status = get_option( 'telegram-redsys-notice' );
 
-	if ( $status !== 'yes' ) {
-		if ( isset( $_REQUEST['redsys-telegram'] ) && 'telegram-redsys' === $_REQUEST['redsys-telegram'] ) {
-			$nonce = sanitize_text_field( $_REQUEST['_redsys_telegram_nonce'] );
-			if ( wp_verify_nonce( $nonce, 'redsys_telegram_nonce' ) ) {
-				update_option( 'telegram-redsys-notice', 'yes' );
-			}
-		} else {
-			?>
+		if ( $status !== 'yes' ) {
+			if ( isset( $_REQUEST['redsys-telegram'] ) && 'telegram-redsys' === $_REQUEST['redsys-telegram'] ) {
+				$nonce = sanitize_text_field( $_REQUEST['_redsys_telegram_nonce'] );
+				if ( wp_verify_nonce( $nonce, 'redsys_telegram_nonce' ) ) {
+					update_option( 'telegram-redsys-notice', 'yes' );
+				}
+			} else {
+				?>
 				<div id="message" class="updated woocommerce-message woocommerce-redsys-messages">
 					<a class="woocommerce-message-close notice-dismiss" style="top:0;" href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'redsys-telegram', 'telegram-redsys' ), 'redsys_telegram_nonce', '_redsys_telegram_nonce' ) ); ?>"><?php esc_html_e( 'Dismiss', 'woo-redsys-gateway-light' ); ?></a>
 					<p>
@@ -223,63 +222,65 @@ function redsys_lite_ask_for_telegram() {
 					<p>
 					<?php esc_html_e( 'Sign up for the WooCommerce Redsys Gateway Telegram channel, and be the first to know everything.', 'woo-redsys-gateway-light' ); ?>
 					</p>
-					<p><a href="<?php esc_html_e( REDSYS_TELEGRAM_URL ); ?>" class="button" target="_blank"><?php esc_html_e( 'Don&#39;t miss a single thing!', 'woo-redsys-gateway-light' ); ?></a></p>
+					<p><a href="<?php esc_url( REDSYS_TELEGRAM_URL ); ?>" class="button" target="_blank"><?php esc_html_e( 'Don&#39;t miss a single thing!', 'woo-redsys-gateway-light' ); ?></a></p>
 				</div>
 				<?php
-		}
-	}
-}
-
-add_action( 'admin_notices', 'redsys_lite_ask_for_telegram' );
-
-function redsys_lite_notice_style() {
-	wp_register_style( 'redsys_notice_css', REDSYS_PLUGIN_URL . 'assets/css/redsys-notice.css', false, REDSYS_WOOCOMMERCE_VERSION );
-	wp_enqueue_style( 'redsys_notice_css' );
-}
-add_action( 'admin_enqueue_scripts', 'redsys_lite_notice_style' );
-
-function woocommerce_add_gateway_redsys_gateway( $methods ) {
-	$methods[] = 'WC_Gateway_redsys';
-	return $methods;
-}
-add_filter( 'woocommerce_payment_gateways', 'woocommerce_add_gateway_redsys_gateway' );
-
-function add_redsys_meta_box() {
-	$date_decoded = str_replace( '%2F', '/', get_post_meta( get_the_ID(), '_payment_date_redsys', true ) );
-	$hour_decoded = str_replace( '%3A', ':', get_post_meta( get_the_ID(), '_payment_hour_redsys', true ) );
-	echo '<h4>' . esc_html__( 'Payment Details', 'woo-redsys-gateway-light' ) . '</h4>';
-	echo '<p><strong>' . esc_html__( 'Redsys Date', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_html( $date_decoded ) . '</p>';
-	echo '<p><strong>' . esc_html__( 'Redsys Hour', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_html( $hour_decoded ) . '</p>';
-	echo '<p><strong>' . esc_html__( 'Redsys Authorisation Code', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_attr( get_post_meta( get_the_ID(), '_authorisation_code_redsys', true ) ) . '</p>';
-}
-add_action( 'woocommerce_admin_order_data_after_billing_address', 'add_redsys_meta_box' );
-
-function mostrar_numero_autentificacion( $text, $order ) {
-
-	if ( ! empty( $order ) ) {
-		$redsys          = new WC_Gateway_Redsys();
-		$is_redsys_order = WCRedL()->is_redsys_order( $order->get_id() );
-		if ( 'yes' === $redsys->debug ) {
-			if ( $is_redsys_order ) {
-				$redsys->log->add( 'redsys', '$is_redsys_order: YES' );
-			} else {
-				$redsys->log->add( 'redsys', '$is_redsys_order: NO' );
 			}
 		}
-		if ( $order && $is_redsys_order ) {
-			$order_id            = $order->get_id();
-			$numero_autorizacion = get_post_meta( $order_id, '_authorisation_code_redsys', true );
-			$text               .= '<p>' . esc_html__( 'The Redsys Authorization number is: ', 'woo-redsys-gateway-light' ) . $numero_autorizacion . '</br >';
-		}
 	}
-	return $text;
-}
-add_filter( 'woocommerce_thankyou_order_received_text', 'mostrar_numero_autentificacion', 20, 2 );
 
-// Adding Bizum
-require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-bizum-redsys.php'; // Bizum Version 3.0
+	add_action( 'admin_notices', 'redsys_lite_ask_for_telegram' );
 
-function redsys_lite_add_head_text() {
-	echo '<!-- This site is powered by WooCommerce Redsys Gateway Light v.' . REDSYS_WOOCOMMERCE_VERSION . ' - https://es.wordpress.org/plugins/woo-redsys-gateway-light/ -->';
+	function redsys_lite_notice_style() {
+		wp_register_style( 'redsys_notice_css', REDSYS_PLUGIN_URL . 'assets/css/redsys-notice.css', false, REDSYS_WOOCOMMERCE_VERSION );
+		wp_enqueue_style( 'redsys_notice_css' );
+	}
+	add_action( 'admin_enqueue_scripts', 'redsys_lite_notice_style' );
+
+	function woocommerce_add_gateway_redsys_gateway( $methods ) {
+		$methods[] = 'WC_Gateway_redsys';
+		return $methods;
+	}
+	add_filter( 'woocommerce_payment_gateways', 'woocommerce_add_gateway_redsys_gateway' );
+
+	function add_redsys_meta_box() {
+		$date_decoded = str_replace( '%2F', '/', get_post_meta( get_the_ID(), '_payment_date_redsys', true ) );
+		$hour_decoded = str_replace( '%3A', ':', get_post_meta( get_the_ID(), '_payment_hour_redsys', true ) );
+		echo '<h4>' . esc_html__( 'Payment Details', 'woo-redsys-gateway-light' ) . '</h4>';
+		echo '<p><strong>' . esc_html__( 'Redsys Date', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_html( $date_decoded ) . '</p>';
+		echo '<p><strong>' . esc_html__( 'Redsys Hour', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_html( $hour_decoded ) . '</p>';
+		echo '<p><strong>' . esc_html__( 'Redsys Authorisation Code', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_attr( get_post_meta( get_the_ID(), '_authorisation_code_redsys', true ) ) . '</p>';
+	}
+	add_action( 'woocommerce_admin_order_data_after_billing_address', 'add_redsys_meta_box' );
+
+	function mostrar_numero_autentificacion( $text, $order ) {
+
+		if ( ! empty( $order ) ) {
+			$redsys          = new WC_Gateway_Redsys();
+			$is_redsys_order = WCRedL()->is_redsys_order( $order->get_id() );
+			if ( 'yes' === $redsys->debug ) {
+				if ( $is_redsys_order ) {
+					$redsys->log->add( 'redsys', '$is_redsys_order: YES' );
+				} else {
+					$redsys->log->add( 'redsys', '$is_redsys_order: NO' );
+				}
+			}
+			if ( $order && $is_redsys_order ) {
+				$order_id            = $order->get_id();
+				$numero_autorizacion = get_post_meta( $order_id, '_authorisation_code_redsys', true );
+				$text               .= '<p>' . esc_html__( 'The Redsys Authorization number is: ', 'woo-redsys-gateway-light' ) . $numero_autorizacion . '</br >';
+			}
+		}
+		return $text;
+	}
+	add_filter( 'woocommerce_thankyou_order_received_text', 'mostrar_numero_autentificacion', 20, 2 );
+
+	function redsys_lite_add_head_text() {
+		echo '<!-- This site is powered by WooCommerce Redsys Gateway Light v.' . REDSYS_WOOCOMMERCE_VERSION . ' - https://es.wordpress.org/plugins/woo-redsys-gateway-light/ -->';
+	}
+	add_action( 'wp_head', 'redsys_lite_add_head_text' );
+	// Adding Bizum
+	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-bizum-redsys.php'; // Bizum Version 3.0
+
+	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-redsys.php'; // Redsys redirection
 }
-add_action( 'wp_head', 'redsys_lite_add_head_text' );
