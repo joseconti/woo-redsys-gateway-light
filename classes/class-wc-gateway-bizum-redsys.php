@@ -506,27 +506,27 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		}
 		$nombr_apellidos    = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name();
 		// redsys Args.
-		$miobj = new RedsysAPI();
-		$miobj->setParameter( 'DS_MERCHANT_AMOUNT', $order_total_sign );
-		$miobj->setParameter( 'DS_MERCHANT_ORDER', $transaction_id2 );
-		$miobj->setParameter( 'DS_MERCHANT_MERCHANTCODE', $this->customer );
-		$miobj->setParameter( 'DS_MERCHANT_CURRENCY', $currency_codes[ get_woocommerce_currency() ] );
-		$miobj->setParameter( 'DS_MERCHANT_TRANSACTIONTYPE', $transaction_type );
-		$miobj->setParameter( 'DS_MERCHANT_TERMINAL', $dsmerchantterminal );
-		$miobj->setParameter( 'DS_MERCHANT_MERCHANTURL', $final_notify_url );
-		$miobj->setParameter( 'DS_MERCHANT_TITULAR', $nombr_apellidos );
-		$miobj->setParameter( 'DS_MERCHANT_URLOK', add_query_arg( 'utm_nooverride', '1', $this->get_return_url( $order ) ) );
-		$miobj->setParameter( 'DS_MERCHANT_URLKO', $returnfromredsys );
-		$miobj->setParameter( 'DS_MERCHANT_CONSUMERLANGUAGE', $gatewaylanguage );
-		$miobj->setParameter( 'DS_MERCHANT_PRODUCTDESCRIPTION', WCRedL()->product_description( $order, $this->id ) );
-		$miobj->setParameter( 'DS_MERCHANT_MERCHANTNAME', $this->commercename );
-		$miobj->setParameter( 'DS_MERCHANT_PAYMETHODS', 'z' );
+		$mi_obj = new RedsysAPI();
+		$mi_obj->setParameter( 'DS_MERCHANT_AMOUNT', $order_total_sign );
+		$mi_obj->setParameter( 'DS_MERCHANT_ORDER', $transaction_id2 );
+		$mi_obj->setParameter( 'DS_MERCHANT_MERCHANTCODE', $this->customer );
+		$mi_obj->setParameter( 'DS_MERCHANT_CURRENCY', $currency_codes[ get_woocommerce_currency() ] );
+		$mi_obj->setParameter( 'DS_MERCHANT_TRANSACTIONTYPE', $transaction_type );
+		$mi_obj->setParameter( 'DS_MERCHANT_TERMINAL', $dsmerchantterminal );
+		$mi_obj->setParameter( 'DS_MERCHANT_MERCHANTURL', $final_notify_url );
+		$mi_obj->setParameter( 'DS_MERCHANT_TITULAR', $nombr_apellidos );
+		$mi_obj->setParameter( 'DS_MERCHANT_URLOK', add_query_arg( 'utm_nooverride', '1', $this->get_return_url( $order ) ) );
+		$mi_obj->setParameter( 'DS_MERCHANT_URLKO', $returnfromredsys );
+		$mi_obj->setParameter( 'DS_MERCHANT_CONSUMERLANGUAGE', $gatewaylanguage );
+		$mi_obj->setParameter( 'DS_MERCHANT_PRODUCTDESCRIPTION', WCRedL()->product_description( $order, $this->id ) );
+		$mi_obj->setParameter( 'DS_MERCHANT_MERCHANTNAME', $this->commercename );
+		$mi_obj->setParameter( 'DS_MERCHANT_PAYMETHODS', 'z' );
 
 		$version      = 'HMAC_SHA256_V1';
 		// Se generan los parámetros de la petición.
 		$request      = '';
-		$params       = $miobj->createMerchantParameters();
-		$signature    = $miobj->createMerchantSignature( $secretsha256 );
+		$params       = $mi_obj->createMerchantParameters();
+		$signature    = $mi_obj->createMerchantSignature( $secretsha256 );
 		$order_id_set = $transaction_id2;
 		set_transient( 'redsys_signature_' . sanitize_title( $order_id_set ), $secretsha256, 600 );
 		$redsys_args = array(
@@ -656,9 +656,9 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			$version           = $_POST['Ds_SignatureVersion'];
 			$data              = $_POST['Ds_MerchantParameters'];
 			$remote_sign       = $_POST['Ds_Signature'];
-			$miObj             = new RedsysAPI();
-			$decodec           = $miObj->decodeMerchantParameters( $data );
-			$order_id          = $miObj->getParameter( 'Ds_Order' );
+			$mi_obj             = new RedsysAPI();
+			$decodec           = $mi_obj->decodeMerchantParameters( $data );
+			$order_id          = $mi_obj->getParameter( 'Ds_Order' );
 			$secretsha256      = get_transient( 'redsys_signature_' . sanitize_title( $order_id ) );
 			$order1            = $order_id;
 			$order2            = WCRedL()->clean_order_number( $order1 );
@@ -673,7 +673,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			}
 
 			if ( 'yes' === $this->debug ) {
-				$order_id = $miObj->getParameter( 'Ds_Order' );
+				$order_id = $mi_obj->getParameter( 'Ds_Order' );
 				$this->log->add( 'bizumredsys', 'Order ID: ' . $order_id );
 			}
 			$order           = WCRedL()->get_order( $order2 );
@@ -704,7 +704,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				}
 				$usesecretsha256 = $secretsha256;
 			}
-			$localsecret     = $miObj->createMerchantSignatureNotif( $usesecretsha256, $data );
+			$localsecret     = $mi_obj->createMerchantSignatureNotif( $usesecretsha256, $data );
 			if ( $localsecret === $remote_sign ) {
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', 'Received valid notification from Servired/RedSys' );
@@ -789,7 +789,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'bizumredsys', ' ' );
 		}
 
-		$miObj             = new RedsysAPI();
+		$mi_obj             = new RedsysAPI();
 		$usesecretsha256   = $this->secretsha256;
 		$dscardnumbercompl = '';
 		$dsexpiration      = '';
@@ -797,28 +797,28 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		$dscardnumber4     = '';
 		$dsexpiryyear      = '';
 		$dsexpirymonth     = '';
-		$decodedata        = $miObj->decodeMerchantParameters( $data );
-		$localsecret       = $miObj->createMerchantSignatureNotif( $usesecretsha256, $data );
-		$total             = $miObj->getParameter( 'Ds_Amount' );
-		$ordermi           = $miObj->getParameter( 'Ds_Order' );
-		$dscode            = $miObj->getParameter( 'Ds_MerchantCode' );
-		$currency_code     = $miObj->getParameter( 'Ds_Currency' );
-		$response          = $miObj->getParameter( 'Ds_Response' );
-		$id_trans          = $miObj->getParameter( 'Ds_AuthorisationCode' );
-		$dsdate            = htmlspecialchars_decode( $miObj->getParameter( 'Ds_Date' ) );
-		$dshour            = htmlspecialchars_decode( $miObj->getParameter( 'Ds_Hour' ) );
-		$dstermnal         = $miObj->getParameter( 'Ds_Terminal' );
-		$dsmerchandata     = $miObj->getParameter( 'Ds_MerchantData' );
-		$dssucurepayment   = $miObj->getParameter( 'Ds_SecurePayment' );
-		$dscardcountry     = $miObj->getParameter( 'Ds_Card_Country' );
-		$dsconsumercountry = $miObj->getParameter( 'Ds_ConsumerLanguage' );
-		$dstransactiontype = $miObj->getParameter( 'Ds_TransactionType' );
-		$dsmerchantidenti  = $miObj->getParameter( 'Ds_Merchant_Identifier' );
-		$dscardbrand       = $miObj->getParameter( 'Ds_Card_Brand' );
-		$dsmechandata      = $miObj->getParameter( 'Ds_MerchantData' );
-		$dscargtype        = $miObj->getParameter( 'Ds_Card_Type' );
-		$dserrorcode       = $miObj->getParameter( 'Ds_ErrorCode' );
-		$dpaymethod        = $miObj->getParameter( 'Ds_PayMethod' ); // D o R, D: Domiciliacion, R: Transferencia. Si se paga por Iupay o TC, no se utiliza.
+		$decodedata        = $mi_obj->decodeMerchantParameters( $data );
+		$localsecret       = $mi_obj->createMerchantSignatureNotif( $usesecretsha256, $data );
+		$total             = $mi_obj->getParameter( 'Ds_Amount' );
+		$ordermi           = $mi_obj->getParameter( 'Ds_Order' );
+		$dscode            = $mi_obj->getParameter( 'Ds_MerchantCode' );
+		$currency_code     = $mi_obj->getParameter( 'Ds_Currency' );
+		$response          = $mi_obj->getParameter( 'Ds_Response' );
+		$id_trans          = $mi_obj->getParameter( 'Ds_AuthorisationCode' );
+		$dsdate            = htmlspecialchars_decode( $mi_obj->getParameter( 'Ds_Date' ) );
+		$dshour            = htmlspecialchars_decode( $mi_obj->getParameter( 'Ds_Hour' ) );
+		$dstermnal         = $mi_obj->getParameter( 'Ds_Terminal' );
+		$dsmerchandata     = $mi_obj->getParameter( 'Ds_MerchantData' );
+		$dssucurepayment   = $mi_obj->getParameter( 'Ds_SecurePayment' );
+		$dscardcountry     = $mi_obj->getParameter( 'Ds_Card_Country' );
+		$dsconsumercountry = $mi_obj->getParameter( 'Ds_ConsumerLanguage' );
+		$dstransactiontype = $mi_obj->getParameter( 'Ds_TransactionType' );
+		$dsmerchantidenti  = $mi_obj->getParameter( 'Ds_Merchant_Identifier' );
+		$dscardbrand       = $mi_obj->getParameter( 'Ds_Card_Brand' );
+		$dsmechandata      = $mi_obj->getParameter( 'Ds_MerchantData' );
+		$dscargtype        = $mi_obj->getParameter( 'Ds_Card_Type' );
+		$dserrorcode       = $mi_obj->getParameter( 'Ds_ErrorCode' );
+		$dpaymethod        = $mi_obj->getParameter( 'Ds_PayMethod' ); // D o R, D: Domiciliacion, R: Transferencia. Si se paga por Iupay o TC, no se utiliza.
 		$response          = intval( $response );
 		$secretsha256      = get_transient( 'redsys_signature_' . sanitize_title( $ordermi ) );
 		$order1            = $ordermi;
@@ -1134,19 +1134,19 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			}
 		}
 
-		$miObj = new RedsysAPI();
-		$miObj->setParameter( 'DS_MERCHANT_AMOUNT', $amount );
-		$miObj->setParameter( 'DS_MERCHANT_ORDER', $transaction_id );
-		$miObj->setParameter( 'DS_MERCHANT_MERCHANTCODE', $this->customer );
-		$miObj->setParameter( 'DS_MERCHANT_CURRENCY', $currency );
-		$miObj->setParameter( 'DS_MERCHANT_TRANSACTIONTYPE', $transaction_type );
-		$miObj->setParameter( 'DS_MERCHANT_TERMINAL', $terminal );
-		$miObj->setParameter( 'DS_MERCHANT_MERCHANTURL', $final_notify_url );
-		$miObj->setParameter( 'DS_MERCHANT_URLOK', add_query_arg( 'utm_nooverride', '1', $this->get_return_url( $order ) ) );
-		$miObj->setParameter( 'DS_MERCHANT_URLKO', $order->get_cancel_order_url() );
-		$miObj->setParameter( 'DS_MERCHANT_CONSUMERLANGUAGE', '001' );
-		$miObj->setParameter( 'DS_MERCHANT_PRODUCTDESCRIPTION', WCRedL()->product_description( $order, $this->id ) );
-		$miObj->setParameter( 'DS_MERCHANT_MERCHANTNAME', $this->commercename );
+		$mi_obj = new RedsysAPI();
+		$mi_obj->setParameter( 'DS_MERCHANT_AMOUNT', $amount );
+		$mi_obj->setParameter( 'DS_MERCHANT_ORDER', $transaction_id );
+		$mi_obj->setParameter( 'DS_MERCHANT_MERCHANTCODE', $this->customer );
+		$mi_obj->setParameter( 'DS_MERCHANT_CURRENCY', $currency );
+		$mi_obj->setParameter( 'DS_MERCHANT_TRANSACTIONTYPE', $transaction_type );
+		$mi_obj->setParameter( 'DS_MERCHANT_TERMINAL', $terminal );
+		$mi_obj->setParameter( 'DS_MERCHANT_MERCHANTURL', $final_notify_url );
+		$mi_obj->setParameter( 'DS_MERCHANT_URLOK', add_query_arg( 'utm_nooverride', '1', $this->get_return_url( $order ) ) );
+		$mi_obj->setParameter( 'DS_MERCHANT_URLKO', $order->get_cancel_order_url() );
+		$mi_obj->setParameter( 'DS_MERCHANT_CONSUMERLANGUAGE', '001' );
+		$mi_obj->setParameter( 'DS_MERCHANT_PRODUCTDESCRIPTION', WCRedL()->product_description( $order, $this->id ) );
+		$mi_obj->setParameter( 'DS_MERCHANT_MERCHANTNAME', $this->commercename );
 
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'bizumredsys', ' ' );
@@ -1174,8 +1174,8 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 
 		$version   = 'HMAC_SHA256_V1';
 		$request   = '';
-		$params    = $miObj->createMerchantParameters();
-		$signature = $miObj->createMerchantSignature( $secretsha256 );
+		$params    = $mi_obj->createMerchantParameters();
+		$signature = $mi_obj->createMerchantSignature( $secretsha256 );
 
 		$post_arg = wp_remote_post(
 			$redsys_adr,
