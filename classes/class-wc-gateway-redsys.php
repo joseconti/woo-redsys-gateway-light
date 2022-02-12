@@ -765,22 +765,20 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		}
 	}
 	/**
-	 * get_redsys_order function.
+	 * Get_redsys_order function.
 	 *
-	 * @access public
-	 * @param mixed $order_id
-	 * @return void
+	 * @param int $order_id
 	 */
 	function get_redsys_order( $order_id ) {
 		$order = new WC_Order( $order_id );
 		return $order;
 	}
 
-	// refunds
+	// refunds.
 
 	function ask_for_refund( $order_id, $transaction_id, $amount ) {
 
-		// post code to REDSYS
+		// post code to REDSYS.
 		$order          = $this->get_redsys_order( $order_id );
 		$terminal       = $this->terminal;
 		$currency_codes = WCRedL()->get_currencies();
@@ -931,7 +929,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	}
 
 	function check_redsys_refund( $order_id ) {
-		// check postmeta
+		// check postmeta.
 		$order        = wc_get_order( (int) $order_id );
 		$order_refund = get_transient( $order->get_id() . '_redsys_refund' );
 		if ( 'yes' === $this->debug ) {
@@ -951,7 +949,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 
 	public function process_refund( $order_id, $amount = null, $reason = '' ) {
 
-		// Do your refund here. Refund $amount for the order with ID $order_id _transaction_id
+		// Do your refund here. Refund $amount for the order with ID $order_id _transaction_id.
 		set_time_limit( 0 );
 		$order = wc_get_order( $order_id );
 

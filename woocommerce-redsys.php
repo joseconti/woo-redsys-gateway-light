@@ -3,9 +3,6 @@
  * WooCommerce Redsys Gateway Ligh
  *
  * @package WooCommerce Redsys Gateway Ligh
- * @author José Conti
- * @copyright 2018-2019 José Conti
- * @license GPL-3.0+
  *
  * Plugin Name: WooCommerce Redsys Gateway Light
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
@@ -61,8 +58,6 @@ require_once 'about-redsys.php';
 /**
  * Plugin updates
  */
-
-// Get Parent Page.
 function redsys_get_parent_page() {
 	$redsys_parent = basename( $_SERVER['SCRIPT_NAME'] );
 	return $redsys_parent;
@@ -131,7 +126,7 @@ function WCRedL() {
 	/**
 	* Copyright: (C) 2013 - 2021 José Conti
 	*/
-	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-redsys-global.php'; // Global class for global functions
+	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-redsys-global-lite.php'; // Global class for global functions.
 	return new WC_Gateway_Redsys_Global_Lite();
 }
 
@@ -142,7 +137,7 @@ function WCPSD2L() {
 	/**
 	* Copyright: (C) 2013 - 2021 José Conti
 	*/
-	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-redsys-psd2.php'; // PSD2 class for Redsys
+	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-redsys-psd2.php'; // PSD2 class for Redsys.
 	return new WC_Gateway_Redsys_PSD2_Light();
 }
 
