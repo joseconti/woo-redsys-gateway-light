@@ -603,8 +603,12 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	 */
 	function check_ipn_response() {
 		@ob_clean();
-		$_POST = stripslashes_deep( $_POST );
-		if ( $this->check_ipn_request_is_valid() ) {
+		if ( isset( $_POST ) ) {
+			$_POST = stripslashes_deep( $_POST );
+		} else {
+			$_POST = false;
+		}
+		if ( isset( $_POST ) && $this->check_ipn_request_is_valid() ) {
 			header( 'HTTP/1.1 200 OK' );
 			do_action( 'valid_redsys_standard_ipn_request', $_POST );
 		} else {
