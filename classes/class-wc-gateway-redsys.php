@@ -612,7 +612,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			header( 'HTTP/1.1 200 OK' );
 			do_action( 'valid_redsys_standard_ipn_request', $_POST );
 		} else {
-			wp_die( 'Do not access this page directly' );
+			wp_die( 'Do not access this page directly', 'WooCommerce Redsys Gateway', array( 'response' => 200 ) );
 		}
 	}
 	/**
