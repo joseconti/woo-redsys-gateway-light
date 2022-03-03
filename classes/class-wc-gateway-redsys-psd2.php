@@ -285,6 +285,12 @@ class WC_Gateway_Redsys_PSD2_Light {
 		return $days;
 	}
 
+	/**
+	 * Get post num
+	 *
+	 * @param array $post_status Post Status Array.
+	 * @param array $date_query Data Query.
+	 */
 	public function get_post_num( $post_status = array(), $date_query = array() ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
@@ -305,6 +311,11 @@ class WC_Gateway_Redsys_PSD2_Light {
 		return count( $num );
 	}
 
+	/**
+	 * Get accept header
+	 *
+	 * @param int $order_id Order ID.
+	 */
 	public function get_accept_headers( $order_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
@@ -312,6 +323,11 @@ class WC_Gateway_Redsys_PSD2_Light {
 		return get_post_meta( $order_id, '_accept_haders', true );
 	}
 
+	/**
+	 * Get Agente navegador
+	 *
+	 * @param int $order_id Order ID.
+	 */
 	public function get_agente_navegador( $order_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
@@ -325,6 +341,11 @@ class WC_Gateway_Redsys_PSD2_Light {
 		}
 	}
 
+	/**
+	 * Get idioma navegador
+	 *
+	 * @param int $order_id Order ID.
+	 */
 	public function get_idioma_navegador( $order_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
@@ -338,6 +359,11 @@ class WC_Gateway_Redsys_PSD2_Light {
 		}
 	}
 
+	/**
+	 * Get altura pantalla
+	 *
+	 * @param int $order_id Order ID.
+	 */
 	public function get_altura_pantalla( $order_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
@@ -351,6 +377,11 @@ class WC_Gateway_Redsys_PSD2_Light {
 		}
 	}
 
+	/**
+	 * Get anchura pantalla
+	 *
+	 * @param int $order_id Order ID.
+	 */
 	public function get_anchura_pantalla( $order_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
@@ -364,6 +395,11 @@ class WC_Gateway_Redsys_PSD2_Light {
 		}
 	}
 
+	/**
+	 * Get profundidad color
+	 *
+	 * @param int $order_id Order ID.
+	 */
 	public function get_profundidad_color( $order_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
@@ -377,6 +413,11 @@ class WC_Gateway_Redsys_PSD2_Light {
 		}
 	}
 
+	/**
+	 * Get diferencia horaria
+	 *
+	 * @param int $order_id Order ID.
+	 */
 	public function get_diferencia_horaria( $order_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
@@ -390,6 +431,11 @@ class WC_Gateway_Redsys_PSD2_Light {
 		}
 	}
 
+	/**
+	 * Get Browser Java Enabled
+	 *
+	 * @param int $order_id Order ID.
+	 */
 	public function get_browserjavaenabled( $order_id ) {
 		$data = $this->get_idioma_navegador( $order_id );
 		if ( '' !== $data ) {
@@ -399,6 +445,11 @@ class WC_Gateway_Redsys_PSD2_Light {
 		}
 	}
 
+	/**
+	 * Get accept header
+	 *
+	 * @param int $user_id User ID.
+	 */
 	public function get_accept_headers_user( $user_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
@@ -406,6 +457,11 @@ class WC_Gateway_Redsys_PSD2_Light {
 		return get_user_meta( $user_id, '_accept_haders', true );
 	}
 
+	/**
+	 * Get Agente navegador
+	 *
+	 * @param int $user_id User ID.
+	 */
 	public function get_agente_navegador_user( $user_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
@@ -419,6 +475,11 @@ class WC_Gateway_Redsys_PSD2_Light {
 		}
 	}
 
+	/**
+	 * Get idioma navegador
+	 *
+	 * @param int $user_id User ID.
+	 */
 	public function get_idioma_navegador_user( $user_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
@@ -432,6 +493,11 @@ class WC_Gateway_Redsys_PSD2_Light {
 		}
 	}
 
+	/**
+	 * Get altura pantalla usuario
+	 *
+	 * @param int $user_id User ID.
+	 */
 	public function get_altura_pantalla_user( $user_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
@@ -445,6 +511,11 @@ class WC_Gateway_Redsys_PSD2_Light {
 		}
 	}
 
+	/**
+	 * Get acgura pantlla usuario
+	 *
+	 * @param int $user_id User ID.
+	 */
 	public function get_anchura_pantalla_user( $user_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
@@ -458,6 +529,11 @@ class WC_Gateway_Redsys_PSD2_Light {
 		}
 	}
 
+	/**
+	 * Get profundidad color usuario
+	 *
+	 * @param int $user_id User ID.
+	 */
 	public function get_profundidad_color_user( $user_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
@@ -471,6 +547,11 @@ class WC_Gateway_Redsys_PSD2_Light {
 		}
 	}
 
+	/**
+	 * Get diferencia horaria
+	 *
+	 * @param int $user_id User ID.
+	 */
 	public function get_diferencia_horaria_user( $user_id ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
@@ -527,6 +608,13 @@ class WC_Gateway_Redsys_PSD2_Light {
 		return $shipnameindicator;
 	}
 
+	/**
+	 * Get Acct Info
+	 *
+	 * @param obj   $order Order Object.
+	 * @param array $user_data_3ds User data 3DS array.
+	 * @param int   $user_id User ID can be false.
+	 */
 	public function get_acctinfo( $order, $user_data_3ds = false, $user_id = false ) {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
