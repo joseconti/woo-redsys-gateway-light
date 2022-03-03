@@ -59,10 +59,12 @@ require_once 'about-redsys.php';
  * Plugin updates
  */
 function redsys_get_parent_page() {
-	$redsys_parent = basename( $_SERVER['SCRIPT_NAME'] );
+	$redsys_parent = basename( $_SERVER['SCRIPT_NAME'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized,WordPress.Security.ValidatedSanitizedInput.InputNotValidated
 	return $redsys_parent;
 }
-
+/**
+ * Redsys menu
+ */
 function redsys_menu() {
 	global $redsys_about;
 
@@ -71,6 +73,11 @@ function redsys_menu() {
 }
 add_action( 'admin_menu', 'redsys_menu' );
 
+/**
+ * Redsys hook
+ *
+ * @param string $hook page hook.
+ */
 function redsys_styles_css( $hook ) {
 	global $redsys_about;
 
@@ -82,7 +89,9 @@ function redsys_styles_css( $hook ) {
 }
 add_action( 'admin_enqueue_scripts', 'redsys_styles_css' );
 
-// REDSYS Redirect to Welcome/About Page.
+/**
+ * Redsys Redirect to Welcome/About Page.
+ */
 function redsys_welcome_splash() {
 	$seur_parent = redsys_get_parent_page();
 
@@ -106,6 +115,9 @@ function redsys_welcome_splash() {
 }
 add_action( 'admin_init', 'redsys_welcome_splash', 1 );
 
+/**
+ * Redsys CSS.
+ */
 function redsys_css_lite() {
 		global $post_type;
 
@@ -120,9 +132,10 @@ function redsys_css_lite() {
 add_action( 'admin_enqueue_scripts', 'redsys_css_lite' );
 
 /**
+ * WCRedL magic funcuton.
  * Copyright: (C) 2013 - 2021 José Conti
  */
-function WCRedL() {
+function WCRedL() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	/**
 	* Copyright: (C) 2013 - 2021 José Conti
 	*/
@@ -131,16 +144,20 @@ function WCRedL() {
 }
 
 /**
+ * WCPSD2L magic funcuton.
  * Copyright: (C) 2013 - 2021 José Conti
  */
-function WCPSD2L() {
+function WCPSD2L() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	/**
 	* Copyright: (C) 2013 - 2021 José Conti
 	*/
 	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-redsys-psd2.php'; // PSD2 class for Redsys.
 	return new WC_Gateway_Redsys_PSD2_Light();
 }
-
+/**
+ * Redsys init.
+ * Copyright: (C) 2013 - 2021 José Conti
+ */
 function woocommerce_gateway_redsys_init() {
 	if ( ! class_exists( 'WC_Payment_Gateway' ) ) {
 		return;
@@ -159,14 +176,17 @@ function woocommerce_gateway_redsys_init() {
 			WC_Gateway_Redsys::admin_notice_mcrypt_encrypt();
 		}
 	);
-
+	/**
+	 * Redsys Notice version.
+	 * Copyright: (C) 2013 - 2021 José Conti
+	 */
 	function redsys_lite_add_notice_new_version() {
 
 		$version = get_option( 'hide-new-version-redsys-notice' );
 
-		if ( $version !== REDSYS_WOOCOMMERCE_VERSION ) {
+		if ( REDSYS_WOOCOMMERCE_VERSION !== $version ) {
 			if ( isset( $_REQUEST['redsys-hide-new-version'] ) && 'hide-new-version-redsys' === $_REQUEST['redsys-hide-new-version'] ) {
-				$nonce = sanitize_text_field( $_REQUEST['_redsys_hide_new_version_nonce'] );
+				$nonce = sanitize_text_field( $_REQUEST['_redsys_hide_new_version_nonce'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotValidated
 				if ( wp_verify_nonce( $nonce, 'redsys_hide_new_version_nonce' ) ) {
 					update_option( 'hide-new-version-redsys-notice', REDSYS_WOOCOMMERCE_VERSION );
 				}
@@ -197,6 +217,10 @@ function woocommerce_gateway_redsys_init() {
 	}
 	add_action( 'admin_notices', 'redsys_lite_add_notice_new_version' );
 
+	/**
+	 * Redsys ask for Telegram.
+	 * Copyright: (C) 2013 - 2021 José Conti
+	 */
 	function redsys_lite_ask_for_telegram() {
 
 		$status = get_option( 'telegram-redsys-notice' );
@@ -226,18 +250,30 @@ function woocommerce_gateway_redsys_init() {
 
 	add_action( 'admin_notices', 'redsys_lite_ask_for_telegram' );
 
+	/**
+	 * Redsys notice CSS.
+	 * Copyright: (C) 2013 - 2021 José Conti
+	 */
 	function redsys_lite_notice_style() {
 		wp_register_style( 'redsys_notice_css', REDSYS_PLUGIN_URL . 'assets/css/redsys-notice.css', false, REDSYS_WOOCOMMERCE_VERSION );
 		wp_enqueue_style( 'redsys_notice_css' );
 	}
 	add_action( 'admin_enqueue_scripts', 'redsys_lite_notice_style' );
 
+	/**
+	 * Redsys add method.
+	 *
+	 * @param array $methods all WooCommerce methods.
+	 */
 	function woocommerce_add_gateway_redsys_gateway( $methods ) {
 		$methods[] = 'WC_Gateway_redsys';
 		return $methods;
 	}
 	add_filter( 'woocommerce_payment_gateways', 'woocommerce_add_gateway_redsys_gateway' );
 
+	/**
+	 * Redsys add metabox.
+	 */
 	function add_redsys_meta_box() {
 		$date_decoded = str_replace( '%2F', '/', get_post_meta( get_the_ID(), '_payment_date_redsys', true ) );
 		$hour_decoded = str_replace( '%3A', ':', get_post_meta( get_the_ID(), '_payment_hour_redsys', true ) );
@@ -248,6 +284,12 @@ function woocommerce_gateway_redsys_init() {
 	}
 	add_action( 'woocommerce_admin_order_data_after_billing_address', 'add_redsys_meta_box' );
 
+	/**
+	 * Redsys add method.
+	 *
+	 * @param string $text Text in order.
+	 * @param obj    $order Order information.
+	 */
 	function mostrar_numero_autentificacion( $text, $order ) {
 
 		if ( ! empty( $order ) ) {
@@ -270,6 +312,9 @@ function woocommerce_gateway_redsys_init() {
 	}
 	add_filter( 'woocommerce_thankyou_order_received_text', 'mostrar_numero_autentificacion', 20, 2 );
 
+	/**
+	 * Redsys head text.
+	 */
 	function redsys_lite_add_head_text() {
 		echo '<!-- This site is powered by WooCommerce Redsys Gateway Light v.' . esc_html( REDSYS_WOOCOMMERCE_VERSION ) . ' - https://es.wordpress.org/plugins/woo-redsys-gateway-light/ -->';
 	}
