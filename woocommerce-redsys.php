@@ -177,7 +177,7 @@ function woocommerce_gateway_redsys_init() {
 						<a class="woocommerce-message-close notice-dismiss" style="top:0;" href="<?php echo esc_url( wp_nonce_url( add_query_arg( 'redsys-hide-new-version', 'hide-new-version-redsys' ), 'redsys_hide_new_version_nonce', '_redsys_hide_new_version_nonce' ) ); ?>"><?php esc_html_e( 'Dismiss', 'woo-redsys-gateway-light' ); ?></a>
 						<p>
 							<h3>
-							<?php esc_html_e( 'WooCommerce Redsys Gateway has been updated to version ', 'woo-redsys-gateway-light' ) . ' ' . REDSYS_WOOCOMMERCE_VERSION; ?>
+							<?php echo esc_html__( 'WooCommerce Redsys Gateway has been updated to version ', 'woo-redsys-gateway-light' ) . ' ' . esc_html( REDSYS_WOOCOMMERCE_VERSION ); ?>
 							</h3>
 						</p>
 						<p>
