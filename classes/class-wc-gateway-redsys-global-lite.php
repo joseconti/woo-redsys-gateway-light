@@ -1,6 +1,8 @@
 <?php
 /**
  * Copyright: (C) 2013 - 2021 José Conti
+ *
+ * @package WooCommerce Redsys Gateway Ligh
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -8,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Gateway class
+ * Global class Redsys
  */
 /**
  * Copyright: (C) 2013 - 2021 José Conti

@@ -151,7 +151,7 @@ function WCPSD2L() { // phpcs:ignore WordPress.NamingConventions.ValidFunctionNa
 	/**
 	* Copyright: (C) 2013 - 2021 José Conti
 	*/
-	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-redsys-psd2.php'; // PSD2 class for Redsys.
+	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-redsys-psd2-light.php'; // PSD2 class for Redsys.
 	return new WC_Gateway_Redsys_PSD2_Light();
 }
 /**
