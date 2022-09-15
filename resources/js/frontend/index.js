@@ -4,11 +4,11 @@ import { registerPaymentMethod } from '@woocommerce/blocks-registry';
 import { decodeEntities } from '@wordpress/html-entities';
 import { getSetting } from '@woocommerce/settings';
 
-const settings = getSetting( 'redsys_lite_data', {} );
+const settings = getSetting( 'redsys_data', {} );
 
 const defaultLabel = __(
 	'WooCommerce Redsys Gateway Ligh',
-	'woo-redsys-gateway-light'
+	'woo-gutenberg-products-block'
 );
 
 const label = decodeEntities( settings.title ) || defaultLabel;
