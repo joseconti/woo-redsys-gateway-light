@@ -5,6 +5,7 @@ import { decodeEntities } from '@wordpress/html-entities';
 import { getSetting } from '@woocommerce/settings';
 
 const settings = getSetting( 'redsys_data', {} );
+const settingsbizum = getSetting( 'bizumredsys_data', {} );
 
 const defaultLabel = __(
 	'WooCommerce Redsys Gateway Ligh',
@@ -12,11 +13,15 @@ const defaultLabel = __(
 );
 
 const label = decodeEntities( settings.title ) || defaultLabel;
+const labelbizum = decodeEntities( settingsbizum.title ) || defaultLabel;
 /**
  * Content component
  */
 const Content = () => {
 	return decodeEntities( settings.description || '' );
+};
+const Contentbizum = () => {
+	return decodeEntities( settingsbizum.description || '' );
 };
 /**
  * Label component
@@ -26,6 +31,10 @@ const Content = () => {
 const Label = ( props ) => {
 	const { PaymentMethodLabel } = props.components;
 	return <PaymentMethodLabel text={ label } />;
+};
+const Labelbizum = ( props ) => {
+	const { PaymentMethodLabel } = props.components;
+	return <PaymentMethodLabel text={ labelbizum } />;
 };
 
 /**
@@ -44,13 +53,13 @@ const Redsys = {
 };
 const Bizum = {
 	name: "bizumredsys",
-	label: <Label />,
-	content: <Content />,
-	edit: <Content />,
+	label: <Labelbizum />,
+	content: <Contentbizum />,
+	edit: <Contentbizum />,
 	canMakePayment: () => true,
-	ariaLabel: label,
+	ariaLabel: labelbizum,
 	supports: {
-		features: settings.supports,
+		features: settingsbizum.supports,
 	},
 };
 
