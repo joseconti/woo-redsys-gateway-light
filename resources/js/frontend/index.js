@@ -42,5 +42,17 @@ const Redsys = {
 		features: settings.supports,
 	},
 };
+const Bizum = {
+	name: "bizumredsys",
+	label: <Label />,
+	content: <Content />,
+	edit: <Content />,
+	canMakePayment: () => true,
+	ariaLabel: label,
+	supports: {
+		features: settings.supports,
+	},
+};
 
 registerPaymentMethod( Redsys );
+registerPaymentMethod( Bizum );
