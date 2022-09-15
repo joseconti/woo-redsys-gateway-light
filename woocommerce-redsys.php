@@ -162,6 +162,7 @@ function woocommerce_gateway_redsys_init() {
 	if ( ! class_exists( 'WC_Payment_Gateway' ) ) {
 		return;
 	}
+	add_action( 'woocommerce_blocks_loaded', 'woocommerce_gateway_redsys_lite_block_support' );
 	/**
 	 * Localisation
 	 */
@@ -342,5 +343,4 @@ function woocommerce_gateway_redsys_init() {
 			$redsys->log->add( 'redsys', 'AbstractPaymentMethodType NOT exist' );
 		}
 	}
-	add_action( 'woocommerce_blocks_loaded', 'woocommerce_gateway_redsys_lite_block_support' );
 }
