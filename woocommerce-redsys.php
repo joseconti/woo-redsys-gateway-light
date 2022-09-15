@@ -162,7 +162,6 @@ function woocommerce_gateway_redsys_init() {
 	if ( ! class_exists( 'WC_Payment_Gateway' ) ) {
 		return;
 	}
-	add_action( 'woocommerce_blocks_loaded', 'woocommerce_gateway_redsys_lite_block_support' );
 	/**
 	 * Localisation
 	 */
@@ -324,23 +323,23 @@ function woocommerce_gateway_redsys_init() {
 	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-bizum-redsys.php'; // Bizum Version 3.0.
 
 	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-redsys.php'; // Redsys redirection.
-
-	function woocommerce_gateway_redsys_lite_block_support() {
-		$redsys = new WC_Gateway_Redsys();
-		if ( class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
-			if ( 'yes' === $redsys->debug ) {
-				$redsys->log->add( 'redsys', 'AbstractPaymentMethodType exist' );
-			}
-			require_once 'includes/blocks/wc-gateway-redsys-lite-support.php';
-			add_action(
-				'woocommerce_blocks_payment_method_type_registration',
-				function( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
-					$payment_method_registry->register( new WC_Gateway_Redsys_Lite_Support );
-				}
-			);
-		}
+}
+function woocommerce_gateway_redsys_lite_block_support() {
+	$redsys = new WC_Gateway_Redsys();
+	if ( class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
 		if ( 'yes' === $redsys->debug ) {
-			$redsys->log->add( 'redsys', 'AbstractPaymentMethodType NOT exist' );
+			$redsys->log->add( 'redsys', 'AbstractPaymentMethodType exist' );
 		}
+		require_once 'includes/blocks/wc-gateway-redsys-lite-support.php';
+		add_action(
+			'woocommerce_blocks_payment_method_type_registration',
+			function( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
+				$payment_method_registry->register( new WC_Gateway_Redsys_Lite_Support );
+			}
+		);
+	}
+	if ( 'yes' === $redsys->debug ) {
+		$redsys->log->add( 'redsys', 'AbstractPaymentMethodType NOT exist' );
 	}
 }
+add_action( 'woocommerce_blocks_loaded', 'woocommerce_gateway_redsys_lite_block_support' );
