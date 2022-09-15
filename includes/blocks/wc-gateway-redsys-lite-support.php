@@ -27,7 +27,7 @@ final class WC_Gateway_Redsys_Lite_Support extends AbstractPaymentMethodType {
 	 */
 	public function initialize() {
 		$this->settings = get_option( 'woocommerce_redsys_settings', [] );
-		$this->gateway  = new WC_Gateway_Redsys();
+		//$this->gateway  = new WC_Gateway_Redsys();
 	}
 
 	/**
@@ -36,7 +36,7 @@ final class WC_Gateway_Redsys_Lite_Support extends AbstractPaymentMethodType {
 	 * @return boolean
 	 */
 	public function is_active() {
-		return $this->gateway->is_available();
+		return WC_Gateway_Redsys::is_available();
 	}
 
 	/**
@@ -79,7 +79,7 @@ final class WC_Gateway_Redsys_Lite_Support extends AbstractPaymentMethodType {
 		return [
 			'title'       => $this->get_setting( 'title' ),
 			'description' => $this->get_setting( 'description' ),
-			'supports'    => array_filter( $this->gateway->supports, [ $this->gateway, 'supports' ] )
+			'supports'    => array_filter( WC_Gateway_Redsys::supports, [ WC_Gateway_Redsys(), 'supports' ] )
 		];
 	}
 }
