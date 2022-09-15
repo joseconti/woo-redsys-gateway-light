@@ -64,7 +64,7 @@ final class WC_Gateway_Redsys_Lite_Support extends AbstractPaymentMethodType {
 		);
 
 		if ( function_exists( 'wp_set_script_translations' ) ) {
-			wp_set_script_translations( 'wc-redsys-lite-blocks', 'woocommerce-gateway-dummy', trailingslashit( plugin_dir_path( __FILE__ ) ) . 'languages/' );
+			wp_set_script_translations( 'wc-redsys-lite-blocks', 'woo-redsys-gateway-light', trailingslashit( plugin_dir_path( __FILE__ ) ) . 'languages/' );
 		}
 
 		return [ 'wc-redsys-lite-blocks' ];
