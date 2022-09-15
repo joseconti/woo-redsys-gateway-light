@@ -7,7 +7,7 @@
  * Plugin Name: WooCommerce Redsys Gateway Light
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
- * Version: 3.0.6
+ * Version: 4.0.0
  * Author: José Conti
  * Author URI: https://www.joseconti.com/
  * Tested up to: 5.7
@@ -323,4 +323,17 @@ function woocommerce_gateway_redsys_init() {
 	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-bizum-redsys.php'; // Bizum Version 3.0.
 
 	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-redsys.php'; // Redsys redirection.
+
+	function woocommerce_gateway_redsys_lite_block_support() {
+		if ( class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
+			require_once 'includes/blocks/wc-gateway-redsys-lite-support.php';
+			add_action(
+				'woocommerce_blocks_payment_method_type_registration',
+				function( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
+					$payment_method_registry->register( new WC_Gateway_Redsys_Lite_Support );
+				}
+			);
+		}
+	}
+	add_action( 'woocommerce_blocks_loaded', 'woocommerce_gateway_dummy_woocommerce_block_support' );
 }
