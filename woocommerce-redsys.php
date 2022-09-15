@@ -335,5 +335,5 @@ function woocommerce_gateway_redsys_init() {
 			);
 		}
 	}
-	add_action( 'woocommerce_blocks_loaded', 'woocommerce_gateway_dummy_woocommerce_block_support' );
+	add_action( 'woocommerce_blocks_loaded', 'woocommerce_gateway_redsys_lite_block_support' );
 }
