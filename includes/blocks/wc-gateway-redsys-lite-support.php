@@ -53,7 +53,7 @@ final class WC_Gateway_Redsys_Lite_Support extends AbstractPaymentMethodType {
 				'dependencies' => array(),
 				'version'      => '1.2.0'
 			);
-		$script_url        = REDSYS_PLUGIN_URL . $script_path;
+		$script_url = REDSYS_PLUGIN_URL . $script_path;
 
 		wp_register_script(
 			'wc-redsys-lite-blocks',

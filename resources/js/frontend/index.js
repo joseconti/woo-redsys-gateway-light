@@ -31,7 +31,7 @@ const Label = ( props ) => {
 /**
  * Dummy payment method config object.
  */
-const Dummy = {
+const Redsys = {
 	name: "redsys",
 	label: <Label />,
 	content: <Content />,
@@ -43,4 +43,4 @@ const Dummy = {
 	},
 };
 
-registerPaymentMethod( redsys );
+registerPaymentMethod( Redsys );
