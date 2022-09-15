@@ -79,7 +79,7 @@ final class WC_Gateway_Redsys_Lite_Support extends AbstractPaymentMethodType {
 		return [
 			'title'       => WCRedL()->get_redsys_option( 'title', 'redsys' ),
 			'description' => WCRedL()->get_redsys_option( 'description', 'redsys' ),
-			'supports'    => array_filter( array(
+			'supports'    => array(
 				'products',
 				'refunds',
 			),
