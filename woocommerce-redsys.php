@@ -319,6 +319,15 @@ function woocommerce_gateway_redsys_init() {
 		echo '<!-- This site is powered by WooCommerce Redsys Gateway Light v.' . esc_html( REDSYS_WOOCOMMERCE_VERSION ) . ' - https://es.wordpress.org/plugins/woo-redsys-gateway-light/ -->';
 	}
 	add_action( 'wp_head', 'redsys_lite_add_head_text' );
+
+	function plugin_abspath_redsys() {
+		return trailingslashit( plugin_dir_path( __FILE__ ) );
+	}
+
+	function plugin_url_redsys() {
+		return untrailingslashit( plugins_url( '/', __FILE__ ) );
+	}
+
 	// Adding Bizum.
 	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-bizum-redsys.php'; // Bizum Version 3.0.
 
