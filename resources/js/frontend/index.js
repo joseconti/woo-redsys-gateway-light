@@ -8,12 +8,16 @@ const settings            = getSetting( 'redsys_data', {} );
 const settingsbizumredsys = getSetting( 'bizumredsys_data', {} );
 
 const defaultLabel = __(
-	'WooCommerce Redsys Gateway Ligh',
+	'Redsys',
+	'woo-gutenberg-products-block'
+);
+const defaultLabelBizum = __(
+	'Bizum',
 	'woo-gutenberg-products-block'
 );
 
 const label      = decodeEntities( settings.title ) || defaultLabel;
-const labelbizum = decodeEntities( settingsbizumredsys.title ) || defaultLabel;
+const labelbizum = decodeEntities( settingsbizumredsys.title ) || defaultLabelBizum;
 /**
  * Content component
  */
