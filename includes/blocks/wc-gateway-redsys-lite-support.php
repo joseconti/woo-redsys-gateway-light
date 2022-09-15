@@ -36,7 +36,7 @@ final class WC_Gateway_Redsys_Lite_Support extends AbstractPaymentMethodType {
 	 * @return boolean
 	 */
 	public function is_active() {
-		return WC_Gateway_Redsys::is_available();
+		return WCRedL()->is_gateway_enabled( 'redsys' );
 	}
 
 	/**
@@ -77,9 +77,10 @@ final class WC_Gateway_Redsys_Lite_Support extends AbstractPaymentMethodType {
 	 */
 	public function get_payment_method_data() {
 		return [
-			'title'       => $this->get_setting( 'title' ),
-			'description' => $this->get_setting( 'description' ),
-			'supports'    => array_filter( WC_Gateway_Redsys::supports, [ WC_Gateway_Redsys(), 'supports' ] )
+			'title'       => WCRedL()->get_redsys_option( 'title', 'redsys' ),
+			'description' => WCRedL()->get_redsys_option( 'description', 'redsys' ),
+			'supports'    => array_filter( $this->gateway->supports, [ $this->gateway, 'supports' ] )
 		];
 	}
 }
+
