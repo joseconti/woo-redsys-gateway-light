@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2022-09-16T09:55:55+00:00\n"
+"POT-Creation-Date: 2022-09-16T16:36:45+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.6.0\n"
 "language-team: LANGUAGE <EMAIL@ADDRESS>\n"
@@ -201,6 +201,7 @@ msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:99
 #: classes/class-wc-gateway-bizum-redsys.php:168
+#: assets/frontend/blocks.js:14
 msgid "Bizum"
 msgstr ""
 
@@ -823,4 +824,8 @@ msgstr ""
 
 #: woocommerce-redsys.php:308
 msgid "The Redsys Authorization number is: "
+msgstr ""
+
+#: assets/frontend/blocks.js:10
+msgid "Redsys"
 msgstr ""

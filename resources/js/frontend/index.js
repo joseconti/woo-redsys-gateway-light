@@ -9,11 +9,11 @@ const settingsbizumredsys = getSetting( 'bizumredsys_data', {} );
 
 const defaultLabel = __(
 	'Redsys',
-	'woo-gutenberg-products-block'
+	'woo-redsys-gateway-light'
 );
 const defaultLabelBizum = __(
 	'Bizum',
-	'woo-gutenberg-products-block'
+	'woo-redsys-gateway-light'
 );
 
 const label      = decodeEntities( settings.title ) || defaultLabel;

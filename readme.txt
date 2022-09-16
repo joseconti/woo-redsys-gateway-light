@@ -7,7 +7,7 @@ Donate link: https://www.joseconti.com/cursos-online/micropatrocinio/
 Stable tag: 3.0.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
-WC requires at least: 3.0
+WC requires at least: 4.0
 WC tested up to: 6.1
 
 Add Redsys Gateway and BIZUM to WooCommerce. This is the Lite version of the official WooCommerce Redsys plugin at WooCommerce.com
@@ -92,6 +92,10 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 4. Language: Set the Redsys Gateway Language.
 
 == Changelog ==
+
+== 4.0.0 ==
+* NEW: WooCommerce Checkout Block Compatibility.
+* NEW: Refactoring for add code order.
 
 == 3.0.6 ==
 * FIXED: fixed a bug introduced in v3.0.5. Now refunds are marked again as refunds.
