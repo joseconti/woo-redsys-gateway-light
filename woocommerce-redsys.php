@@ -20,7 +20,7 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '3.0.6' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '4.0.0' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 if ( ! defined( 'REDSYS_PLUGIN_PATH' ) ) {
 	define( 'REDSYS_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
