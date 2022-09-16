@@ -26,7 +26,7 @@ final class WC_Gateway_Bizum_Lite_Support extends AbstractPaymentMethodType {
 	 * Initializes the payment method type.
 	 */
 	public function initialize() {
-		$this->settings = get_option( 'woocommerce_bizumredsys_settings', [] );
+		$this->settings = get_option( 'woocommerce_bizumredsys_settings', array() );
 
 	}
 
@@ -48,18 +48,18 @@ final class WC_Gateway_Bizum_Lite_Support extends AbstractPaymentMethodType {
 		$script_path       = '/assets/js/frontend/blocks.js';
 		$script_asset_path = plugin_abspath_redsys() . 'assets/js/frontend/blocks.asset.php';
 		$script_asset      = file_exists( $script_asset_path )
-			? require( $script_asset_path )
+			? require $script_asset_path
 			: array(
 				'dependencies' => array(),
-				'version'      => '1.2.0'
+				'version'      => '1.2.0',
 			);
 		$script_url        = plugin_url_redsys() . $script_path;
 
 		wp_register_script(
 			'wc-bizumredsys-payments-blocks',
 			$script_url,
-			$script_asset[ 'dependencies' ],
-			$script_asset[ 'version' ],
+			$script_asset['dependencies'],
+			$script_asset['version'],
 			true
 		);
 
@@ -67,7 +67,7 @@ final class WC_Gateway_Bizum_Lite_Support extends AbstractPaymentMethodType {
 			wp_set_script_translations( 'wc-bizumredsys-payments-blocks', 'woo-redsys-gateway-light', plugin_abspath_redsys() . 'languages/' );
 		}
 
-		return [ 'wc-bizumredsys-payments-blocks' ];
+		return array( 'wc-bizumredsys-payments-blocks' );
 	}
 
 	/**
@@ -76,14 +76,14 @@ final class WC_Gateway_Bizum_Lite_Support extends AbstractPaymentMethodType {
 	 * @return array
 	 */
 	public function get_payment_method_data() {
-		return [
+		return array(
 			'title'       => WCRedL()->get_redsys_option( 'title', 'bizumredsys' ),
 			'description' => WCRedL()->get_redsys_option( 'description', 'bizumredsys' ),
 			'supports'    => array(
 				'products',
 				'refunds',
 			),
-		];
+		);
 	}
 }
 
