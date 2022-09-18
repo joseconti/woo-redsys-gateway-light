@@ -2,7 +2,7 @@
 Contributors: j.conti
 Tags: woocommerce, redsys, pasarela redsys, bizum, gateway, redsys gateway, redsys pasarela, redsys woocommerce, woocommerce redsys, iupay, Iupay gateway, Iupay woocommerce, woocommerce iupay, iupay pasarela, pasarela iupay
 Requires at least: 4.0
-Tested up to: 5.9
+Tested up to: 6.0
 Donate link: https://www.joseconti.com/cursos-online/micropatrocinio/
 Stable tag: 3.0.6
 License: GPLv2 or later
@@ -96,6 +96,7 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 == 4.0.0 ==
 * NEW: WooCommerce Checkout Block Compatibility.
 * NEW: Refactoring for add code order.
+* NEW: Added LWV SCA.
 
 == 3.0.6 ==
 * FIXED: fixed a bug introduced in v3.0.5. Now refunds are marked again as refunds.

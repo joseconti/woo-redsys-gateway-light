@@ -10,8 +10,8 @@
  * Version: 4.0.0
  * Author: José Conti
  * Author URI: https://www.joseconti.com/
- * Tested up to: 5.7
- * WC requires at least: 3.0
+ * Tested up to: 6.0
+ * WC requires at least: 4.0
  * WC tested up to: 6.1
  * Text Domain: woo-redsys-gateway-light
  * Domain Path: /languages/
