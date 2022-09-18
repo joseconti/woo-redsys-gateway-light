@@ -31,7 +31,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$this->init_form_fields();
 		$this->init_settings();
 		// Define user set variables.
-		$this->psd2             = $this->get_option( 'psd2' );
+		$this->psd2             = 'yes';
 		$this->title            = $this->get_option( 'title' );
 		$this->description      = $this->get_option( 'description' );
 		$this->logo             = $this->get_option( 'logo' );
@@ -46,6 +46,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$this->debug            = $this->get_option( 'debug' );
 		$this->hashtype         = $this->get_option( 'hashtype' );
 		$this->redsyslanguage   = $this->get_option( 'redsyslanguage' );
+		$this->lwvactive        = $this->get_option( 'lwvactive' );
 		$this->log              = new WC_Logger();
 		$this->supports         = array(
 			'products',
@@ -137,12 +138,6 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				'label'   => __( 'Enable Servired/RedSys', 'woo-redsys-gateway-light' ),
 				'default' => 'no',
 			),
-			'psd2'             => array(
-				'title'   => __( 'Enable PSD2', 'woocommerce-redsys' ),
-				'type'    => 'checkbox',
-				'label'   => __( 'Enable PSD2', 'woocommerce-redsys' ),
-				'default' => 'no',
-			),
 			'title'            => array(
 				'title'       => __( 'Title', 'woo-redsys-gateway-light' ),
 				'type'        => 'text',
@@ -197,6 +192,12 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				'label'       => __( 'Activate SNI Compatibility.', 'woo-redsys-gateway-light' ),
 				'default'     => 'no',
 				'description' => sprintf( __( 'If you are using HTTPS and Redsys don\'t support your certificate, example Lets Encrypt, you can deactivate HTTPS notifications. WARNING: If you are forcing redirection to HTTPS with htaccess, you need to add an exception for notification URL', 'woo-redsys-gateway-light' ) ),
+			),
+			'lwvactive'        => array(
+				'title'   => __( 'Enable LWV', 'woo-redsys-gateway-light' ),
+				'type'    => 'checkbox',
+				'label'   => __( 'Enable LWV. WARNING, your bank has to enable it before you use it.', 'woo-redsys-gateway-light' ),
+				'default' => 'no',
 			),
 			'orderdo'          => array(
 				'title'       => __( 'What to do after payment?', 'woo-redsys-gateway-light' ),
@@ -354,6 +355,9 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$mi_obj->setParameter( 'DS_MERCHANT_CONSUMERLANGUAGE', $gatewaylanguage );
 		$mi_obj->setParameter( 'DS_MERCHANT_PRODUCTDESCRIPTION', __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number() );
 		$mi_obj->setParameter( 'DS_MERCHANT_MERCHANTNAME', $this->commercename );
+		if ( $order_total_sign <= 3000 && 'yes' === $redsys->lwvactive ) {
+			$mi_obj->setParameter( 'DS_MERCHANT_EXCEP_SCA', 'LWV' );
+		}
 		$mi_obj->setParameter( 'DS_MERCHANT_MODULE', $merchant_module );
 		if ( ! empty( $this->payoptions ) || ' ' !== $this->payoptions ) {
 			$mi_obj->setParameter( 'DS_MERCHANT_PAYMETHODS', $this->payoptions );
