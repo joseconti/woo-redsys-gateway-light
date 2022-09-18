@@ -355,8 +355,19 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$mi_obj->setParameter( 'DS_MERCHANT_CONSUMERLANGUAGE', $gatewaylanguage );
 		$mi_obj->setParameter( 'DS_MERCHANT_PRODUCTDESCRIPTION', __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number() );
 		$mi_obj->setParameter( 'DS_MERCHANT_MERCHANTNAME', $this->commercename );
-		if ( $order_total_sign <= 3000 && 'yes' === $redsys->lwvactive ) {
+		if ( $order_total_sign <= 3000 && 'yes' === $this->lwvactive ) {
+			if ( 'yes' === $this->debug ) {
+				$this->log->add( 'redsys', ' ' );
+				$this->log->add( 'redsys', 'Using LWV' );
+				$this->log->add( 'redsys', ' ' );
+			}
 			$mi_obj->setParameter( 'DS_MERCHANT_EXCEP_SCA', 'LWV' );
+		} else {
+			if ( 'yes' === $this->debug ) {
+				$this->log->add( 'redsys', ' ' );
+				$this->log->add( 'redsys', 'NOT Using LWV' );
+				$this->log->add( 'redsys', ' ' );
+			}
 		}
 		$mi_obj->setParameter( 'DS_MERCHANT_MODULE', $merchant_module );
 		if ( ! empty( $this->payoptions ) || ' ' !== $this->payoptions ) {
