@@ -4,25 +4,25 @@ Tags: woocommerce, redsys, pasarela redsys, bizum, gateway, redsys gateway, reds
 Requires at least: 4.0
 Tested up to: 6.0
 Donate link: https://www.joseconti.com/cursos-online/micropatrocinio/
-Stable tag: 3.0.6
+Stable tag: 4.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 4.0
 WC tested up to: 6.1
 
-Add Redsys Gateway and BIZUM to WooCommerce. This is the Lite version of the official WooCommerce Redsys plugin at WooCommerce.com
+Add Redsys Gateway and BIZUM to WooCommerce. This is the Lite version of the official WooCommerce Redsys plugin at WooCommerce.com.
 
 == Description ==
 
 = Light version Features =
 
-This is the Light version of the official WooCommerce Redsys plugin at WooCommerce.com
+This is the Light version of the official WooCommerce Redsys plugin at WooCommerce.com.
 
 You can find the PRO version at [WooCommerce.com](https://woocommerce.com/products/redsys-gateway/)
 
-With this extension you get all you need for use Redsys Gateway.
+With this extension, you get all you need to use Redsys Gateway.
 
-* Always compatible with latest WooCommerce version & continuous audits by WooCommerce Team.
+* Always compatible with the latest WooCommerce version & continuous audits by WooCommerce Team.
 * PSD2 Compatible
 * Redsys Redirection Lite
 * Bizum Lite
@@ -34,7 +34,7 @@ With this extension you get all you need for use Redsys Gateway.
 
 As this is WooCommerce official extension, always will be compatible with the latest WooCommerce version.
 
-Why is not it compatible with versions of WooCommerce lower than 2.9? Because they have vulnerabilities and I will not support versions that you should not use.
+Why is it not compatible with versions of WooCommerce lower than 2.9? Because they have vulnerabilities, and I will not support versions that you should not use.
 
 = Premium version Features =
 
@@ -58,18 +58,18 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 * Preauthorizations
 * Approve preauthorizations from WooCommerce order
 * Bulk approve Pre-authorizations from Orders List
-* Bulk Charge orders from Orders List (With Tokens).
+* Bulk Charge orders from the Orders List (With Tokens).
 * Direct Debit
 * Private Products
-* Second Terminal number. Very useful for security purpose.
+* Second Terminal number. Very useful for security purposes.
 * Sequential Invoice Number, essential in Spain by the Public Treasury.
 * Refund from Order.
-* Error action selection, what do you want that happen when a user make an error on the Gateway?
+* Error action selection, what do you want that happen when a user makes an error on the Gateway?
 * Export Order to CSV, export all date orders between two dates to CSV.
 * Pay with 1 click.
 * Virtually Unlimited Terminals, FUC's, etc. Special developed Filter for it.
 * emails to admin and customers when there is an error paying at Redsys.
-* Check at Thank you page. If a customer arrives to Thank you page, and the order has not been market as paid, an email is send to administrator.
+* Check at Thank you page. If a customer arrives on to Thank you page and the order has not been marked as paid, an email is sent to the administrator.
 * Widget to easily add the Credit Card image required by redsys
 * And more to come.
 
@@ -102,24 +102,24 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 * FIXED: fixed a bug introduced in v3.0.5. Now refunds are marked again as refunds.
 
 == 3.0.5 ==
-* NEW: Now check if the Order is paid before take actions. Related problem > https://wordpress.org/support/topic/pedido-cancelado-por-redsys-despues-del-pago/#post-15280747
+* NEW: Now check if the Order is paid before taking action. Related problem > https://wordpress.org/support/topic/pedido-cancelado-por-redsys-despues-del-pago/#post-15280747
 
 == 3.0.4 ==
 * NEW: Now you can set a limit cart amount for use Bizum.
-* NEW: Now the customer name is send to Redsys.
+* NEW: Now the customer name is sent to Redsys.
 * Fixed Thank you page error when directly acceded without associated order ID.
 
 
 == 3.0.3 ==
 * Fixed missing translation string (The Redsys Authorization number is:)
-* Fixed Bizum field duplication. In some server make a fatal error.
+* Fixed Bizum field duplication. Some servers make fatal errors.
 * Declared compatibility with WordPress 5.7
 * Declared compatibility with WooCommerce 5.3
 
 == 3.0.2 ==
 * Fixed an issue where the Redsys authorization number message was displayed on the thank you page even if the order was not with Redsys.
-* Fixed all Bizum textdomain that I had inherited from the premium plugin.
-* Fixed: Now the checkout warning about test mode is not shown is the gateway is disabled in WooCommerce.
+* Fixed all Bizum text-domain that I had inherited from the premium plugin.
+* Fixed: Now, the checkout warning about test mode is not shown if the gateway is disabled in WooCommerce.
 * Declared compatibility with WooCommerce 4.9
 
 == 3.0.1 ==
@@ -149,13 +149,13 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 * Declared compatibility with WooCommerce 4.0
 
 == 1.4.1 ==
-* Fixed a bug with SHA256 Test field
+* Fixed a bug with the SHA256 Test field
 
 == 1.4.0 ==
 * NEW: Added a new settings field for SHA256 Test mode.
 
 == 1.3.10 ==
-* Now, when an Order is canceled in Redsys side, is canceled in WooCommerce.
+* Now, when an Order is canceled on Redsys side, it is canceled in WooCommerce.
 * Removed PSD2 / SCA notice.
 * Added Telegram Redsys Channel notice.
 
@@ -171,14 +171,14 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 
 == 1.3.7 ==
 * Added +230 new currencies supported by Redsys.
-* Added an admin notice for link to a post explaining new features.
+* Added an admin notice to link to a post explaining new features.
 
 == 1.3.6 ==
 * Improved WooCommerce Order processing when "Mark as completed" is selected.
 * Improved some string translations.
 
 == 1.3.5 ==
-* Now, if an Order is cancelled by Redsys, it is cancelled at WooCommerce
+* Now, if an Order is canceled by Redsys, it is canceled at WooCommerce
 
 == 1.3.4 ==
 * Fixed dismissible admin_notice. Now you can dismiss it forever.
@@ -188,7 +188,7 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 * Added notice about Forums help.
 
 == 1.3.2 ==
-* Fixed URLs at About page.
+* Fixed URLs on the About page.
 * Fixed encoded Date & hour at order edit page.
 
 == 1.3.1.1 ==
@@ -204,7 +204,7 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 * Fixed a translation error.
 
 == 1.2.1 ==
-* Fixed a problem in some server settings that the plugin crash at activation.
+* Fixed a problem in some server settings that the plugin crashed at activation.
 
 == 1.2.0 ==
 * Removed iupay and added payment options in Redsys setting page. Now you can select if you want Iupay or not from settings.
@@ -215,11 +215,11 @@ Why is not it compatible with versions of WooCommerce lower than 2.9? Because th
 
 == 1.1.0 ==
 * Added Redsys API for PHP 5.x and 7.x
-* Added ability for customize checkout logo.
+* Added ability to customize checkout logo.
 
 = 1.0.1 =
 * NEW: Added logo customization
-* Updated spinner. This update improve gateway redirection.
+* Updated spinner. This update improves gateway redirection.
 
 = 1.0.0 =
 * First public release.
