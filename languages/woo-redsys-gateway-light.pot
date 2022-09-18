@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2022-09-18T14:37:30+00:00\n"
+"POT-Creation-Date: 2022-09-18T15:17:17+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.6.0\n"
 "language-team: LANGUAGE <EMAIL@ADDRESS>\n"
@@ -382,8 +382,8 @@ msgid "Pay with Bizum"
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:609
-#: classes/class-wc-gateway-redsys.php:463
-#: classes/class-wc-gateway-redsys.php:501
+#: classes/class-wc-gateway-redsys.php:474
+#: classes/class-wc-gateway-redsys.php:512
 msgid "Cancel order &amp; restore cart"
 msgstr ""
 
@@ -392,28 +392,28 @@ msgid "Thank you for your order, please click the button below to pay with Bizum
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:870
-#: classes/class-wc-gateway-redsys.php:702
+#: classes/class-wc-gateway-redsys.php:713
 msgid "Order Payment refunded"
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:873
-#: classes/class-wc-gateway-redsys.php:705
+#: classes/class-wc-gateway-redsys.php:716
 msgid "There was an error refunding"
 msgstr ""
 
 #. translators: order an received are the amount
 #: classes/class-wc-gateway-bizum-redsys.php:891
-#: classes/class-wc-gateway-redsys.php:731
+#: classes/class-wc-gateway-redsys.php:742
 msgid "Validation error: Order vs. Notification amounts do not match (order: %1$s - received: %2&s)."
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1014
-#: classes/class-wc-gateway-redsys.php:754
+#: classes/class-wc-gateway-redsys.php:765
 msgid "HTTP Notification received - payment completed"
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1015
-#: classes/class-wc-gateway-redsys.php:755
+#: classes/class-wc-gateway-redsys.php:766
 msgid "Authorization code: "
 msgstr ""
 
@@ -432,14 +432,14 @@ msgid "Order cancelled by Redsys Bizum"
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1082
-#: classes/class-wc-gateway-redsys.php:810
+#: classes/class-wc-gateway-redsys.php:821
 msgid "Starting asking for Refund"
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1086
 #: classes/class-wc-gateway-bizum-redsys.php:1124
-#: classes/class-wc-gateway-redsys.php:814
-#: classes/class-wc-gateway-redsys.php:854
+#: classes/class-wc-gateway-redsys.php:825
+#: classes/class-wc-gateway-redsys.php:865
 msgid "Terminal : "
 msgstr ""
 
@@ -461,143 +461,143 @@ msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1115
 #: classes/class-wc-gateway-bizum-redsys.php:1120
-#: classes/class-wc-gateway-redsys.php:845
-#: classes/class-wc-gateway-redsys.php:850
+#: classes/class-wc-gateway-redsys.php:856
+#: classes/class-wc-gateway-redsys.php:861
 msgid "All data from meta"
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1118
-#: classes/class-wc-gateway-redsys.php:848
+#: classes/class-wc-gateway-redsys.php:859
 msgid "If something is empty, the data was not saved"
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1121
-#: classes/class-wc-gateway-redsys.php:851
+#: classes/class-wc-gateway-redsys.php:862
 msgid "Authorization Code : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1122
-#: classes/class-wc-gateway-redsys.php:852
+#: classes/class-wc-gateway-redsys.php:863
 msgid "Authorization Date : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1123
-#: classes/class-wc-gateway-redsys.php:853
+#: classes/class-wc-gateway-redsys.php:864
 msgid "Currency Codey : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1125
-#: classes/class-wc-gateway-redsys.php:855
+#: classes/class-wc-gateway-redsys.php:866
 msgid "SHA256 : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1153
-#: classes/class-wc-gateway-redsys.php:885
+#: classes/class-wc-gateway-redsys.php:896
 msgid "Data sent to Redsys for refund"
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1156
-#: classes/class-wc-gateway-redsys.php:888
+#: classes/class-wc-gateway-redsys.php:899
 msgid "URL to Redsys : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1157
-#: classes/class-wc-gateway-redsys.php:889
+#: classes/class-wc-gateway-redsys.php:900
 msgid "DS_MERCHANT_AMOUNT : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1158
-#: classes/class-wc-gateway-redsys.php:890
+#: classes/class-wc-gateway-redsys.php:901
 msgid "DS_MERCHANT_ORDER : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1159
-#: classes/class-wc-gateway-redsys.php:891
+#: classes/class-wc-gateway-redsys.php:902
 msgid "DS_MERCHANT_MERCHANTCODE : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1160
-#: classes/class-wc-gateway-redsys.php:892
+#: classes/class-wc-gateway-redsys.php:903
 msgid "DS_MERCHANT_CURRENCY : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1161
-#: classes/class-wc-gateway-redsys.php:893
+#: classes/class-wc-gateway-redsys.php:904
 msgid "DS_MERCHANT_TRANSACTIONTYPE : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1162
-#: classes/class-wc-gateway-redsys.php:894
+#: classes/class-wc-gateway-redsys.php:905
 msgid "DS_MERCHANT_TERMINAL : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1163
-#: classes/class-wc-gateway-redsys.php:895
+#: classes/class-wc-gateway-redsys.php:906
 msgid "DS_MERCHANT_MERCHANTURL : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1164
-#: classes/class-wc-gateway-redsys.php:896
+#: classes/class-wc-gateway-redsys.php:907
 msgid "DS_MERCHANT_URLOK : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1165
-#: classes/class-wc-gateway-redsys.php:897
+#: classes/class-wc-gateway-redsys.php:908
 msgid "DS_MERCHANT_URLKO : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1166
-#: classes/class-wc-gateway-redsys.php:898
+#: classes/class-wc-gateway-redsys.php:909
 msgid "DS_MERCHANT_CONSUMERLANGUAGE : 001"
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1167
-#: classes/class-wc-gateway-redsys.php:899
+#: classes/class-wc-gateway-redsys.php:910
 msgid "DS_MERCHANT_PRODUCTDESCRIPTION : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1168
-#: classes/class-wc-gateway-redsys.php:900
+#: classes/class-wc-gateway-redsys.php:911
 msgid "DS_MERCHANT_MERCHANTNAME : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1169
-#: classes/class-wc-gateway-redsys.php:901
+#: classes/class-wc-gateway-redsys.php:912
 msgid "DS_MERCHANT_AUTHORISATIONCODE : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1170
-#: classes/class-wc-gateway-redsys.php:902
+#: classes/class-wc-gateway-redsys.php:913
 msgid "Ds_Merchant_TransactionDate : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1171
-#: classes/class-wc-gateway-redsys.php:903
+#: classes/class-wc-gateway-redsys.php:914
 msgid "ask_for_refund Asking por order #: "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1197
-#: classes/class-wc-gateway-redsys.php:929
+#: classes/class-wc-gateway-redsys.php:940
 msgid "There is an error"
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1200
-#: classes/class-wc-gateway-redsys.php:932
+#: classes/class-wc-gateway-redsys.php:943
 msgid "The error is : "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1216
-#: classes/class-wc-gateway-redsys.php:945
+#: classes/class-wc-gateway-redsys.php:956
 msgid "Checking and waiting ping from Redsys"
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1219
-#: classes/class-wc-gateway-redsys.php:948
+#: classes/class-wc-gateway-redsys.php:959
 msgid "Check order status #: "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1220
-#: classes/class-wc-gateway-redsys.php:949
+#: classes/class-wc-gateway-redsys.php:960
 msgid "Check order status with get_transient: "
 msgstr ""
 
@@ -610,29 +610,29 @@ msgid "check_redsys_refund Asking for order #: "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1256
-#: classes/class-wc-gateway-redsys.php:986
+#: classes/class-wc-gateway-redsys.php:997
 msgid "Refund Failed: "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1267
-#: classes/class-wc-gateway-redsys.php:997
+#: classes/class-wc-gateway-redsys.php:1008
 msgid "check_redsys_refund = true "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1280
-#: classes/class-wc-gateway-redsys.php:1009
+#: classes/class-wc-gateway-redsys.php:1020
 msgid "check_redsys_refund = false "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1289
-#: classes/class-wc-gateway-redsys.php:1018
+#: classes/class-wc-gateway-redsys.php:1029
 msgid "!!!!Refund Failed, please try again!!!!"
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1302
 #: classes/class-wc-gateway-bizum-redsys.php:1309
-#: classes/class-wc-gateway-redsys.php:1030
-#: classes/class-wc-gateway-redsys.php:1032
+#: classes/class-wc-gateway-redsys.php:1041
+#: classes/class-wc-gateway-redsys.php:1043
 msgid "Refund Failed: No transaction ID"
 msgstr ""
 
@@ -729,43 +729,43 @@ msgid "Log Servired/RedSys events, such as notifications requests, inside <code>
 msgstr ""
 
 #: classes/class-wc-gateway-redsys.php:356
-#: classes/class-wc-gateway-redsys.php:399
-#: classes/class-wc-gateway-redsys.php:880
-#: classes/class-wc-gateway-redsys.php:899
+#: classes/class-wc-gateway-redsys.php:410
+#: classes/class-wc-gateway-redsys.php:891
+#: classes/class-wc-gateway-redsys.php:910
 msgid "Order"
 msgstr ""
 
-#: classes/class-wc-gateway-redsys.php:442
-#: classes/class-wc-gateway-redsys.php:480
+#: classes/class-wc-gateway-redsys.php:453
+#: classes/class-wc-gateway-redsys.php:491
 msgid "Thank you for your order. We are now redirecting you to Servired/RedSys to make the payment."
 msgstr ""
 
-#: classes/class-wc-gateway-redsys.php:463
-#: classes/class-wc-gateway-redsys.php:501
+#: classes/class-wc-gateway-redsys.php:474
+#: classes/class-wc-gateway-redsys.php:512
 msgid "Pay with Credit Card via Servired/RedSys"
 msgstr ""
 
-#: classes/class-wc-gateway-redsys.php:526
+#: classes/class-wc-gateway-redsys.php:537
 msgid "Thank you for your order, please click the button below to pay with Credit Card via Servired/RedSys."
 msgstr ""
 
-#: classes/class-wc-gateway-redsys.php:758
+#: classes/class-wc-gateway-redsys.php:769
 msgid "Order Completed by Redsys"
 msgstr ""
 
-#: classes/class-wc-gateway-redsys.php:770
+#: classes/class-wc-gateway-redsys.php:781
 msgid "Cancelled by Redsys"
 msgstr ""
 
-#: classes/class-wc-gateway-redsys.php:771
+#: classes/class-wc-gateway-redsys.php:782
 msgid "Order cancelled by Redsys"
 msgstr ""
 
-#: classes/class-wc-gateway-redsys.php:979
+#: classes/class-wc-gateway-redsys.php:990
 msgid "check_redsys_refund Asking por order #: "
 msgstr ""
 
-#: classes/class-wc-gateway-redsys.php:1048
+#: classes/class-wc-gateway-redsys.php:1059
 msgid "Warning: WooCommerce Redsys Gateway Light is in test mode. Remember to uncheck it when you go live"
 msgstr ""
 
