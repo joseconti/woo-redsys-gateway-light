@@ -620,7 +620,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
 
-		if ( $this->get_redsys_option( 'psd2', 'redsys' ) === 'yes' ) {
+	//	if ( $this->get_redsys_option( 'psd2', 'redsys' ) === 'yes' ) {
 
 			/**
 			 * 1569057946
@@ -786,8 +786,10 @@ class WC_Gateway_Redsys_PSD2_Light {
 			}
 			$ds_merchant_emv3ds = wp_json_encode( $ds_merchant_emv3ds );
 			return $ds_merchant_emv3ds;
-		} else {
-			return false;
-		}
+	/**
+	 * } else {
+	 *		return false;
+	 *	}
+	 **/
 	}
 }
