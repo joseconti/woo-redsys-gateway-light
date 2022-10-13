@@ -101,7 +101,34 @@ class WC_Gateway_Redsys_Global_lite {
 		$order = new WC_Order( $order_id );
 		return $order;
 	}
-
+	/**
+	 * Copyright: (C) 2013 - 2021 José Conti
+	 */
+	public function get_meta( $order_id, $key, $single = true ) {
+		$order    = wc_get_order( $order_id );
+		$context  = 'view';
+		$order_id = $order->get_meta( $key, $single, $context );
+		if ( $order_id ) {
+			$post_id = $order_id;
+		}
+		$meta = $order->get_meta( $key, $single, $context );
+		return $meta;
+	}
+	/**
+	 * Copyright: (C) 2013 - 2021 José Conti
+	 */
+	public function update_order_meta( $post_id, $meta_key, $meta_value ) {
+		$order_id = $this->get_meta( $post_id, 'post_id' );
+		if ( $order_id ) {
+			$post_id = $order_id;
+		}
+		$order = wc_get_order( $post_id );
+		$order->update_meta_data( $meta_key, $meta_value );
+		$order->save();
+	}
+	/**
+	 * Copyright: (C) 2013 - 2021 José Conti
+	 */
 	public function set_txnid( $token_num, $redsys_txnid ) {
 		if ( $redsys_txnid ) {
 			update_option( 'txnid_' . $token_num, $redsys_txnid );

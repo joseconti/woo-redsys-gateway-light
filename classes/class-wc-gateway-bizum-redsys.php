@@ -12,14 +12,14 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	var $notify_url;
 	
 	/**
-	* Constructor for the gateway.
-	*
-	* @access public
-	* @return void
-	*/
+	 * Constructor for the gateway.
+	 *
+	 * @access public
+	 * @return void
+	 */
 	/**
-	* Copyright: (C) 2013 - 2021 José Conti
-	*/
+	 * Copyright: (C) 2013 - 2021 José Conti
+	 */
 	public function __construct() {
 		
 		$this->id                   = 'bizumredsys';
@@ -336,7 +336,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	 */
 	function disable_bizum( $available_gateways ) {
 
-		if ( ! is_admin() ) {
+		if ( ! is_admin() && is_checkout() ) {
 			$total  = (int) WC()->cart->total;
 			$limit  = (int) $this->transactionlimit;
 			if ( ! empty( $limit ) && $limit > 0 ) {
@@ -662,7 +662,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			$secretsha256      = get_transient( 'redsys_signature_' . sanitize_title( $order_id ) );
 			$order1            = $order_id;
 			$order2            = WCRedL()->clean_order_number( $order1 );
-			$secretsha256_meta = get_post_meta( $order2, '_redsys_secretsha256', true );
+			$secretsha256_meta = WCRedL()->get_meta( $order2, '_redsys_secretsha256', true );
 
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'bizumredsys', ' ' );
@@ -861,7 +861,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				set_transient( $order->get_id() . '_redsys_refund', 'yes' );
 
 				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', 'update_post_meta to "refund yes"' );
+					$this->log->add( 'bizumredsys', 'WCRedL()->update_order_meta to "refund yes"' );
 				}
 				$status = $order->get_status();
 				if ( 'yes' === $this->debug ) {
@@ -901,7 +901,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				$this->log->add( 'bizumredsys', ' ' );
 			}
 			if ( ! empty( $order1 ) ) {
-				update_post_meta( $order->get_id(), '_payment_order_number_redsys', $order1 );
+				WCRedL()->update_order_meta( $order->get_id(), '_payment_order_number_redsys', $order1 );
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_payment_order_number_redsys saved: ' . $order1 );
 				}
@@ -913,7 +913,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				}
 			}
 			if ( ! empty( $dsdate ) ) {
-				update_post_meta( $order->get_id(), '_payment_date_redsys', $dsdate );
+				WCRedL()->update_order_meta( $order->get_id(), '_payment_date_redsys', $dsdate );
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_payment_date_redsys saved: ' . $dsdate );
 				}
@@ -925,7 +925,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				}
 			}
 			if ( ! empty( $dsdate ) ) {
-				update_post_meta( $order->get_id(), '_payment_terminal_redsys', $dstermnal );
+				WCRedL()->update_order_meta( $order->get_id(), '_payment_terminal_redsys', $dstermnal );
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_payment_terminal_redsys saved: ' . $dstermnal );
 				}
@@ -937,7 +937,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				}
 			}
 			if ( ! empty( $dshour ) ) {
-				update_post_meta( $order->get_id(), '_payment_hour_redsys', $dshour );
+				WCRedL()->update_order_meta( $order->get_id(), '_payment_hour_redsys', $dshour );
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_payment_hour_redsys saved: ' . $dshour );
 				}
@@ -949,7 +949,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				}
 			}
 			if ( ! empty( $id_trans ) ) {
-				update_post_meta( $order->get_id(), '_authorisation_code_redsys', $authorisation_code );
+				WCRedL()->update_order_meta( $order->get_id(), '_authorisation_code_redsys', $authorisation_code );
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_authorisation_code_redsys saved: ' . $authorisation_code );
 				}
@@ -961,7 +961,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				}
 			}
 			if ( ! empty( $currency_code ) ) {
-				update_post_meta( $order->get_id(), '_corruncy_code_redsys', $currency_code );
+				WCRedL()->update_order_meta( $order->get_id(), '_corruncy_code_redsys', $currency_code );
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_corruncy_code_redsys saved: ' . $currency_code );
 				}
@@ -973,7 +973,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				}
 			}
 			if ( ! empty( $dscardcountry ) ) {
-				update_post_meta( $order->get_id(), '_card_country_redsys', $dscardcountry );
+				WCRedL()->update_order_meta( $order->get_id(), '_card_country_redsys', $dscardcountry );
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_card_country_redsys saved: ' . $dscardcountry );
 				}
@@ -985,7 +985,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				}
 			}
 			if ( ! empty( $dscargtype ) ) {
-				update_post_meta( $order->get_id(), '_card_type_redsys', 'C' === $dscargtype ? 'Credit' : 'Debit' );
+				WCRedL()->update_order_meta( $order->get_id(), '_card_type_redsys', 'C' === $dscargtype ? 'Credit' : 'Debit' );
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_card_type_redsys saved: ' . $dscargtype );
 				}
@@ -998,7 +998,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			}
 			// This meta is essential for later use.
 			if ( ! empty( $secretsha256 ) ) {
-				update_post_meta( $order->get_id(), '_redsys_secretsha256', $secretsha256 );
+				WCRedL()->update_order_meta( $order->get_id(), '_redsys_secretsha256', $secretsha256 );
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_redsys_secretsha256 saved: ' . $secretsha256 );
 				}
@@ -1033,12 +1033,12 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 
 			if ( $ds_response_value ) {
 				$order->add_order_note( __( 'Order cancelled by Redsys: ', 'woo-redsys-gateway-light' ) . $ds_response_value );
-				update_post_meta( $order_id, '_redsys_error_payment_ds_response_value', $ds_response_value );
+				WCRedL()->update_order_meta( $order_id, '_redsys_error_payment_ds_response_value', $ds_response_value );
 			}
 
 			if ( $ds_error_value ) {
 				$order->add_order_note( __( 'Order cancelled by Redsys: ', 'woo-redsys-gateway-light' ) . $ds_error_value );
-				update_post_meta( $order_id, '_redsys_error_payment_ds_response_value', $ds_error_value );
+				WCRedL()->update_order_meta( $order_id, '_redsys_error_payment_ds_response_value', $ds_error_value );
 			}
 
 			if ( 'yes' === $this->debug ) {
@@ -1070,7 +1070,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 
 		//post code to REDSYS
 		$order          = WCRedL()->get_order( $order_id );
-		$terminal       = get_post_meta( $order_id, '_payment_terminal_redsys', true );
+		$terminal       = WCRedL()->get_meta( $order_id, '_payment_terminal_redsys', true );
 		$currency_codes = WCRedL()->get_currencies();
 		$user_id        = $order->get_user_id();
 		$secretsha256   = $this->get_redsys_sha256( $user_id );
@@ -1086,7 +1086,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'bizumredsys', __( 'Terminal : ', 'woo-redsys-gateway-light' ) . $terminal );
 		}
 		$transaction_type  = '3';
-		$secretsha256_meta = get_post_meta( $order_id, '_redsys_secretsha256', true );
+		$secretsha256_meta = WCRedL()->get_meta( $order_id, '_redsys_secretsha256', true );
 		if ( $secretsha256_meta ) {
 			$secretsha256 = $secretsha256_meta;
 			if ( 'yes' === $this->debug ) {
@@ -1106,9 +1106,9 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			$final_notify_url = $this->notify_url;
 		}
 		$redsys_adr        = $this->get_redsys_url_gateway( $user_id );
-		$autorization_code = get_post_meta( $order_id, '_authorisation_code_redsys', true );
-		$autorization_date = get_post_meta( $order_id, '_payment_date_redsys', true );
-		$currencycode      = get_post_meta( $order_id, '_corruncy_code_redsys', true );
+		$autorization_code = WCRedL()->get_meta( $order_id, '_authorisation_code_redsys', true );
+		$autorization_date = WCRedL()->get_meta( $order_id, '_payment_date_redsys', true );
+		$currencycode      = WCRedL()->get_meta( $order_id, '_corruncy_code_redsys', true );
 
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'bizumredsys', ' ' );
@@ -1234,7 +1234,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		set_time_limit( 0 );
 		$order = wc_get_order( $order_id );
 
-		$transaction_id = get_post_meta( $order_id, '_payment_order_number_redsys', true );
+		$transaction_id = WCRedL()->get_meta( $order_id, '_payment_order_number_redsys', true );
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'bizumredsys', __( '$order_id#: ', 'woo-redsys-gateway-light' ) . $transaction_id );
 		}

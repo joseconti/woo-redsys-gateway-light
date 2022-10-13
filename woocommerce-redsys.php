@@ -275,12 +275,12 @@ function woocommerce_gateway_redsys_init() {
 	 * Redsys add metabox.
 	 */
 	function add_redsys_meta_box() {
-		$date_decoded = str_replace( '%2F', '/', get_post_meta( get_the_ID(), '_payment_date_redsys', true ) );
-		$hour_decoded = str_replace( '%3A', ':', get_post_meta( get_the_ID(), '_payment_hour_redsys', true ) );
+		$date_decoded = str_replace( '%2F', '/', WCRedL()->get_meta( get_the_ID(), '_payment_date_redsys', true ) );
+		$hour_decoded = str_replace( '%3A', ':', WCRedL()->get_meta( get_the_ID(), '_payment_hour_redsys', true ) );
 		echo '<h4>' . esc_html__( 'Payment Details', 'woo-redsys-gateway-light' ) . '</h4>';
 		echo '<p><strong>' . esc_html__( 'Redsys Date', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_html( $date_decoded ) . '</p>';
 		echo '<p><strong>' . esc_html__( 'Redsys Hour', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_html( $hour_decoded ) . '</p>';
-		echo '<p><strong>' . esc_html__( 'Redsys Authorisation Code', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_attr( get_post_meta( get_the_ID(), '_authorisation_code_redsys', true ) ) . '</p>';
+		echo '<p><strong>' . esc_html__( 'Redsys Authorisation Code', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_attr( WCRedL()->get_meta( get_the_ID(), '_authorisation_code_redsys', true ) ) . '</p>';
 	}
 	add_action( 'woocommerce_admin_order_data_after_billing_address', 'add_redsys_meta_box' );
 
@@ -304,7 +304,7 @@ function woocommerce_gateway_redsys_init() {
 			}
 			if ( $order && $is_redsys_order ) {
 				$order_id            = $order->get_id();
-				$numero_autorizacion = get_post_meta( $order_id, '_authorisation_code_redsys', true );
+				$numero_autorizacion = WCRedL()->get_meta( $order_id, '_authorisation_code_redsys', true );
 				$text               .= '<p>' . esc_html__( 'The Redsys Authorization number is: ', 'woo-redsys-gateway-light' ) . $numero_autorizacion . '</br >';
 			}
 		}

@@ -16,7 +16,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			$logo_url   = $this->get_option( 'logo' );
 			$this->icon = apply_filters( 'woocommerce_redsys_icon', $logo_url );
 		} else {
-			$this->icon = apply_filters( 'woocommerce_redsys_icon', plugins_url( basename( plugin_dir_path( __FILE__ ) ), basename( __FILE__ ) ) . '/assets/images/redsys.png' );
+			$this->icon = apply_filters( 'woocommerce_' . $this->id . '_icon', REDSYS_PLUGIN_URL . 'assets/images/redsys.png' );
 		}
 		$this->has_fields           = false;
 		$this->liveurl              = 'https://sis.redsys.es/sis/realizarPago';
@@ -704,7 +704,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				set_transient( $order->get_id() . '_redsys_refund', 'yes' );
 
 				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'redsys', 'update_post_meta to "refund yes"' );
+					$this->log->add( 'redsys', 'WCRedL()->update_order_meta to "refund yes"' );
 				}
 				$status = $order->get_status();
 				if ( 'yes' === $this->debug ) {
@@ -744,22 +744,22 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			}
 			$authorisation_code = $id_trans;
 			if ( ! empty( $order1 ) ) {
-				update_post_meta( $order->get_id(), '_payment_order_number_redsys', $order1 );
+				WCRedL()->update_order_meta( $order->get_id(), '_payment_order_number_redsys', $order1 );
 			}
 			if ( ! empty( $dsdate ) ) {
-				update_post_meta( $order->get_id(), '_payment_date_redsys', $dsdate );
+				WCRedL()->update_order_meta( $order->get_id(), '_payment_date_redsys', $dsdate );
 			}
 			if ( ! empty( $dshour ) ) {
-				update_post_meta( $order->get_id(), '_payment_hour_redsys', $dshour );
+				WCRedL()->update_order_meta( $order->get_id(), '_payment_hour_redsys', $dshour );
 			}
 			if ( ! empty( $id_trans ) ) {
-				update_post_meta( $order->get_id(), '_authorisation_code_redsys', $authorisation_code );
+				WCRedL()->update_order_meta( $order->get_id(), '_authorisation_code_redsys', $authorisation_code );
 			}
 			if ( ! empty( $dscardcountry ) ) {
-				update_post_meta( $order->get_id(), '_card_country_redsys', $dscardcountry );
+				WCRedL()->update_order_meta( $order->get_id(), '_card_country_redsys', $dscardcountry );
 			}
 			if ( ! empty( $dscargtype ) ) {
-				update_post_meta( $order->get_id(), '_card_type_redsys', 'C' === $dscargtype ? 'Credit' : 'Debit' );
+				WCRedL()->update_order_meta( $order->get_id(), '_card_type_redsys', 'C' === $dscargtype ? 'Credit' : 'Debit' );
 			}
 			// Payment completed.
 			$order->add_order_note( __( 'HTTP Notification received - payment completed', 'woo-redsys-gateway-light' ) );
@@ -825,7 +825,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'redsys', __( 'Terminal : ', 'woo-redsys-gateway-light' ) . $terminal );
 		}
 		$transaction_type  = '3';
-		$secretsha256_meta = get_post_meta( $order_id, '_redsys_secretsha256', true );
+		$secretsha256_meta = WCRedL()->get_meta( $order_id, '_redsys_secretsha256', true );
 		if ( 'yes' === $this->testmode ) {
 			$usesecretsha256 = $this->customtestsha256;
 			if ( ! empty( $usesecretsha256 ) ) {
@@ -846,9 +846,9 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			else :
 				$redsys_adr = $this->liveurl . '?';
 			endif;
-			$autorization_code = get_post_meta( $order_id, '_authorisation_code_redsys', true );
-			$autorization_date = get_post_meta( $order_id, '_payment_date_redsys', true );
-			$currencycode      = get_post_meta( $order_id, '_corruncy_code_redsys', true );
+			$autorization_code = WCRedL()->get_meta( $order_id, '_authorisation_code_redsys', true );
+			$autorization_date = WCRedL()->get_meta( $order_id, '_payment_date_redsys', true );
+			$currencycode      = WCRedL()->get_meta( $order_id, '_corruncy_code_redsys', true );
 			$merchant_module   = 'WooCommerce_Redsys_Gateway_Light_' . REDSYS_WOOCOMMERCE_VERSION . '_WordPress.org';
 
 			if ( 'yes' === $this->debug ) {
@@ -972,7 +972,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		set_time_limit( 0 );
 		$order = wc_get_order( $order_id );
 
-		$transaction_id = get_post_meta( $order_id, '_payment_order_number_redsys', true );
+		$transaction_id = WCRedL()->get_meta( $order_id, '_payment_order_number_redsys', true );
 		if ( ! $amount ) {
 			$order_total      = number_format( $order->get_total(), 2, ',', '' );
 			$order_total_sign = number_format( $order->get_total(), 2, '', '' );
