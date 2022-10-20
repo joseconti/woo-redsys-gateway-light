@@ -14,7 +14,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$logo_url = $this->get_option( 'logo' );
 		if ( ! empty( $logo_url ) ) {
 			$logo_url   = $this->get_option( 'logo' );
-			$this->icon = apply_filters( 'woocommerce_redsys_icon', $logo_url );
+			$this->icon = apply_filters( 'woocommerce_' . $this->id . '_icon', $logo_url );
 		} else {
 			$this->icon = apply_filters( 'woocommerce_' . $this->id . '_icon', REDSYS_PLUGIN_URL . 'assets/images/redsys.png' );
 		}
