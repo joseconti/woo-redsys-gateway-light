@@ -657,9 +657,9 @@ class WC_Gateway_Redsys_PSD2_Light {
 				}
 
 				$customer         = new WC_Customer( $user_id );
-				$dt               = new DateTime( $customer->data['date_modified'] );
+				$dt               = new DateTime( $customer->get_date_modified() );
 				$ch_acc_change    = $dt->format( 'Ymd' );
-				$account_modified = intval( ( strtotime( 'now' ) - strtotime( $customer->data['date_modified'] ) ) / 60 );
+				$account_modified = intval( ( strtotime( 'now' ) - strtotime( $customer->get_date_modified() ) ) / 60 );
 				$n_days           = intval( $account_modified / 1440 );
 
 				if ( $account_modified < 20 ) {
