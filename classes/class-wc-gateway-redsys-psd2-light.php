@@ -296,6 +296,14 @@ class WC_Gateway_Redsys_PSD2_Light {
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
 
+		$args   = array(
+			'customer_id'  => get_current_user_id(),
+			'limit'        => -1, // to retrieve _all_ orders by this user
+			'date_created' => $date_query,
+			'status'       => $post_status,
+		);
+		$orders = wc_get_orders( $args );
+		/*
 		$num = get_posts(
 			array(
 				'numberposts' => -1,
@@ -308,7 +316,8 @@ class WC_Gateway_Redsys_PSD2_Light {
 				),
 			)
 		);
-		return count( $num );
+		*/
+		return $orders->total;
 	}
 
 	/**
@@ -620,7 +629,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
 
-	//	if ( $this->get_redsys_option( 'psd2', 'redsys' ) === 'yes' ) {
+		// if ( $this->get_redsys_option( 'psd2', 'redsys' ) === 'yes' ) {
 
 			/**
 			 * 1569057946
@@ -630,133 +639,135 @@ class WC_Gateway_Redsys_PSD2_Light {
 			 * 04 = Entre 30 y 60días
 			 * 05 = Más de 60 días
 			 */
-			if ( is_user_logged_in() || $user_id ) {
+		if ( is_user_logged_in() || $user_id ) {
 
-				if ( is_user_logged_in() ) {
-					$user_id = get_current_user_id();
-				} else {
-					$user_id = $user_id;
-				}
-				$usr_data         = get_userdata( $user_id );
-				$usr_registered   = $usr_data->user_registered;
-				$dt               = new DateTime( $usr_registered );
-				$usr_registered   = $dt->format( 'Ymd' );
-				$last_update      = get_user_meta( $user_id, 'last_update', true );
-				$minu_registered  = intval( ( strtotime( 'now' ) - strtotime( $usr_registered ) ) / 60 );
-				$days_registered  = intval( $minu_registered / 1440 );
-				$account_modified = intval( ( ( strtotime( 'now' ) - $last_update ) ) / DAY_IN_SECONDS );
-
-				if ( $minu_registered < 20 ) {
-					$ch_acc_age_ind = '02';
-				} elseif ( $days_registered < 30 ) {
-					$ch_acc_age_ind = '03';
-				} elseif ( $days_registered >= 30 && $days_registered <= 60 ) {
-					$ch_acc_age_ind = '04';
-				} else {
-					$ch_acc_age_ind = '05';
-				}
-
-				$customer         = new WC_Customer( $user_id );
-				$dt               = new DateTime( $customer->get_date_modified() );
-				$ch_acc_change    = $dt->format( 'Ymd' );
-				$account_modified = intval( ( strtotime( 'now' ) - strtotime( $customer->get_date_modified() ) ) / 60 );
-				$n_days           = intval( $account_modified / 1440 );
-
-				if ( $account_modified < 20 ) {
-					$ch_acc_change_ind = '01';
-				} elseif ( $n_days < 30 ) {
-					$ch_acc_change_ind = '02';
-				} elseif ( $n_days >= 30 && $n_days <= 60 ) {
-					$ch_acc_change_ind = '03';
-				} else {
-					$ch_acc_change_ind = '04';
-				}
-
-				$nb_purchase_account = $this->get_post_num( array( 'wc-completed' ), array( 'after' => '6 month ago' ) );
-				$txn_activity_day    = $this->get_post_num( array( 'wc-completed', 'wc-pending' ), array( 'after' => '1 day ago' ) );
-				$txn_activity_year   = $this->get_post_num( array( 'wc-completed', 'wc-pending' ), array( 'after' => '1 year ago' ) );
-
-				if ( $order->has_shipping_address() ) {
-					$query = get_posts(
-						array(
-							'post_type'   => wc_get_order_types(),
-							'post_status' => array_keys( wc_get_order_statuses() ),
-							'meta_query'  => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-								array(
-									'key'   => '_shipping_address_1',
-									'value' => $order->get_shipping_address_1(),
-								),
-								array(
-									'key'   => '_shipping_address_2',
-									'value' => $order->get_shipping_address_2(),
-								),
-								array(
-									'key'   => '_shipping_city',
-									'value' => $order->get_shipping_city(),
-								),
-								array(
-									'key'   => '_shipping_postcode',
-									'value' => $order->get_shipping_postcode(),
-								),
-								array(
-									'key'   => '_shipping_country',
-									'value' => $order->get_shipping_country(),
-								),
-							),
-							'order'       => 'ASC',
-						)
-					);
-					if ( function_exists( 'DateTime' ) ) {
-						if ( count( $query ) > 0 ) {
-							$date               = new DateTime( $query[0]->post_date );
-							$ship_address_usage = $date->format( 'Ymd' );
-							$days               = intval( ( ( strtotime( 'now' ) - strtotime( $query[0]->post_date ) ) / MINUTE_IN_SECONDS ) / HOUR_IN_SECONDS );
-							if ( $days < 30 ) {
-								$ship_address_usage_ind = '02';
-							} elseif ( $days >= 30 && $days <= 60 ) {
-								$ship_address_usage_ind = '03';
-							} else {
-								$ship_address_usage_ind = '04';
-							}
-						} else {
-							$todaynow               = '';
-							$date                   = '';
-							$ship_address_usage     = date( 'Ymd' ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
-							$ship_address_usage_ind = '01';
-						}
-					} else {
-						$todaynow               = '';
-						$date                   = '';
-						$ship_address_usage     = date( 'Ymd' ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
-						$ship_address_usage_ind = '01';
-					}
-				}
+			if ( is_user_logged_in() ) {
+				$user_id = get_current_user_id();
 			} else {
-				$ch_acc_age_ind = '01';
+				$user_id = $user_id;
+			}
+			$usr_data         = get_userdata( $user_id );
+			$usr_registered   = $usr_data->user_registered;
+			$dt               = new DateTime( $usr_registered );
+			$usr_registered   = $dt->format( 'Ymd' );
+			$last_update      = get_user_meta( $user_id, 'last_update', true );
+			$minu_registered  = intval( ( strtotime( 'now' ) - strtotime( $usr_registered ) ) / 60 );
+			$days_registered  = intval( $minu_registered / 1440 );
+			$account_modified = intval( ( ( strtotime( 'now' ) - $last_update ) ) / DAY_IN_SECONDS );
+
+			if ( $minu_registered < 20 ) {
+				$ch_acc_age_ind = '02';
+			} elseif ( $days_registered < 30 ) {
+				$ch_acc_age_ind = '03';
+			} elseif ( $days_registered >= 30 && $days_registered <= 60 ) {
+				$ch_acc_age_ind = '04';
+			} else {
+				$ch_acc_age_ind = '05';
 			}
 
-			$acct_info = array(
-				'chAccAgeInd' => $ch_acc_age_ind,
-			);
+			$customer         = new WC_Customer( $user_id );
+			$dt               = new DateTime( $customer->get_date_modified() );
+			$ch_acc_change    = $dt->format( 'Ymd' );
+			$account_modified = intval( ( strtotime( 'now' ) - strtotime( $customer->get_date_modified() ) ) / 60 );
+			$n_days           = intval( $account_modified / 1440 );
+
+			if ( $account_modified < 20 ) {
+				$ch_acc_change_ind = '01';
+			} elseif ( $n_days < 30 ) {
+				$ch_acc_change_ind = '02';
+			} elseif ( $n_days >= 30 && $n_days <= 60 ) {
+				$ch_acc_change_ind = '03';
+			} else {
+				$ch_acc_change_ind = '04';
+			}
+
+			$nb_purchase_account = $this->get_post_num( array( 'wc-completed' ), '>' . ( time() - 6 * MONTH_IN_SECONDS ) );
+			$txn_activity_day    = $this->get_post_num( array( 'wc-completed', 'wc-pending' ), '>' . ( time() - DAY_IN_SECONDS ) );
+			$txn_activity_year   = $this->get_post_num( array( 'wc-completed', 'wc-pending' ), '>' . ( time() - YEAR_IN_SECONDS ) );
+
 			if ( $order->has_shipping_address() ) {
+				$args   = array(
+					'shipping_address_1' => $order->get_shipping_address_1(),
+					'shipping_address_2' => $order->get_shipping_address_2(),
+					'shipping_city'      => $order->get_shipping_city(),
+					'shipping_postcode'  => $order->get_shipping_postcode(),
+					'shipping_country'   => $order->get_shipping_country(),
+					'order'              => 'ASC',
+				);
+				$orders = wc_get_orders( $args );
+				/*
+				$query = get_posts(
+					array(
+						'post_type'   => wc_get_order_types(),
+						'post_status' => array_keys( wc_get_order_statuses() ),
+						'meta_query'  => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+							array(
+								'key'   => '_shipping_address_1',
+								'value' => $order->get_shipping_address_1(),
+							),
+							array(
+								'key'   => '_shipping_address_2',
+								'value' => $order->get_shipping_address_2(),
+							),
+							array(
+								'key'   => '_shipping_city',
+								'value' => $order->get_shipping_city(),
+							),
+							array(
+								'key'   => '_shipping_postcode',
+								'value' => $order->get_shipping_postcode(),
+							),
+							array(
+								'key'   => '_shipping_country',
+								'value' => $order->get_shipping_country(),
+							),
+						),
+						'order'       => 'ASC',
+					)
+				);
+				*/
+				if ( $orders->total > 0 ) {
+					$order_data         = $orders->orders[0]->get_data();
+					$ship_address_usage = $order_data['date_created']->date( 'Ymd' );
+					$days               = intval( ( ( strtotime( 'now' ) - strtotime( $orders->orders[0]->get_date_created() ) ) / MINUTE_IN_SECONDS ) / HOUR_IN_SECONDS );
+					if ( $days < 30 ) {
+						$ship_address_usage_ind = '02';
+					} elseif ( $days >= 30 && $days <= 60 ) {
+						$ship_address_usage_ind = '03';
+					} else {
+						$ship_address_usage_ind = '04';
+					}
+				} else {
+					$ship_address_usage     = date( 'Ymd' ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+					$ship_address_usage_ind = '01';
+				}
+			}
+		} else {
+			$ch_acc_age_ind = '01';
+		}
+
+		$acct_info = array(
+			'chAccAgeInd' => $ch_acc_age_ind,
+		);
+		if ( $order->has_shipping_address() ) {
 				$acct_info['shipAddressUsage']    = $ship_address_usage;
 				$acct_info['shipAddressUsageInd'] = $ship_address_usage_ind;
-			}
-			if ( is_user_logged_in() ) {
-				$acct_info['chAccDate']         = $usr_registered;
-				$acct_info['chAccChange']       = $ch_acc_change;
-				$acct_info['chAccChangeInd']    = $ch_acc_change_ind;
-				$acct_info['nbPurchaseAccount'] = (string) $nb_purchase_account;
-				$acct_info['txnActivityDay']    = (string) $txn_activity_day;
-				$acct_info['txnActivityYear']   = (string) $txn_activity_year;
-			}
+		}
+		if ( is_user_logged_in() ) {
+			$acct_info['chAccDate']         = $usr_registered;
+			$acct_info['chAccChange']       = $ch_acc_change;
+			$acct_info['chAccChangeInd']    = $ch_acc_change_ind;
+			$acct_info['nbPurchaseAccount'] = (string) $nb_purchase_account;
+			$acct_info['txnActivityDay']    = (string) $txn_activity_day;
+			$acct_info['txnActivityYear']   = (string) $txn_activity_year;
+		}
 
 			$ds_merchant_emv3ds = array();
-			if ( $user_data_3ds ) {
-				foreach ( $user_data_3ds as $data => $valor ) {
-					$ds_merchant_emv3ds[ $data ] = $valor;
-				}
+		if ( $user_data_3ds ) {
+			foreach ( $user_data_3ds as $data => $valor ) {
+				$ds_merchant_emv3ds[ $data ] = $valor;
 			}
+		}
 			$ds_merchant_emv3ds['addrMatch']        = $this->addr_match( $order );
 			$ds_merchant_emv3ds['billAddrCity']     = $this->clean_data( $order->get_billing_city() );
 			$ds_merchant_emv3ds['billAddrLine1']    = $this->clean_data( $order->get_billing_address_1() );
@@ -771,25 +782,20 @@ class WC_Gateway_Redsys_PSD2_Light {
 			 * TO-DO: suspiciousAccActivity, en una futura versión añadiré un meta a los usuarios para que el admistrador pueda marcar alguna cuenta fraudulenta o que ha habido algún problema.
 			 */
 
+		if ( $order->get_shipping_address_2() !== '' ) {
+			$ds_merchant_emv3ds['billAddrLine2'] = $this->clean_data( $order->get_shipping_address_2() );
+		}
+		if ( $order->has_shipping_address() ) {
+			$ds_merchant_emv3ds['shipAddrCity']     = $this->clean_data( $order->get_shipping_city() );
+			$ds_merchant_emv3ds['shipAddrLine1']    = $this->clean_data( $order->get_shipping_address_1() );
+			$ds_merchant_emv3ds['shipAddrPostCode'] = $this->clean_data( $order->get_shipping_postcode() );
+			$ds_merchant_emv3ds['shipAddrState']    = strtolower( $this->clean_data( $order->get_shipping_state() ) );
+			$ds_merchant_emv3ds['shipAddrCountry']  = strtolower( $this->clean_data( $order->get_shipping_country() ) );
 			if ( $order->get_shipping_address_2() !== '' ) {
-				$ds_merchant_emv3ds['billAddrLine2'] = $this->clean_data( $order->get_shipping_address_2() );
+				$ds_merchant_emv3ds['shipAddrLine2'] = $this->clean_data( $order->get_shipping_address_2() );
 			}
-			if ( $order->has_shipping_address() ) {
-				$ds_merchant_emv3ds['shipAddrCity']     = $this->clean_data( $order->get_shipping_city() );
-				$ds_merchant_emv3ds['shipAddrLine1']    = $this->clean_data( $order->get_shipping_address_1() );
-				$ds_merchant_emv3ds['shipAddrPostCode'] = $this->clean_data( $order->get_shipping_postcode() );
-				$ds_merchant_emv3ds['shipAddrState']    = strtolower( $this->clean_data( $order->get_shipping_state() ) );
-				$ds_merchant_emv3ds['shipAddrCountry']  = strtolower( $this->clean_data( $order->get_shipping_country() ) );
-				if ( $order->get_shipping_address_2() !== '' ) {
-					$ds_merchant_emv3ds['shipAddrLine2'] = $this->clean_data( $order->get_shipping_address_2() );
-				}
-			}
-			$ds_merchant_emv3ds = wp_json_encode( $ds_merchant_emv3ds );
-			return $ds_merchant_emv3ds;
-	/**
-	 * } else {
-	 *		return false;
-	 *	}
-	 **/
+		}
+		$ds_merchant_emv3ds = wp_json_encode( $ds_merchant_emv3ds );
+		return $ds_merchant_emv3ds;
 	}
 }
