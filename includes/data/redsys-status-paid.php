@@ -16,6 +16,8 @@ function redsys_return_status_paid() {
 	$status = array(
 		'pending',
 		'redsys-pbankt',
+		'cancelled',
+		'pending-deposit',
 	);
 	return $status;
 }
