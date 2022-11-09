@@ -43,6 +43,12 @@ if ( ! defined( 'REDSYS_PLUGIN_CLASS_PATH' ) ) {
 
 add_action( 'plugins_loaded', 'woocommerce_gateway_redsys_init', 11 );
 
+add_action( 'before_woocommerce_init', function() {
+	if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+	}
+} );
+
 /**
  * Required API
  */

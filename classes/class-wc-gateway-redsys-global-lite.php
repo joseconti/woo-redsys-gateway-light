@@ -20,6 +20,13 @@ class WC_Gateway_Redsys_Global_lite {
 	public function __construct() {
 		$this->log = new WC_Logger();
 	}
+
+	public function debug( $log ) {
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			$debug = new WC_Logger();
+			$debug->add( 'redsys-global', $log );
+		}
+	}
 	/**
 	 * Copyright: (C) 2013 - 2021 José Conti
 	 */
@@ -118,11 +125,24 @@ class WC_Gateway_Redsys_Global_lite {
 	 * Copyright: (C) 2013 - 2021 José Conti
 	 */
 	public function update_order_meta( $post_id, $meta_key, $meta_value ) {
-		$order_id = $this->get_order_meta( $post_id, 'post_id' );
+		$this->debug( 'Función update_order_meta' );
+		$this->debug( '$post_id: ' . $post_id );
+		$this->debug( '$meta_key: ' . $meta_key );
+		$this->debug( '$meta_value: ' . $meta_value );
+
+		$order_id = $this->get_order_meta( $post_id, 'post_id', true );
+		$this->debug( '$order_id $this->get_order_meta: ' . $order_id );
 		if ( $order_id ) {
 			$post_id = $order_id;
+			$this->debug( '$post_id = $order_id' );
+			$order   = wc_get_order( $post_id );
+		} else {
+			$order = wc_get_order( $post_id );
+			$this->debug( '$order = wc_get_order( $post_id )' );
 		}
-		$order = wc_get_order( $post_id );
+		$this->debug( 'update_meta_data' );
+		$this->debug( '$meta_key: ' . $meta_key );
+		$this->debug( '$meta_value: ' . $meta_value );
 		$order->update_meta_data( $meta_key, $meta_value );
 		$order->save();
 	}
