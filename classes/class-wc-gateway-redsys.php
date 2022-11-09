@@ -621,7 +621,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$post = stripslashes_deep( $_POST );
 		if ( $this->check_ipn_request_is_valid() ) {
 			header( 'HTTP/1.1 200 OK' );
-			do_action( 'valid-redsys-standard-ipn-request', $post );
+			do_action( 'valid_' . $this->id . '_standard_ipn_request', $post );
 		} else {
 			wp_die( 'Do not access this page directly (Redsys redirección Lite)' );
 		}
