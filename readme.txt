@@ -4,7 +4,7 @@ Tags: woocommerce, redsys, pasarela redsys, bizum, gateway, redsys gateway, reds
 Requires at least: 4.0
 Tested up to: 6.1
 Donate link: https://www.joseconti.com/cursos-online/micropatrocinio/
-Stable tag: 4.0.0
+Stable tag: 5.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 4.0
