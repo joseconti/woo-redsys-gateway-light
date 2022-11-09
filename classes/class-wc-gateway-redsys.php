@@ -825,7 +825,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'redsys', __( 'Terminal : ', 'woo-redsys-gateway-light' ) . $terminal );
 		}
 		$transaction_type  = '3';
-		$secretsha256_meta = WCRedL()->get_meta( $order_id, '_redsys_secretsha256', true );
+		$secretsha256_meta = WCRedL()->get_order_meta( $order_id, '_redsys_secretsha256', true );
 		if ( 'yes' === $this->testmode ) {
 			$usesecretsha256 = $this->customtestsha256;
 			if ( ! empty( $usesecretsha256 ) ) {
@@ -846,9 +846,9 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			else :
 				$redsys_adr = $this->liveurl . '?';
 			endif;
-			$autorization_code = WCRedL()->get_meta( $order_id, '_authorisation_code_redsys', true );
-			$autorization_date = WCRedL()->get_meta( $order_id, '_payment_date_redsys', true );
-			$currencycode      = WCRedL()->get_meta( $order_id, '_corruncy_code_redsys', true );
+			$autorization_code = WCRedL()->get_order_meta( $order_id, '_authorisation_code_redsys', true );
+			$autorization_date = WCRedL()->get_order_meta( $order_id, '_payment_date_redsys', true );
+			$currencycode      = WCRedL()->get_order_meta( $order_id, '_corruncy_code_redsys', true );
 			$merchant_module   = 'WooCommerce_Redsys_Gateway_Light_' . REDSYS_WOOCOMMERCE_VERSION . '_WordPress.org';
 
 			if ( 'yes' === $this->debug ) {
@@ -972,7 +972,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		set_time_limit( 0 );
 		$order = wc_get_order( $order_id );
 
-		$transaction_id = WCRedL()->get_meta( $order_id, '_payment_order_number_redsys', true );
+		$transaction_id = WCRedL()->get_order_meta( $order_id, '_payment_order_number_redsys', true );
 		if ( ! $amount ) {
 			$order_total      = number_format( $order->get_total(), 2, ',', '' );
 			$order_total_sign = number_format( $order->get_total(), 2, '', '' );

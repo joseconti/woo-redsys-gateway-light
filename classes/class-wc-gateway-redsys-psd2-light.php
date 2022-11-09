@@ -329,7 +329,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
-		return WCRedL()->get_meta( $order_id, '_accept_haders', true );
+		return WCRedL()->get_order_meta( $order_id, '_accept_haders', true );
 	}
 
 	/**
@@ -341,7 +341,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
-		$data = WCRedL()->get_meta( $order_id, '_billing_agente_navegador_field', true );
+		$data = WCRedL()->get_order_meta( $order_id, '_billing_agente_navegador_field', true );
 
 		if ( $data ) {
 			return $data;
@@ -359,7 +359,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
-		$data = WCRedL()->get_meta( $order_id, '_billing_idioma_navegador_field', true );
+		$data = WCRedL()->get_order_meta( $order_id, '_billing_idioma_navegador_field', true );
 
 		if ( $data ) {
 			return $data;
@@ -377,7 +377,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
-		$data = WCRedL()->get_meta( $order_id, '_billing_altura_pantalla_field', true );
+		$data = WCRedL()->get_order_meta( $order_id, '_billing_altura_pantalla_field', true );
 
 		if ( $data ) {
 			return $data;
@@ -395,7 +395,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
-		$data = WCRedL()->get_meta( $order_id, '_billing_anchura_pantalla_field', true );
+		$data = WCRedL()->get_order_meta( $order_id, '_billing_anchura_pantalla_field', true );
 
 		if ( $data ) {
 			return $data;
@@ -413,7 +413,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
-		$data = WCRedL()->get_meta( $order_id, '_billing_profundidad_color_field', true );
+		$data = WCRedL()->get_order_meta( $order_id, '_billing_profundidad_color_field', true );
 
 		if ( $data ) {
 			return $data;
@@ -431,7 +431,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
-		$data = WCRedL()->get_meta( $order_id, '_billing_diferencia_horaria_field', true );
+		$data = WCRedL()->get_order_meta( $order_id, '_billing_diferencia_horaria_field', true );
 
 		if ( $data ) {
 			return $data;

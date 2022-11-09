@@ -104,7 +104,7 @@ class WC_Gateway_Redsys_Global_lite {
 	/**
 	 * Copyright: (C) 2013 - 2021 José Conti
 	 */
-	public function get_meta( $order_id, $key, $single = true ) {
+	public function get_order_meta( $order_id, $key, $single = true ) {
 		$order    = wc_get_order( $order_id );
 		$context  = 'view';
 		$order_id = $order->get_meta( $key, $single, $context );
