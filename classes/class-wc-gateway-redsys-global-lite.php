@@ -575,7 +575,7 @@ class WC_Gateway_Redsys_Global_lite {
 	 * Copyright: (C) 2013 - 2021 José Conti
 	 */
 	public function get_order_date( $order_id ) {
-		$date_decoded = str_replace( '%2F', '/', get_post_meta( $order_id, '_payment_date_redsys', true ) );
+		$date_decoded = str_replace( '%2F', '/', $this->get_order_meta( $order_id, '_payment_date_redsys', true ) );
 		if ( ! $date_decoded ) {
 			return false;
 		}
@@ -585,7 +585,7 @@ class WC_Gateway_Redsys_Global_lite {
 	 * Copyright: (C) 2013 - 2021 José Conti
 	 */
 	public function get_order_hour( $order_id ) {
-		$hour_decoded = str_replace( '%3A', ':', get_post_meta( $order_id, '_payment_hour_redsys', true ) );
+		$hour_decoded = str_replace( '%3A', ':', $this->get_order_meta( $order_id, '_payment_hour_redsys', true ) );
 		if ( ! $hour_decoded ) {
 			return false;
 		}
@@ -595,7 +595,7 @@ class WC_Gateway_Redsys_Global_lite {
 	 * Copyright: (C) 2013 - 2021 José Conti
 	 */
 	public function get_order_auth( $order_id ) {
-		$auth = get_post_meta( $order_id, '_authorisation_code_redsys', true );
+		$auth = $this->get_order_meta( $order_id, '_authorisation_code_redsys', true );
 		if ( ! $auth ) {
 			return false;
 		}
