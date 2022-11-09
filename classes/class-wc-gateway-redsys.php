@@ -618,16 +618,12 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	 */
 	function check_ipn_response() {
 		@ob_clean();
-		if ( isset( $_POST ) ) {
-			$_POST = stripslashes_deep( $_POST );
-		} else {
-			$_POST = false;
-		}
-		if ( isset( $_POST ) && $this->check_ipn_request_is_valid() ) {
+		$_POST = stripslashes_deep( $_POST );
+		if ( $this->check_ipn_request_is_valid() ) {
 			header( 'HTTP/1.1 200 OK' );
-			do_action( 'valid_redsys_standard_ipn_request', $_POST );
+			do_action( 'valid-' . $this->id . '-standard-ipn-request', $_POST );
 		} else {
-			wp_die( 'Do not access this page directly (Redsys redirection)', 'WooCommerce Redsys Gateway', array( 'response' => 200 ) );
+			wp_die( 'Do not access this page directly (Redsys redirección Lite)' );
 		}
 	}
 	/**
