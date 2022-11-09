@@ -25,7 +25,7 @@ define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 if ( ! defined( 'REDSYS_PLUGIN_PATH' ) ) {
 	define( 'REDSYS_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 }
-define( 'REDSYS_POST_UPDATE_URL', 'https://redsys.joseconti.com/2022/09/18/woocommerce-redsys-gateway-light-4-0-x/' );
+define( 'REDSYS_POST_UPDATE_URL', 'https://redsys.joseconti.com/2022/11/09/woocommerce-redsys-gateway-lite-5-0-x/' );
 define( 'REDSYS_TELEGRAM_URL', 'https://t.me/wooredsys' );
 define( 'REDSYS_REVIEW', 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/reviews/?rate=5#new-post' );
 define( 'REDSYS_DONATION', 'https://www.joseconti.com/cursos-online/micropatrocinio/' );
