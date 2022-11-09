@@ -755,10 +755,10 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	 */
 	function check_ipn_response() {
 		@ob_clean();
-		$_POST = stripslashes_deep( $_POST );
+		$post = stripslashes_deep( $_POST );
 		if ( $this->check_ipn_request_is_valid() ) {
 			header( 'HTTP/1.1 200 OK' );
-			do_action( 'valid-' . $this->id . '-standard-ipn-request', $_POST );
+			do_action( 'valid-' . $this->id . '-standard-ipn-request', $post );
 		} else {
 			wp_die( 'Do not access this page directly (Bizum Lite)' );
 		}
