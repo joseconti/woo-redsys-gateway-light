@@ -88,10 +88,11 @@ function redsys_styles_css( $hook ) {
 	global $redsys_about;
 
 	if ( $redsys_about !== $hook ) {
-		return; } else {
+		return;
+	} else {
 		wp_register_style( 'aboutRedsys', REDSYS_PLUGIN_URL . 'assets/css/welcome.css', array(), '1.2.0' );
 		wp_enqueue_style( 'aboutRedsys' );
-		}
+	}
 }
 add_action( 'admin_enqueue_scripts', 'redsys_styles_css' );
 
@@ -272,6 +273,7 @@ function woocommerce_gateway_redsys_init() {
 	 * @param array $methods all WooCommerce methods.
 	 */
 	function woocommerce_add_gateway_redsys_gateway( $methods ) {
+		$methods[] = 'WC_Gateway_Bizum_Redsys';
 		$methods[] = 'WC_Gateway_redsys';
 		return $methods;
 	}
@@ -281,39 +283,39 @@ function woocommerce_gateway_redsys_init() {
 	 * Redsys add metabox.
 	 */
 	/**
- * Package: WooCommerce Redsys Gateway
- * Plugin URI: https://woocommerce.com/es-es/products/redsys-gateway/
- * Copyright: (C) 2013 - 2022 José Conti
- */
-function add_redsys_meta_box( $post_or_order_object ) {
+	 * Package: WooCommerce Redsys Gateway
+	 * Plugin URI: https://woocommerce.com/es-es/products/redsys-gateway/
+	 * Copyright: (C) 2013 - 2022 José Conti
+	 */
+	function add_redsys_meta_box( $post_or_order_object ) {
 
-	$order_id = $post_or_order_object->get_id();
-	if ( WCRedL()->is_redsys_order( $order_id ) ) {
+		$order_id = $post_or_order_object->get_id();
+		if ( WCRedL()->is_redsys_order( $order_id ) ) {
 
-		$date   = WCRedL()->get_order_date( $order_id );
-		$hour   = WCRedL()->get_order_hour( $order_id );
-		$auth   = WCRedL()->get_order_auth( $order_id );
-		$number = WCRedL()->get_order_mumber( $order_id );
+			$date   = WCRedL()->get_order_date( $order_id );
+			$hour   = WCRedL()->get_order_hour( $order_id );
+			$auth   = WCRedL()->get_order_auth( $order_id );
+			$number = WCRedL()->get_order_mumber( $order_id );
 
-		echo '<h4>' . esc_html__( 'Payment Details', 'woocommerce-redsys' ) . '</h4>';
-		echo '<p><strong>' . esc_html__( 'Paid with', 'woocommerce-redsys' ) . ': </strong><br />' . WCRedL()->get_gateway( $order_id ) . '</p>';
-		if ( $number ) {
-			echo '<p><strong>' . esc_html__( 'Redsys Order Number', 'woocommerce-redsys' ) . ': </strong><br />' . esc_html( $number ) . '</p>';
-		}
-		if ( $date ) {
-			echo '<p><strong>' . esc_html__( 'Redsys Date', 'woocommerce-redsys' ) . ': </strong><br />' . esc_html( $date ) . '</p>';
-		}
+			echo '<h4>' . esc_html__( 'Payment Details', 'woo-redsys-gateway-light' ) . '</h4>';
+			echo '<p><strong>' . esc_html__( 'Paid with', 'woo-redsys-gateway-light' ) . ': </strong><br />' . WCRedL()->get_gateway( $order_id ) . '</p>';
+			if ( $number ) {
+				echo '<p><strong>' . esc_html__( 'Redsys Order Number', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_html( $number ) . '</p>';
+			}
+			if ( $date ) {
+				echo '<p><strong>' . esc_html__( 'Redsys Date', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_html( $date ) . '</p>';
+			}
 
-		if ( $hour ) {
-			echo '<p><strong>' . esc_html__( 'Redsys Hour', 'woocommerce-redsys' ) . ': </strong><br />' . esc_html( $hour ) . '</p>';
-		}
+			if ( $hour ) {
+				echo '<p><strong>' . esc_html__( 'Redsys Hour', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_html( $hour ) . '</p>';
+			}
 
-		if ( $auth ) {
-			echo '<p><strong>' . esc_html__( 'Redsys Authorisation Code', 'woocommerce-redsys' ) . ': </strong><br />' . esc_html( $auth ) . '</p>';
+			if ( $auth ) {
+				echo '<p><strong>' . esc_html__( 'Redsys Authorisation Code', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_html( $auth ) . '</p>';
+			}
 		}
 	}
-}
-add_action( 'woocommerce_admin_order_data_after_billing_address', 'add_redsys_meta_box' );
+	add_action( 'woocommerce_admin_order_data_after_billing_address', 'add_redsys_meta_box' );
 
 	/**
 	 * Redsys add method.

@@ -1340,11 +1340,3 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		}
 	}
 }
-/**
- * Copyright: (C) 2013 - 2021 José Conti
- */
-function woocommerce_add_gateway_bizum_redsys( $methods ) {
-		$methods[] = 'WC_Gateway_Bizum_Redsys';
-		return $methods;
-}
-add_filter( 'woocommerce_payment_gateways', 'woocommerce_add_gateway_bizum_redsys' );
