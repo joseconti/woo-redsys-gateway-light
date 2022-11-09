@@ -2,7 +2,7 @@
 Contributors: j.conti
 Tags: woocommerce, redsys, pasarela redsys, bizum, gateway, redsys gateway, redsys pasarela, redsys woocommerce, woocommerce redsys, iupay, Iupay gateway, Iupay woocommerce, woocommerce iupay, iupay pasarela, pasarela iupay
 Requires at least: 4.0
-Tested up to: 6.0
+Tested up to: 6.1
 Donate link: https://www.joseconti.com/cursos-online/micropatrocinio/
 Stable tag: 4.0.0
 License: GPLv2 or later
@@ -92,6 +92,13 @@ Why is it not compatible with versions of WooCommerce lower than 2.9? Because th
 4. Language: Set the Redsys Gateway Language.
 
 == Changelog ==
+
+== 5.0.0 ==
+* NEW: HPOS compatibility.
+* NEW: Declared WordPress 6.1 compatibility.
+* NEW: Declared WooCommerce 7.1 compatibility.
+* Fixed: The default Redsys logo at Checkout is shown again.
+* Fixed: Fixed a problem with Bizum. Under some circumstances, orders were not marked as paid.
 
 == 4.0.0 ==
 * NEW: WooCommerce Checkout Block Compatibility.
