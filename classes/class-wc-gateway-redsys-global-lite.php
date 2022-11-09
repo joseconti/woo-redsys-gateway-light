@@ -118,7 +118,7 @@ class WC_Gateway_Redsys_Global_lite {
 	 * Copyright: (C) 2013 - 2021 José Conti
 	 */
 	public function update_order_meta( $post_id, $meta_key, $meta_value ) {
-		$order_id = $this->get_meta( $post_id, 'post_id' );
+		$order_id = $this->get_order_meta( $post_id, 'post_id' );
 		if ( $order_id ) {
 			$post_id = $order_id;
 		}
@@ -497,18 +497,12 @@ class WC_Gateway_Redsys_Global_lite {
 	 * Copyright: (C) 2013 - 2021 José Conti
 	 */
 	public function order_exist( $order_id ) {
-		$post_status = get_post_status( $order_id );
+		$order = wc_get_order( $order_id );
 
-		if ( false === $post_status ) {
+		if ( empty( $order ) ) {
 			return false;
-		} else {
-			$port_type = get_post_type( $order_id );
-			if ( 'shop_order' === $port_type ) {
-				return true;
-			} else {
-				return false;
-			}
 		}
+		return true;
 	}
 	/**
 	 * Copyright: (C) 2013 - 2021 José Conti
@@ -569,6 +563,13 @@ class WC_Gateway_Redsys_Global_lite {
 		} else {
 			return false;
 		}
+	}
+	public function get_order_mumber( $order_id ) {
+		$number = $this->get_order_meta( $order_id, '_payment_order_number_redsys', true );
+		if ( ! $number ) {
+			return false;
+		}
+		return $number;
 	}
 	/**
 	 * Copyright: (C) 2013 - 2021 José Conti
