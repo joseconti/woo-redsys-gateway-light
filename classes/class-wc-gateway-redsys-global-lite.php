@@ -113,13 +113,17 @@ class WC_Gateway_Redsys_Global_lite {
 	 */
 	public function get_order_meta( $order_id, $key, $single = true ) {
 		$order    = wc_get_order( $order_id );
-		$context  = 'view';
-		$order_id = $order->get_meta( $key, $single, $context );
-		if ( $order_id ) {
-			$post_id = $order_id;
+		if ( $order ) {
+			$context  = 'view';
+			$order_id = $order->get_meta( $key, $single, $context );
+			if ( $order_id ) {
+				$post_id = $order_id;
+			}
+			$meta = $order->get_meta( $key, $single, $context );
+			return $meta;
+		} else {
+			return false;
 		}
-		$meta = $order->get_meta( $key, $single, $context );
-		return $meta;
 	}
 	/**
 	 * Copyright: (C) 2013 - 2021 José Conti
