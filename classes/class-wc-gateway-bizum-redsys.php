@@ -935,7 +935,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 					$this->log->add( 'bizumredsys', ' ' );
 				}
 			}
-			if ( ! empty( $dsdate ) ) {
+			if ( ! empty( $dstermnal ) ) {
 				WCRedL()->update_order_meta( $order->get_id(), '_payment_terminal_redsys', $dstermnal );
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_payment_terminal_redsys saved: ' . $dstermnal );
