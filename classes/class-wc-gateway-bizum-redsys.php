@@ -659,7 +659,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'bizumredsys', 'HTTP Notification received: ' . print_r( $_POST, true ) );
 		}
 		$usesecretsha256 = $this->secretsha256;
-		if ( $usesecretsha256 ) {
+		if ( $usesecretsha256 && isset( $_POST ) ) {
 			$version           = $_POST['Ds_SignatureVersion'];
 			$data              = $_POST['Ds_MerchantParameters'];
 			$remote_sign       = $_POST['Ds_Signature'];
@@ -764,7 +764,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			header( 'HTTP/1.1 200 OK' );
 			do_action( 'valid_redsys_standard_ipn_request', $_POST );
 		} else {
-			wp_die( 'Do not access this page directly', 'WooCommerce Redsys Gateway', array( 'response' => 200 ) );
+			wp_die( 'Do not access this page directly (BIZUM)', 'WooCommerce Redsys Gateway', array( 'response' => 200 ) );
 		}
 	}
 
