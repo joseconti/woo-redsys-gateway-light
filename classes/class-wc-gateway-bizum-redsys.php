@@ -762,7 +762,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		}
 		if ( isset( $_POST ) && $this->check_ipn_request_is_valid() ) {
 			header( 'HTTP/1.1 200 OK' );
-			do_action( 'valid_bizumredsys_standard_ipn_request', $_POST );
+			do_action( 'valid_' . $this->id . '_standard_ipn_request', $_POST );
 		} else {
 			wp_die( 'Do not access this page directly (BIZUM)', 'WooCommerce Redsys Gateway', array( 'response' => 200 ) );
 		}
