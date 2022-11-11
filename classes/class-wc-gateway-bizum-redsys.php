@@ -23,7 +23,13 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	public function __construct() {
 
 		$this->id                   = 'bizumredsys';
-		$this->icon                 = apply_filters( 'woocommerce_' . $this->id . '_icon', REDSYS_PLUGIN_URL . 'assets/images/bizum.png' );
+		$logo_url = $this->get_option( 'logo' );
+		if ( ! empty( $logo_url ) ) {
+			$logo_url   = $this->get_option( 'logo' );
+			$this->icon = apply_filters( 'woocommerce_' . $this->id . '_icon', $logo_url );
+		} else {
+			$this->icon = apply_filters( 'woocommerce_' . $this->id . '_icon', REDSYS_PLUGIN_URL . 'assets/images/bizum.png' );
+		}
 		$this->has_fields           = false;
 		$this->liveurl              = 'https://sis.redsys.es/sis/realizarPago';
 		$this->testurl              = 'https://sis-t.redsys.es:25443/sis/realizarPago';
@@ -42,6 +48,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		// Define user set variables
 		$this->title            = $this->get_option( 'title' );
 		$this->description      = $this->get_option( 'description' );
+		$this->logo             = $this->get_option( 'logo' );
 		$this->customer         = $this->get_option( 'customer' );
 		$this->transactionlimit = $this->get_option( 'transactionlimit' );
 		$this->commercename     = $this->get_option( 'commercename' );
@@ -180,6 +187,12 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				'type'        => 'textarea',
 				'description' => __( 'This controls the description which the user sees during checkout.', 'woo-redsys-gateway-light' ),
 				'default'     => __( 'Pay via Bizum you can pay with your Bizum account.', 'woo-redsys-gateway-light' ),
+			),
+			'logo'             => array(
+				'title'       => __( 'Logo', 'woo-redsys-gateway-light' ),
+				'type'        => 'text',
+				'description' => __( 'Add link to image logo.', 'woo-redsys-gateway-light' ),
+				'desc_tip'    => true,
 			),
 			'customer'         => array(
 				'title'       => __( 'Commerce number (FUC)', 'woo-redsys-gateway-light' ),
