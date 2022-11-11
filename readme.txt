@@ -4,7 +4,7 @@ Tags: woocommerce, redsys, pasarela redsys, bizum, gateway, redsys gateway, reds
 Requires at least: 4.0
 Tested up to: 6.1
 Donate link: https://www.joseconti.com/cursos-online/micropatrocinio/
-Stable tag: 5.0.0
+Stable tag: 5.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 4.0
@@ -92,6 +92,11 @@ Why is it not compatible with versions of WooCommerce lower than 2.9? Because th
 4. Language: Set the Redsys Gateway Language.
 
 == Changelog ==
+
+== 5.1.0 ==
+* NEW: Bizum Checkout logo customization.
+* Improved: Smaller default Bizum logo.
+
 
 == 5.0.0 ==
 * NEW: HPOS compatibility.
