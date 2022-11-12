@@ -304,11 +304,12 @@ class WC_Gateway_Redsys_PSD2_Light {
 
 		$this->debug( 'function get_post_num()' );
 
-		$args   = array(
+		$args = array(
 			'customer_id'  => get_current_user_id(),
 			'limit'        => -1, // to retrieve _all_ orders by this user
 			'date_created' => $date_query,
 			'status'       => $post_status,
+			'paginate'     => true,
 		);
 		$orders = wc_get_orders( $args );
 		$this->debug( '$orders->total' . $orders->total );
