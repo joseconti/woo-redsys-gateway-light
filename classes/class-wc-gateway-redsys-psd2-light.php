@@ -687,6 +687,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 			$this->debug( '$txn_activity_year: ' . $txn_activity_year );
 
 			if ( $order->has_shipping_address() ) {
+				$this->debug( 'has_shipping_address() TRUE' );
 				$args   = array(
 					'shipping_address_1' => $order->get_shipping_address_1(),
 					'shipping_address_2' => $order->get_shipping_address_2(),
@@ -721,6 +722,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 			}
 		} else {
 			$ch_acc_age_ind = '01';
+			$this->debug( '$$ch_acc_age_ind = 01' );
 		}
 
 		$acct_info = array(
