@@ -62,6 +62,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		$this->buttoncheckout   = $this->get_option( 'buttoncheckout' );
 		$this->butonbgcolor     = $this->get_option( 'butonbgcolor' );
 		$this->butontextcolor   = $this->get_option( 'butontextcolor' );
+		$this->orderdo          = $this->get_option('orderdo');
 		$this->log              = new WC_Logger();
 		$this->supports         = array(
 			'products',
@@ -211,6 +212,16 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				'type'        => 'text',
 				'description' => __( 'Terminal number provided by your bank.', 'woo-redsys-gateway-light' ),
 				'desc_tip'    => true,
+			),
+			'orderdo'          => array(
+				'title'       => __( 'What to do after payment?', 'woo-redsys-gateway-light' ),
+				'type'        => 'select',
+				'description' => __( 'Chose what to do after the customer pay the order.', 'woo-redsys-gateway-light' ),
+				'default'     => 'processing',
+				'options'     => array(
+					'processing' => __( 'Mark as Processing (default & recomended)', 'woo-redsys-gateway-light' ),
+					'completed'  => __( 'Mark as Complete', 'woo-redsys-gateway-light' ),
+				),
 			),
 			'transactionlimit' => array(
 				'title'       => __( 'Transaction Limit', 'woo-redsys-gateway-light' ),
@@ -1033,9 +1044,10 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 
 			$order->add_order_note( __( 'HTTP Notification received - payment completed', 'woo-redsys-gateway-light' ) );
 			$order->add_order_note( __( 'Authorization code: ', 'woo-redsys-gateway-light' ) . $authorisation_code );
-			$order->payment_complete();
 			if ( 'completed' === $this->orderdo ) {
 				$order->update_status( 'completed', __( 'Order Completed by Bizum', 'woo-redsys-gateway-light' ) );
+			} else {
+				$order->payment_complete();
 			}
 
 			if ( 'yes' === $this->debug ) {
