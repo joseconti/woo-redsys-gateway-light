@@ -303,20 +303,6 @@ class WC_Gateway_Redsys_PSD2_Light {
 			'status'       => $post_status,
 		);
 		$orders = wc_get_orders( $args );
-		/*
-		$num = get_posts(
-			array(
-				'numberposts' => -1,
-				'meta_key'    => '_customer_user', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-				'meta_value'  => get_current_user_id(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
-				'post_type'   => wc_get_order_types(),
-				'post_status' => $post_status,
-				'date_query'  => array(
-					$date_query,
-				),
-			)
-		);
-		*/
 		return $orders->total;
 	}
 
@@ -695,37 +681,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 					'order'              => 'ASC',
 				);
 				$orders = wc_get_orders( $args );
-				/*
-				$query = get_posts(
-					array(
-						'post_type'   => wc_get_order_types(),
-						'post_status' => array_keys( wc_get_order_statuses() ),
-						'meta_query'  => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-							array(
-								'key'   => '_shipping_address_1',
-								'value' => $order->get_shipping_address_1(),
-							),
-							array(
-								'key'   => '_shipping_address_2',
-								'value' => $order->get_shipping_address_2(),
-							),
-							array(
-								'key'   => '_shipping_city',
-								'value' => $order->get_shipping_city(),
-							),
-							array(
-								'key'   => '_shipping_postcode',
-								'value' => $order->get_shipping_postcode(),
-							),
-							array(
-								'key'   => '_shipping_country',
-								'value' => $order->get_shipping_country(),
-							),
-						),
-						'order'       => 'ASC',
-					)
-				);
-				*/
+
 				if ( $orders->total > 0 ) {
 					$order_data         = $orders->orders[0]->get_data();
 					$ship_address_usage = $order_data['date_created']->date( 'Ymd' );
