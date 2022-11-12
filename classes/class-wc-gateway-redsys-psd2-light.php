@@ -722,7 +722,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 			}
 		} else {
 			$ch_acc_age_ind = '01';
-			$this->debug( '$$ch_acc_age_ind = 01' );
+			$this->debug( '$ch_acc_age_ind = 01' );
 		}
 
 		$acct_info = array(
