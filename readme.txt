@@ -95,6 +95,7 @@ Why is it not compatible with versions of WooCommerce lower than 2.9? Because th
 
 == 5.1.0 ==
 * NEW: Bizum Checkout logo customization.
+* NEW: Added option What to do after payment to Bizum.
 * Improved: Smaller default Bizum logo.
 
 
