@@ -621,11 +621,12 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param int   $user_id User ID can be false.
 	 */
 	public function get_acctinfo( $order, $user_data_3ds = false, $user_id = false ) {
+
 		/**
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
 
-		// if ( $this->get_redsys_option( 'psd2', 'redsys' ) === 'yes' ) {
+		$this->debug( 'get_acctinfo()' );
 
 			/**
 			 * 1569057946
@@ -681,6 +682,10 @@ class WC_Gateway_Redsys_PSD2_Light {
 			$txn_activity_day    = $this->get_post_num( array( 'wc-completed', 'wc-pending' ), '>' . ( time() - DAY_IN_SECONDS ) );
 			$txn_activity_year   = $this->get_post_num( array( 'wc-completed', 'wc-pending' ), '>' . ( time() - YEAR_IN_SECONDS ) );
 
+			$this->debug( '$nb_purchase_account: ' . $nb_purchase_account );
+			$this->debug( '$txn_activity_day: ' . $txn_activity_day );
+			$this->debug( '$txn_activity_year: ' . $txn_activity_year );
+
 			if ( $order->has_shipping_address() ) {
 				$args   = array(
 					'shipping_address_1' => $order->get_shipping_address_1(),
@@ -689,6 +694,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 					'shipping_postcode'  => $order->get_shipping_postcode(),
 					'shipping_country'   => $order->get_shipping_country(),
 					'order'              => 'ASC',
+					'paginate'           => true,
 				);
 				$orders = wc_get_orders( $args );
 
@@ -696,14 +702,19 @@ class WC_Gateway_Redsys_PSD2_Light {
 					$order_data         = $orders->orders[0]->get_data();
 					$ship_address_usage = $order_data['date_created']->date( 'Ymd' );
 					$days               = intval( ( ( strtotime( 'now' ) - strtotime( $orders->orders[0]->get_date_created() ) ) / MINUTE_IN_SECONDS ) / HOUR_IN_SECONDS );
+					$this->debug( '$ship_address_usage: ' . $ship_address_usage );
 					if ( $days < 30 ) {
+						$this->debug( '$ship_address_usage_ind = 02' );
 						$ship_address_usage_ind = '02';
 					} elseif ( $days >= 30 && $days <= 60 ) {
+						$this->debug( '$ship_address_usage_ind = 03' );
 						$ship_address_usage_ind = '03';
 					} else {
+						$this->debug( '$ship_address_usage_ind = 04' );
 						$ship_address_usage_ind = '04';
 					}
 				} else {
+					$this->debug( '$ship_address_usage_ind = 01' );
 					$ship_address_usage     = date( 'Ymd' ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
 					$ship_address_usage_ind = '01';
 				}
