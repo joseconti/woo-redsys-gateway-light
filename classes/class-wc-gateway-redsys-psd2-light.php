@@ -80,6 +80,12 @@ class WC_Gateway_Redsys_PSD2_Light {
 
 		return $out;
 	}
+	public function debug( $log ) {
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			$debug = new WC_Logger();
+			$debug->add( 'redsys-lite-global', $log );
+		}
+	}
 	/**
 	 * Get redsys option
 	 *
@@ -296,6 +302,8 @@ class WC_Gateway_Redsys_PSD2_Light {
 		* Copyright: (C) 2013 - 2021 José Conti
 		*/
 
+		$this->debug( 'function get_post_num()' );
+
 		$args   = array(
 			'customer_id'  => get_current_user_id(),
 			'limit'        => -1, // to retrieve _all_ orders by this user
@@ -303,6 +311,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 			'status'       => $post_status,
 		);
 		$orders = wc_get_orders( $args );
+		$this->debug( '$orders->total' . $orders->total );
 		return $orders->total;
 	}
 
