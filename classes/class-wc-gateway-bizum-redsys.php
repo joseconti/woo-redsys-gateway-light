@@ -683,7 +683,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'bizumredsys', 'HTTP Notification received: ' . print_r( $_POST, true ) );
 		}
 		$usesecretsha256 = $this->secretsha256;
-		if ( $usesecretsha256 && isset( $_POST ) ) {
+		if ( $usesecretsha256 ) {
 			$version           = $_POST['Ds_SignatureVersion'];
 			$data              = $_POST['Ds_MerchantParameters'];
 			$remote_sign       = $_POST['Ds_Signature'];
@@ -751,21 +751,11 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			}
 		} else {
 			if ( 'yes' === $this->debug ) {
-				$this->log->add( 'bizumredsys', 'HTTP Notification received: ' . print_r( $_POST, true ) );
+				$this->log->add( 'bizumredsys', 'Received INVALID notification from Servired/RedSys' );
+				$this->log->add( 'bizumredsys', '$remote_sign: ' . $remote_sign );
+				$this->log->add( 'bizumredsys', '$localsecret: ' . $localsecret );
 			}
-			if ( $_POST['Ds_MerchantCode'] === $this->customer ) {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', 'Received valid notification from Servired/RedSys' );
-				}
-				return true;
-			} else {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', 'Received INVALID notification from Servired/RedSys' );
-					$this->log->add( 'bizumredsys', '$remote_sign: ' . $remote_sign );
-					$this->log->add( 'bizumredsys', '$localsecret: ' . $localsecret );
-				}
-				return false;
-			}
+			return false;
 		}
 	}
 
