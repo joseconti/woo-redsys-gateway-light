@@ -826,7 +826,7 @@ class WC_Gateway_Redsys_Global_lite {
 	 * Copyright: (C) 2013 - 2021 José Conti
 	 */
 	public function clean_order_number( $ordernumber ) {
-		return substr( $ordernumber, 3 );
+		return ltrim( substr( $ordernumber, 3 ), 0 );
 	}
 	/**
 	 * Copyright: (C) 2013 - 2021 José Conti
