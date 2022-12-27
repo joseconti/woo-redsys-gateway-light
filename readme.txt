@@ -4,7 +4,7 @@ Tags: woocommerce, redsys, pasarela redsys, bizum, gateway, redsys gateway, reds
 Requires at least: 4.0
 Tested up to: 6.1
 Donate link: https://www.joseconti.com/cursos-online/micropatrocinio/
-Stable tag: 5.1.0
+Stable tag: 5.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 4.0
@@ -93,12 +93,8 @@ Why is it not compatible with versions of WooCommerce lower than 2.9? Because th
 
 == Changelog ==
 
-== 5.1.0 ==
-* NEW: Bizum Checkout logo customization.
-* NEW: Added option What to do after payment to Bizum.
-* Improved: Smaller default Bizum logo.
-* FIXED: A fatal error when Bizum Payment is not paid.
-
+== 5.1.1 ==
+* FIXED: Fixed an error cleaning Order number.
 
 == 5.0.0 ==
 * NEW: HPOS compatibility.
