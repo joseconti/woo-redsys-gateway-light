@@ -93,7 +93,7 @@ Why is it not compatible with versions of WooCommerce lower than 2.9? Because th
 
 == Changelog ==
 
-== 5.1.1 ==
+== 5.0.1 ==
 * FIXED: Fixed an error cleaning Order number.
 
 == 5.0.0 ==
