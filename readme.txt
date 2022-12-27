@@ -97,6 +97,7 @@ Why is it not compatible with versions of WooCommerce lower than 2.9? Because th
 * NEW: Bizum Checkout logo customization.
 * NEW: Added option What to do after payment to Bizum.
 * Improved: Smaller default Bizum logo.
+* FIXED: A fatal error when Bizum Payment is not paid.
 
 
 == 5.0.0 ==

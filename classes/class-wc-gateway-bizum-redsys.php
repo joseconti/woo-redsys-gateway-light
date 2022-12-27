@@ -863,6 +863,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'bizumredsys', 'createMerchantSignatureNotif: ' . $localsecret );
 			$this->log->add( 'bizumredsys', 'Ds_Amount: ' . $total );
 			$this->log->add( 'bizumredsys', 'Ds_Order: ' . $ordermi );
+			$this->log->add( 'bizumredsys', '$order_id: ' . $order2 );
 			$this->log->add( 'bizumredsys', 'Ds_MerchantCode: ' . $dscode );
 			$this->log->add( 'bizumredsys', 'Ds_Currency: ' . $currency_code );
 			$this->log->add( 'bizumredsys', 'Ds_Response: ' . $response );
@@ -1065,12 +1066,12 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 
 			if ( $ds_response_value ) {
 				$order->add_order_note( __( 'Order cancelled by Redsys: ', 'woo-redsys-gateway-light' ) . $ds_response_value );
-				WCRedL()->update_order_meta( $order_id, '_redsys_error_payment_ds_response_value', $ds_response_value );
+				WCRedL()->update_order_meta( $order->get_id(), '_redsys_error_payment_ds_response_value', $ds_response_value );
 			}
 
 			if ( $ds_error_value ) {
 				$order->add_order_note( __( 'Order cancelled by Redsys: ', 'woo-redsys-gateway-light' ) . $ds_error_value );
-				WCRedL()->update_order_meta( $order_id, '_redsys_error_payment_ds_response_value', $ds_error_value );
+				WCRedL()->update_order_meta( $order->get_id(), '_redsys_error_payment_ds_response_value', $ds_error_value );
 			}
 
 			if ( 'yes' === $this->debug ) {
