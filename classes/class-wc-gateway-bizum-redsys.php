@@ -641,7 +641,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	<script>
 	jQuery(document).ready(function() {
 	   jQuery("#submit_redsys_payment_form").click();
-	 };
+	 });
   </script>';
 	}
 
