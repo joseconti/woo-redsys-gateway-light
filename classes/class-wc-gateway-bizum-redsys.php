@@ -638,7 +638,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		' . implode( '', $form_inputs ) . '
 		<input type="submit" class="button-alt" id="submit_redsys_payment_form" value="' . __( 'Pay with Bizum', 'woo-redsys-gateway-light' ) . '" /> <a class="button cancel" href="' . esc_url( $order->get_cancel_order_url() ) . '">' . __( 'Cancel order &amp; restore cart', 'woo-redsys-gateway-light' ) . '</a>
 	</form><
-	script>
+	<script>
 	$(document).ready(function() {
 	   jQuery("#submit_redsys_payment_form").click();
 	 });
