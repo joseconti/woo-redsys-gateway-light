@@ -1,0 +1,86 @@
+Date : 2023-01-12 15:40:18
+Directory : /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light
+Total : 41 files,  43001 codes, 1052 comments, 462 blanks, all 44515 lines
+
+Languages
++--------------+------------+------------+------------+------------+------------+
+| language     | files      | code       | comment    | blank      | total      |
++--------------+------------+------------+------------+------------+------------+
+| JSON         |          2 |     35,572 |          0 |          2 |     35,574 |
+| PHP          |         29 |      6,473 |      1,030 |        428 |      7,931 |
+| XML          |          3 |        457 |          6 |         10 |        473 |
+| CSS          |          3 |        383 |          0 |          4 |        387 |
+| JavaScript   |          3 |         96 |         12 |         13 |        121 |
+| Shell Script |          1 |         20 |          4 |          5 |         29 |
++--------------+------------+------------+------------+------------+------------+
+
+Directories
++-----------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                  | files      | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                     |         41 |     43,001 |      1,052 |        462 |     44,515 |
+| . (Files)                                                                                                             |          8 |     36,066 |        111 |         80 |     36,257 |
+| assets                                                                                                                |          8 |        790 |          2 |          6 |        798 |
+| assets (Files)                                                                                                        |          1 |          1 |          1 |          1 |          3 |
+| assets/css                                                                                                            |          3 |        383 |          0 |          4 |        387 |
+| assets/images                                                                                                         |          2 |        404 |          1 |          1 |        406 |
+| assets/js                                                                                                             |          2 |          2 |          0 |          0 |          2 |
+| assets/js/frontend                                                                                                    |          2 |          2 |          0 |          0 |          2 |
+| bin                                                                                                                   |          1 |         20 |          4 |          5 |         29 |
+| classes                                                                                                               |          4 |      3,200 |        644 |        243 |      4,087 |
+| includes                                                                                                              |         19 |      2,871 |        280 |        121 |      3,272 |
+| includes (Files)                                                                                                      |          3 |        200 |        138 |         39 |        377 |
+| includes/blocks                                                                                                       |          2 |         88 |         66 |         25 |        179 |
+| includes/data                                                                                                         |         14 |      2,583 |         76 |         57 |      2,716 |
+| resources                                                                                                             |          1 |         54 |         11 |          7 |         72 |
+| resources/js                                                                                                          |          1 |         54 |         11 |          7 |         72 |
+| resources/js/frontend                                                                                                 |          1 |         54 |         11 |          7 |         72 |
++-----------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-----------------------------------------------------------------------------------------------------------------------+--------------+------------+------------+------------+------------+
+| filename                                                                                                              | language     | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------------------------------------------------------+--------------+------------+------------+------------+------------+
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/about-redsys.php                                   | PHP          |        151 |          4 |         20 |        175 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/assets/css/redsys-css.css                          | CSS          |         41 |          0 |          1 |         42 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/assets/css/redsys-notice.css                       | CSS          |         55 |          0 |          2 |         57 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/assets/css/welcome.css                             | CSS          |        287 |          0 |          1 |        288 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/assets/images/icono-redsys.svg                     | XML          |        403 |          0 |          1 |        404 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/assets/images/index.php                            | PHP          |          1 |          1 |          0 |          2 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/assets/index.php                                   | PHP          |          1 |          1 |          1 |          3 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/assets/js/frontend/blocks.asset.php                | PHP          |          1 |          0 |          0 |          1 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/assets/js/frontend/blocks.js                       | JavaScript   |          1 |          0 |          0 |          1 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/bin/build_i18n.sh                                  | Shell Script |         20 |          4 |          5 |         29 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/classes/class-wc-gateway-bizum-redsys.php          | PHP          |      1,161 |        131 |         67 |      1,359 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/classes/class-wc-gateway-redsys-global-lite.php    | PHP          |        678 |        145 |         64 |        887 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/classes/class-wc-gateway-redsys-psd2-light.php     | PHP          |        426 |        284 |         71 |        781 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/classes/class-wc-gateway-redsys.php                | PHP          |        935 |         84 |         41 |      1,060 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/apiRedsys5.php                            | PHP          |         83 |         62 |         19 |        164 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/apiRedsys7.php                            | PHP          |        116 |         75 |         19 |        210 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/blocks/wc-gateway-bizum-lite-support.php  | PHP          |         44 |         33 |         13 |         90 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/blocks/wc-gateway-redsys-lite-support.php | PHP          |         44 |         33 |         12 |         89 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/data/allowed-currencies.php               | PHP          |        221 |          6 |          4 |        231 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/data/countries.php                        | PHP          |        257 |          6 |          3 |        266 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/data/currencies.php                       | PHP          |        217 |          6 |          4 |        227 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/data/data.php                             | PHP          |         15 |          3 |         12 |         30 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/data/deactivate-plugins.php               | PHP          |         13 |          6 |          4 |         23 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/data/dserrors.php                         | PHP          |      1,376 |          6 |          3 |      1,385 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/data/dsresponse.php                       | PHP          |        165 |          6 |          3 |        174 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/data/index.php                            | PHP          |          1 |          1 |          1 |          3 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/data/insiteerrors.php                     | PHP          |         23 |          6 |          3 |         32 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/data/languages.php                        | PHP          |         37 |          6 |          4 |         47 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/data/number-order-type.php                | PHP          |         20 |          6 |          4 |         30 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/data/redsys-status-paid.php               | PHP          |         14 |          6 |          4 |         24 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/data/redsys-types.php                     | PHP          |         18 |          6 |          4 |         28 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/data/wplanguages.php                      | PHP          |        206 |          6 |          4 |        216 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/includes/index.php                                 | PHP          |          1 |          1 |          1 |          3 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/index.php                                          | PHP          |          1 |          1 |          1 |          3 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/package-lock.json                                  | JSON         |     35,541 |          0 |          1 |     35,542 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/package.json                                       | JSON         |         31 |          0 |          1 |         32 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/phpcs.xml                                          | XML          |         42 |          6 |          8 |         56 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/resources/js/frontend/index.js                     | JavaScript   |         54 |         11 |          7 |         72 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/webpack.config.js                                  | JavaScript   |         41 |          1 |          6 |         48 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/woocommerce-redsys.php                             | PHP          |        247 |         99 |         42 |        388 |
+| /Users/joseconticalveras/Documents/GitHub/woo-redsys-gateway-light/wpml-config.xml                                    | XML          |         12 |          0 |          1 |         13 |
+| Total                                                                                                                 |              |     43,001 |      1,052 |        462 |     44,515 |
++-----------------------------------------------------------------------------------------------------------------------+--------------+------------+------------+------------+------------+
