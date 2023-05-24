@@ -10,3 +10,13 @@
 *.jpg binary
 *.gif binary
 *.mo binary
+.VSCodeCounter export-ignore
+bin/ export-ignore
+node_modules/ export-ignore
+resources/ export-ignore
+.gitattributes export-ignore
+.gitignore export-ignore
+bloques.txt export-ignore
+package-lock.json export-ignore
+package.json export-ignore
+webpack.config.js export-ignore
