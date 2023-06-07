@@ -22,3 +22,4 @@ package.json export-ignore
 webpack.config.js export-ignore
 .DS_Store export-ignore
 .vscode/ export-ignore
+phpcs.xml export-ignore
