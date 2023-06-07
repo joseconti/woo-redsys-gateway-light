@@ -2,13 +2,13 @@
 Contributors: j.conti
 Tags: woocommerce, redsys, pasarela redsys, bizum, gateway, redsys gateway, redsys pasarela, redsys woocommerce, woocommerce redsys, iupay, Iupay gateway, Iupay woocommerce, woocommerce iupay, iupay pasarela, pasarela iupay
 Requires at least: 4.0
-Tested up to: 6.1
+Tested up to: 6.2
 Donate link: https://www.joseconti.com/cursos-online/micropatrocinio/
-Stable tag: 5.1.0
+Stable tag: 5.2.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 4.0
-WC tested up to: 7.3
+WC tested up to: 7.7
 
 Add Redsys Gateway and BIZUM to WooCommerce. This is the Lite version of the official WooCommerce Redsys plugin at WooCommerce.com.
 
@@ -93,11 +93,21 @@ Why is it not compatible with versions of WooCommerce lower than 2.9? Because th
 
 == Changelog ==
 
+== 5.2.0 ==
+
+* Improved: Country code EMV3DS
+* Improved: Phone country code.
+
+== 5.1.0 ==
+
 * NEW: Bizum Checkout logo customization.
 * NEW: Added option What to do after payment to Bizum.
 * Improved: Smaller default Bizum logo.
 * FIXED: A fatal error when Bizum Payment is not paid.
 * FIXED: Fixed Bizum update status.
+
+== 5.0.1 ==
+* FIXED: Fixed an error cleaning Order number.
 
 == 5.0.1 ==
 * FIXED: Fixed an error cleaning Order number.
