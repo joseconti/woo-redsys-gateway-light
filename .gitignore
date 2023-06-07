@@ -1,3 +1,5 @@
+.DS_Store
+.VSCodeCounter
 # Coverage directory used by tools like istanbul
 coverage
 
@@ -30,4 +32,4 @@ build/Release
 
 # dotenv environment variables file
 .env
-.DS_Store
+.vscode
