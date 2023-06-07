@@ -747,19 +747,26 @@ class WC_Gateway_Redsys_PSD2_Light {
 				$ds_merchant_emv3ds[ $data ] = $valor;
 			}
 		}
-			$ds_merchant_emv3ds['addrMatch']        = $this->addr_match( $order );
-			$ds_merchant_emv3ds['billAddrCity']     = $this->clean_data( $order->get_billing_city() );
-			$ds_merchant_emv3ds['billAddrLine1']    = $this->clean_data( $order->get_billing_address_1() );
-			$ds_merchant_emv3ds['billAddrPostCode'] = $this->clean_data( $order->get_billing_postcode() );
-			$ds_merchant_emv3ds['billAddrState']    = strtolower( $this->clean_data( $order->get_billing_state() ) );
-			$ds_merchant_emv3ds['billAddrCountry']  = strtolower( $this->clean_data( $order->get_billing_country() ) );
-			$ds_merchant_emv3ds['Email']            = $this->get_email( $order );
-			$ds_merchant_emv3ds['acctInfo']         = $acct_info;
-			$ds_merchant_emv3ds['homePhone']        = array( 'subscriber' => $this->get_homephone( $order ) );
+		$ds_merchant_emv3ds['addrMatch']        = $this->addr_match( $order );
+		$ds_merchant_emv3ds['billAddrCity']     = $this->clean_data( $order->get_billing_city() );
+		$ds_merchant_emv3ds['billAddrLine1']    = $this->clean_data( $order->get_billing_address_1() );
+		$ds_merchant_emv3ds['billAddrPostCode'] = $this->clean_data( $order->get_billing_postcode() );
+		$ds_merchant_emv3ds['billAddrState']    = strtolower( $this->clean_data( $order->get_billing_state() ) );
+		if ( $order->get_billing_country() !== '' ) {
+			$ds_merchant_emv3ds['billAddrCountry'] = WCRedL()->get_country_codes_3( $order->get_billing_country() );
+		}
+		$ds_merchant_emv3ds['Email']    = $this->get_email( $order );
+		$ds_merchant_emv3ds['acctInfo'] = $acct_info;
+		if ( $this->get_homephone( $order ) !== '' && $order->get_billing_country() !== '' ) {
+			$ds_merchant_emv3ds['homePhone'] = array(
+				'subscriber' => $this->get_homephone( $order ),
+				'cc'         => WCRedL()->get_country_codes_2( $order->get_billing_country() ),
+			);
+		}
 
-			/**
-			 * TO-DO: suspiciousAccActivity, en una futura versión añadiré un meta a los usuarios para que el admistrador pueda marcar alguna cuenta fraudulenta o que ha habido algún problema.
-			 */
+		/**
+		 * TO-DO: suspiciousAccActivity, en una futura versión añadiré un meta a los usuarios para que el admistrador pueda marcar alguna cuenta fraudulenta o que ha habido algún problema.
+		 */
 
 		if ( $order->get_shipping_address_2() !== '' ) {
 			$ds_merchant_emv3ds['billAddrLine2'] = $this->clean_data( $order->get_shipping_address_2() );
@@ -769,7 +776,9 @@ class WC_Gateway_Redsys_PSD2_Light {
 			$ds_merchant_emv3ds['shipAddrLine1']    = $this->clean_data( $order->get_shipping_address_1() );
 			$ds_merchant_emv3ds['shipAddrPostCode'] = $this->clean_data( $order->get_shipping_postcode() );
 			$ds_merchant_emv3ds['shipAddrState']    = strtolower( $this->clean_data( $order->get_shipping_state() ) );
-			$ds_merchant_emv3ds['shipAddrCountry']  = strtolower( $this->clean_data( $order->get_shipping_country() ) );
+			if ( $order->get_billing_country() !== '' ) {
+				$ds_merchant_emv3ds['shipAddrCountry'] = WCRedL()->get_country_codes_3( $order->get_shipping_country() );
+			}
 			if ( $order->get_shipping_address_2() !== '' ) {
 				$ds_merchant_emv3ds['shipAddrLine2'] = $this->clean_data( $order->get_shipping_address_2() );
 			}

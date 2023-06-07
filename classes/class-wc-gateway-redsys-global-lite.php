@@ -225,6 +225,72 @@ class WC_Gateway_Redsys_Global_lite {
 		return $msgerrors;
 	}
 	/**
+	 * Get country codes
+	 */
+	public function get_country_codes_phone() {
+
+		include_once REDSYS_PLUGIN_DATA_PATH . 'countries-2.php';
+
+		$countries = array();
+		$countries = redsys_get_country_code_2();
+		return $countries;
+	}
+	/**
+	 * Get country codes 2
+	 *
+	 * @param string $country_code_2 Country Code 2.
+	 */
+	public function get_country_codes_2( $country_code_2 ) {
+
+		$countries = array();
+		$countries = $this->get_country_codes_phone();
+
+		if ( $countries ) {
+			foreach ( $countries as $country => $valor ) {
+				$country_2_up = strtoupper( $country_code_2 );
+				if ( $country_2_up === $country ) {
+					return $valor;
+				} else {
+					continue;
+				}
+			}
+		}
+		return false;
+	}
+	/**
+	 * Get country codes
+	 */
+	public function get_country_codes() {
+
+		include_once REDSYS_PLUGIN_DATA_PATH . 'countries.php';
+
+		$countries = array();
+		$countries = redsys_get_country_code();
+		return $countries;
+	}
+	/**
+	 * Get country codes 3
+	 *
+	 * @param string $country_code_2 Country code 2.
+	 */
+	public function get_country_codes_3( $country_code_2 ) {
+
+		$countries = array();
+		$countries = $this->get_country_codes();
+
+		if ( $countries ) {
+			foreach ( $countries as $country => $valor ) {
+				$country_2_up = strtoupper( $country_code_2 );
+				if ( $country_2_up === $country ) {
+					return $valor;
+				} else {
+					continue;
+				}
+			}
+		}
+		return false;
+	}
+	/**
 	 * Copyright: (C) 2013 - 2021 José Conti
 	 */
 	public function is_ds_error( $error_code = null ) {
