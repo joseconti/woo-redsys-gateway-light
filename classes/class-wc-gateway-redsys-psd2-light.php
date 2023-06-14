@@ -21,56 +21,66 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param string $out String to clean.
 	 */
 	public function clean_data( $out ) {
+		$replacements = array(
+			'Á' => 'A',
+			'À' => 'A',
+			'Ä' => 'A',
+			'É' => 'E',
+			'È' => 'E',
+			'Ë' => 'E',
+			'Í' => 'I',
+			'Ì' => 'I',
+			'Ï' => 'I',
+			'Ó' => 'O',
+			'Ò' => 'O',
+			'Ö' => 'O',
+			'Ú' => 'U',
+			'Ù' => 'U',
+			'Ü' => 'U',
+			'á' => 'a',
+			'à' => 'a',
+			'ä' => 'a',
+			'é' => 'e',
+			'è' => 'e',
+			'ë' => 'e',
+			'í' => 'i',
+			'ì' => 'i',
+			'ï' => 'i',
+			'ó' => 'o',
+			'ò' => 'o',
+			'ö' => 'o',
+			'ú' => 'u',
+			'ù' => 'u',
+			'ü' => 'u',
+			'Ñ' => 'N',
+			'ñ' => 'n',
+			'&' => '-',
+			'<' => ' ',
+			'>' => ' ',
+			'/' => ' ',
+			'"' => ' ',
+			"'" => ' ',
+			'"' => ' ',
+			'?' => ' ',
+			'¿' => ' ',
+			'º' => ' ',
+			'ª' => ' ',
+			'#' => ' ',
+			'&' => ' ',
+			'@' => ' ',
+		);
 
-		$out = str_replace( 'Á', 'A', $out );
-		$out = str_replace( 'À', 'A', $out );
-		$out = str_replace( 'Ä', 'A', $out );
-		$out = str_replace( 'É', 'E', $out );
-		$out = str_replace( 'È', 'E', $out );
-		$out = str_replace( 'Ë', 'E', $out );
-		$out = str_replace( 'Í', 'I', $out );
-		$out = str_replace( 'Ì', 'I', $out );
-		$out = str_replace( 'Ï', 'I', $out );
-		$out = str_replace( 'Ó', 'O', $out );
-		$out = str_replace( 'Ò', 'O', $out );
-		$out = str_replace( 'Ö', 'O', $out );
-		$out = str_replace( 'Ú', 'U', $out );
-		$out = str_replace( 'Ù', 'U', $out );
-		$out = str_replace( 'Ü', 'U', $out );
-		$out = str_replace( 'á', 'a', $out );
-		$out = str_replace( 'à', 'a', $out );
-		$out = str_replace( 'ä', 'a', $out );
-		$out = str_replace( 'é', 'e', $out );
-		$out = str_replace( 'è', 'e', $out );
-		$out = str_replace( 'ë', 'e', $out );
-		$out = str_replace( 'í', 'i', $out );
-		$out = str_replace( 'ì', 'i', $out );
-		$out = str_replace( 'ï', 'i', $out );
-		$out = str_replace( 'ó', 'o', $out );
-		$out = str_replace( 'ò', 'o', $out );
-		$out = str_replace( 'ö', 'o', $out );
-		$out = str_replace( 'ú', 'u', $out );
-		$out = str_replace( 'ù', 'u', $out );
-		$out = str_replace( 'ü', 'u', $out );
-		$out = str_replace( 'Ñ', 'N', $out );
-		$out = str_replace( 'ñ', 'n', $out );
-		$out = str_replace( '&', '-', $out );
-		$out = str_replace( '<', ' ', $out );
-		$out = str_replace( '>', ' ', $out );
-		$out = str_replace( '/', ' ', $out );
-		$out = str_replace( '"', ' ', $out );
-		$out = str_replace( "'", ' ', $out );
-		$out = str_replace( '"', ' ', $out );
-		$out = str_replace( '?', ' ', $out );
-		$out = str_replace( '¿', ' ', $out );
-		$out = str_replace( 'º', ' ', $out );
-		$out = str_replace( 'ª', ' ', $out );
-		$out = str_replace( '#', ' ', $out );
-		$out = str_replace( '&', ' ', $out );
-		$out = str_replace( '@', ' ', $out );
+		foreach ( $replacements as $search => $replacement ) {
+			$out = str_replace( $search, $replacement, $out );
+		}
 
 		return $out;
 	}
+	/**
+	 * Debug
+	 *
+	 * @param string $log Log.
+	 */
 	public function debug( $log ) {
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			$debug = new WC_Logger();
@@ -101,18 +111,6 @@ class WC_Gateway_Redsys_PSD2_Light {
 	}
 
 	/**
-	 * Get Card Holder Name.
-	 *
-	 * @param obj $order Object WooCommerce Order.
-	 */
-	public function get_cardholdername( $order ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
-		// cardholderName.
-	}
-
-	/**
 	 * Get email
 	 *
 	 * @param obj $order Object WooCommerce Order.
@@ -130,18 +128,6 @@ class WC_Gateway_Redsys_PSD2_Light {
 	public function get_homephone( $order ) {
 
 		return $order->get_billing_phone();
-	}
-
-	/**
-	 * Get mobile phone
-	 *
-	 * @param obj $order Object WooCommerce Order.
-	 */
-	public function get_mobile_phone( $order ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
-		// mobilePhone.
 	}
 
 	/**
@@ -229,17 +215,6 @@ class WC_Gateway_Redsys_PSD2_Light {
 	}
 
 	/**
-	 * Get Acctid.
-	 *
-	 * @param obj $order Object WooCommerce Order.
-	 */
-	public function get_acctid( $order ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
-		// acctID.
-	}
-	/**
 	 * Days
 	 *
 	 * @param string $start_time Time.
@@ -269,7 +244,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 
 		$args   = array(
 			'customer_id'  => get_current_user_id(),
-			'limit'        => -1, // to retrieve _all_ orders by this user
+			'limit'        => -1, // to retrieve _all_ orders by this user.
 			'date_created' => $date_query,
 			'status'       => $post_status,
 			'paginate'     => true,
