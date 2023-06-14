@@ -184,9 +184,9 @@ class WC_Gateway_Redsys_PSD2_Light {
 		$adress_ship['shipAddrLine1']    = $order->get_billing_address_1();
 		$adress_ship['shipAddrLine2']    = $order->get_billing_address_2();
 		$adress_ship['shipAddrCity']     = $order->get_billing_city();
-		$adress_ship['shipAddrState']    = strtolower( $order->get_billing_state() );
+		// $adress_ship['shipAddrState']    = strtoupper( $order->get_billing_state() );
 		$adress_ship['shipAddrPostCode'] = $order->get_billing_postcode();
-		$adress_ship['shipAddrCountry']  = strtolower( $order->get_billing_country() );
+		// $adress_ship['shipAddrCountry']  = strtoupper( $order->get_billing_country() );
 		return $adress_ship;
 	}
 
@@ -203,17 +203,17 @@ class WC_Gateway_Redsys_PSD2_Light {
 		$adress_ship_ship_addr_line1     = $order->get_billing_address_1();
 		$adress_ship_ship_addr_line2     = $order->get_billing_address_2();
 		$adress_ship_ship_addr_city      = $order->get_billing_city();
-		$adress_ship_ship_addr_state     = strtolower( $order->get_billing_state() );
+		// $adress_ship_ship_addr_state     = strtoupper( $order->get_billing_state() );
 		$adress_ship_ship_addr_post_code = $order->get_billing_postcode();
-		$adress_ship_ship_addr_country   = strtolower( $order->get_billing_country() );
+		// $adress_ship_ship_addr_country   = strtoupper( $order->get_billing_country() );
 
 		if ( $order->has_shipping_address() ) {
 			$adress_bill_bill_addr_line1     = $order->get_shipping_address_1();
 			$adress_bill_bill_addr_line2     = $order->get_shipping_address_2();
 			$adress_bill_bill_addr_city      = $order->get_shipping_city();
 			$adress_bill_bill_addr_post_code = $order->get_shipping_postcode();
-			$adress_bill_bill_addr_state     = strtolower( $order->get_shipping_state() );
-			$adress_bill_bill_addr_countr    = strtolower( $order->get_shipping_country() );
+			// $adress_bill_bill_addr_state     = strtoupper( $order->get_shipping_state() );
+			// $adress_bill_bill_addr_countr    = strtoupper( $order->get_shipping_country() );
 		} else {
 			return 'Y';
 		}
@@ -222,9 +222,9 @@ class WC_Gateway_Redsys_PSD2_Light {
 			$adress_ship_ship_addr_line1 === $adress_bill_bill_addr_line1 &&
 			$adress_ship_ship_addr_line2 === $adress_bill_bill_addr_line2 &&
 			$adress_ship_ship_addr_city === $adress_bill_bill_addr_city &&
-			$adress_ship_ship_addr_state === $adress_bill_bill_addr_state &&
+			// $adress_ship_ship_addr_state === $adress_bill_bill_addr_state &&
 			$adress_ship_ship_addr_post_code === $adress_bill_bill_addr_post_code &&
-			$adress_ship_ship_addr_country === $adress_bill_bill_addr_countr
+			// $adress_ship_ship_addr_country === $adress_bill_bill_addr_countr
 		) {
 			return 'Y';
 		} else {
@@ -753,9 +753,9 @@ class WC_Gateway_Redsys_PSD2_Light {
 		$ds_merchant_emv3ds['billAddrCity']     = $this->clean_data( $order->get_billing_city() );
 		$ds_merchant_emv3ds['billAddrLine1']    = $this->clean_data( $order->get_billing_address_1() );
 		$ds_merchant_emv3ds['billAddrPostCode'] = $this->clean_data( $order->get_billing_postcode() );
-		$ds_merchant_emv3ds['billAddrState']    = strtolower( $this->clean_data( $order->get_billing_state() ) );
+		// $ds_merchant_emv3ds['billAddrState']    = strtoupper( $this->clean_data( $order->get_billing_state() ) );
 		if ( $order->get_billing_country() !== '' ) {
-			$ds_merchant_emv3ds['billAddrCountry'] = WCRedL()->get_country_codes_3( $order->get_billing_country() );
+			// $ds_merchant_emv3ds['billAddrCountry'] = WCRedL()->get_country_codes_3( $order->get_billing_country() );
 		}
 		$ds_merchant_emv3ds['Email']    = $this->get_email( $order );
 		$ds_merchant_emv3ds['acctInfo'] = $acct_info;
@@ -777,9 +777,9 @@ class WC_Gateway_Redsys_PSD2_Light {
 			$ds_merchant_emv3ds['shipAddrCity']     = $this->clean_data( $order->get_shipping_city() );
 			$ds_merchant_emv3ds['shipAddrLine1']    = $this->clean_data( $order->get_shipping_address_1() );
 			$ds_merchant_emv3ds['shipAddrPostCode'] = $this->clean_data( $order->get_shipping_postcode() );
-			$ds_merchant_emv3ds['shipAddrState']    = strtolower( $this->clean_data( $order->get_shipping_state() ) );
+			// $ds_merchant_emv3ds['shipAddrState']    = strtoupper( $this->clean_data( $order->get_shipping_state() ) );
 			if ( $order->get_billing_country() !== '' ) {
-				$ds_merchant_emv3ds['shipAddrCountry'] = WCRedL()->get_country_codes_3( $order->get_shipping_country() );
+				// $ds_merchant_emv3ds['shipAddrCountry'] = WCRedL()->get_country_codes_3( $order->get_shipping_country() );
 			}
 			if ( $order->get_shipping_address_2() !== '' ) {
 				$ds_merchant_emv3ds['shipAddrLine2'] = $this->clean_data( $order->get_shipping_address_2() );
