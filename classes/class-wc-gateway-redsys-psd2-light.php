@@ -223,7 +223,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 			$adress_ship_ship_addr_line2 === $adress_bill_bill_addr_line2 &&
 			$adress_ship_ship_addr_city === $adress_bill_bill_addr_city &&
 			// $adress_ship_ship_addr_state === $adress_bill_bill_addr_state &&
-			$adress_ship_ship_addr_post_code === $adress_bill_bill_addr_post_code &&
+			$adress_ship_ship_addr_post_code === $adress_bill_bill_addr_post_code
 			// $adress_ship_ship_addr_country === $adress_bill_bill_addr_countr
 		) {
 			return 'Y';
