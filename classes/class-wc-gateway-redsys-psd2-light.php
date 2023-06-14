@@ -770,8 +770,8 @@ class WC_Gateway_Redsys_PSD2_Light {
 		 * TO-DO: suspiciousAccActivity, en una futura versión añadiré un meta a los usuarios para que el admistrador pueda marcar alguna cuenta fraudulenta o que ha habido algún problema.
 		 */
 
-		if ( $order->get_shipping_address_2() !== '' ) {
-			$ds_merchant_emv3ds['billAddrLine2'] = $this->clean_data( $order->get_shipping_address_2() );
+		if ( $order->get_billing_address_2() !== '' ) {
+			$ds_merchant_emv3ds['billAddrLine2'] = $this->clean_data( $order->get_billing_address_2() );
 		}
 		if ( $order->has_shipping_address() ) {
 			$ds_merchant_emv3ds['shipAddrCity']     = $this->clean_data( $order->get_shipping_city() );
