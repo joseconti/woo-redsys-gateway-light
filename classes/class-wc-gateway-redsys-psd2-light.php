@@ -7,18 +7,12 @@
  * Copyright: (C) 2013 - 2021 José Conti
  **/
 
-/**
- * Copyright: (C) 2013 - 2021 José Conti
- */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
 /**
  * Gateway class
- */
-/**
- * Copyright: (C) 2013 - 2021 José Conti
  */
 class WC_Gateway_Redsys_PSD2_Light {
 	/**
@@ -27,9 +21,6 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param string $out String to clean.
 	 */
 	public function clean_data( $out ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
 
 		$out = str_replace( 'Á', 'A', $out );
 		$out = str_replace( 'À', 'A', $out );
@@ -93,9 +84,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param string $gateway Gateway ID.
 	 */
 	public function get_redsys_option( $option, $gateway ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		$options = get_option( 'woocommerce_' . $gateway . '_settings' );
 
 		if ( ! empty( $options ) ) {
@@ -129,9 +118,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param obj $order Object WooCommerce Order.
 	 */
 	public function get_email( $order ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		return $order->get_billing_email();
 	}
 
@@ -141,9 +128,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param obj $order Object WooCommerce Order.
 	 */
 	public function get_homephone( $order ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		return $order->get_billing_phone();
 	}
 
@@ -165,9 +150,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param obj $order Object WooCommerce Order.
 	 */
 	public function get_work( $order ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		return $order->get_billing_phone();
 	}
 
@@ -177,16 +160,13 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param obj $order Object WooCommerce Order.
 	 */
 	public function get_adress_ship( $order ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		$adress_ship                     = array();
 		$adress_ship['shipAddrLine1']    = $order->get_billing_address_1();
 		$adress_ship['shipAddrLine2']    = $order->get_billing_address_2();
 		$adress_ship['shipAddrCity']     = $order->get_billing_city();
-		// $adress_ship['shipAddrState']    = strtolower( $order->get_billing_state() );
 		$adress_ship['shipAddrPostCode'] = $order->get_billing_postcode();
-		// $adress_ship['shipAddrCountry']  = strtolower( $order->get_billing_country() );
+
 		return $adress_ship;
 	}
 
@@ -196,24 +176,17 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param obj $order Object WooCommerce Order.
 	 */
 	public function addr_match( $order ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
 
 		$adress_ship_ship_addr_line1     = $order->get_billing_address_1();
 		$adress_ship_ship_addr_line2     = $order->get_billing_address_2();
 		$adress_ship_ship_addr_city      = $order->get_billing_city();
-		// $adress_ship_ship_addr_state     = strtolower( $order->get_billing_state() );
 		$adress_ship_ship_addr_post_code = $order->get_billing_postcode();
-		// $adress_ship_ship_addr_country   = strtolower( $order->get_billing_country() );
 
 		if ( $order->has_shipping_address() ) {
 			$adress_bill_bill_addr_line1     = $order->get_shipping_address_1();
 			$adress_bill_bill_addr_line2     = $order->get_shipping_address_2();
 			$adress_bill_bill_addr_city      = $order->get_shipping_city();
 			$adress_bill_bill_addr_post_code = $order->get_shipping_postcode();
-			// $adress_bill_bill_addr_state     = strtolower( $order->get_shipping_state() );
-			// $adress_bill_bill_addr_countr    = strtolower( $order->get_shipping_country() );
 		} else {
 			return 'Y';
 		}
@@ -222,9 +195,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 			$adress_ship_ship_addr_line1 === $adress_bill_bill_addr_line1 &&
 			$adress_ship_ship_addr_line2 === $adress_bill_bill_addr_line2 &&
 			$adress_ship_ship_addr_city === $adress_bill_bill_addr_city &&
-			// $adress_ship_ship_addr_state === $adress_bill_bill_addr_state &&
 			$adress_ship_ship_addr_post_code === $adress_bill_bill_addr_post_code
-			// $adress_ship_ship_addr_country === $adress_bill_bill_addr_countr
 		) {
 			return 'Y';
 		} else {
@@ -238,9 +209,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param obj $order Object WooCommerce Order.
 	 */
 	public function get_challenge_wwndow_size( $order ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		/**
 		 * 01 = 250x 400
 		 * 02 = 390x 400
@@ -276,9 +245,6 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param string $start_time Time.
 	 */
 	public function days( $start_time ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
 
 		$current_time    = time();
 		$unix_start_time = date( 'U', strtotime( $start_time ) ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
@@ -298,9 +264,6 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param array $date_query Data Query.
 	 */
 	public function get_post_num( $post_status = array(), $date_query = array() ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
 
 		$this->debug( 'function get_post_num()' );
 
@@ -322,9 +285,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param int $order_id Order ID.
 	 */
 	public function get_accept_headers( $order_id ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		return WCRedL()->get_order_meta( $order_id, '_accept_haders', true );
 	}
 
@@ -334,9 +295,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param int $order_id Order ID.
 	 */
 	public function get_agente_navegador( $order_id ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		$data = WCRedL()->get_order_meta( $order_id, '_billing_agente_navegador_field', true );
 
 		if ( $data ) {
@@ -352,9 +311,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param int $order_id Order ID.
 	 */
 	public function get_idioma_navegador( $order_id ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		$data = WCRedL()->get_order_meta( $order_id, '_billing_idioma_navegador_field', true );
 
 		if ( $data ) {
@@ -370,9 +327,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param int $order_id Order ID.
 	 */
 	public function get_altura_pantalla( $order_id ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		$data = WCRedL()->get_order_meta( $order_id, '_billing_altura_pantalla_field', true );
 
 		if ( $data ) {
@@ -388,9 +343,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param int $order_id Order ID.
 	 */
 	public function get_anchura_pantalla( $order_id ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		$data = WCRedL()->get_order_meta( $order_id, '_billing_anchura_pantalla_field', true );
 
 		if ( $data ) {
@@ -406,9 +359,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param int $order_id Order ID.
 	 */
 	public function get_profundidad_color( $order_id ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		$data = WCRedL()->get_order_meta( $order_id, '_billing_profundidad_color_field', true );
 
 		if ( $data ) {
@@ -424,9 +375,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param int $order_id Order ID.
 	 */
 	public function get_diferencia_horaria( $order_id ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		$data = WCRedL()->get_order_meta( $order_id, '_billing_diferencia_horaria_field', true );
 
 		if ( $data ) {
@@ -456,9 +405,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param int $user_id User ID.
 	 */
 	public function get_accept_headers_user( $user_id ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		return get_user_meta( $user_id, '_accept_haders', true );
 	}
 
@@ -468,9 +415,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param int $user_id User ID.
 	 */
 	public function get_agente_navegador_user( $user_id ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		$data = get_user_meta( $user_id, '_billing_agente_navegador_field', true );
 
 		if ( $data ) {
@@ -486,9 +431,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param int $user_id User ID.
 	 */
 	public function get_idioma_navegador_user( $user_id ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		$data = get_user_meta( $user_id, '_billing_idioma_navegador_field', true );
 
 		if ( $data ) {
@@ -504,9 +447,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param int $user_id User ID.
 	 */
 	public function get_altura_pantalla_user( $user_id ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		$data = get_user_meta( $user_id, '_billing_altura_pantalla_field', true );
 
 		if ( $data ) {
@@ -522,9 +463,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param int $user_id User ID.
 	 */
 	public function get_anchura_pantalla_user( $user_id ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		$data = get_user_meta( $user_id, '_billing_anchura_pantalla_field', true );
 
 		if ( $data ) {
@@ -540,9 +479,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param int $user_id User ID.
 	 */
 	public function get_profundidad_color_user( $user_id ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		$data = get_user_meta( $user_id, '_billing_profundidad_color_field', true );
 
 		if ( $data ) {
@@ -558,9 +495,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param int $user_id User ID.
 	 */
 	public function get_diferencia_horaria_user( $user_id ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
+
 		$data = get_user_meta( $user_id, '_billing_diferencia_horaria_field', true );
 
 		if ( $data ) {
@@ -589,9 +524,6 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param obj $order Object WooCommerce Order.
 	 */
 	public function shipnameindicator( $order ) {
-		/**
-		* Copyright: (C) 2013 - 2021 José Conti
-		*/
 
 		if ( $order->has_shipping_address() ) {
 			$billing_first_name  = $order->get_billing_first_name();
@@ -753,12 +685,8 @@ class WC_Gateway_Redsys_PSD2_Light {
 		$ds_merchant_emv3ds['billAddrCity']     = $this->clean_data( $order->get_billing_city() );
 		$ds_merchant_emv3ds['billAddrLine1']    = $this->clean_data( $order->get_billing_address_1() );
 		$ds_merchant_emv3ds['billAddrPostCode'] = $this->clean_data( $order->get_billing_postcode() );
-		// $ds_merchant_emv3ds['billAddrState']    = strtolower( $this->clean_data( $order->get_billing_state() ) );
-		if ( $order->get_billing_country() !== '' ) {
-			// $ds_merchant_emv3ds['billAddrCountry'] = WCRedL()->get_country_codes_3( $order->get_billing_country() );
-		}
-		$ds_merchant_emv3ds['email']    = $this->get_email( $order );
-		$ds_merchant_emv3ds['acctInfo'] = $acct_info;
+		$ds_merchant_emv3ds['email']            = $this->get_email( $order );
+		$ds_merchant_emv3ds['acctInfo']         = $acct_info;
 		if ( $this->get_homephone( $order ) !== '' && $order->get_billing_country() !== '' ) {
 			$ds_merchant_emv3ds['homePhone'] = array(
 				'subscriber' => $this->get_homephone( $order ),
@@ -777,10 +705,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 			$ds_merchant_emv3ds['shipAddrCity']     = $this->clean_data( $order->get_shipping_city() );
 			$ds_merchant_emv3ds['shipAddrLine1']    = $this->clean_data( $order->get_shipping_address_1() );
 			$ds_merchant_emv3ds['shipAddrPostCode'] = $this->clean_data( $order->get_shipping_postcode() );
-			// $ds_merchant_emv3ds['shipAddrState']    = strtolower( $this->clean_data( $order->get_shipping_state() ) );
-			if ( $order->get_billing_country() !== '' ) {
-				// $ds_merchant_emv3ds['shipAddrCountry'] = WCRedL()->get_country_codes_3( $order->get_shipping_country() );
-			}
+
 			if ( $order->get_shipping_address_2() !== '' ) {
 				$ds_merchant_emv3ds['shipAddrLine2'] = $this->clean_data( $order->get_shipping_address_2() );
 			}
