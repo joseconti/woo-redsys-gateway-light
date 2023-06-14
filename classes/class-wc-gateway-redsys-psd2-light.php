@@ -729,8 +729,10 @@ class WC_Gateway_Redsys_PSD2_Light {
 			'chAccAgeInd' => $ch_acc_age_ind,
 		);
 		if ( $order->has_shipping_address() ) {
+			if ( isset( $acct_info['shipAddressUsage'] ) && isset( $acct_info['shipAddressUsageInd'] ) ) {
 				$acct_info['shipAddressUsage']    = $ship_address_usage;
 				$acct_info['shipAddressUsageInd'] = $ship_address_usage_ind;
+			}
 		}
 		if ( is_user_logged_in() ) {
 			$acct_info['chAccDate']         = $usr_registered;
@@ -741,7 +743,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 			$acct_info['txnActivityYear']   = (string) $txn_activity_year;
 		}
 
-			$ds_merchant_emv3ds = array();
+		$ds_merchant_emv3ds = array();
 		if ( $user_data_3ds ) {
 			foreach ( $user_data_3ds as $data => $valor ) {
 				$ds_merchant_emv3ds[ $data ] = $valor;
