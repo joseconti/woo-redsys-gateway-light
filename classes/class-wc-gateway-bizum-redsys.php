@@ -571,7 +571,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'bizumredsys', 'DS_MERCHANT_AMOUNT: ' . $order_total_sign );
 			$this->log->add( 'bizumredsys', 'DS_MERCHANT_ORDER: ' . $transaction_id2 );
 			$this->log->add( 'bizumredsys', 'DS_MERCHANT_MERCHANTCODE: ' . $this->customer );
-			$this->log->add( 'bizumredsys', 'DS_MERCHANT_CURRENCY' . $currency_codes[ get_woocommerce_currency() ] );
+			$this->log->add( 'bizumredsys', 'DS_MERCHANT_CURRENCY: ' . $currency_codes[ get_woocommerce_currency() ] );
 			$this->log->add( 'bizumredsys', 'DS_MERCHANT_TRANSACTIONTYPE: ' . $transaction_type );
 			$this->log->add( 'bizumredsys', 'DS_MERCHANT_TERMINAL: ' . $dsmerchantterminal );
 			$this->log->add( 'bizumredsys', 'DS_MERCHANT_MERCHANTURL: ' . $final_notify_url );
