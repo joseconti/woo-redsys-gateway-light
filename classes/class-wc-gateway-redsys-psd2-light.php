@@ -163,16 +163,20 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 */
 	public function addr_match( $order ) {
 
-		$adress_ship_ship_addr_line1     = $order->get_billing_address_1();
-		$adress_ship_ship_addr_line2     = $order->get_billing_address_2();
-		$adress_ship_ship_addr_city      = $order->get_billing_city();
-		$adress_ship_ship_addr_post_code = $order->get_billing_postcode();
+		if ( $order->get_billing_address() ) {
+			$adress_bill_bill_addr_line1     = $order->get_billing_address_1();
+			$adress_bill_bill_addr_line2     = $order->get_billing_address_2();
+			$adress_bill_bill_addr_city      = $order->get_billing_city();
+			$adress_bill_bill_addr_post_code = $order->get_billing_postcode();
+		} else {
+			return 'Y';
+		}
 
 		if ( $order->has_shipping_address() ) {
-			$adress_bill_bill_addr_line1     = $order->get_shipping_address_1();
-			$adress_bill_bill_addr_line2     = $order->get_shipping_address_2();
-			$adress_bill_bill_addr_city      = $order->get_shipping_city();
-			$adress_bill_bill_addr_post_code = $order->get_shipping_postcode();
+			$adress_ship_ship_addr_line1     = $order->get_shipping_address_1();
+			$adress_ship_ship_addr_line2     = $order->get_shipping_address_2();
+			$adress_ship_ship_addr_city      = $order->get_shipping_city();
+			$adress_ship_ship_addr_post_code = $order->get_shipping_postcode();
 		} else {
 			return 'Y';
 		}
