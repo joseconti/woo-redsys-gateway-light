@@ -93,6 +93,10 @@ Why is it not compatible with versions of WooCommerce lower than 2.9? Because th
 
 == Changelog ==
 
+== 5.2.1 ==
+
+* FIXED: Fixed a problem with Italy. This update is mandatory!
+
 == 5.2.0 ==
 
 * Improved: Country code EMV3DS
