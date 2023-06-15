@@ -163,7 +163,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 */
 	public function addr_match( $order ) {
 
-		if ( $order->get_billing_address() ) {
+		if ( ! empty( $order->get_address( 'billing' ) ) ) {
 			$adress_bill_bill_addr_line1     = $order->get_billing_address_1();
 			$adress_bill_bill_addr_line2     = $order->get_billing_address_2();
 			$adress_bill_bill_addr_city      = $order->get_billing_city();
