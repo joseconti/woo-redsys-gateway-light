@@ -484,9 +484,27 @@ class WC_Gateway_Redsys_PSD2_Light {
 		$data = get_user_meta( $user_id, '_billing_profundidad_color_field', true );
 
 		if ( $data ) {
+			if ( $data < '4' ) {
+				$data = '1';
+			} elseif ( $data < '8' ) {
+				$data = '4';
+			} elseif ( $data < '15' ) {
+				$data = '8';
+			} elseif ( $data < '16' ) {
+				$data = '15';
+			} elseif ( $data < '24' ) {
+				$data = '16';
+			} elseif ( $data < '32' ) {
+				$data = '24';
+			} elseif ( $data < '48' ) {
+				$data = '32';
+			} elseif ( '48' >= $data ) {
+				$data = '48';
+			}
 			return $data;
 		} else {
-			return '1';
+			$data = '1';
+			return $data;
 		}
 	}
 
