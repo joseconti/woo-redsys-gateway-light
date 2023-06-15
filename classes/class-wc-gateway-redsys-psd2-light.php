@@ -338,13 +338,35 @@ class WC_Gateway_Redsys_PSD2_Light {
 	 * @param int $order_id Order ID.
 	 */
 	public function get_profundidad_color( $order_id ) {
-
+		/**
+		 * Package: WooCommerce Redsys Gateway
+		 * Plugin URI: https://woocommerce.com/es-es/products/redsys-gateway/
+		 * Copyright: (C) 2013 - 2023 José Conti
+		 */
 		$data = WCRedL()->get_order_meta( $order_id, '_billing_profundidad_color_field', true );
 
 		if ( $data ) {
+			if ( $data < '4' ) {
+				$data = '1';
+			} elseif ( $data < '8' ) {
+				$data = '4';
+			} elseif ( $data < '15' ) {
+				$data = '8';
+			} elseif ( $data < '16' ) {
+				$data = '15';
+			} elseif ( $data < '24' ) {
+				$data = '16';
+			} elseif ( $data < '32' ) {
+				$data = '24';
+			} elseif ( $data < '48' ) {
+				$data = '32';
+			} elseif ( '48' >= $data ) {
+				$data = '48';
+			}
 			return $data;
 		} else {
-			return '1';
+			$data = '1';
+			return $data;
 		}
 	}
 
