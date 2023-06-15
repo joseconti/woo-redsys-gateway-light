@@ -93,6 +93,10 @@ Why is it not compatible with versions of WooCommerce lower than 2.9? Because th
 
 == Changelog ==
 
+== 5.2.2 ==
+
+* FIXED: Fixed Screen EMV3DS. Whith some screen resololuton, the EMV3DS data can be wrong. This update is mandatory!
+
 == 5.2.1 ==
 
 * FIXED: Fixed a problem with Italy. This update is mandatory!
@@ -109,9 +113,6 @@ Why is it not compatible with versions of WooCommerce lower than 2.9? Because th
 * Improved: Smaller default Bizum logo.
 * FIXED: A fatal error when Bizum Payment is not paid.
 * FIXED: Fixed Bizum update status.
-
-== 5.0.1 ==
-* FIXED: Fixed an error cleaning Order number.
 
 == 5.0.1 ==
 * FIXED: Fixed an error cleaning Order number.
