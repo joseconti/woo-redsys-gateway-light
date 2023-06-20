@@ -840,9 +840,9 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			$final_notify_url = $this->notify_url;
 		}
 		if ( 'yes' === $this->testmode ) :
-			$redsys_adr = $this->testurl . '?';
+			$redsys_adr = $this->testurl;
 			else :
-				$redsys_adr = $this->liveurl . '?';
+				$redsys_adr = $this->liveurl;
 			endif;
 			$autorization_code = WCRedL()->get_order_meta( $order_id, '_authorisation_code_redsys', true );
 			$autorization_date = WCRedL()->get_order_meta( $order_id, '_payment_date_redsys', true );
