@@ -19,8 +19,10 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			$this->icon = apply_filters( 'woocommerce_' . $this->id . '_icon', REDSYS_PLUGIN_URL . 'assets/images/redsys.png' );
 		}
 		$this->has_fields           = false;
-		$this->liveurl              = 'https://sis.redsys.es/sis/realizarPago/utf-8';
-		$this->testurl              = 'https://sis-t.redsys.es:25443/sis/realizarPago/utf-8';
+		$this->liveurl              = 'https://sis.redsys.es/sis/realizarPago';
+		$this->testurl              = 'https://sis-t.redsys.es:25443/sis/realizarPago';
+		$this->liveurlws            = 'https://sis.redsys.es/sis/services/SerClsWSEntrada?wsdl';
+		$this->testurlws            = 'https://sis-t.redsys.es:25443/sis/services/SerClsWSEntrada?wsdl';
 		$this->testmode             = $this->get_option( 'testmode' );
 		$this->method_title         = __( 'Redsys Lite (by Jose Conti)', 'woo-redsys-gateway-light' );
 		$this->method_description   = __( 'Redsys Lite  works redirecting customers to Redsys.', 'woocommerce-redsys' );
