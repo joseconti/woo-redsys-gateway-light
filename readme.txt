@@ -95,7 +95,7 @@ Why is it not compatible with versions of WooCommerce lower than 2.9? Because th
 
 == 5.2.2 ==
 
-* FIXED: Fixed Screen EMV3DS. Whith some screen resololuton, the EMV3DS data can be wrong. This update is mandatory!
+* FIXED: Fixed refunds with Redsys redirection.
 
 == 5.2.1 ==
 
