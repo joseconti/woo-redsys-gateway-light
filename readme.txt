@@ -40,11 +40,13 @@ Why is it not compatible with versions of WooCommerce lower than 2.9? Because th
 
 * Credit card Form in the Checkout as Stripe
 * Add Bizum
+* Bizum InSite
 * Add MasterPass
 * Add InSite
 * Add Preauthorizations
 * Add Bank transfers
 * Add Direct debits
+* Google Pay
 * Browser iFrame
 * Always compatible with WooCommerce & Continuous audits by WooCommerce Team.
 * Compatible with WooCommerce Subscriptions
