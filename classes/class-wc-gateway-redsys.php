@@ -1,11 +1,27 @@
 <?php
+/**
+ * WooCommerce Redsys Gateway Class.
+ *
+ * Built the Redsys method.
+ *
+ * @class       WC_Gateway_Redsys
+ * @extends     WC_Payment_Gateway
+ * @version     2.0.0
+ * @package     WooCommerce/Classes/Payment
+ */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
+/**
+ * Redsys Payment Gateway class.
+ */
 class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	var $notify_url;
 	/**
 	 * Constructor for the gateway.
 	 *
-	 * @access public
 	 * @return void
 	 */
 	public function __construct() {
@@ -74,11 +90,9 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			return;
 		}
 	}
-
 	/**
 	 * Check if this gateway is enabled and available in the user's country
 	 *
-	 * @access public
 	 * @return bool
 	 */
 	function is_valid_for_use() {
@@ -278,7 +292,12 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			),
 		);
 	}
-	function get_redsys_args( $order ) {
+	/**
+	 * Redsys args.
+	 *
+	 * @param mixed $order order object.
+	 */
+	public function get_redsys_args( $order ) {
 		global $woocommerce;
 		$order_id         = $order->get_id();
 		$currency_codes   = WCRedL()->get_currencies();
@@ -416,14 +435,13 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			$redsys_args = apply_filters( 'woocommerce_redsys_args', $redsys_args );
 			return $redsys_args;
 	}
-		/**
-		 * Generate the redsys form
-		 *
-		 * @access public
-		 * @param mixed $order_id
-		 * @return string
-		 */
-	function generate_redsys_form( $order_id ) {
+	/**
+	 * Generate the redsys form
+	 *
+	 * @param mixed $order_id order id.
+	 * @return string
+	 */
+	public function generate_redsys_form( $order_id ) {
 		global $woocommerce;
 
 		if ( 'yes' === $this->testmode ) {
@@ -518,11 +536,10 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	/**
 	 * Process the payment and return the result
 	 *
-	 * @access public
-	 * @param int $order_id
+	 * @param int $order_id order id.
 	 * @return array
 	 */
-	function process_payment( $order_id ) {
+	public function process_payment( $order_id ) {
 		$order = new WC_Order( $order_id );
 		return array(
 			'result'   => 'success',
@@ -532,17 +549,16 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	/**
 	 * Output for the order received page.
 	 *
-	 * @access public
-	 * @return void
+	 * @param object $order order object.
 	 */
-	function receipt_page( $order ) {
+	public function receipt_page( $order ) {
 		echo '<p>' . esc_html__( 'Thank you for your order, please click the button below to pay with Credit Card via Servired/RedSys.', 'woo-redsys-gateway-light' ) . '</p>';
 		echo $this->generate_redsys_form( $order );
 	}
 	/**
 	 * Check redsys IPN validity
 	 **/
-	function check_ipn_request_is_valid() {
+	public function check_ipn_request_is_valid() {
 		global $woocommerce;
 
 		if ( 'yes' === $this->debug ) {
@@ -615,10 +631,9 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	/**
 	 * Check for Servired/RedSys HTTP Notification
 	 *
-	 * @access public
 	 * @return void
 	 */
-	function check_ipn_response() {
+	public function check_ipn_response() {
 		@ob_clean();
 		$post = stripslashes_deep( $_POST );
 		if ( $this->check_ipn_request_is_valid() ) {
@@ -631,11 +646,10 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	/**
 	 * Successful Payment!
 	 *
-	 * @access public
-	 * @param array $posted
+	 * @param array $posted posted data.
 	 * @return void
 	 */
-	function successful_request( $posted ) {
+	public function successful_request( $posted ) {
 		global $woocommerce;
 
 		if ( 'yes' === $this->testmode ) {
@@ -784,16 +798,20 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	/**
 	 * Get_redsys_order function.
 	 *
-	 * @param int $order_id
+	 * @param int $order_id order id.
 	 */
-	function get_redsys_order( $order_id ) {
+	public function get_redsys_order( $order_id ) {
 		$order = new WC_Order( $order_id );
 		return $order;
 	}
-
-	// refunds.
-
-	function ask_for_refund( $order_id, $transaction_id, $amount ) {
+	/**
+	 * Ask for refund
+	 *
+	 * @param int $order_id order id.
+	 * @param int $transaction_id transaction id.
+	 * @param int $amount amount.
+	 */
+	public function ask_for_refund( $order_id, $transaction_id, $amount ) {
 
 		// post code to REDSYS.
 		$order          = $this->get_redsys_order( $order_id );
@@ -944,8 +962,12 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		}
 		return true;
 	}
-
-	function check_redsys_refund( $order_id ) {
+	/**
+	 * Check for Redsys Refund
+	 *
+	 * @param int $order_id order id.
+	 */
+	public function check_redsys_refund( $order_id ) {
 		// check postmeta.
 		$order        = wc_get_order( (int) $order_id );
 		$order_refund = get_transient( $order->get_id() . '_redsys_refund' );
@@ -963,7 +985,13 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			return false;
 		}
 	}
-
+	/**
+	 * Process the refund and return the result
+	 *
+	 * @param int    $order_id order id.
+	 * @param int    $amount amount.
+	 * @param string $reason reason.
+	 */
 	public function process_refund( $order_id, $amount = null, $reason = '' ) {
 
 		// Do your refund here. Refund $amount for the order with ID $order_id _transaction_id.
@@ -1041,7 +1069,9 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			return new WP_Error( 'error', __( 'Refund Failed: No transaction ID', 'woo-redsys-gateway-light' ) );
 		}
 	}
-
+	/**
+	 * Check if this gateway is enabled and available in the user's country
+	 */
 	public function warning_checkout_test_mode() {
 		if ( 'yes' === $this->testmode && WCRedL()->is_gateway_enabled( $this->id ) ) {
 			echo '<div class="checkout-message" style="

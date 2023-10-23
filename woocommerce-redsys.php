@@ -7,12 +7,12 @@
  * Plugin Name: WooCommerce Redsys Gateway Light
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
- * Version: 5.2.2
+ * Version: 5.3.0
  * Author: José Conti
  * Author URI: https://www.joseconti.com/
- * Tested up to: 6.2
- * WC requires at least: 4.0
- * WC tested up to: 7.7
+ * Tested up to: 6.3
+ * WC requires at least: 7.4
+ * WC tested up to: 8.3
  * Text Domain: woo-redsys-gateway-light
  * Domain Path: /languages/
  * Copyright: (C) 2017 - 2023 José Conti.
@@ -20,7 +20,7 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '5.2.2' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '5.3.0' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 if ( ! defined( 'REDSYS_PLUGIN_PATH' ) ) {
 	define( 'REDSYS_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
@@ -43,11 +43,13 @@ if ( ! defined( 'REDSYS_PLUGIN_CLASS_PATH' ) ) {
 
 add_action( 'plugins_loaded', 'woocommerce_gateway_redsys_init', 11 );
 
-add_action( 'before_woocommerce_init', function() {
-	if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
-		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+add_action( 'before_woocommerce_init',
+	function() {
+		if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+		}
 	}
-} );
+);
 
 /**
  * Required API
@@ -281,11 +283,8 @@ function woocommerce_gateway_redsys_init() {
 
 	/**
 	 * Redsys add metabox.
-	 */
-	/**
-	 * Package: WooCommerce Redsys Gateway
-	 * Plugin URI: https://woocommerce.com/es-es/products/redsys-gateway/
-	 * Copyright: (C) 2013 - 2022 José Conti
+	 *
+	 * @param obj $post_or_order_object Order object.
 	 */
 	function add_redsys_meta_box( $post_or_order_object ) {
 
@@ -297,8 +296,8 @@ function woocommerce_gateway_redsys_init() {
 			$auth   = WCRedL()->get_order_auth( $order_id );
 			$number = WCRedL()->get_order_mumber( $order_id );
 
-			echo '<h4>' . esc_html__( 'Payment Details', 'woo-redsys-gateway-light' ) . '</h4>';
-			echo '<p><strong>' . esc_html__( 'Paid with', 'woo-redsys-gateway-light' ) . ': </strong><br />' . WCRedL()->get_gateway( $order_id ) . '</p>';
+			echo '<h4 style="display: inline-block">' . esc_html__( 'Payment Details', 'woo-redsys-gateway-light' ) . '</h4>';
+			echo '<p><strong>' . esc_html__( 'Paid with', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_html( WCRedL()->get_gateway( $order_id ) ) . '</p>';
 			if ( $number ) {
 				echo '<p><strong>' . esc_html__( 'Redsys Order Number', 'woo-redsys-gateway-light' ) . ': </strong><br />' . esc_html( $number ) . '</p>';
 			}
