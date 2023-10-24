@@ -38,15 +38,20 @@ Why is it not compatible with versions of WooCommerce lower than 2.9? Because th
 
 = Premium version Features =
 
+Check [premium version](https://redsys.joseconti.com/product/plugin-woocommerce-redsys-gateway/)
+
 * Credit card Form in the Checkout as Stripe
-* Add Bizum
+* Bizum
 * Bizum InSite
-* Add MasterPass
-* Add InSite
-* Add Preauthorizations
-* Add Bank transfers
-* Add Direct debits
+* MasterPass
+* InSite
 * Google Pay
+* Apple Pay
+* Preauthorizations, global or product by product.
+* Approve preauthorizations from WooCommerce order
+* Bulk approve Pre-authorizations from Orders List
+* Bank transfers
+* Direct debits
 * Browser iFrame
 * Always compatible with WooCommerce & Continuous audits by WooCommerce Team.
 * Compatible with WooCommerce Subscriptions
@@ -57,13 +62,10 @@ Why is it not compatible with versions of WooCommerce lower than 2.9? Because th
 * Tokenization
 * Pay with 1 click
 * Pay with 1 click without leaving the website 
-* Preauthorizations
-* Approve preauthorizations from WooCommerce order
-* Bulk approve Pre-authorizations from Orders List
 * Bulk Charge orders from the Orders List (With Tokens).
 * Direct Debit
 * Private Products
-* Second Terminal number. Very useful for security purposes.
+* Infinite Terminals number.
 * Sequential Invoice Number, essential in Spain by the Public Treasury.
 * Refund from Order.
 * Error action selection, what do you want that happen when a user makes an error on the Gateway?
