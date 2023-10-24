@@ -98,7 +98,7 @@ Why is it not compatible with versions of WooCommerce lower than 2.9? Because th
 == 5.3.0 ==
 
 * FIXED: Fixed Bizum redirection with some themes.
-* UPDATE: Merget some security Pulls from Github React.
+* UPDATE: Merged some security Pulls from Github React.
 * UPDATE: Declared compatibility with WooCommwrce 8.3 & WordPress 6.3.
 
 == 5.2.2 ==
