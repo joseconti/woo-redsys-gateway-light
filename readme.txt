@@ -100,8 +100,9 @@ Check [premium version](https://redsys.joseconti.com/product/plugin-woocommerce-
 == 5.3.0 ==
 
 * FIXED: Fixed Bizum redirection with some themes.
+* FIXED: Fixed One Billion Order Bug.
 * UPDATE: Merged some security Pulls from Github React.
-* UPDATE: Declared compatibility with WooCommwrce 8.3 & WordPress 6.3.
+* UPDATE: Declared compatibility with WooCommerce 8.3 & WordPress 6.4.
 
 == 5.2.2 ==
 
