@@ -892,7 +892,12 @@ class WC_Gateway_Redsys_Global_lite {
 	 * Copyright: (C) 2013 - 2021 José Conti
 	 */
 	public function clean_order_number( $ordernumber ) {
-		return ltrim( substr( $ordernumber, 3 ), 0 );
+		$real_order = get_transient( 'redys_order_temp_' . $ordernumber );
+		if ( $real_order ) {
+			return $real_order;
+		} else {
+			return ltrim( substr( $ordernumber, 3 ), '0' );
+		}
 	}
 	/**
 	 * Copyright: (C) 2013 - 2021 José Conti
@@ -901,6 +906,7 @@ class WC_Gateway_Redsys_Global_lite {
 		$transaction_id  = str_pad( $order_id, 12, '0', STR_PAD_LEFT );
 		$transaction_id1 = wp_rand( 1, 999 ); // lets to create a random number.
 		$transaction_id2 = substr_replace( $transaction_id, $transaction_id1, 0, -9 ); // new order number.
+		set_transient( 'redys_order_temp_' . $transaction_id2, $order_id, 3600 );
 		return $transaction_id2;
 	}
 	/**

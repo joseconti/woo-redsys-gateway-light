@@ -301,9 +301,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		global $woocommerce;
 		$order_id         = $order->get_id();
 		$currency_codes   = WCRedL()->get_currencies();
-		$transaction_id   = str_pad( $order_id, 12, '0', STR_PAD_LEFT );
-		$transaction_id1  = wp_rand( 1, 999 ); // lets to create a random number.
-		$transaction_id2  = substr_replace( $transaction_id, $transaction_id1, 0, -9 ); // new order number.
+		$transaction_id2  = WCRedL()->prepare_order_number( $order_id );
 		$order_total      = number_format( $order->get_total(), 2, ',', '' );
 		$order_total_sign = number_format( $order->get_total(), 2, '', '' );
 		$transaction_type = '0';
@@ -697,7 +695,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$dserrorcode       = $mi_obj->getParameter( 'Ds_ErrorCode' );
 		$dpaymethod        = $mi_obj->getParameter( 'Ds_PayMethod' ); // D o R, D: Domiciliacion, R: Transferencia. Si se paga por Iupay o TC, no se utiliza.
 		$order1            = $ordermi;
-		$order2            = substr( $order1, 3 ); // cojo los 9 digitos del final.
+		$order2            = WCRedL()->clean_order_number( $ordermi );
 		$order             = $this->get_redsys_order( (int) $order2 );
 		$is_paid           = WCRedL()->is_paid( $order->get_id() );
 		if ( 'yes' === $this->debug ) {
