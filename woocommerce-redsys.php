@@ -359,11 +359,9 @@ function woocommerce_gateway_redsys_init() {
 	function plugin_url_redsys() {
 		return untrailingslashit( plugins_url( '/', __FILE__ ) );
 	}
-
-	// Adding Bizum.
+	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-redsys.php'; // Redsys redirection 1.0
 	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-bizum-redsys.php'; // Bizum Version 3.0.
-
-	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-redsys.php'; // Redsys redirection.
+	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-redsys.php'; // Google Pay redirection 6.0
 }
 function woocommerce_gateway_redsys_lite_block_support() {
 	if ( class_exists( 'Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType' ) ) {
