@@ -85,7 +85,7 @@ const GPayRed = {
 	content: <Contengpayred />,
 	edit: <Contengpayred />,
 	canMakePayment: () => true,
-	ariaLabel: labelGpayred,
+	ariaLabel: labelgpayred,
 	supports: {
 		features: settingsgpayredsys.supports,
 	},
