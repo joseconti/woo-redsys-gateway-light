@@ -1,6 +1,6 @@
 === WooCommerce Redsys Gateway Light ===
 Contributors: j.conti
-Tags: woocommerce, redsys, pasarela redsys, bizum, gateway, redsys gateway, redsys pasarela, redsys woocommerce, woocommerce redsys, iupay, Iupay gateway, Iupay woocommerce, woocommerce iupay, iupay pasarela, pasarela iupay, Google Pay, GPay
+Tags: woocommerce, redsys, bizum, Google Pay, GPay
 Requires at least: 4.0
 Tested up to: 6.4
 Donate link: https://www.joseconti.com/cursos-online/micropatrocinio/
