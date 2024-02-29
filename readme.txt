@@ -97,6 +97,10 @@ Check [premium version](https://redsys.joseconti.com/product/plugin-woocommerce-
 
 == Changelog ==
 
+== 6.0.0 ==
+
+* NEW: Added Google Pay redirection.
+
 == 5.3.0 ==
 
 * FIXED: Fixed Bizum redirection with some themes.
