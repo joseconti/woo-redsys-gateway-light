@@ -49,7 +49,7 @@ const Labelbizum = ( props ) => {
 	const { PaymentMethodLabel } = props.components;
 	return <PaymentMethodLabel text={ labelbizum } />;
 };
-const labelGpayred = ( props ) => {
+const Labelgpayred = ( props ) => {
 	const { PaymentMethodLabel } = props.components;
 	return <PaymentMethodLabel text={ labelgpayred } />;
 };
@@ -81,7 +81,7 @@ const Bizum = {
 };
 const GPayRed = {
 	name: "googlepayredirecredsys",
-	label: <labelGpayred />,
+	label: <Labelgpayred />,
 	content: <Contengpayred />,
 	edit: <Contengpayred />,
 	canMakePayment: () => true,
