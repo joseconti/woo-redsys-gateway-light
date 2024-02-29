@@ -110,7 +110,6 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		<h3><?php esc_html_e( 'Google Pay redirection', 'woocommerce-redsys' ); ?></h3>
 		<p><?php esc_html_e( 'Google Pay redirection works by sending the user to Redsys Gateway', 'woocommerce-redsys' ); ?></p>
 		<?php
-		WCRedL()->return_help_notice();
 		if ( class_exists( 'SitePress' ) ) {
 			?>
 			<div class="updated fade"><h4><?php esc_html_e( 'Attention! WPML detected.', 'woocommerce-redsys' ); ?></h4>
