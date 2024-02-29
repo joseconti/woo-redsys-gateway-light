@@ -12,10 +12,10 @@
  * Author URI: https://www.joseconti.com/
  * Tested up to: 6.4
  * WC requires at least: 7.4
- * WC tested up to: 8.3
+ * WC tested up to: 8.6
  * Text Domain: woo-redsys-gateway-light
  * Domain Path: /languages/
- * Copyright: (C) 2017 - 2023 José Conti.
+ * Copyright: (C) 2017 - 2024 José Conti.
  * License: GNU General Public License v3.0
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
