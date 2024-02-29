@@ -941,7 +941,7 @@ class WC_Gateway_Redsys_Global_lite {
 		} elseif ( 'sku' === $description_type ) {
 			$description = $sku;
 		} else {
-			$description = __( 'Order', 'woocommerce-redsys' ) . ' ' . $order->get_order_number();
+			$description = __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number();
 		}
 		return $description;
 	}
