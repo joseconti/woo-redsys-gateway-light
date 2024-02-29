@@ -51,7 +51,7 @@ const Labelbizum = ( props ) => {
 };
 const labelGpayred = ( props ) => {
 	const { PaymentMethodLabel } = props.components;
-	return <PaymentMethodLabel text={ labelGpayred } />;
+	return <PaymentMethodLabel text={ labelgpayred } />;
 };
 
 /**
