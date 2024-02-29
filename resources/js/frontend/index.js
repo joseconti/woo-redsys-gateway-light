@@ -6,7 +6,7 @@ import { getSetting } from '@woocommerce/settings';
 
 const settings            = getSetting( 'redsys_data', {} );
 const settingsbizumredsys = getSetting( 'bizumredsys_data', {} );
-const settingsgpayredsys = getSetting( 'gpayredsys_data', {} );
+const settingsgpayredsys  = getSetting( 'googlepayredirecredsys_data', {} );
 
 const defaultLabel = __(
 	'Redsys',
