@@ -36,7 +36,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		$this->testurlws            = 'https://sis-t.redsys.es:25443/sis/services/SerClsWSEntrada?wsdl';
 		$this->testsha256           = 'sq7HjrUOBfKmC576ILgskD5srU870gJ7';
 		$this->testmode             = WCRedL()->get_redsys_option( 'testmode', 'googlepayredirecredsys' );
-		$this->method_title         = __( 'Google Pay redirection (by José Conti)', 'woocommerce-redsys' );
+		$this->method_title         = __( 'Google Pay redirection Lite (by José Conti)', 'woocommerce-redsys' );
 		$this->method_description   = __( 'Google Pay redirection works redirecting customers to Redsys.', 'woocommerce-redsys' );
 		$this->not_use_https        = WCRedL()->get_redsys_option( 'not_use_https', 'googlepayredirecredsys' );
 		$this->notify_url           = add_query_arg( 'wc-api', 'WC_Gateway_' . $this->id, home_url( '/' ) );
@@ -46,9 +46,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		$this->init_settings();
 		// Define user set variables.
 		$this->title            = WCRedL()->get_redsys_option( 'title', 'googlepayredirecredsys' );
-		$this->multisitesttings = WCRedL()->get_redsys_option( 'multisitesttings', 'googlepayredirecredsys' );
 		$this->ownsetting       = WCRedL()->get_redsys_option( 'ownsetting', 'googlepayredirecredsys' );
-		$this->hideownsetting   = WCRedL()->get_redsys_option( 'hideownsetting', 'googlepayredirecredsys' );
 		$this->description      = WCRedL()->get_redsys_option( 'description', 'googlepayredirecredsys' );
 		$this->customer         = WCRedL()->get_redsys_option( 'customer', 'googlepayredirecredsys' );
 		$this->transactionlimit = WCRedL()->get_redsys_option( 'transactionlimit', 'googlepayredirecredsys' );
@@ -58,13 +56,10 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		$this->customtestsha256 = WCRedL()->get_redsys_option( 'customtestsha256', 'googlepayredirecredsys' );
 		$this->redsyslanguage   = WCRedL()->get_redsys_option( 'redsyslanguage', 'googlepayredirecredsys' );
 		$this->debug            = WCRedL()->get_redsys_option( 'debug', 'googlepayredirecredsys' );
-		$this->testforuser      = WCRedL()->get_redsys_option( 'testforuser', 'googlepayredirecredsys' );
-		$this->testforuserid    = WCRedL()->get_redsys_option( 'testforuserid', 'googlepayredirecredsys' );
 		$this->buttoncheckout   = WCRedL()->get_redsys_option( 'buttoncheckout', 'googlepayredirecredsys' );
 		$this->butonbgcolor     = WCRedL()->get_redsys_option( 'butonbgcolor', 'googlepayredirecredsys' );
 		$this->butontextcolor   = WCRedL()->get_redsys_option( 'butontextcolor', 'googlepayredirecredsys' );
 		$this->descripredsys    = WCRedL()->get_redsys_option( 'descripredsys', 'googlepayredirecredsys' );
-		$this->testshowgateway  = WCRedL()->get_redsys_option( 'testshowgateway', 'googlepayredirecredsys' );
 		$this->log              = new WC_Logger();
 		$this->supports         = array(
 			'products',
@@ -149,55 +144,12 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	 */
 	public function init_form_fields() {
 
-		$options    = array();
-		$selections = (array) WCRedL()->get_redsys_option( 'testforuserid', 'googlepayredirecredsys' );
-
-		if ( count( $selections ) !== 0 ) {
-			foreach ( $selections as $user_id ) {
-				if ( ! empty( $user_id ) ) {
-					$user_data  = get_userdata( $user_id );
-					$user_email = $user_data->user_email;
-					if ( ! empty( esc_html( $user_email ) ) ) {
-						$options[ esc_html( $user_id ) ] = esc_html( $user_email );
-					}
-				}
-			}
-		}
-
-		$options_show    = array();
-		$selections_show = (array) WCRedL()->get_redsys_option( 'testshowgateway', 'googlepayredirecredsys' );
-		if ( count( $selections_show ) !== 0 ) {
-			foreach ( $selections_show as $user_id ) {
-				if ( ! empty( $user_id ) ) {
-					$user_data  = get_userdata( $user_id );
-					$user_email = $user_data->user_email;
-					if ( ! empty( esc_html( $user_email ) ) ) {
-						$options_show[ esc_html( $user_id ) ] = esc_html( $user_email );
-					}
-				}
-			}
-		}
-
 		$this->form_fields = array(
 			'enabled'          => array(
 				'title'   => __( 'Enable/Disable', 'woocommerce-redsys' ),
 				'type'    => 'checkbox',
 				'label'   => __( 'Enable Google Pay redirection', 'woocommerce-redsys' ),
 				'default' => 'no',
-			),
-			'multisitesttings' => array(
-				'title'       => __( 'Use in Network', 'woocommerce-redsys' ),
-				'type'        => 'checkbox',
-				'label'       => __( 'Use this setting around all Network', 'woocommerce-redsys' ),
-				'description' => '',
-				'default'     => 'no',
-			),
-			'hideownsetting'   => array(
-				'title'       => __( 'Hide "NOT use Network" in subsites', 'woocommerce-redsys' ),
-				'type'        => 'checkbox',
-				'label'       => __( 'Hide "NOT use Network" in subsites', 'woocommerce-redsys' ),
-				'description' => '',
-				'default'     => 'no',
 			),
 			'ownsetting'       => array(
 				'title'       => __( 'NOT use Network', 'woocommerce-redsys' ),
@@ -305,33 +257,6 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 				'default'     => 'yes',
 				'description' => sprintf( __( 'Select this option for the initial testing required by your bank, deselect this option once you pass the required test phase and your production environment is active.', 'woocommerce-redsys' ) ),
 			),
-			'testshowgateway'  => array(
-				'title'       => __( 'Show to this users', 'woocommerce-redsys' ),
-				'type'        => 'multiselect',
-				'label'       => __( 'Show the gateway in the chcekout when it is in test mode', 'woocommerce-redsys' ),
-				'class'       => 'js-woo-show-gateway-test-settings',
-				'id'          => 'woocommerce_redsys_showtestforuserid',
-				'options'     => $options_show,
-				'default'     => '',
-				'description' => sprintf( __( 'Select users that will see the gateway when it is in test mode. If no users are selected, will be shown to all users', 'woocommerce-redsys' ) ),
-			),
-			'testforuser'      => array(
-				'title'       => __( 'Running in test mode for a user', 'woocommerce-redsys' ),
-				'type'        => 'checkbox',
-				'label'       => __( 'Running in test mode for a user', 'woocommerce-redsys' ),
-				'default'     => 'yes',
-				'description' => sprintf( __( 'The user selected below will use the terminal in test mode. Other users will continue to use live mode unless you have the "Running in test mode" option checked.', 'woocommerce-redsys' ) ),
-			),
-			'testforuserid'    => array(
-				'title'       => __( 'Users', 'woocommerce-redsys' ),
-				'type'        => 'multiselect',
-				'label'       => __( 'Users running in test mode', 'woocommerce-redsys' ),
-				'class'       => 'js-woo-allowed-users-settings',
-				'id'          => 'woocommerce_redsys_testforuserid',
-				'options'     => $options,
-				'default'     => '',
-				'description' => sprintf( __( 'Select users running in test mode', 'woocommerce-redsys' ) ),
-			),
 			'debug'            => array(
 				'title'       => __( 'Debug Log', 'woocommerce-redsys' ),
 				'type'        => 'checkbox',
@@ -346,23 +271,6 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		foreach ( $redsyslanguages as $redsyslanguage => $valor ) {
 			$this->form_fields['redsyslanguage']['options'][ $redsyslanguage ] = $valor;
 		}
-		if ( ! is_multisite() ) {
-			unset( $this->form_fields['multisitesttings'] );
-			unset( $this->form_fields['ownsetting'] );
-			unset( $this->form_fields['hideownsetting'] );
-		} else {
-			if ( is_main_site() ) {
-				unset( $this->form_fields['ownsetting'] );
-			} else {
-				unset( $this->form_fields['multisitesttings'] );
-				unset( $this->form_fields['hideownsetting'] );
-				$globalsettings = WCRedL()->get_redsys_option( 'multisitesttings', $this->id );
-				$hide           = WCRedL()->get_redsys_option( 'hideownsetting', $this->id );
-				if ( 'yes' === $hide || 'yes' !== $globalsettings ) {
-					unset( $this->form_fields['ownsetting'] );
-				}
-			}
-		}
 	}
 	/**
 	 * Check if this gateway is enabled in test mode for a user
@@ -373,8 +281,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	 */
 	public function check_user_test_mode( $userid ) {
 
-		$usertest_active = $this->testforuser;
-		$selections      = (array) WCRedL()->get_redsys_option( 'testforuserid', 'googlepayredirecredsys' );
+		$usertest_active = false;
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'googlepayredirecredsys', ' ' );
 			$this->log->add( 'googlepayredirecredsys', '/****************************/' );
