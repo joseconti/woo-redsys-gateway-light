@@ -46,7 +46,6 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		$this->init_settings();
 		// Define user set variables.
 		$this->title            = WCRedL()->get_redsys_option( 'title', 'googlepayredirecredsys' );
-		$this->ownsetting       = WCRedL()->get_redsys_option( 'ownsetting', 'googlepayredirecredsys' );
 		$this->description      = WCRedL()->get_redsys_option( 'description', 'googlepayredirecredsys' );
 		$this->customer         = WCRedL()->get_redsys_option( 'customer', 'googlepayredirecredsys' );
 		$this->transactionlimit = WCRedL()->get_redsys_option( 'transactionlimit', 'googlepayredirecredsys' );
@@ -150,13 +149,6 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 				'type'    => 'checkbox',
 				'label'   => __( 'Enable Google Pay redirection', 'woo-redsys-gateway-light' ),
 				'default' => 'no',
-			),
-			'ownsetting'       => array(
-				'title'       => __( 'NOT use Network', 'woo-redsys-gateway-light' ),
-				'type'        => 'checkbox',
-				'label'       => __( 'Do NOT use Network settings. Use settings of this page', 'woo-redsys-gateway-light' ),
-				'description' => '',
-				'default'     => 'no',
 			),
 			'title'            => array(
 				'title'       => __( 'Title', 'woo-redsys-gateway-light' ),
