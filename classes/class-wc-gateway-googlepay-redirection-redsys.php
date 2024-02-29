@@ -55,9 +55,6 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		$this->customtestsha256 = WCRedL()->get_redsys_option( 'customtestsha256', 'googlepayredirecredsys' );
 		$this->redsyslanguage   = WCRedL()->get_redsys_option( 'redsyslanguage', 'googlepayredirecredsys' );
 		$this->debug            = WCRedL()->get_redsys_option( 'debug', 'googlepayredirecredsys' );
-		$this->buttoncheckout   = WCRedL()->get_redsys_option( 'buttoncheckout', 'googlepayredirecredsys' );
-		$this->butonbgcolor     = WCRedL()->get_redsys_option( 'butonbgcolor', 'googlepayredirecredsys' );
-		$this->butontextcolor   = WCRedL()->get_redsys_option( 'butontextcolor', 'googlepayredirecredsys' );
 		$this->descripredsys    = WCRedL()->get_redsys_option( 'descripredsys', 'googlepayredirecredsys' );
 		$this->log              = new WC_Logger();
 		$this->supports         = array(
@@ -154,7 +151,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 				'title'       => __( 'Title', 'woo-redsys-gateway-light' ),
 				'type'        => 'text',
 				'description' => __( 'This controls the title which the user sees during checkout.', 'woo-redsys-gateway-light' ),
-				'default'     => __( 'GPay', 'woo-redsys-gateway-light' ),
+				'default'     => __( 'Google Pay', 'woo-redsys-gateway-light' ),
 				'desc_tip'    => true,
 			),
 			'description'      => array(
@@ -162,23 +159,6 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 				'type'        => 'textarea',
 				'description' => __( 'This controls the description which the user sees during checkout.', 'woo-redsys-gateway-light' ),
 				'default'     => __( 'Pay via GPay you can pay with your Google account.', 'woo-redsys-gateway-light' ),
-			),
-			'buttoncheckout'   => array(
-				'title'       => __( 'Button Checkout Text', 'woo-redsys-gateway-light' ),
-				'type'        => 'text',
-				'description' => __( 'Add the button text at the checkout.', 'woo-redsys-gateway-light' ),
-			),
-			'butonbgcolor'     => array(
-				'title'       => __( 'Button Color Background', 'woo-redsys-gateway-light' ),
-				'type'        => 'text',
-				'description' => __( 'This if button Color Background Place Order at Checkout', 'woo-redsys-gateway-light' ),
-				'class'       => 'colorpick',
-			),
-			'butontextcolor'   => array(
-				'title'       => __( 'Color text Button', 'woo-redsys-gateway-light' ),
-				'type'        => 'text',
-				'description' => __( 'This if button text color Place Order at Checkout', 'woo-redsys-gateway-light' ),
-				'class'       => 'colorpick',
 			),
 			'customer'         => array(
 				'title'       => __( 'Commerce number (FUC)', 'woo-redsys-gateway-light' ),
