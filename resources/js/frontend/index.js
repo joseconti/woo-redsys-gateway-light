@@ -6,6 +6,7 @@ import { getSetting } from '@woocommerce/settings';
 
 const settings            = getSetting( 'redsys_data', {} );
 const settingsbizumredsys = getSetting( 'bizumredsys_data', {} );
+const settingsgpayredsys = getSetting( 'gpayredsys_data', {} );
 
 const defaultLabel = __(
 	'Redsys',
@@ -15,9 +16,14 @@ const defaultLabelBizum = __(
 	'Bizum',
 	'woo-redsys-gateway-light'
 );
+const defaultLabelGpayRed = __(
+	'Google Pay',
+	'woo-redsys-gateway-light'
+);
 
-const label      = decodeEntities( settings.title ) || defaultLabel;
-const labelbizum = decodeEntities( settingsbizumredsys.title ) || defaultLabelBizum;
+const label        = decodeEntities( settings.title ) || defaultLabel;
+const labelbizum   = decodeEntities( settingsbizumredsys.title ) || defaultLabelBizum;
+const labelgpayred = decodeEntities( settingsgpayredsys.title ) || defaultLabelGpayRed;
 /**
  * Content component
  */
@@ -26,6 +32,9 @@ const Content = () => {
 };
 const Contentbizum = () => {
 	return decodeEntities( settingsbizumredsys.description || '' );
+};
+const Contengpayred = () => {
+	return decodeEntities( settingsgpayredsys.description || '' );
 };
 /**
  * Label component
@@ -39,6 +48,10 @@ const Label = ( props ) => {
 const Labelbizum = ( props ) => {
 	const { PaymentMethodLabel } = props.components;
 	return <PaymentMethodLabel text={ labelbizum } />;
+};
+const labelGpayred = ( props ) => {
+	const { PaymentMethodLabel } = props.components;
+	return <PaymentMethodLabel text={ labelGpayred } />;
 };
 
 /**
@@ -66,6 +79,17 @@ const Bizum = {
 		features: settingsbizumredsys.supports,
 	},
 };
-
+const GPayRed = {
+	name: "googlepayredirecredsys",
+	label: <labelGpayred />,
+	content: <Contengpayred />,
+	edit: <Contengpayred />,
+	canMakePayment: () => true,
+	ariaLabel: labelGpayred,
+	supports: {
+		features: settingsgpayredsys.supports,
+	},
+};
 registerPaymentMethod( Redsys );
 registerPaymentMethod( Bizum );
+registerPaymentMethod( GPayRed );
