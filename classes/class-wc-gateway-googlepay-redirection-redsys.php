@@ -1,13 +1,13 @@
 <?php
 /**
- * Google Pay redirection Gateway
+ * Google Pay redirection Lite Gateway
  *
  * @package WooCommerce Redsys Gateway
- * @since 21.2.0
+ * @since 6.0.0
  * @author José Conti.
  * @link https://joseconti.com
  * @link https://redsys.joseconti.com
- * @link https://woo.com/products/redsys-gateway/
+ * @link https://wordpress.org/plugins/woo-redsys-gateway-light/
  * @license GNU General Public License v3.0
  * @license URI: http://www.gnu.org/licenses/gpl-3.0.html
  * @copyright 2013-2024 José Conti.
@@ -37,7 +37,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		$this->testsha256           = 'sq7HjrUOBfKmC576ILgskD5srU870gJ7';
 		$this->testmode             = WCRedL()->get_redsys_option( 'testmode', 'googlepayredirecredsys' );
 		$this->method_title         = __( 'Google Pay redirection Lite (by José Conti)', 'woo-redsys-gateway-light' );
-		$this->method_description   = __( 'Google Pay redirection works redirecting customers to Redsys.', 'woo-redsys-gateway-light' );
+		$this->method_description   = __( 'Google Pay redirection Lite works redirecting customers to Redsys.', 'woo-redsys-gateway-light' );
 		$this->not_use_https        = WCRedL()->get_redsys_option( 'not_use_https', 'googlepayredirecredsys' );
 		$this->notify_url           = add_query_arg( 'wc-api', 'WC_Gateway_' . $this->id, home_url( '/' ) );
 		$this->notify_url_not_https = str_replace( 'https:', 'http:', add_query_arg( 'wc-api', 'WC_Gateway_' . $this->id, home_url( '/' ) ) );
@@ -98,8 +98,8 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	 */
 	public function admin_options() {
 		?>
-		<h3><?php esc_html_e( 'Google Pay redirection', 'woo-redsys-gateway-light' ); ?></h3>
-		<p><?php esc_html_e( 'Google Pay redirection works by sending the user to Redsys Gateway', 'woo-redsys-gateway-light' ); ?></p>
+		<h3><?php esc_html_e( 'Google Pay redirection Lite', 'woo-redsys-gateway-light' ); ?></h3>
+		<p><?php esc_html_e( 'Google Pay redirection Lite works by sending the user to Redsys Gateway', 'woo-redsys-gateway-light' ); ?></p>
 		<?php
 		if ( class_exists( 'SitePress' ) ) {
 			?>
