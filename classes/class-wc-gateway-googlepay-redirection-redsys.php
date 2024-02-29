@@ -48,7 +48,6 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		$this->title            = WCRedL()->get_redsys_option( 'title', 'googlepayredirecredsys' );
 		$this->description      = WCRedL()->get_redsys_option( 'description', 'googlepayredirecredsys' );
 		$this->customer         = WCRedL()->get_redsys_option( 'customer', 'googlepayredirecredsys' );
-		$this->transactionlimit = WCRedL()->get_redsys_option( 'transactionlimit', 'googlepayredirecredsys' );
 		$this->commercename     = WCRedL()->get_redsys_option( 'commercename', 'googlepayredirecredsys' );
 		$this->terminal         = WCRedL()->get_redsys_option( 'terminal', 'googlepayredirecredsys' );
 		$this->secretsha256     = WCRedL()->get_redsys_option( 'secretsha256', 'googlepayredirecredsys' );
@@ -66,8 +65,6 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		add_action( 'woocommerce_receipt_' . $this->id, array( $this, 'receipt_page' ) );
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 		add_action( 'woocommerce_before_checkout_form', array( $this, 'warning_checkout_test_mode_bizum' ) );
-		// Temporalmente desactivado mientras doy con el problema en esta función que ha dejado de funcionar.
-		// add_filter( 'woocommerce_available_payment_gateways', array( $this, 'disable_bizum' ) );
 		add_filter( 'woocommerce_available_payment_gateways', array( $this, 'show_payment_method' ) );
 		// La siguiente línea carga el JS para el iframe. Por si algun dia deja Bizum estar en un iframe
 
@@ -176,12 +173,6 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 				'title'       => __( 'Terminal number', 'woo-redsys-gateway-light' ),
 				'type'        => 'text',
 				'description' => __( 'Terminal number provided by your bank.', 'woo-redsys-gateway-light' ),
-				'desc_tip'    => true,
-			),
-			'transactionlimit' => array(
-				'title'       => __( 'Transaction Limit', 'woo-redsys-gateway-light' ),
-				'type'        => 'text',
-				'description' => __( 'Maximum transaction price for the cart.', 'woo-redsys-gateway-light' ),
 				'desc_tip'    => true,
 			),
 			'descripredsys'    => array(
@@ -330,37 +321,6 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 			}
 			return false;
 		}
-	}
-	/**
-	 * Check if this gateway is enabled by price
-	 *
-	 * @param array $available_gateways Available gateways.
-	 *
-	 * @return bool
-	 */
-	public function disable_bizum( $available_gateways ) {
-		global $woocommerce;
-
-		if ( ! is_admin() && WCRedL()->is_gateway_enabled( 'googlepayredirecredsys' ) ) {
-			$total = (int) $woocommerce->cart->get_cart_total();
-			$limit = (int) $this->transactionlimit;
-			if ( ! empty( $limit ) && $limit > 0 ) {
-				$result = $limit - $total;
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'googlepayredirecredsys', ' ' );
-					$this->log->add( 'googlepayredirecredsys', '$total: ' . $total );
-					$this->log->add( 'googlepayredirecredsys', '$limit: ' . $limit );
-					$this->log->add( 'googlepayredirecredsys', '$result: ' . $result );
-					$this->log->add( 'googlepayredirecredsys', ' ' );
-				}
-				if ( $result > 0 ) {
-					return $available_gateways;
-				} else {
-					unset( $available_gateways['googlepayredirecredsys'] );
-				}
-			}
-		}
-		return $available_gateways;
 	}
 	/**
 	 * Get redsys URL
