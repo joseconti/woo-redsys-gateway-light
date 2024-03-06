@@ -100,6 +100,7 @@ Check [premium version](https://redsys.joseconti.com/product/plugin-woocommerce-
 == 6.0.0 ==
 
 * NEW: Added Google Pay redirection.
+* UPDATE: Many links updated.
 
 == 5.3.0 ==
 
