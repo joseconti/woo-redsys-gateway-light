@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 function redsys_about_page() {
-	$link_shop    = '<a href="https://woocommerce.com/products/redsys-gateway/" target="_blank">WooCommerce.com</a>';
+	$link_shop    = '<a href="https://woo.com/products/redsys-gateway/" target="_blank">WooCommerce.com</a>';
 	$link_support = '<a href="https://docs.woocommerce.com/document/redsys-servired-sermepa-gateway/" target="_blank">' . __( 'Here', 'woo-redsys-gateway-light' ) . '</a>';
 	?>
 	<div class="wrap about-wrap-redsys">
@@ -31,7 +31,7 @@ function redsys_about_page() {
 				<div class="woocommerce-message inline">
 					<p class="lead-description">
 						<?php esc_html_e( 'Please, test the plugin, and if you are happy with it, consider to make a ', 'woo-redsys-gateway-light' ); ?>
-						<?php echo '<a href="https://www.joseconti.com/cursos-online/micropatrocinio/" target="_blank">Microsponsor</a>'; ?>
+						<?php echo '<a href="https://redsys.joseconti.com/product-category/plugins/donaciones/" target="_blank">Microsponsor</a>'; ?>
 					</p>
 				</div>
 				<p class="lead-description"><?php esc_html_e( 'This gateway is the light version of official WooCommerce Redsys plugin at WooCommerce.com', 'woo-redsys-gateway-light' ); ?></p>
@@ -51,7 +51,7 @@ function redsys_about_page() {
 		</div>
 		<div class="woocommerce-message inline">
 			<p>
-				<center><a href="https://woocommerce.com/products/redsys-gateway/" target="_blank" rel="noopener"><img class="aligncenter wp-image-211 size-full" title="<?php esc_html_e( 'Get the pro version at WooCommerce.com', 'woo-redsys-gateway-light' ); ?>" src="<?php echo esc_url( REDSYS_PLUGIN_URL ) . 'assets/images/banner.png'; ?>" alt="<?php esc_html_e( 'Get the pro version at WooCommerce.com', 'woo-redsys-gateway-light' ); ?>" width="800" height="150" /></a></center>
+				<center><a href="https://woo.com/products/redsys-gateway/" target="_blank" rel="noopener"><img class="aligncenter wp-image-211 size-full" title="<?php esc_html_e( 'Get the pro version at WooCommerce.com', 'woo-redsys-gateway-light' ); ?>" src="<?php echo esc_url( REDSYS_PLUGIN_URL ) . 'assets/images/banner.png'; ?>" alt="<?php esc_html_e( 'Get the pro version at WooCommerce.com', 'woo-redsys-gateway-light' ); ?>" width="800" height="150" /></a></center>
 			</p>
 		</div>
 		<p>&nbsp;</p>

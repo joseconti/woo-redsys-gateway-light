@@ -6,7 +6,7 @@
  *
  * Plugin Name: WooCommerce Redsys Gateway Light
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
- * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
+ * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woo.com/products/redsys-gateway/
  * Version: 6.0.0
  * Author: José Conti
  * Author URI: https://www.joseconti.com/

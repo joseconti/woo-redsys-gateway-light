@@ -113,7 +113,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			<h3><?php esc_html_e( 'Servired/RedSys Spain', 'woo-redsys-gateway-light' ); ?></h3>
 			<div class="updated woocommerce-message inline">
 				<p>
-					<a href="https://woocommerce.com/products/redsys-gateway/" target="_blank" rel="noopener"><img class="aligncenter wp-image-211 size-full" title="Consigue la versión Pro en WooCommerce.com" src="<?php echo esc_url( REDSYS_PLUGIN_URL ) . 'assets/images/banner.png'; ?>" alt="Consigue la versión Pro en WooCommerce.com" width="800" height="150" /></a>
+					<a href="https://woo.com/products/redsys-gateway/" target="_blank" rel="noopener"><img class="aligncenter wp-image-211 size-full" title="Consigue la versión Pro en WooCommerce.com" src="<?php echo esc_url( REDSYS_PLUGIN_URL ) . 'assets/images/banner.png'; ?>" alt="Consigue la versión Pro en WooCommerce.com" width="800" height="150" /></a>
 				</p>
 			</div>
 			<div class="redsysnotice">

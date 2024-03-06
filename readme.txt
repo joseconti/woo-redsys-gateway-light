@@ -3,7 +3,7 @@ Contributors: j.conti
 Tags: woocommerce, redsys, bizum, Google Pay, GPay
 Requires at least: 4.0
 Tested up to: 6.4
-Donate link: https://www.joseconti.com/cursos-online/micropatrocinio/
+Donate link: https://redsys.joseconti.com/product-category/plugins/donaciones/
 Stable tag: 5.3.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -18,7 +18,7 @@ Add Redsys Gateway, BIZUM and Google Pay redirection to WooCommerce. This is the
 
 This is the Light version of the official WooCommerce Redsys plugin at WooCommerce.com.
 
-You can find the PRO version at [Woo.com](https://woocommerce.com/products/redsys-gateway/)
+You can find the PRO version at [Woo.com](https://woo.com/products/redsys-gateway/)
 
 With this extension, you get all you need to use Redsys Gateway.
 
@@ -40,11 +40,11 @@ Why is it not compatible with versions of WooCommerce lower than 2.9? Because th
 
 Check [premium version](https://redsys.joseconti.com/product/plugin-woocommerce-redsys-gateway/)
 
-* Credit card Form in the Checkout as Stripe
+* Credit card Form in the Checkout as Stripe (InSite)
+* Redsys redirection with Modal (Customer doesn't leave the site.)
 * Bizum
-* Bizum InSite
+* Bizum InSite (Bizum without leaving the site)
 * MasterPass
-* InSite
 * Google Pay
 * Apple Pay
 * Preauthorizations, global or product by product.

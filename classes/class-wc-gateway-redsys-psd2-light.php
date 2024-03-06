@@ -2,7 +2,7 @@
 /**
  * Class PSD2
  *
- * @package WooCommerce Redsys Gateway WooCommerce.com > https://woocommerce.com/products/redsys-gateway/
+ * @package WooCommerce Redsys Gateway WooCommerce.com > https://woo.com/products/redsys-gateway/
  * @since 13.0.0
  * Copyright: (C) 2013 - 2021 José Conti
  **/

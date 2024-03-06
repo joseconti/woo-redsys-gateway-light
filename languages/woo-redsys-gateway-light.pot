@@ -24,7 +24,7 @@ msgid "https://wordpress.org/plugins/woo-redsys-gateway-light/"
 msgstr ""
 
 #. Description of the plugin
-msgid "Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/"
+msgid "Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woo.com/products/redsys-gateway/"
 msgstr ""
 
 #. Author of the plugin
