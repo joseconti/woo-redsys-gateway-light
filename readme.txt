@@ -4,7 +4,7 @@ Tags: woocommerce, redsys, bizum, Google Pay, GPay
 Requires at least: 4.0
 Tested up to: 6.4
 Donate link: https://redsys.joseconti.com/product-category/plugins/donaciones/
-Stable tag: 5.3.0
+Stable tag: 6.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 7.5
