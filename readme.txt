@@ -38,7 +38,7 @@ Why is it not compatible with versions of WooCommerce lower than 2.9? Because th
 
 = Premium version Features =
 
-Check [premium version](https://redsys.joseconti.com/product/plugin-woocommerce-redsys-gateway/)
+Check [WooCommerce Redsys Gateway premium version](https://redsys.joseconti.com/product/plugin-woocommerce-redsys-gateway/)
 
 * Credit card Form in the Checkout as Stripe (InSite)
 * Redsys redirection with Modal (Customer doesn't leave the site.)
