@@ -1,25 +1,32 @@
 <?php
+/**
+ * Devuelve los idiomas permitidos
+ *
+ * @package WooCommerce Redsys Gateway Ligth
+ *
+ * @return array
+ */
 
-/*
-* Copyright: (C) 2013 - 2021 José Conti
-*/
-if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
-
-/*
-* Copyright: (C) 2013 - 2021 José Conti
-*/
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+/**
+ * Devuelve los idiomas permitidos
+ *
+ * @return array
+ */
 function redsys_return_languages() {
-	
+
 	return array(
-		'1'	  => 'Español',
-		'2'	  => 'English - Inglés',
-		'3'	  => 'Català',
-		'4'	  => 'Français - Frances',
-		'5'	  => 'Deutsch - Aleman',
-		'6'	  => 'Nederlands - Holandes',
-		'7'	  => 'Italiano',
-		'8'	  => 'Svenska - Sueco',
-		'9'	  => 'Português',
+		'1'   => 'Español',
+		'2'   => 'English - Inglés',
+		'3'   => 'Català',
+		'4'   => 'Français - Frances',
+		'5'   => 'Deutsch - Aleman',
+		'6'   => 'Nederlands - Holandes',
+		'7'   => 'Italiano',
+		'8'   => 'Svenska - Sueco',
+		'9'   => 'Português',
 		'10'  => 'Valencià',
 		'11'  => 'Polski - Polaco',
 		'12'  => 'Galego',
@@ -38,7 +45,7 @@ function redsys_return_languages() {
 		'440' => 'Lietuvių kalba - Lituano',
 		'470' => 'Malti - Maltés',
 		'642' => 'Română - Rumano',
-		'643' => 'ру́сский язы́к – Ruso',
+		'643' => 'ру́сский язы́к - Ruso',
 		'703' => 'Slovenský jazyk - Eslovaco',
 		'705' => 'Slovenski jezik - Esloveno',
 		'792' => 'Türkçe - Turco',

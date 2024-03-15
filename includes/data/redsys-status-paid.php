@@ -1,17 +1,22 @@
 <?php
+/**
+ * Devuelve los estados de pedido pagados
+ *
+ * @package WooCommerce Redsys Gateway Ligth
+ *
+ * @return array
+ */
 
-/*
-* Copyright: (C) 2013 - 2021 José Conti
-*/
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit; // Exit if accessed directly.
 }
-
-/*
-* Copyright: (C) 2013 - 2021 José Conti
-*/
+/**
+ * Devuelve los estados de pedido pagados
+ *
+ * @return array
+ */
 function redsys_return_status_paid() {
-	
+
 	$status = array();
 	$status = array(
 		'pending',

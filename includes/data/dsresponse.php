@@ -1,13 +1,20 @@
 <?php
+/**
+ * Devuelve los códigos de respuesta de Redsys
+ *
+ * @package WooCommerce Redsys Gateway Ligth
+ *
+ * @return array
+ */
 
-/*
-* Copyright: (C) 2013 - 2021 José Conti
-*/	
-if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
-
-/*
-* Copyright: (C) 2013 - 2021 José Conti
-*/
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+/**
+ * Devuelve los códigos de respuesta de Redsys
+ *
+ * @return array
+ */
 function redsys_return_dsresponse() {
 	return array(
 		'0000' => 'Transacción autorizada para pagos y preautorizaciones',
@@ -168,6 +175,6 @@ function redsys_return_dsresponse() {
 		'9929' => 'Anulación de autorización en diferido realizada por el comercio',
 		'9997' => 'Se está procesando otra transacción en SIS con la misma tarjeta',
 		'9998' => 'Operación en proceso de solicitud de datos de tarjeta',
-		'9999' => 'Operación que ha sido redirigida al emisor a autenticar'
+		'9999' => 'Operación que ha sido redirigida al emisor a autenticar',
 	);
 }

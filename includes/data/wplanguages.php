@@ -1,15 +1,20 @@
 <?php
+/**
+ * Devuelve los códigos de idioma
+ *
+ * @package WooCommerce Redsys Gateway Ligth
+ */
 
-/*
-* Copyright: (C) 2013 - 2021 José Conti
-*/
-if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
-
-/*
-* Copyright: (C) 2013 - 2021 José Conti
-*/
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+/**
+ * Devuelve los códigos de idioma
+ *
+ * @return array
+ */
 function redsys_return_all_languages_code() {
-	
+
 	return array(
 		'es_AR' => '1',
 		'es_CL' => '1',
