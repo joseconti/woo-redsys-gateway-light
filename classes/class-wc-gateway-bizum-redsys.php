@@ -618,7 +618,10 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		return $available_gateways;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the URL for the gateway
+	 *
+	 * @param int    $user_id User ID for the order.
+	 * @param string $type Type of gateway.
 	 */
 	public function get_redsys_url_gateway( $user_id, $type = 'rd' ) {
 
@@ -739,9 +742,11 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		}
 		return $sha256;
 	}
-
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the redsys args
+	 *
+	 * @param object $order Order object.
+	 * @return array
 	 */
 	public function get_redsys_args( $order ) {
 
@@ -787,8 +792,8 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		$version = 'HMAC_SHA256_V1';
 		// Se generan los parámetros de la petición.
 		$request      = '';
-		$params       = $mi_obj->createMerchantParameters();
-		$signature    = $mi_obj->createMerchantSignature( $secretsha256 );
+		$params       = $mi_obj->create_merchant_parameters();
+		$signature    = $mi_obj->create_merchant_signature( $secretsha256 );
 		$order_id_set = $transaction_id2;
 		set_transient( 'redsys_signature_' . sanitize_title( $order_id_set ), $secretsha256, 600 );
 		$redsys_args = array(
@@ -824,11 +829,8 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	/**
 	 * Generate the redsys form
 	 *
-	 * @param mixed $order_id
+	 * @param mixed $order_id Order ID.
 	 * @return string
-	 */
-	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
 	 */
 	public function generate_redsys_form( $order_id ) {
 		global $woocommerce;
@@ -880,11 +882,8 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	/**
 	 * Process the payment and return the result
 	 *
-	 * @param int $order_id
+	 * @param int $order_id Order ID.
 	 * @return array
-	 */
-	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
 	 */
 	public function process_payment( $order_id ) {
 		$order = WCRedL()->get_order( $order_id );
@@ -897,10 +896,9 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	/**
 	 * Output for the order received page.
 	 *
+	 * @param object $order Order object.
+	 *
 	 * @return void
-	 */
-	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
 	 */
 	public function receipt_page( $order ) {
 		echo '<p>' . esc_html__( 'Thank you for your order, please click the button below to pay with Bizum.', 'woo-redsys-gateway-light' ) . '</p>';
@@ -916,7 +914,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	public function check_ipn_request_is_valid() {
 
 		if ( 'yes' === $this->debug ) {
-			$this->log->add( 'bizumredsys', 'HTTP Notification received: ' . print_r( $_POST, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
+			$this->log->add( 'bizumredsys', 'HTTP Notification received: ' . print_r( $_POST, true ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.PHP.DevelopmentFunctions.error_log_print_r
 		}
 		$usesecretsha256 = $this->secretsha256;
 		if ( $usesecretsha256 ) {
@@ -935,7 +933,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				// Sanitize and process the data.
 			}
 			$mi_obj            = new RedsysAPI();
-			$decodec           = $mi_obj->decodeMerchantParameters( $data );
+			$decodec           = $mi_obj->decode_merchant_parameters( $data );
 			$order_id          = $mi_obj->getParameter( 'Ds_Order' );
 			$secretsha256      = get_transient( 'redsys_signature_' . sanitize_title( $order_id ) );
 			$order1            = $order_id;
@@ -982,7 +980,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				}
 				$usesecretsha256 = $secretsha256;
 			}
-			$localsecret = $mi_obj->createMerchantSignatureNotif( $usesecretsha256, $data );
+			$localsecret = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
 			if ( $localsecret === $remote_sign ) {
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', 'Received valid notification from Servired/RedSys' );
@@ -1016,7 +1014,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	 */
 	public function check_ipn_response() {
 		@ob_clean(); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		$post = stripslashes_deep( $_POST );
+		$post = stripslashes_deep( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( $this->check_ipn_request_is_valid() ) {
 			header( 'HTTP/1.1 200 OK' );
 			/**
@@ -1047,9 +1045,23 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'bizumredsys', ' ' );
 		}
 
-		$version     = $_POST['Ds_SignatureVersion'];
-		$data        = $_POST['Ds_MerchantParameters'];
-		$remote_sign = $_POST['Ds_Signature'];
+		if ( isset( $_POST['Ds_SignatureVersion'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			$version = sanitize_text_field( wp_unslash( $_POST['Ds_SignatureVersion'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		} else {
+			$version = '';
+		}
+
+		if ( isset( $_POST['Ds_MerchantParameters'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			$data = sanitize_text_field( wp_unslash( $_POST['Ds_MerchantParameters'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		} else {
+			$data = '';
+		}
+
+		if ( isset( $_POST['Ds_Signature'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			$remote_sign = sanitize_text_field( wp_unslash( $_POST['Ds_Signature'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		} else {
+			$remote_sign = '';
+		}
 
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'bizumredsys', ' ' );
@@ -1067,8 +1079,8 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		$dscardnumber4     = '';
 		$dsexpiryyear      = '';
 		$dsexpirymonth     = '';
-		$decodedata        = $mi_obj->decodeMerchantParameters( $data );
-		$localsecret       = $mi_obj->createMerchantSignatureNotif( $usesecretsha256, $data );
+		$decodedata        = $mi_obj->decode_merchant_parameters( $data );
+		$localsecret       = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
 		$total             = $mi_obj->getParameter( 'Ds_Amount' );
 		$ordermi           = $mi_obj->getParameter( 'Ds_Order' );
 		$dscode            = $mi_obj->getParameter( 'Ds_MerchantCode' );
@@ -1098,8 +1110,8 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'bizumredsys', 'SHA256 Settings: ' . $usesecretsha256 );
 			$this->log->add( 'bizumredsys', 'SHA256 Transcient: ' . $secretsha256 );
-			$this->log->add( 'bizumredsys', 'decodeMerchantParameters: ' . $decodedata );
-			$this->log->add( 'bizumredsys', 'createMerchantSignatureNotif: ' . $localsecret );
+			$this->log->add( 'bizumredsys', 'decode_merchant_parameters: ' . $decodedata );
+			$this->log->add( 'bizumredsys', 'create_merchant_signature_notif: ' . $localsecret );
 			$this->log->add( 'bizumredsys', 'Ds_Amount: ' . $total );
 			$this->log->add( 'bizumredsys', 'Ds_Order: ' . $ordermi );
 			$this->log->add( 'bizumredsys', '$order_id: ' . $order2 );
@@ -1334,9 +1346,12 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			WC()->cart->empty_cart();
 		}
 	}
-
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Ask for Refund
+	 *
+	 * @param int $order_id Order ID.
+	 * @param int $transaction_id Transaction ID.
+	 * @param int $amount Amount.
 	 */
 	public function ask_for_refund( $order_id, $transaction_id, $amount ) {
 
@@ -1446,8 +1461,8 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 
 		$version   = 'HMAC_SHA256_V1';
 		$request   = '';
-		$params    = $mi_obj->createMerchantParameters();
-		$signature = $mi_obj->createMerchantSignature( $secretsha256 );
+		$params    = $mi_obj->create_merchant_parameters();
+		$signature = $mi_obj->create_merchant_signature( $secretsha256 );
 
 		$post_arg = wp_remote_post(
 			$redsys_adr,
@@ -1475,9 +1490,10 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		}
 		return true;
 	}
-
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Check Redsys Refund
+	 *
+	 * @param int $order_id Order ID.
 	 */
 	public function check_redsys_refund( $order_id ) {
 		// check postmeta.

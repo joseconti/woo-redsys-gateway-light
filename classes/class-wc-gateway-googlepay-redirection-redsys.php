@@ -520,8 +520,8 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		$version = 'HMAC_SHA256_V1';
 		// Se generan los parámetros de la petición.
 		$request      = '';
-		$params       = $miobj->createMerchantParameters();
-		$signature    = $miobj->createMerchantSignature( $gpay_data_send['secretsha256'] );
+		$params       = $miobj->create_merchant_parameters();
+		$signature    = $miobj->create_merchant_signature( $gpay_data_send['secretsha256'] );
 		$order_id_set = $gpay_data_send['transaction_id2'];
 		set_transient( 'redsys_signature_' . sanitize_text_field( $order_id_set ), $gpay_data_send['secretsha256'], 3600 );
 		$redsys_args = array(
@@ -652,7 +652,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 			$data              = sanitize_text_field( wp_unslash( $_POST['Ds_MerchantParameters'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$remote_sign       = sanitize_text_field( wp_unslash( $_POST['Ds_Signature'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$mi_obj            = new RedsysAPI();
-			$decodec           = $mi_obj->decodeMerchantParameters( $data );
+			$decodec           = $mi_obj->decode_merchant_parameters( $data );
 			$order_id          = $mi_obj->getParameter( 'Ds_Order' );
 			$ds_merchant_code  = $mi_obj->getParameter( 'Ds_MerchantCode' );
 			$secretsha256      = get_transient( 'redsys_signature_' . sanitize_text_field( $order_id ) );
@@ -700,7 +700,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 				}
 				$usesecretsha256 = $secretsha256;
 			}
-			$localsecret = $mi_obj->createMerchantSignatureNotif( $usesecretsha256, $data );
+			$localsecret = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
 			if ( $localsecret === $remote_sign ) {
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'googlepayredirecredsys', 'Received valid notification from Servired/RedSys' );
@@ -719,7 +719,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 			$data              = sanitize_text_field( wp_unslash( $_POST['Ds_MerchantParameters'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$remote_sign       = sanitize_text_field( wp_unslash( $_POST['Ds_Signature'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$mi_obj            = new RedsysAPI();
-			$decodec           = $mi_obj->decodeMerchantParameters( $data );
+			$decodec           = $mi_obj->decode_merchant_parameters( $data );
 			$order_id          = $mi_obj->getParameter( 'Ds_Order' );
 			$ds_merchant_code  = $mi_obj->getParameter( 'Ds_MerchantCode' );
 			$secretsha256      = get_transient( 'redsys_signature_' . sanitize_text_field( $order_id ) );
@@ -797,8 +797,8 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		$dscardnumber4     = '';
 		$dsexpiryyear      = '';
 		$dsexpirymonth     = '';
-		$decodedata        = $mi_obj->decodeMerchantParameters( $data );
-		$localsecret       = $mi_obj->createMerchantSignatureNotif( $usesecretsha256, $data );
+		$decodedata        = $mi_obj->decode_merchant_parameters( $data );
+		$localsecret       = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
 		$total             = $mi_obj->getParameter( 'Ds_Amount' );
 		$ordermi           = $mi_obj->getParameter( 'Ds_Order' );
 		$dscode            = $mi_obj->getParameter( 'Ds_MerchantCode' );
@@ -828,8 +828,8 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'googlepayredirecredsys', 'SHA256 Settings: ' . $usesecretsha256 );
 			$this->log->add( 'googlepayredirecredsys', 'SHA256 Transcient: ' . $secretsha256 );
-			$this->log->add( 'googlepayredirecredsys', 'decodeMerchantParameters: ' . $decodedata );
-			$this->log->add( 'googlepayredirecredsys', 'createMerchantSignatureNotif: ' . $localsecret );
+			$this->log->add( 'googlepayredirecredsys', 'decode_merchant_parameters: ' . $decodedata );
+			$this->log->add( 'googlepayredirecredsys', 'create_merchant_signature_notif: ' . $localsecret );
 			$this->log->add( 'googlepayredirecredsys', 'Ds_Amount: ' . $total );
 			$this->log->add( 'googlepayredirecredsys', 'Ds_Order: ' . $ordermi );
 			$this->log->add( 'googlepayredirecredsys', 'Ds_MerchantCode: ' . $dscode );
@@ -1194,8 +1194,8 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 
 		$version   = 'HMAC_SHA256_V1';
 		$request   = '';
-		$params    = $mi_obj->createMerchantParameters();
-		$signature = $mi_obj->createMerchantSignature( $secretsha256 );
+		$params    = $mi_obj->create_merchant_parameters();
+		$signature = $mi_obj->create_merchant_signature( $secretsha256 );
 
 		$post_arg = wp_remote_post(
 			$redsys_adr,

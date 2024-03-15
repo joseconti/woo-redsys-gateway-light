@@ -1,17 +1,20 @@
 <?php
+/**
+ * Monedas permitidas
+ *
+ * @package WooCommerce Redsys Gateway Ligth
+ */
 
-/*
-* Copyright: (C) 2013 - 2021 José Conti
-*/
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit; // Exit if accessed directly.
 }
-
-/*
-* Copyright: (C) 2013 - 2021 José Conti
-*/
+/**
+ * Devuelve las monedas permitidas
+ *
+ * @return array
+ */
 function redsys_return_allowed_currencies() {
-	
+
 	return array(
 		'ALL',
 		'DZD',

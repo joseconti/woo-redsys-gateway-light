@@ -406,8 +406,8 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$version = 'HMAC_SHA256_V1';
 		// Se generan los parámetros de la petición.
 		$request     = '';
-		$params      = $mi_obj->createMerchantParameters();
-		$signature   = $mi_obj->createMerchantSignature( $secretsha256 );
+		$params      = $mi_obj->create_merchant_parameters();
+		$signature   = $mi_obj->create_merchant_signature( $secretsha256 );
 		$redsys_args = array(
 			'Ds_SignatureVersion'   => $version,
 			'Ds_MerchantParameters' => $params,
@@ -595,7 +595,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			}
 
 			$mi_obj      = new RedsysAPI();
-			$localsecret = $mi_obj->createMerchantSignatureNotif( $usesecretsha256, $data );
+			$localsecret = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
 
 			if ( $localsecret === $remote_sign ) {
 				if ( 'yes' === $this->debug ) {
@@ -672,8 +672,8 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$dscardnumber4     = '';
 		$dsexpiryyear      = '';
 		$dsexpirymonth     = '';
-		$decodedata        = $mi_obj->decodeMerchantParameters( $data );
-		$localsecret       = $mi_obj->createMerchantSignatureNotif( $usesecretsha256, $data );
+		$decodedata        = $mi_obj->decode_merchant_parameters( $data );
+		$localsecret       = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
 		$total             = $mi_obj->getParameter( 'Ds_Amount' );
 		$ordermi           = $mi_obj->getParameter( 'Ds_Order' );
 		$dscode            = $mi_obj->getParameter( 'Ds_MerchantCode' );
@@ -931,8 +931,8 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 
 			$version   = 'HMAC_SHA256_V1';
 			$request   = '';
-			$params    = $mi_obj->createMerchantParameters();
-			$signature = $mi_obj->createMerchantSignature( $secretsha256 );
+			$params    = $mi_obj->create_merchant_parameters();
+			$signature = $mi_obj->create_merchant_signature( $secretsha256 );
 
 			$post_arg = wp_remote_post(
 				$redsys_adr,

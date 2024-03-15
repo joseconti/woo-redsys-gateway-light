@@ -1,15 +1,20 @@
 <?php
+/**
+ * Devuelve los códigos de los países
+ *
+ * @package WooCommerce Redsys Gateway Ligth
+ *
+ * @return array
+ */
 
-/*
-* Copyright: (C) 2013 - 2021 José Conti
-*/
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit; // Exit if accessed directly.
 }
-
-/*
-* Copyright: (C) 2013 - 2021 José Conti
-*/
+/**
+ * Devuelve los códigos de los países
+ *
+ * @return array
+ */
 function redsys_get_country_code() {
 
 	return array(

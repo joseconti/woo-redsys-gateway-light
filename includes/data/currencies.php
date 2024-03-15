@@ -1,15 +1,20 @@
 <?php
+/**
+ * Correlacion de monedas.
+ *
+ * @package WooCommerce Redsys Gateway Ligth
+ */
 
-/*
-* Copyright: (C) 2013 - 2021 José Conti
-*/
-if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
-
-/*
-* Copyright: (C) 2013 - 2021 José Conti
-*/
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+/**
+ * Devuelve las monedas permitidas
+ *
+ * @return array
+ */
 function redsys_return_currencies() {
-	
+
 	return array(
 		'ALL' => 8,
 		'DZD' => 12,
