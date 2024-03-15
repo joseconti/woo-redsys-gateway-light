@@ -100,7 +100,7 @@ Check [WooCommerce Redsys Gateway premium version](https://redsys.joseconti.com/
 == 6.1.0 ==
 
 * NEW: Removed support for PHP < 7.
-* UPDATE: PHP PHP >= 8.2
+* UPDATE: Compatibility with PHP >= 8.2
 * UPDATE: Code is Poetry
 
 == 6.0.0 ==
