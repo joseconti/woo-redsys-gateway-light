@@ -1,17 +1,26 @@
 <?php
+/**
+ * Google Pay Redirection Redsys Support
+ *
+ * @package WooCommerce\GooglePayRedireRedsys
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;
 
 /**
- * Dummy Payments Blocks integration
+ * Google Pay Redirection Redsys Support
  *
- * @since 1.0.3
+ * @since 6.0.0
  */
-final class WC_Gateway_Redsys_Lite_Support extends AbstractPaymentMethodType {
+final class WC_Gateway_GooglePay_Redirection_Redsys_Support extends AbstractPaymentMethodType {
 
 	/**
 	 * The gateway instance.
 	 *
-	 * @var WC_Gateway_Redsys
+	 * @var WC_Gateway_GooglePay_Redirection_Redsys
 	 */
 	private $gateway;
 
@@ -20,13 +29,13 @@ final class WC_Gateway_Redsys_Lite_Support extends AbstractPaymentMethodType {
 	 *
 	 * @var string
 	 */
-	protected $name = 'redsys';
+	protected $name = 'googlepayredirecredsys';
 
 	/**
 	 * Initializes the payment method type.
 	 */
 	public function initialize() {
-		$this->settings = get_option( 'woocommerce_redsys_settings', array() );
+		$this->settings = get_option( 'woocommerce_googlepayredirecredsys_settings', array() );
 	}
 
 	/**
@@ -35,7 +44,7 @@ final class WC_Gateway_Redsys_Lite_Support extends AbstractPaymentMethodType {
 	 * @return boolean
 	 */
 	public function is_active() {
-		return WCRedL()->is_gateway_enabled( 'redsys' );
+		return WCRedL()->is_gateway_enabled( 'googlepayredirecredsys' );
 	}
 
 	/**
@@ -55,7 +64,7 @@ final class WC_Gateway_Redsys_Lite_Support extends AbstractPaymentMethodType {
 		$script_url        = plugin_url_redsys() . $script_path;
 
 		wp_register_script(
-			'wc-redsys-payments-blocks',
+			'wc-googlepayredirecredsys-payments-blocks',
 			$script_url,
 			$script_asset['dependencies'],
 			$script_asset['version'],
@@ -63,10 +72,10 @@ final class WC_Gateway_Redsys_Lite_Support extends AbstractPaymentMethodType {
 		);
 
 		if ( function_exists( 'wp_set_script_translations' ) ) {
-			wp_set_script_translations( 'wc-redsys-payments-blocks', 'woocommerce-gateway-dummy', plugin_abspath_redsys() . 'languages/' );
+			wp_set_script_translations( 'wc-googlepayredirecredsyss-payments-blocks', 'woo-redsys-gateway-light', plugin_abspath_redsys() . 'languages/' );
 		}
 
-		return array( 'wc-redsys-payments-blocks' );
+		return array( 'wc-googlepayredirecredsys-payments-blocks' );
 	}
 
 	/**
@@ -76,8 +85,8 @@ final class WC_Gateway_Redsys_Lite_Support extends AbstractPaymentMethodType {
 	 */
 	public function get_payment_method_data() {
 		return array(
-			'title'       => WCRedL()->get_redsys_option( 'title', 'redsys' ),
-			'description' => WCRedL()->get_redsys_option( 'description', 'redsys' ),
+			'title'       => WCRedL()->get_redsys_option( 'title', 'googlepayredirecredsys' ),
+			'description' => WCRedL()->get_redsys_option( 'description', 'googlepayredirecredsys' ),
 			'supports'    => array(
 				'products',
 				'refunds',
