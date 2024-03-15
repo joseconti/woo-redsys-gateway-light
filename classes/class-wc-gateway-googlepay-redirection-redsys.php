@@ -18,7 +18,163 @@ defined( 'ABSPATH' ) || exit;
  * WC_Gateway_GooglePay_Redirection_Redsys Class.
  */
 class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
-	var $notify_url;
+
+	/**
+	 * $notify_url
+	 *
+	 * @var string
+	 */
+	public $notify_url;
+	/**
+	 * $id
+	 *
+	 * @var string
+	 */
+	public $id;
+	/**
+	 * $icon
+	 *
+	 * @var string
+	 */
+	public $icon;
+	/**
+	 * $has_fields
+	 *
+	 * @var bool
+	 */
+	public $has_fields;
+	/**
+	 * $liveurl
+	 *
+	 * @var string
+	 */
+	public $liveurl;
+	/**
+	 * $testurl
+	 *
+	 * @var string
+	 */
+	public $testurl;
+	/**
+	 * $liveurlws
+	 *
+	 * @var string
+	 */
+	public $liveurlws;
+	/**
+	 * $testurlws
+	 *
+	 * @var string
+	 */
+	public $testurlws;
+	/**
+	 * $testsha256
+	 *
+	 * @var string
+	 */
+	public $testsha256;
+	/**
+	 * $testmode
+	 *
+	 * @var string
+	 */
+	public $testmode;
+	/**
+	 * $method_title
+	 *
+	 * @var string
+	 */
+	public $method_title;
+	/**
+	 * $method_description
+	 *
+	 * @var string
+	 */
+	public $method_description;
+	/**
+	 * $not_use_http
+	 *
+	 * @var string
+	 */
+	public $not_use_https;
+	/**
+	 * $notify_url_not_https
+	 *
+	 * @var string
+	 */
+	public $notify_url_not_https;
+	/**
+	 * $log
+	 *
+	 * @var WC_Logger
+	 */
+	public $log;
+	/**
+	 * $supports
+	 *
+	 * @var array
+	 */
+	public $supports;
+	/**
+	 * $title
+	 *
+	 * @var string
+	 */
+	public $title;
+	/**
+	 * $description
+	 *
+	 * @var string
+	 */
+	public $description;
+	/**
+	 * $customer
+	 *
+	 * @var string
+	 */
+	public $customer;
+	/**
+	 * $commercename
+	 *
+	 * @var string
+	 */
+	public $commercename;
+	/**
+	 * $terminal
+	 *
+	 * @var string
+	 */
+	public $terminal;
+	/**
+	 * $secretsha256
+	 *
+	 * @var string
+	 */
+	public $secretsha256;
+	/**
+	 * $customtestsha256
+	 *
+	 * @var string
+	 */
+	public $customtestsha256;
+	/**
+	 * $redsyslanguage
+	 *
+	 * @var string
+	 */
+	public $redsyslanguage;
+	/**
+	 * $debug
+	 *
+	 * @var string
+	 */
+	public $debug;
+	/**
+	 * $enabled
+	 *
+	 * @var bool
+	 */
+	public $enabled;
 
 	/**
 	 * Constructor for the gateway.
@@ -27,7 +183,15 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	 */
 	public function __construct() {
 
-		$this->id                   = 'googlepayredirecredsys';
+		$this->id = 'googlepayredirecredsys';
+		/**
+		 * Filter the icon for the Google Pay Redirection Redsys gateway.
+		 *
+		 * @param string $icon The URL of the icon.
+		 * @return string The filtered URL of the icon.
+		 *
+		 * @since 6.0.0
+		 */
 		$this->icon                 = apply_filters( 'woocommerce_' . $this->id . '_icon', REDSYS_PLUGIN_URL . 'assets/images/GPay.svg' );
 		$this->has_fields           = false;
 		$this->liveurl              = 'https://sis.redsys.es/sis/realizarPago';
@@ -65,7 +229,6 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 		add_action( 'woocommerce_before_checkout_form', array( $this, 'warning_checkout_test_mode_bizum' ) );
 		add_filter( 'woocommerce_available_payment_gateways', array( $this, 'show_payment_method' ) );
-		// La siguiente línea carga el JS para el iframe. Por si algun dia deja Bizum estar en un iframe
 
 		// Payment listener/API hook.
 		add_action( 'woocommerce_api_wc_gateway_' . $this->id, array( $this, 'check_ipn_response' ) );
@@ -86,7 +249,6 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 			return true;
 		}
 	}
-
 	/**
 	 * Admin Panel Options
 	 *
@@ -128,7 +290,6 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 			<?php
 		endif;
 	}
-
 	/**
 	 * Initialise Gateway Settings Form Fields
 	 *
@@ -753,6 +914,13 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		$_POST = stripslashes_deep( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( $this->check_ipn_request_is_valid() ) {
 			header( 'HTTP/1.1 200 OK' );
+			/**
+			 * Trigger a valid IPN request for the Google Pay standard gateway.
+			 *
+			 * @param array $_POST The posted data.
+			 *
+			 * @since 1.0.0
+			 */
 			do_action( 'valid_' . $this->id . '_standard_ipn_request', $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		} else {
 			wp_die( 'There is nothing to see here, do not access this page directly (Google Pay redirection)' );
@@ -1028,6 +1196,13 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 				$this->log->add( 'googlepayredirecredsys', '/******************************************/' );
 				$this->log->add( 'googlepayredirecredsys', ' ' );
 			}
+			/**
+			 * Action hook fired after a payment has been completed.
+			 *
+			 * @param int $order_id Order ID.
+			 *
+			 * @since 2.0.0
+			 */
 			do_action( $this->id . '_post_payment_complete', $order->get_id() );
 		} else {
 			$data              = array();
@@ -1070,6 +1245,14 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 				$ds_error_value = '';
 			}
 			$error = $ds_response_value . ' ' . $ds_error_value;
+			/**
+			 * Action hook fired after a payment has been completed.
+			 *
+			 * @param int $order_id Order ID.
+			 * @param string $error Error message.
+			 *
+			 * @since 2.0.0
+			 */
 			do_action( $this->id . '_post_payment_error', $order->get_id(), $error );
 		}
 	}
