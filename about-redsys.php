@@ -1,8 +1,17 @@
 <?php
+/**
+ * About page
+ *
+ * @package WooCommerce_Redsys/Classes
+ * @version 1.0.0
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
+/**
+ * About page
+ */
 function redsys_about_page() {
 	$link_shop    = '<a href="https://woo.com/products/redsys-gateway/" target="_blank">WooCommerce.com</a>';
 	$link_support = '<a href="https://docs.woocommerce.com/document/redsys-servired-sermepa-gateway/" target="_blank">' . __( 'Here', 'woo-redsys-gateway-light' ) . '</a>';
@@ -38,13 +47,13 @@ function redsys_about_page() {
 				<p>
 					<?php
 					/* translators: link to woocommerce.com */
-					printf( __( 'This WooCommerce extension has all you need for start selling through Redsys. It is full compatible with WPML. If you need more power, you can buy the premium extension at %s.', 'woo-redsys-gateway-light' ), $link_shop );
+					printf( esc_html__( 'This WooCommerce extension has all you need for start selling through Redsys. It is full compatible with WPML. If you need more power, you can buy the premium extension at %s.', 'woo-redsys-gateway-light' ), esc_url( $link_shop ) );
 					?>
 				</p>
 				<p>
 					<?php
 					/* translators: link to woocommerce.com */
-					printf( __( 'With the premium version you get many important features like tokenization, refund, two terminals, error actions, Sequential Invoice Number, invoice export, etc. See all features %s', 'woo-redsys-gateway-light' ), $link_support );
+					printf( esc_html__( 'With the premium version you get many important features like tokenization, refund, two terminals, error actions, Sequential Invoice Number, invoice export, etc. See all features %s', 'woo-redsys-gateway-light' ), esc_url( $link_support ) );
 					?>
 				</p>
 			</div>
