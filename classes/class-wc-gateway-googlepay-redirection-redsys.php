@@ -6,7 +6,7 @@
  * @since 6.0.0
  * @author José Conti.
  * @link https://joseconti.com
- * @link https://redsys.joseconti.com
+ * @link https://plugins.joseconti.com
  * @link https://wordpress.org/plugins/woo-redsys-gateway-light/
  * @license GNU General Public License v3.0
  * @license URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -371,7 +371,6 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 			'debug'            => array(
 				'title'       => __( 'Debug Log', 'woo-redsys-gateway-light' ),
 				'type'        => 'checkbox',
-				'label'       => __( 'Running in test mode', 'woo-redsys-gateway-light' ),
 				'label'       => __( 'Enable logging', 'woo-redsys-gateway-light' ),
 				'default'     => 'no',
 				'description' => __( 'Log GPay events, such as notifications requests, inside <code>WooCommerce > Status > Logs > googlepayredirecredsys-{date}-{number}.log</code>', 'woo-redsys-gateway-light' ),
@@ -804,7 +803,16 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'googlepayredirecredsys', 'HTTP Notification received: ' . print_r( $_POST, true ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.PHP.DevelopmentFunctions.error_log_print_r
 		}
-		$usesecretsha256 = $this->secretsha256;
+		if ( 'yes' === $this->testmode ) {
+			$usesecretsha256 = $this->customtestsha256;
+			if ( ! empty( $usesecretsha256 ) ) {
+				$usesecretsha256 = $this->customtestsha256;
+			} else {
+				$usesecretsha256 = $this->secretsha256;
+			}
+		} else {
+			$usesecretsha256 = $this->secretsha256;
+		}
 		if ( ! isset( $_POST['Ds_SignatureVersion'] ) || ! isset( $_POST['Ds_MerchantParameters'] ) || ! isset( $_POST['Ds_Signature'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			return false;
 		}

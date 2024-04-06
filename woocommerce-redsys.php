@@ -10,7 +10,7 @@
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woo.com/products/redsys-gateway/
  * Version: 6.0.0
  * Author: José Conti
- * Author URI: https://redsys.joseconti.com/
+ * Author URI: https://plugins.joseconti.com/
  * Tested up to: 6.4
  * WC requires at least: 7.4
  * WC tested up to: 8.6
@@ -26,7 +26,7 @@ define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 if ( ! defined( 'REDSYS_PLUGIN_PATH' ) ) {
 	define( 'REDSYS_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 }
-define( 'REDSYS_POST_UPDATE_URL', 'https://redsys.joseconti.com/2024/03/09/woocommerce-redsys-gateway-light-6-0-0/' );
+define( 'REDSYS_POST_UPDATE_URL', 'https://plugins.joseconti.com/2024/03/09/woocommerce-redsys-gateway-light-6-0-0/' );
 define( 'REDSYS_TELEGRAM_URL', 'https://t.me/wooredsys' );
 define( 'REDSYS_REVIEW', 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/reviews/?rate=5#new-post' );
 define( 'REDSYS_DONATION', 'https://www.joseconti.com/cursos-online/micropatrocinio/' );
@@ -46,7 +46,7 @@ add_action( 'plugins_loaded', 'woocommerce_gateway_redsys_init', 11 );
 
 add_action(
 	'before_woocommerce_init',
-	function() {
+	function () {
 		if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
 			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
 		}
@@ -74,7 +74,6 @@ function redsys_menu() {
 	global $redsys_about;
 
 	$redsys_about = add_submenu_page( 'woocommerce', __( 'About Redsys', 'woo-redsys-gateway-light' ), __( 'About Redsys', 'woo-redsys-gateway-light' ), 'manage_options', 'redsys-about-page', 'redsys_about_page' );
-
 }
 add_action( 'admin_menu', 'redsys_menu' );
 
@@ -133,7 +132,6 @@ function redsys_css_lite() {
 		wp_register_style( 'redsys-css', plugins_url( 'assets/css/redsys-css.css', __FILE__ ), array(), REDSYS_WOOCOMMERCE_VERSION );
 		wp_enqueue_style( 'redsys-css' );
 	}
-
 }
 add_action( 'admin_enqueue_scripts', 'redsys_css_lite' );
 
@@ -178,7 +176,7 @@ function woocommerce_gateway_redsys_init() {
 
 	add_action(
 		'admin_notices',
-		function() {
+		function () {
 			WC_Gateway_Redsys::admin_notice_mcrypt_encrypt();
 		}
 	);
@@ -374,19 +372,19 @@ function woocommerce_gateway_redsys_lite_block_support() {
 		require_once 'includes/blocks/class-wc-gateway-googlepay-redirection-redsys-support.php';
 		add_action(
 			'woocommerce_blocks_payment_method_type_registration',
-			function( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
+			function ( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
 				$payment_method_registry->register( new WC_Gateway_Redsys_Lite_Support() );
 			}
 		);
 		add_action(
 			'woocommerce_blocks_payment_method_type_registration',
-			function( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
+			function ( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
 				$payment_method_registry->register( new WC_Gateway_Bizum_Lite_Support() );
 			}
 		);
 		add_action(
 			'woocommerce_blocks_payment_method_type_registration',
-			function( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
+			function ( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
 				$payment_method_registry->register( new WC_Gateway_GooglePay_Redirection_Redsys_Support() );
 			}
 		);

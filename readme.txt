@@ -3,7 +3,7 @@ Contributors: j.conti
 Tags: woocommerce, redsys, bizum, Google Pay, GPay
 Requires at least: 4.0
 Tested up to: 6.5
-Donate link: https://redsys.joseconti.com/product-category/plugins/donaciones/
+Donate link: https://plugins.joseconti.com/product-category/plugins/donaciones/
 Stable tag: 6.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -38,7 +38,7 @@ Why is it not compatible with versions of WooCommerce lower than 2.9? Because th
 
 = Premium version Features =
 
-Check [WooCommerce Redsys Gateway premium version](https://redsys.joseconti.com/product/plugin-woocommerce-redsys-gateway/)
+Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com/product/plugin-woocommerce-redsys-gateway/)
 
 * Credit card Form in the Checkout as Stripe (InSite)
 * Redsys redirection with Modal (Customer doesn't leave the site.)
@@ -102,6 +102,7 @@ Check [WooCommerce Redsys Gateway premium version](https://redsys.joseconti.com/
 * NEW: Removed support for PHP < 7.
 * UPDATE: Compatibility with PHP >= 8.2
 * UPDATE: Code is Poetry
+* FIX: Fixed an issue where Redsys notification to the site would fail if the terminal was in test mode and the real SHA256 was not entered in Bizum and Google Pay redirection.
 
 == 6.0.0 ==
 

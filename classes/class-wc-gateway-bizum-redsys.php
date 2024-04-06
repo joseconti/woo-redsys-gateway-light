@@ -488,7 +488,6 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			'debug'            => array(
 				'title'       => __( 'Debug Log', 'woo-redsys-gateway-light' ),
 				'type'        => 'checkbox',
-				'label'       => __( 'Running in test mode', 'woo-redsys-gateway-light' ),
 				'label'       => __( 'Enable logging', 'woo-redsys-gateway-light' ),
 				'default'     => 'no',
 				'description' => __( 'Log Bizum events, such as notifications requests, inside <code>WooCommerce > Status > Logs > bizum-{date}-{number}.log</code>', 'woo-redsys-gateway-light' ),
@@ -667,26 +666,24 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 					}
 					$url = $this->testurlws;
 				}
-			} else {
-				if ( 'rd' === $type ) {
-					if ( 'yes' === $this->debug ) {
-						$this->log->add( 'bizumredsys', ' ' );
-						$this->log->add( 'bizumredsys', '/****************************/' );
-						$this->log->add( 'bizumredsys', '          URL Live RD         ' );
-						$this->log->add( 'bizumredsys', '/****************************/' );
-						$this->log->add( 'bizumredsys', ' ' );
-					}
-					$url = $this->liveurl;
-				} else {
-					if ( 'yes' === $this->debug ) {
-						$this->log->add( 'bizumredsys', ' ' );
-						$this->log->add( 'bizumredsys', '/****************************/' );
-						$this->log->add( 'bizumredsys', '          URL Live WS         ' );
-						$this->log->add( 'bizumredsys', '/****************************/' );
-						$this->log->add( 'bizumredsys', ' ' );
-					}
-					$url = $this->liveurlws;
+			} elseif ( 'rd' === $type ) {
+				if ( 'yes' === $this->debug ) {
+					$this->log->add( 'bizumredsys', ' ' );
+					$this->log->add( 'bizumredsys', '/****************************/' );
+					$this->log->add( 'bizumredsys', '          URL Live RD         ' );
+					$this->log->add( 'bizumredsys', '/****************************/' );
+					$this->log->add( 'bizumredsys', ' ' );
 				}
+				$url = $this->liveurl;
+			} else {
+				if ( 'yes' === $this->debug ) {
+					$this->log->add( 'bizumredsys', ' ' );
+					$this->log->add( 'bizumredsys', '/****************************/' );
+					$this->log->add( 'bizumredsys', '          URL Live WS         ' );
+					$this->log->add( 'bizumredsys', '/****************************/' );
+					$this->log->add( 'bizumredsys', ' ' );
+				}
+				$url = $this->liveurlws;
 			}
 		}
 		return $url;
@@ -916,7 +913,16 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'bizumredsys', 'HTTP Notification received: ' . print_r( $_POST, true ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.PHP.DevelopmentFunctions.error_log_print_r
 		}
-		$usesecretsha256 = $this->secretsha256;
+		if ( 'yes' === $this->testmode ) {
+			$usesecretsha256 = $this->customtestsha256;
+			if ( ! empty( $usesecretsha256 ) ) {
+				$usesecretsha256 = $this->customtestsha256;
+			} else {
+				$usesecretsha256 = $this->secretsha256;
+			}
+		} else {
+			$usesecretsha256 = $this->secretsha256;
+		}
 		if ( $usesecretsha256 ) {
 			if ( isset( $_POST['Ds_SignatureVersion'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 				$version = sanitize_text_field( wp_unslash( $_POST['Ds_SignatureVersion'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing

@@ -40,7 +40,7 @@ function redsys_about_page() {
 				<div class="woocommerce-message inline">
 					<p class="lead-description">
 						<?php esc_html_e( 'Please, test the plugin, and if you are happy with it, consider to make a ', 'woo-redsys-gateway-light' ); ?>
-						<?php echo '<a href="https://redsys.joseconti.com/product-category/plugins/donaciones/" target="_blank">Microsponsor</a>'; ?>
+						<?php echo '<a href="https://plugins.joseconti.com/product-category/plugins/donaciones/" target="_blank">Microsponsor</a>'; ?>
 					</p>
 				</div>
 				<p class="lead-description"><?php esc_html_e( 'This gateway is the light version of official WooCommerce Redsys plugin at WooCommerce.com', 'woo-redsys-gateway-light' ); ?></p>
