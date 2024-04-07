@@ -7,7 +7,7 @@
  * Plugin Name: WooCommerce Redsys Gateway Light
  * Requires Plugins: woocommerce
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
- * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woo.com/products/redsys-gateway/
+ * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
  * Version: 6.0.0
  * Author: José Conti
  * Author URI: https://plugins.joseconti.com/
@@ -26,7 +26,7 @@ define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 if ( ! defined( 'REDSYS_PLUGIN_PATH' ) ) {
 	define( 'REDSYS_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 }
-define( 'REDSYS_POST_UPDATE_URL', 'https://plugins.joseconti.com/2024/03/09/woocommerce-redsys-gateway-light-6-0-0/' );
+define( 'REDSYS_POST_UPDATE_URL', 'https://plugins.joseconti.com/2024/04/07/woocommerce-redsys-gateway-light-6-1-0/' );
 define( 'REDSYS_TELEGRAM_URL', 'https://t.me/wooredsys' );
 define( 'REDSYS_REVIEW', 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/reviews/?rate=5#new-post' );
 define( 'REDSYS_DONATION', 'https://www.joseconti.com/cursos-online/micropatrocinio/' );

@@ -18,7 +18,7 @@ Add Redsys Gateway, BIZUM and Google Pay redirection to WooCommerce. This is the
 
 This is the Light version of the official WooCommerce Redsys plugin at WooCommerce.com.
 
-You can find the PRO version at [Woo.com](https://woo.com/products/redsys-gateway/)
+You can find the PRO version at [woocommerce.com](https://woocommerce.com/products/redsys-gateway/)
 
 With this extension, you get all you need to use Redsys Gateway.
 
@@ -100,8 +100,9 @@ Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com
 == 6.1.0 ==
 
 * NEW: Removed support for PHP < 7.
-* UPDATE: Compatibility with PHP >= 8.2
+* UPDATE: Compatibility with PHP 8.2 & 8.3
 * UPDATE: Code is Poetry
+* UPDATE: Some Links
 * FIX: Fixed an issue where Redsys notification to the site would fail if the terminal was in test mode and the real SHA256 was not entered in Bizum and Google Pay redirection.
 
 == 6.0.0 ==
