@@ -157,7 +157,7 @@ class RedsysAPI {
 		// Se transforma el array de datos en un objeto Json.
 		$json = $this->array_to_json();
 		// Se codifican los datos Base64.
-		return $this->encodeBase64( $json );
+		return $this->encode_base64( $json );
 	}
 	/**
 	 * Crear firma del comercio.
@@ -176,7 +176,7 @@ class RedsysAPI {
 		// MAC256 del parámetro Ds_MerchantParameters.
 		$res = $this->mac256( $ent, $key );
 		// Se codifican los datos Base64.
-		return $this->encodeBase64( $res );
+		return $this->encode_base64( $res );
 	}
 	/**
 	 * FUNCIONES PARA LA RECEPCIÓN DE DATOS DE PAGO (Notif, URLOK y URLKO)
@@ -282,7 +282,7 @@ class RedsysAPI {
 		// MAC256 del parámetro Ds_Parameters que envía Redsys.
 		$res = $this->mac256( $datos, $key );
 		// Se codifican los datos Base64.
-		return $this->encodeBase64( $res );
+		return $this->encode_base64( $res );
 	}
 	/**
 	 * Crear firma del comercio para Notif, URLOK y URLKO.
@@ -301,6 +301,6 @@ class RedsysAPI {
 		// MAC256 del parámetro Ds_Parameters que envía Redsys.
 		$res = $this->mac256( $datos, $key );
 		// Se codifican los datos Base64.
-		return $this->encodeBase64( $res );
+		return $this->encode_base64( $res );
 	}
 }

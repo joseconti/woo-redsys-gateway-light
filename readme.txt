@@ -97,6 +97,10 @@ Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com
 
 == Changelog ==
 
+== 6.1.1 ==
+
+* FIX: API function ERROR
+
 == 6.1.0 ==
 
 * NEW: Removed support for PHP < 7.

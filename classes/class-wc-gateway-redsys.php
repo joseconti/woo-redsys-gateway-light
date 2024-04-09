@@ -361,26 +361,26 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$merchant_module = 'WooCommerce_Redsys_Gateway_Light_' . REDSYS_WOOCOMMERCE_VERSION . '_WordPress.org';
 		// redsys Args.
 		$mi_obj = new RedsysAPI();
-		$mi_obj->setParameter( 'DS_MERCHANT_AMOUNT', $order_total_sign );
-		$mi_obj->setParameter( 'DS_MERCHANT_ORDER', $transaction_id2 );
-		$mi_obj->setParameter( 'DS_MERCHANT_MERCHANTCODE', $this->customer );
-		$mi_obj->setParameter( 'DS_MERCHANT_CURRENCY', $currency_codes[ get_woocommerce_currency() ] );
-		$mi_obj->setParameter( 'DS_MERCHANT_TRANSACTIONTYPE', $transaction_type );
-		$mi_obj->setParameter( 'DS_MERCHANT_TERMINAL', $dsmerchantterminal );
-		$mi_obj->setParameter( 'DS_MERCHANT_MERCHANTURL', $final_notify_url );
-		$mi_obj->setParameter( 'DS_MERCHANT_TITULAR', $nombr_apellidos );
-		$mi_obj->setParameter( 'DS_MERCHANT_URLOK', add_query_arg( 'utm_nooverride', '1', $this->get_return_url( $order ) ) );
-		$mi_obj->setParameter( 'DS_MERCHANT_URLKO', $returnfromredsys );
-		$mi_obj->setParameter( 'DS_MERCHANT_CONSUMERLANGUAGE', $gatewaylanguage );
-		$mi_obj->setParameter( 'DS_MERCHANT_PRODUCTDESCRIPTION', __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number() );
-		$mi_obj->setParameter( 'DS_MERCHANT_MERCHANTNAME', $this->commercename );
+		$mi_obj->set_parameter( 'DS_MERCHANT_AMOUNT', $order_total_sign );
+		$mi_obj->set_parameter( 'DS_MERCHANT_ORDER', $transaction_id2 );
+		$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTCODE', $this->customer );
+		$mi_obj->set_parameter( 'DS_MERCHANT_CURRENCY', $currency_codes[ get_woocommerce_currency() ] );
+		$mi_obj->set_parameter( 'DS_MERCHANT_TRANSACTIONTYPE', $transaction_type );
+		$mi_obj->set_parameter( 'DS_MERCHANT_TERMINAL', $dsmerchantterminal );
+		$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTURL', $final_notify_url );
+		$mi_obj->set_parameter( 'DS_MERCHANT_TITULAR', $nombr_apellidos );
+		$mi_obj->set_parameter( 'DS_MERCHANT_URLOK', add_query_arg( 'utm_nooverride', '1', $this->get_return_url( $order ) ) );
+		$mi_obj->set_parameter( 'DS_MERCHANT_URLKO', $returnfromredsys );
+		$mi_obj->set_parameter( 'DS_MERCHANT_CONSUMERLANGUAGE', $gatewaylanguage );
+		$mi_obj->set_parameter( 'DS_MERCHANT_PRODUCTDESCRIPTION', __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number() );
+		$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTNAME', $this->commercename );
 		if ( $order_total_sign <= 3000 && 'yes' === $this->lwvactive ) {
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'redsys', ' ' );
 				$this->log->add( 'redsys', 'Using LWV' );
 				$this->log->add( 'redsys', ' ' );
 			}
-			$mi_obj->setParameter( 'DS_MERCHANT_EXCEP_SCA', 'LWV' );
+			$mi_obj->set_parameter( 'DS_MERCHANT_EXCEP_SCA', 'LWV' );
 		} else {
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'redsys', ' ' );
@@ -388,15 +388,15 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				$this->log->add( 'redsys', ' ' );
 			}
 		}
-		$mi_obj->setParameter( 'DS_MERCHANT_MODULE', $merchant_module );
+		$mi_obj->set_parameter( 'DS_MERCHANT_MODULE', $merchant_module );
 		if ( ! empty( $this->payoptions ) || ' ' !== $this->payoptions ) {
-			$mi_obj->setParameter( 'DS_MERCHANT_PAYMETHODS', $this->payoptions );
+			$mi_obj->set_parameter( 'DS_MERCHANT_PAYMETHODS', $this->payoptions );
 		} else {
-			$mi_obj->setParameter( 'DS_MERCHANT_PAYMETHODS', 'T' );
+			$mi_obj->set_parameter( 'DS_MERCHANT_PAYMETHODS', 'T' );
 		}
 		if ( 'yes' === $this->psd2 ) {
 			$psd2 = WCPSD2L()->get_acctinfo( $order );
-			$mi_obj->setParameter( 'Ds_Merchant_EMV3DS', $psd2 );
+			$mi_obj->set_parameter( 'Ds_Merchant_EMV3DS', $psd2 );
 
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'redsys', 'PSD2 activado' );
@@ -674,26 +674,26 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$dsexpirymonth     = '';
 		$decodedata        = $mi_obj->decode_merchant_parameters( $data );
 		$localsecret       = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
-		$total             = $mi_obj->getParameter( 'Ds_Amount' );
-		$ordermi           = $mi_obj->getParameter( 'Ds_Order' );
-		$dscode            = $mi_obj->getParameter( 'Ds_MerchantCode' );
-		$currency_code     = $mi_obj->getParameter( 'Ds_Currency' );
-		$response          = $mi_obj->getParameter( 'Ds_Response' );
-		$id_trans          = $mi_obj->getParameter( 'Ds_AuthorisationCode' );
-		$dsdate            = htmlspecialchars_decode( $mi_obj->getParameter( 'Ds_Date' ) );
-		$dshour            = htmlspecialchars_decode( $mi_obj->getParameter( 'Ds_Hour' ) );
-		$dstermnal         = $mi_obj->getParameter( 'Ds_Terminal' );
-		$dsmerchandata     = $mi_obj->getParameter( 'Ds_MerchantData' );
-		$dssucurepayment   = $mi_obj->getParameter( 'Ds_SecurePayment' );
-		$dscardcountry     = $mi_obj->getParameter( 'Ds_Card_Country' );
-		$dsconsumercountry = $mi_obj->getParameter( 'Ds_ConsumerLanguage' );
-		$dstransactiontype = $mi_obj->getParameter( 'Ds_TransactionType' );
-		$dsmerchantidenti  = $mi_obj->getParameter( 'Ds_Merchant_Identifier' );
-		$dscardbrand       = $mi_obj->getParameter( 'Ds_Card_Brand' );
-		$dsmechandata      = $mi_obj->getParameter( 'Ds_MerchantData' );
-		$dscargtype        = $mi_obj->getParameter( 'Ds_Card_Type' );
-		$dserrorcode       = $mi_obj->getParameter( 'Ds_ErrorCode' );
-		$dpaymethod        = $mi_obj->getParameter( 'Ds_PayMethod' ); // D o R, D: Domiciliacion, R: Transferencia. Si se paga por Iupay o TC, no se utiliza.
+		$total             = $mi_obj->get_parameter( 'Ds_Amount' );
+		$ordermi           = $mi_obj->get_parameter( 'Ds_Order' );
+		$dscode            = $mi_obj->get_parameter( 'Ds_MerchantCode' );
+		$currency_code     = $mi_obj->get_parameter( 'Ds_Currency' );
+		$response          = $mi_obj->get_parameter( 'Ds_Response' );
+		$id_trans          = $mi_obj->get_parameter( 'Ds_AuthorisationCode' );
+		$dsdate            = htmlspecialchars_decode( $mi_obj->get_parameter( 'Ds_Date' ) );
+		$dshour            = htmlspecialchars_decode( $mi_obj->get_parameter( 'Ds_Hour' ) );
+		$dstermnal         = $mi_obj->get_parameter( 'Ds_Terminal' );
+		$dsmerchandata     = $mi_obj->get_parameter( 'Ds_MerchantData' );
+		$dssucurepayment   = $mi_obj->get_parameter( 'Ds_SecurePayment' );
+		$dscardcountry     = $mi_obj->get_parameter( 'Ds_Card_Country' );
+		$dsconsumercountry = $mi_obj->get_parameter( 'Ds_ConsumerLanguage' );
+		$dstransactiontype = $mi_obj->get_parameter( 'Ds_TransactionType' );
+		$dsmerchantidenti  = $mi_obj->get_parameter( 'Ds_Merchant_Identifier' );
+		$dscardbrand       = $mi_obj->get_parameter( 'Ds_Card_Brand' );
+		$dsmechandata      = $mi_obj->get_parameter( 'Ds_MerchantData' );
+		$dscargtype        = $mi_obj->get_parameter( 'Ds_Card_Type' );
+		$dserrorcode       = $mi_obj->get_parameter( 'Ds_ErrorCode' );
+		$dpaymethod        = $mi_obj->get_parameter( 'Ds_PayMethod' ); // D o R, D: Domiciliacion, R: Transferencia. Si se paga por Iupay o TC, no se utiliza.
 		$order1            = $ordermi;
 		$order2            = WCRedL()->clean_order_number( $ordermi );
 		$order             = $this->get_redsys_order( (int) $order2 );
@@ -891,19 +891,19 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 
 			$mi_obj = new RedsysAPI();
 
-			$mi_obj->setParameter( 'DS_MERCHANT_MODULE', $merchant_module );
-			$mi_obj->setParameter( 'DS_MERCHANT_AMOUNT', $amount );
-			$mi_obj->setParameter( 'DS_MERCHANT_ORDER', $transaction_id );
-			$mi_obj->setParameter( 'DS_MERCHANT_MERCHANTCODE', $this->customer );
-			$mi_obj->setParameter( 'DS_MERCHANT_CURRENCY', $currency );
-			$mi_obj->setParameter( 'DS_MERCHANT_TRANSACTIONTYPE', $transaction_type );
-			$mi_obj->setParameter( 'DS_MERCHANT_TERMINAL', $terminal );
-			$mi_obj->setParameter( 'DS_MERCHANT_MERCHANTURL', $final_notify_url );
-			$mi_obj->setParameter( 'DS_MERCHANT_URLOK', add_query_arg( 'utm_nooverride', '1', $this->get_return_url( $order ) ) );
-			$mi_obj->setParameter( 'DS_MERCHANT_URLKO', $order->get_cancel_order_url() );
-			$mi_obj->setParameter( 'DS_MERCHANT_CONSUMERLANGUAGE', '001' );
-			$mi_obj->setParameter( 'DS_MERCHANT_PRODUCTDESCRIPTION', __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number() );
-			$mi_obj->setParameter( 'DS_MERCHANT_MERCHANTNAME', $this->commercename );
+			$mi_obj->set_parameter( 'DS_MERCHANT_MODULE', $merchant_module );
+			$mi_obj->set_parameter( 'DS_MERCHANT_AMOUNT', $amount );
+			$mi_obj->set_parameter( 'DS_MERCHANT_ORDER', $transaction_id );
+			$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTCODE', $this->customer );
+			$mi_obj->set_parameter( 'DS_MERCHANT_CURRENCY', $currency );
+			$mi_obj->set_parameter( 'DS_MERCHANT_TRANSACTIONTYPE', $transaction_type );
+			$mi_obj->set_parameter( 'DS_MERCHANT_TERMINAL', $terminal );
+			$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTURL', $final_notify_url );
+			$mi_obj->set_parameter( 'DS_MERCHANT_URLOK', add_query_arg( 'utm_nooverride', '1', $this->get_return_url( $order ) ) );
+			$mi_obj->set_parameter( 'DS_MERCHANT_URLKO', $order->get_cancel_order_url() );
+			$mi_obj->set_parameter( 'DS_MERCHANT_CONSUMERLANGUAGE', '001' );
+			$mi_obj->set_parameter( 'DS_MERCHANT_PRODUCTDESCRIPTION', __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number() );
+			$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTNAME', $this->commercename );
 
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'redsys', ' ' );
