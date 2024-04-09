@@ -168,7 +168,7 @@ class RedsysAPI {
 	 */
 	public function create_merchant_signature( $key ) {
 		// Se decodifica la clave Base64.
-		$key = $this->decodeBase64( $key );
+		$key = $this->decode_base64( $key );
 		// Se genera el parámetro Ds_MerchantParameters.
 		$ent = $this->create_merchant_parameters();
 		// Se diversifica la clave con el Número de Pedido.
@@ -254,7 +254,7 @@ class RedsysAPI {
 	 */
 	public function create_merchant_signature_notif( $key, $datos ) {
 		// Se decodifica la clave Base64.
-		$key = $this->decodeBase64( $key );
+		$key = $this->decode_base64( $key );
 		// Se decodifican los datos Base64.
 		$decodec = $this->base64_url_decode( $datos );
 		// Los datos decodificados se pasan al array de datos.
@@ -274,7 +274,7 @@ class RedsysAPI {
 	 */
 	public function create_merchant_signature_notif_soap_request( $key, $datos ) {
 		// Se decodifica la clave Base64.
-		$key = $this->decodeBase64( $key );
+		$key = $this->decode_base64( $key );
 		// Se obtienen los datos del Request.
 		$datos = $this->get_request_notif_soap( $datos );
 		// Se diversifica la clave con el Número de Pedido.
@@ -293,7 +293,7 @@ class RedsysAPI {
 	 */
 	public function create_merchant_signature_notif_soap_response( $key, $datos, $num_pedido ) {
 		// Se decodifica la clave Base64.
-		$key = $this->decodeBase64( $key );
+		$key = $this->decode_base64( $key );
 		// Se obtienen los datos del Request.
 		$datos = $this->get_response_notif_soap( $datos );
 		// Se diversifica la clave con el Número de Pedido.
