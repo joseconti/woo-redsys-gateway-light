@@ -97,6 +97,10 @@ Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com
 
 == Changelog ==
 
+== 6.1.3 ==
+
+* FIX: Refunds in Google Pay redirection.
+
 == 6.1.2 ==
 
 * FIX: Enhanced update_order_meta() for accept array() values.
