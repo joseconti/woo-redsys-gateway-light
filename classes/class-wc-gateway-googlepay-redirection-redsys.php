@@ -1451,7 +1451,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		set_time_limit( 0 );
 		$order = wc_get_order( $order_id );
 
-		$transaction_id = WCRedL()->get_redsys_order_number( $order_id );
+		$transaction_id = WCRedL()->get_order_meta( $order_id, '_payment_order_number_redsys', true );
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'googlepayredirecredsys', __( '$order_id#: ', 'woo-redsys-gateway-light' ) . $transaction_id );
 		}

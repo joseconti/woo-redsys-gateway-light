@@ -17,14 +17,7 @@ function redsys_return_types() {
 
 	return array(
 		'redsys',
-		'masterpass',
-		'redsysbank',
 		'bizumredsys',
-		'iupay',
-		'insite',
-		'preauthorizationsredsys',
-		'directdebitredsys',
-		'webserviceredsys',
-		'paygold',
+		'googlepayredirecredsys',
 	);
 }
