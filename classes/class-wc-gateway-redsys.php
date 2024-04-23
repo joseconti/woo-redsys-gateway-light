@@ -288,7 +288,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				'type'        => 'checkbox',
 				'label'       => __( 'Enable logging', 'woo-redsys-gateway-light' ),
 				'default'     => 'no',
-				'description' => __( 'Log Servired/RedSys events, such as notifications requests, inside <code><code>WooCommerce > Status > Logs > redsys-{date}-{number}.log</code></code>', 'woo-redsys-gateway-light' ),
+				'description' => __( 'Log Servired/RedSys events, such as notifications requests, inside <code>WooCommerce > Status > Logs > redsys-{date}-{number}.log</code>', 'woo-redsys-gateway-light' ),
 			),
 		);
 	}
