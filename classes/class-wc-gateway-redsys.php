@@ -925,7 +925,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				$this->log->add( 'redsys', __( 'DS_MERCHANT_MERCHANTNAME : ', 'woo-redsys-gateway-light' ) . $this->commercename );
 				$this->log->add( 'redsys', __( 'DS_MERCHANT_AUTHORISATIONCODE : ', 'woo-redsys-gateway-light' ) . $autorization_code );
 				$this->log->add( 'redsys', __( 'Ds_Merchant_TransactionDate : ', 'woo-redsys-gateway-light' ) . $autorization_date );
-				$this->log->add( 'redsys', __( 'ask_for_refund Asking por order #: ', 'woo-redsys-gateway-light' ) . $order_id );
+				$this->log->add( 'redsys', __( 'ask_for_refund Asking for order #: ', 'woo-redsys-gateway-light' ) . $order_id );
 				$this->log->add( 'redsys', ' ' );
 			}
 
@@ -1011,7 +1011,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				$this->log->add( 'redsys', '       Once upon a time       ' );
 				$this->log->add( 'redsys', '/****************************/' );
 				$this->log->add( 'redsys', ' ' );
-				$this->log->add( 'redsys', __( 'check_redsys_refund Asking por order #: ', 'woo-redsys-gateway-light' ) . $order_id );
+				$this->log->add( 'redsys', __( 'check_redsys_refund Asking for order #: ', 'woo-redsys-gateway-light' ) . $order_id );
 			}
 
 			$refund_asked = $this->ask_for_refund( $order_id, $transaction_id, $order_total_sign );

@@ -671,7 +671,7 @@ msgstr ""
 #: classes/class-wc-gateway-bizum-redsys.php:1194
 #: classes/class-wc-gateway-googlepay-redirection-redsys.php:1191
 #: classes/class-wc-gateway-redsys.php:928
-msgid "ask_for_refund Asking por order #: "
+msgid "ask_for_refund Asking for order #: "
 msgstr ""
 
 #: classes/class-wc-gateway-bizum-redsys.php:1220
@@ -923,7 +923,7 @@ msgid "Order cancelled by Redsys"
 msgstr ""
 
 #: classes/class-wc-gateway-redsys.php:1014
-msgid "check_redsys_refund Asking por order #: "
+msgid "check_redsys_refund Asking for order #: "
 msgstr ""
 
 #: classes/class-wc-gateway-redsys.php:1085

@@ -1379,7 +1379,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'googlepayredirecredsys', __( 'DS_MERCHANT_MERCHANTNAME : ', 'woo-redsys-gateway-light' ) . $this->commercename );
 			$this->log->add( 'googlepayredirecredsys', __( 'DS_MERCHANT_AUTHORISATIONCODE : ', 'woo-redsys-gateway-light' ) . $autorization_code );
 			$this->log->add( 'googlepayredirecredsys', __( 'Ds_Merchant_TransactionDate : ', 'woo-redsys-gateway-light' ) . $autorization_date );
-			$this->log->add( 'googlepayredirecredsys', __( 'ask_for_refund Asking por order #: ', 'woo-redsys-gateway-light' ) . $order_id );
+			$this->log->add( 'googlepayredirecredsys', __( 'ask_for_refund Asking for order #: ', 'woo-redsys-gateway-light' ) . $order_id );
 			$this->log->add( 'googlepayredirecredsys', ' ' );
 		}
 
