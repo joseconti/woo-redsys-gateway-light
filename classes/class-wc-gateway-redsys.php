@@ -216,6 +216,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	 * @var string
 	 */
 	public $payoptions;
+
 	/**
 	 * Constructor for the gateway.
 	 *

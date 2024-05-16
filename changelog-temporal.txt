@@ -1,1 +1,2 @@
 * Arreglado una doble etiqueta Code descripción Redsys redirección https://github.com/joseconti/woo-redsys-gateway-light/issues/22
+* Areglado unos deprectaed en Redsys redirección por PHP >= 8.2

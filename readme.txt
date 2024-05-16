@@ -50,11 +50,11 @@ Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com
 * Preauthorizations, global or product by product.
 * Approve preauthorizations from WooCommerce order
 * Bulk approve Pre-authorizations from Orders List
+* Subscriptions (Woo Subscriptions, Yith Subscriptions premium y SUMO Subscriptions).
 * Bank transfers
 * Direct debits
 * Browser iFrame
 * Always compatible with WooCommerce & Continuous audits by WooCommerce Team.
-* Compatible with WooCommerce Subscriptions
 * WPML compatible.
 * Works with SNI certificates like Let's Encrypt, EX: SiteGround, HostFusion, etc
 * Gateway language selection from settings.
@@ -62,6 +62,7 @@ Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com
 * Tokenization
 * Pay with 1 click
 * Pay with 1 click without leaving the website 
+* Pay with 1 click from product page. 
 * Bulk Charge orders from the Orders List (With Tokens).
 * Direct Debit
 * Private Products
