@@ -60,13 +60,11 @@ class WC_Gateway_Redsys_PSD2_Light {
 			'/' => ' ',
 			'"' => ' ',
 			"'" => ' ',
-			'"' => ' ',
 			'?' => ' ',
 			'¿' => ' ',
 			'º' => ' ',
 			'ª' => ' ',
 			'#' => ' ',
-			'&' => ' ',
 			'@' => ' ',
 		);
 
@@ -195,10 +193,8 @@ class WC_Gateway_Redsys_PSD2_Light {
 
 	/**
 	 * Get Challenge.
-	 *
-	 * @param obj $order Object WooCommerce Order.
 	 */
-	public function get_challenge_wwndow_size( $order ) {
+	public function get_challenge_wwndow_size() {
 
 		/**
 		 * 01 = 250x 400
