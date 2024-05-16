@@ -53,7 +53,7 @@ Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com
 * Subscriptions (Woo Subscriptions, Yith Subscriptions premium y SUMO Subscriptions).
 * Bank transfers
 * Direct debits
-* Browser iFrame
+* Pay in a Modal without leaving the site.
 * Always compatible with WooCommerce & Continuous audits by WooCommerce Team.
 * WPML compatible.
 * Works with SNI certificates like Let's Encrypt, EX: SiteGround, HostFusion, etc
