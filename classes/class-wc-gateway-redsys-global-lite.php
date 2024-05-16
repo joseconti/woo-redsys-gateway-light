@@ -11,16 +11,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Global class Redsys
+ * This class is used to get the options of the plugin and to get the data of the plugin.
+ *
+ * @since 1.0.0
  */
-/**
- * Copyright: (C) 2013 - 2021 José Conti
- */
-class WC_Gateway_Redsys_Global_lite {
+class WC_Gateway_Redsys_Global_Lite {
 
+	/**
+	 * Log
+	 *
+	 * @var WC_Logger
+	 */
+	public $log;
+
+	/**
+	 * Class constructor.
+	 */
 	public function __construct() {
 		$this->log = new WC_Logger();
 	}
-
+	/**
+	 * Debug function.
+	 *
+	 * @param mixed $log The log to debug.
+	 */
 	public function debug( $log ) {
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 			$debug = new WC_Logger();
@@ -28,7 +42,11 @@ class WC_Gateway_Redsys_Global_lite {
 		}
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get Redsys option.
+	 *
+	 * @param string $option The option to retrieve.
+	 * @param string $gateway The gateway name.
+	 * @return mixed The option value.
 	 */
 	public function get_redsys_option( $option, $gateway ) {
 
@@ -47,72 +65,129 @@ class WC_Gateway_Redsys_Global_lite {
 		}
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Clean data.
+	 *
+	 * @param mixed $out The data to clean.
+	 * @return mixed The cleaned data.
 	 */
 	public function clean_data( $out ) {
+		// Arrays con los caracteres a reemplazar y sus reemplazos.
+		$search  = array(
+			'Á',
+			'À',
+			'Ä',
+			'É',
+			'È',
+			'Ë',
+			'Í',
+			'Ì',
+			'Ï',
+			'Ó',
+			'Ò',
+			'Ö',
+			'Ú',
+			'Ù',
+			'Ü',
+			'á',
+			'à',
+			'ä',
+			'é',
+			'è',
+			'ë',
+			'í',
+			'ì',
+			'ï',
+			'ó',
+			'ò',
+			'ö',
+			'ú',
+			'ù',
+			'ü',
+			'Ñ',
+			'ñ',
+			'&',
+			'<',
+			'>',
+			'/',
+			'"',
+			"'",
+			'?',
+			'¿',
+			'º',
+			'ª',
+			'#',
+			'@',
+		);
+		$replace = array(
+			'A',
+			'A',
+			'A',
+			'E',
+			'E',
+			'E',
+			'I',
+			'I',
+			'I',
+			'O',
+			'O',
+			'O',
+			'U',
+			'U',
+			'U',
+			'a',
+			'a',
+			'a',
+			'e',
+			'e',
+			'e',
+			'i',
+			'i',
+			'i',
+			'o',
+			'o',
+			'o',
+			'u',
+			'u',
+			'u',
+			'N',
+			'n',
+			'-',
+			' ',
+			' ',
+			' ',
+			' ',
+			' ',
+			' ',
+			' ',
+			' ',
+			'',
+			'',
+			' ',
+		);
 
-		$out = str_replace( 'Á', 'A', $out );
-		$out = str_replace( 'À', 'A', $out );
-		$out = str_replace( 'Ä', 'A', $out );
-		$out = str_replace( 'É', 'E', $out );
-		$out = str_replace( 'È', 'E', $out );
-		$out = str_replace( 'Ë', 'E', $out );
-		$out = str_replace( 'Í', 'I', $out );
-		$out = str_replace( 'Ì', 'I', $out );
-		$out = str_replace( 'Ï', 'I', $out );
-		$out = str_replace( 'Ó', 'O', $out );
-		$out = str_replace( 'Ò', 'O', $out );
-		$out = str_replace( 'Ö', 'O', $out );
-		$out = str_replace( 'Ú', 'U', $out );
-		$out = str_replace( 'Ù', 'U', $out );
-		$out = str_replace( 'Ü', 'U', $out );
-		$out = str_replace( 'á', 'a', $out );
-		$out = str_replace( 'à', 'a', $out );
-		$out = str_replace( 'ä', 'a', $out );
-		$out = str_replace( 'é', 'e', $out );
-		$out = str_replace( 'è', 'e', $out );
-		$out = str_replace( 'ë', 'e', $out );
-		$out = str_replace( 'í', 'i', $out );
-		$out = str_replace( 'ì', 'i', $out );
-		$out = str_replace( 'ï', 'i', $out );
-		$out = str_replace( 'ó', 'o', $out );
-		$out = str_replace( 'ò', 'o', $out );
-		$out = str_replace( 'ö', 'o', $out );
-		$out = str_replace( 'ú', 'u', $out );
-		$out = str_replace( 'ù', 'u', $out );
-		$out = str_replace( 'ü', 'u', $out );
-		$out = str_replace( 'Ñ', 'N', $out );
-		$out = str_replace( 'ñ', 'n', $out );
-		$out = str_replace( '&', '-', $out );
-		$out = str_replace( '<', ' ', $out );
-		$out = str_replace( '>', ' ', $out );
-		$out = str_replace( '/', ' ', $out );
-		$out = str_replace( '"', ' ', $out );
-		$out = str_replace( "'", ' ', $out );
-		$out = str_replace( '"', ' ', $out );
-		$out = str_replace( '?', ' ', $out );
-		$out = str_replace( '¿', ' ', $out );
-		$out = str_replace( 'º', ' ', $out );
-		$out = str_replace( 'ª', ' ', $out );
-		$out = str_replace( '#', ' ', $out );
-		$out = str_replace( '&', ' ', $out );
-		$out = str_replace( '@', ' ', $out );
-
-		return $out;
+		// Realizar todas las sustituciones en una sola llamada.
+		return str_replace( $search, $replace, $out );
 	}
-
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the order object by order ID.
+	 *
+	 * @param int $order_id The ID of the order.
+	 * @return WC_Order|false The order object if found, false otherwise.
 	 */
 	public function get_order( $order_id ) {
 		$order = new WC_Order( $order_id );
 		return $order;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the meta value for a specific key from the order.
+	 *
+	 * @param int    $order_id The ID of the order.
+	 * @param string $key      The meta key.
+	 * @param bool   $single   Optional. Whether to return a single value or an array of values. Default true.
+	 * @return mixed The meta value if found, false otherwise.
 	 */
 	public function get_order_meta( $order_id, $key, $single = true ) {
-		$order    = wc_get_order( $order_id );
+		$order = wc_get_order( $order_id );
 		if ( $order ) {
 			$context  = 'view';
 			$order_id = $order->get_meta( $key, $single, $context );
@@ -126,42 +201,66 @@ class WC_Gateway_Redsys_Global_lite {
 		}
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Update the meta data for an order.
+	 *
+	 * @param int          $post_id        The ID of the order.
+	 * @param array|string $meta_key_array The meta key(s) to update.
+	 * @param mixed        $meta_value     Optional. The new meta value. Default false.
 	 */
 	public function update_order_meta( $post_id, $meta_key_array, $meta_value = false ) {
+		// Si $meta_key_array no es un array, se convierte en un array asociativo.
 		if ( ! is_array( $meta_key_array ) ) {
-			$meta_keys = array( $meta_key_array => $meta_value );
-		} else {
-			$meta_keys = $meta_key_array;
+			$meta_key_array = array( $meta_key_array => $meta_value );
 		}
+
+		// Obtener el ID del pedido asociado al post_id.
 		$order_id = $this->get_order_meta( $post_id, 'post_id', true );
+
+		// Si existe un ID de pedido asociado, usarlo, de lo contrario, usar el post_id.
 		if ( $order_id ) {
 			$post_id = $order_id;
-			$order   = wc_get_order( $post_id );
 		} else {
-			$order = wc_get_order( $post_id );
+			$post_id = $post_id;
 		}
-		foreach ( $meta_keys as $meta_key => $meta_value ) {
+
+		// Obtener el pedido de WooCommerce.
+		$order = wc_get_order( $post_id );
+
+		// Actualizar los metadatos del pedido.
+		foreach ( $meta_key_array as $meta_key => $meta_value ) {
 			$order->update_meta_data( $meta_key, $meta_value );
 		}
+
+		// Guardar los cambios en el pedido.
 		$order->save();
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Set the transaction ID for a token.
+	 *
+	 * @param int    $token_num      The token number.
+	 * @param string $redsys_txnid   The transaction ID.
 	 */
 	public function set_txnid( $token_num, $redsys_txnid ) {
 		if ( $redsys_txnid ) {
 			update_option( 'txnid_' . $token_num, $redsys_txnid );
 		}
 	}
-
+	/**
+	 * Set the token type for a token.
+	 *
+	 * @param int    $token_num      The token number.
+	 * @param string $type           The token type.
+	 */
 	public function set_token_type( $token_num, $type ) {
 		if ( $token_num && $type ) {
 			update_option( 'token_type_' . $token_num, $type );
 		}
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the transaction ID for a token.
+	 *
+	 * @param int $token_num The token number.
+	 * @return mixed The transaction ID if found, false otherwise.
 	 */
 	public function get_txnid( $token_num ) {
 		if ( $token_num ) {
@@ -174,7 +273,12 @@ class WC_Gateway_Redsys_Global_lite {
 		}
 		return false;
 	}
-
+	/**
+	 * Get the token type for a token.
+	 *
+	 * @param int $token_num The token number.
+	 * @return mixed The token type if found, false otherwise.
+	 */
 	public function get_token_type( $token_num ) {
 		if ( $token_num ) {
 			$redsys_token_type = get_option( 'token_type_' . $token_num, true );
@@ -186,9 +290,10 @@ class WC_Gateway_Redsys_Global_lite {
 		}
 		return false;
 	}
-
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the DS error.
+	 *
+	 * @return array The DS error.
 	 */
 	public function get_ds_error() {
 
@@ -199,7 +304,9 @@ class WC_Gateway_Redsys_Global_lite {
 		return $dserrors;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the DS response.
+	 *
+	 * @return array The DS response.
 	 */
 	public function get_ds_response() {
 
@@ -210,7 +317,9 @@ class WC_Gateway_Redsys_Global_lite {
 		return $dsresponse;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the error message.
+	 *
+	 * @return array The error message.
 	 */
 	public function get_msg_error() {
 
@@ -221,7 +330,9 @@ class WC_Gateway_Redsys_Global_lite {
 		return $msgerrors;
 	}
 	/**
-	 * Get country codes
+	 * Get country codes phone.
+	 *
+	 * @return array The country codes phone.
 	 */
 	public function get_country_codes_phone() {
 
@@ -287,7 +398,10 @@ class WC_Gateway_Redsys_Global_lite {
 		return false;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Check if the given error code is a DS error.
+	 *
+	 * @param mixed $error_code The error code to check.
+	 * @return bool True if the error code is a DS error, false otherwise.
 	 */
 	public function is_ds_error( $error_code = null ) {
 
@@ -307,7 +421,10 @@ class WC_Gateway_Redsys_Global_lite {
 		return false;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Check if the given error code is a DS response.
+	 *
+	 * @param mixed $error_code The error code to check.
+	 * @return bool True if the error code is a DS response, false otherwise.
 	 */
 	public function is_ds_response( $error_code = null ) {
 
@@ -326,7 +443,10 @@ class WC_Gateway_Redsys_Global_lite {
 		return false;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Check if the given error code is a message error.
+	 *
+	 * @param mixed $error_code The error code to check.
+	 * @return bool True if the error code is a message error, false otherwise.
 	 */
 	public function is_msg_error( $error_code = null ) {
 
@@ -346,7 +466,10 @@ class WC_Gateway_Redsys_Global_lite {
 		return false;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the message error by error code.
+	 *
+	 * @param mixed $error_code The error code to check.
+	 * @return mixed The message error if found, false otherwise.
 	 */
 	public function get_msg_error_by_code( $error_code = null ) {
 
@@ -371,7 +494,10 @@ class WC_Gateway_Redsys_Global_lite {
 		return false;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the error message by error code.
+	 *
+	 * @param mixed $error_code The error code to check.
+	 * @return mixed The error message if found, false otherwise.
 	 */
 	public function get_error_by_code( $error_code = null ) {
 
@@ -396,7 +522,10 @@ class WC_Gateway_Redsys_Global_lite {
 		return false;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the response by error code.
+	 *
+	 * @param mixed $error_code The error code to check.
+	 * @return mixed The response if found, false otherwise.
 	 */
 	public function get_response_by_code( $error_code = null ) {
 
@@ -421,7 +550,10 @@ class WC_Gateway_Redsys_Global_lite {
 		return false;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Check if the given error code is a Redsys error.
+	 *
+	 * @param mixed $error_code The error code to check.
+	 * @return bool True if the error code is a Redsys error, false otherwise.
 	 */
 	public function is_redsys_error( $error_code = null ) {
 
@@ -439,7 +571,10 @@ class WC_Gateway_Redsys_Global_lite {
 		return false;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the error message by error code.
+	 *
+	 * @param mixed $error_code The error code to check.
+	 * @return mixed The error message if found, false otherwise.
 	 */
 	public function get_error( $error_code = null ) {
 
@@ -457,7 +592,10 @@ class WC_Gateway_Redsys_Global_lite {
 		return false;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the error type by error code.
+	 *
+	 * @param mixed $error_code The error code to check.
+	 * @return mixed The error type if found, false otherwise.
 	 */
 	public function get_error_type( $error_code = null ) {
 
@@ -475,7 +613,9 @@ class WC_Gateway_Redsys_Global_lite {
 		return false;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the currencies.
+	 *
+	 * @return array The currencies.
 	 */
 	public function get_currencies() {
 
@@ -486,7 +626,9 @@ class WC_Gateway_Redsys_Global_lite {
 		return $currencies;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the allowed currencies.
+	 *
+	 * @return array The allowed currencies.
 	 */
 	public function allowed_currencies() {
 
@@ -497,7 +639,9 @@ class WC_Gateway_Redsys_Global_lite {
 		return $currencies;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the Redsys languages.
+	 *
+	 * @return array The Redsys languages.
 	 */
 	public function get_redsys_languages() {
 
@@ -508,7 +652,9 @@ class WC_Gateway_Redsys_Global_lite {
 		return $languages;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the Redsys WP languages.
+	 *
+	 * @return array The Redsys WP languages.
 	 */
 	public function get_redsys_wp_languages() {
 
@@ -519,7 +665,9 @@ class WC_Gateway_Redsys_Global_lite {
 		return $languages;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the orders type.
+	 *
+	 * @return mixed The orders type.
 	 */
 	public function get_orders_type() {
 
@@ -530,7 +678,10 @@ class WC_Gateway_Redsys_Global_lite {
 		return $types;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the language code.
+	 *
+	 * @param string $lang The language code.
+	 * @return string The language code.
 	 */
 	public function get_lang_code( $lang = 'en' ) {
 
@@ -580,9 +731,13 @@ class WC_Gateway_Redsys_Global_lite {
 		}
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Check if an order exists.
+	 *
+	 * @param int $order_id The order ID.
+	 * @return bool True if the order exists, false otherwise.
 	 */
 	public function order_exist( $order_id ) {
+
 		$order = wc_get_order( $order_id );
 
 		if ( empty( $order ) ) {
@@ -591,7 +746,10 @@ class WC_Gateway_Redsys_Global_lite {
 		return true;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Check if a post exists.
+	 *
+	 * @param int $order_id The order ID.
+	 * @return bool True if the post exists, false otherwise.
 	 */
 	public function post_exist( $order_id ) {
 		$post_status = get_post_status( $order_id );
@@ -603,7 +761,11 @@ class WC_Gateway_Redsys_Global_lite {
 		}
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Check if an order is a Redsys order.
+	 *
+	 * @param int    $order_id The order ID.
+	 * @param string $type     The payment method type.
+	 * @return bool True if the order is a Redsys order, false otherwise.
 	 */
 	public function is_redsys_order( $order_id, $type = null ) {
 
@@ -623,12 +785,10 @@ class WC_Gateway_Redsys_Global_lite {
 						continue;
 					}
 					return false;
-				} else {
-					if ( $gateway === $type ) {
+				} elseif ( $gateway === $type ) {
 						return true;
-					} else {
-						return false;
-					}
+				} else {
+					return false;
 				}
 			}
 			return false;
@@ -636,7 +796,10 @@ class WC_Gateway_Redsys_Global_lite {
 		return false;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the payment gateway for an order.
+	 *
+	 * @param int $order_id The order ID.
+	 * @return string|bool The payment gateway if found, false otherwise.
 	 */
 	public function get_gateway( $order_id ) {
 
@@ -650,6 +813,12 @@ class WC_Gateway_Redsys_Global_lite {
 			return false;
 		}
 	}
+	/**
+	 * Get the order number for an order.
+	 *
+	 * @param int $order_id The order ID.
+	 * @return string|bool The order number if found, false otherwise.
+	 */
 	public function get_order_mumber( $order_id ) {
 		$number = $this->get_order_meta( $order_id, '_payment_order_number_redsys', true );
 		if ( ! $number ) {
@@ -658,9 +827,13 @@ class WC_Gateway_Redsys_Global_lite {
 		return $number;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the order date for an order.
+	 *
+	 * @param int $order_id The order ID.
+	 * @return string|bool The order date if found, false otherwise.
 	 */
 	public function get_order_date( $order_id ) {
+
 		$date_decoded = str_replace( '%2F', '/', $this->get_order_meta( $order_id, '_payment_date_redsys', true ) );
 		if ( ! $date_decoded ) {
 			return false;
@@ -668,7 +841,10 @@ class WC_Gateway_Redsys_Global_lite {
 		return $date_decoded;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the order hour for an order.
+	 *
+	 * @param int $order_id The order ID.
+	 * @return string|bool The order hour if found, false otherwise.
 	 */
 	public function get_order_hour( $order_id ) {
 		$hour_decoded = str_replace( '%3A', ':', $this->get_order_meta( $order_id, '_payment_hour_redsys', true ) );
@@ -678,7 +854,10 @@ class WC_Gateway_Redsys_Global_lite {
 		return $hour_decoded;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the authorization code for an order.
+	 *
+	 * @param int $order_id The order ID.
+	 * @return string|bool The authorization code if found, false otherwise.
 	 */
 	public function get_order_auth( $order_id ) {
 		$auth = $this->get_order_meta( $order_id, '_authorisation_code_redsys', true );
@@ -688,7 +867,9 @@ class WC_Gateway_Redsys_Global_lite {
 		return $auth;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the pending status for an order.
+	 *
+	 * @return string The pending status.
 	 */
 	public function get_status_pending() {
 
@@ -699,7 +880,10 @@ class WC_Gateway_Redsys_Global_lite {
 		return apply_filters( 'redsys_status_pending', $status );
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Check if an order is paid.
+	 *
+	 * @param int $order_id The order ID.
+	 * @return bool True if the order is paid, false otherwise.
 	 */
 	public function is_paid( $order_id ) {
 
@@ -746,7 +930,10 @@ class WC_Gateway_Redsys_Global_lite {
 		}
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Check if a gateway is enabled.
+	 *
+	 * @param string $gateway The gateway name.
+	 * @return bool True if the gateway is enabled, false otherwise.
 	 */
 	public function is_gateway_enabled( $gateway ) {
 		$is_enabled = $this->get_redsys_option( 'enabled', $gateway );
@@ -758,15 +945,18 @@ class WC_Gateway_Redsys_Global_lite {
 		}
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Check if a token is valid.
+	 *
+	 * @param int $token_id The token ID.
+	 * @return bool True if the token is valid, false otherwise.
 	 */
 	public function check_if_token_is_valid( $token_id ) {
 
 		$token     = WC_Payment_Tokens::get( $token_id );
 		$year      = $token->get_expiry_year();
 		$month     = $token->get_expiry_month();
-		$act_year  = date( 'Y' );
-		$act_month = date( 'm' );
+		$act_year  = gmdate( 'Y' );
+		$act_month = gmdate( 'm' );
 		if ( $year >= $act_year ) {
 			if ( $year > $act_year ) {
 				return true;
@@ -783,7 +973,11 @@ class WC_Gateway_Redsys_Global_lite {
 		}
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Check if a specific type exists in the given tokens.
+	 *
+	 * @param array  $tokens The tokens to check.
+	 * @param string $type   The type to search for.
+	 * @return bool True if the type exists in the tokens, false otherwise.
 	 */
 	public function check_type_exist_in_tokens( $tokens, $type ) {
 		foreach ( $tokens as $token ) {
@@ -804,7 +998,10 @@ class WC_Gateway_Redsys_Global_lite {
 		}
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the Redsys users token.
+	 *
+	 * @param bool $type The type of token.
+	 * @return string|bool The Redsys users token if found, false otherwise.
 	 */
 	public function get_redsys_users_token( $type = false ) {
 		// $type puede ser R (suscripción) o C (principalmente pago con 1 clic) en estos momentos.
@@ -846,7 +1043,11 @@ class WC_Gateway_Redsys_Global_lite {
 		return $customer_token;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the tokens for a specific user.
+	 *
+	 * @param int    $user_id The ID of the user.
+	 * @param string $type    The type of token.
+	 * @return string|bool The user's token if found, false otherwise.
 	 */
 	public function get_users_token_bulk( $user_id, $type = false ) {
 		$customer_token = false;
@@ -885,7 +1086,10 @@ class WC_Gateway_Redsys_Global_lite {
 		return $customer_token;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Clean the order number.
+	 *
+	 * @param string $ordernumber The order number to clean.
+	 * @return string The cleaned order number.
 	 */
 	public function clean_order_number( $ordernumber ) {
 		$real_order = get_transient( 'redys_order_temp_' . $ordernumber );
@@ -896,7 +1100,10 @@ class WC_Gateway_Redsys_Global_lite {
 		}
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Prepare the order number.
+	 *
+	 * @param int $order_id The ID of the order.
+	 * @return string The prepared order number.
 	 */
 	public function prepare_order_number( $order_id ) {
 		$transaction_id  = str_pad( $order_id, 12, '0', STR_PAD_LEFT );
@@ -906,14 +1113,21 @@ class WC_Gateway_Redsys_Global_lite {
 		return $transaction_id2;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Format the redsys amount.
+	 *
+	 * @param float $total The total amount.
+	 * @return string The formatted amount.
 	 */
 	public function redsys_amount_format( $total ) {
 		$order_total_sign = number_format( $total, 2, '', '' );
 		return $order_total_sign;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the product description for the Redsys payment gateway.
+	 *
+	 * @param WC_Order $order The order object.
+	 * @param string   $gateway The gateway ID.
+	 * @return string The product description.
 	 */
 	public function product_description( $order, $gateway ) {
 		if ( ! $this->is_redsys_order( $order->get_id() ) ) {
@@ -942,7 +1156,11 @@ class WC_Gateway_Redsys_Global_lite {
 		return $description;
 	}
 	/**
-	 * Copyright: (C) 2013 - 2021 José Conti
+	 * Get the PSD2 argument for the Redsys payment gateway.
+	 *
+	 * @param WC_Order $order The order object.
+	 * @param string   $gateway The gateway ID.
+	 * @return string The PSD2 argument.
 	 */
 	public function get_psd2_arg( $order, $gateway ) {
 		if ( 'yes' === $this->get_redsys_option( 'psd2', $gateway ) ) {
