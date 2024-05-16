@@ -1478,7 +1478,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 			do {
 				sleep( 5 );
 				$result = $this->check_redsys_refund( $order_id );
-				$x++;
+				++$x;
 			} while ( $x <= 20 && false === $result );
 			if ( 'yes' === $this->debug && $result ) {
 				$this->log->add( 'googlepayredirecredsys', __( 'check_redsys_refund = true ', 'woo-redsys-gateway-light' ) . $result );

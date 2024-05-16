@@ -95,4 +95,3 @@ final class WC_Gateway_Bizum_Lite_Support extends AbstractPaymentMethodType {
 		);
 	}
 }
-

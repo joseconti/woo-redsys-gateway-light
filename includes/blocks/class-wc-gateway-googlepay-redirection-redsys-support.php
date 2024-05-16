@@ -94,4 +94,3 @@ final class WC_Gateway_GooglePay_Redirection_Redsys_Support extends AbstractPaym
 		);
 	}
 }
-

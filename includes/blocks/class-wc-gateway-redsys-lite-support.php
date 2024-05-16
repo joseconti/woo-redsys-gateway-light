@@ -94,4 +94,3 @@ final class WC_Gateway_Redsys_Lite_Support extends AbstractPaymentMethodType {
 		);
 	}
 }
-
