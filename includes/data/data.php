@@ -4,7 +4,7 @@
 * Copyright: (C) 2013 - 2021 José Conti
 */
 if ( ! defined( 'ABSPATH' ) ) {
-	exit; // Exit if accessed directly
+	exit; // Exit if accessed directly.
 }
 echo '<p><h1>El Ingenioso Hidalgo Don Quijote de la Mancha, Capitulo 1</h1></p>
 
