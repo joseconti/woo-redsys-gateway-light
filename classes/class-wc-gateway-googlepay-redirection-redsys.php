@@ -553,7 +553,6 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	 * @return string
 	 */
 	public function get_redsys_sha256( $user_id ) {
-
 		if ( 'yes' === $this->testmode ) {
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'googlepayredirecredsys', ' ' );
@@ -562,11 +561,11 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 				$this->log->add( 'googlepayredirecredsys', '/****************************/' );
 				$this->log->add( 'googlepayredirecredsys', ' ' );
 			}
-			$customtestsha256 = utf8_decode( $this->customtestsha256 );
+			$customtestsha256 = mb_convert_encoding( $this->customtestsha256, 'ISO-8859-1', 'UTF-8' );
 			if ( ! empty( $customtestsha256 ) ) {
 				$sha256 = $customtestsha256;
 			} else {
-				$sha256 = utf8_decode( $this->testsha256 );
+				$sha256 = mb_convert_encoding( $this->testsha256, 'ISO-8859-1', 'UTF-8' );
 			}
 		} else {
 			$user_test = $this->check_user_test_mode( $user_id );
@@ -578,11 +577,11 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 					$this->log->add( 'googlepayredirecredsys', '/****************************/' );
 					$this->log->add( 'googlepayredirecredsys', ' ' );
 				}
-				$customtestsha256 = utf8_decode( $this->customtestsha256 );
+				$customtestsha256 = mb_convert_encoding( $this->customtestsha256, 'ISO-8859-1', 'UTF-8' );
 				if ( ! empty( $customtestsha256 ) ) {
 					$sha256 = $customtestsha256;
 				} else {
-					$sha256 = utf8_decode( $this->testsha256 );
+					$sha256 = mb_convert_encoding( $this->testsha256, 'ISO-8859-1', 'UTF-8' );
 				}
 			} else {
 				if ( 'yes' === $this->debug ) {
@@ -592,7 +591,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 					$this->log->add( 'googlepayredirecredsys', '/****************************/' );
 					$this->log->add( 'googlepayredirecredsys', ' ' );
 				}
-				$sha256 = utf8_decode( $this->secretsha256 );
+				$sha256 = mb_convert_encoding( $this->secretsha256, 'ISO-8859-1', 'UTF-8' );
 			}
 		}
 		return $sha256;

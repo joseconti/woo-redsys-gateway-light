@@ -53,7 +53,7 @@ class RedsysAPI {
 	 * @return mixed
 	 */
 	public function get_parameter( $key ) {
-		return $this->vars_pay[$key]; // phpcs:ignore WordPress.Arrays.ArrayKeySpacingRestrictions.NoSpacesAroundArrayKeys
+		return array_key_exists( $key, $this->vars_pay ) ? $this->vars_pay[ $key ] : null;
 	}
 	/**
 	 * FUNCIONES AUXILIARES:

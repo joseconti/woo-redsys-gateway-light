@@ -323,8 +323,28 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				<span class="dashicons dashicons-welcome-learn-more redsysnotice-dash"></span>
 				<span class="redsysnotice__content">
 				<?php
-				// translators: %1$s is the FAQ page URL, %2$s is the support thread URL, %3$s is the review URL.
-				printf( __( 'check <a href="%1$s" target="_blank" rel="noopener">FAQ page</a> for working problems, or open a <a href="%2$s" target="_blank" rel="noopener">thread on WordPress.org</a> for support. Please, add a <a href="%3$s" target="_blank" rel="noopener">review on WordPress.org</a>', 'woo-redsys-gateway-light' ), 'https://plugins.joseconti.com/redsys-for-woocommerce/', 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/', 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/reviews/?rate=5#new-post' );
+				// Define allowed HTML tags.
+				$allowed_html = array(
+					'a' => array(
+						'href'   => array(),
+						'target' => array(),
+						'rel'    => array(),
+					),
+				);
+
+				// Define the URLs.
+				$faq_url     = esc_url( 'https://plugins.joseconti.com/redsys-for-woocommerce/' );
+				$support_url = esc_url( 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/' );
+				$review_url  = esc_url( 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/reviews/?rate=5#new-post' );
+
+				$raw_html = sprintf(
+					// Translators: %1$s is the FAQ page URL, %2$s is the support thread URL, %3$s is the review URL.
+					__( 'Check <a href="%1$s" target="_blank" rel="noopener">FAQ page</a> for working problems, or open a <a href="%2$s" target="_blank" rel="noopener">thread on WordPress.org</a> for support. Please, add a <a href="%3$s" target="_blank" rel="noopener">review on WordPress.org</a>', 'woo-redsys-gateway-light' ),
+					$faq_url,
+					$support_url,
+					$review_url
+				);
+				echo wp_kses( $raw_html, $allowed_html );
 				?>
 				<span>
 			</div>
@@ -751,13 +771,39 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		);
 	}
 	/**
-	 * Output for the order received page.
+	 * Display the receipt page for the order.
 	 *
-	 * @param object $order order object.
+	 * @param WC_Order $order The order object.
 	 */
 	public function receipt_page( $order ) {
+		if ( ! $order instanceof WC_Order ) {
+			return;
+		}
+
+		// Display thank you message.
 		echo '<p>' . esc_html__( 'Thank you for your order, please click the button below to pay with Credit Card via Servired/RedSys.', 'woo-redsys-gateway-light' ) . '</p>';
-		echo $this->generate_redsys_form( $order );
+
+		// Generate and display the Redsys form.
+		$allowed_html = array(
+			'form'  => array(
+				'action' => array(),
+				'method' => array(),
+				'id'     => array(),
+				'target' => array(),
+			),
+			'input' => array(
+				'type'  => array(),
+				'name'  => array(),
+				'value' => array(),
+				'class' => array(),
+				'id'    => array(),
+			),
+			'a'     => array(
+				'class' => array(),
+				'href'  => array(),
+			),
+		);
+		echo wp_kses( $this->generate_redsys_form( $order->get_id() ), $allowed_html );
 	}
 	/**
 	 * Check redsys IPN validity
@@ -889,14 +935,12 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$dsdate            = htmlspecialchars_decode( $mi_obj->get_parameter( 'Ds_Date' ) );
 		$dshour            = htmlspecialchars_decode( $mi_obj->get_parameter( 'Ds_Hour' ) );
 		$dstermnal         = $mi_obj->get_parameter( 'Ds_Terminal' );
-		$dsmerchandata     = $mi_obj->get_parameter( 'Ds_MerchantData' );
 		$dssucurepayment   = $mi_obj->get_parameter( 'Ds_SecurePayment' );
 		$dscardcountry     = $mi_obj->get_parameter( 'Ds_Card_Country' );
 		$dsconsumercountry = $mi_obj->get_parameter( 'Ds_ConsumerLanguage' );
 		$dstransactiontype = $mi_obj->get_parameter( 'Ds_TransactionType' );
 		$dsmerchantidenti  = $mi_obj->get_parameter( 'Ds_Merchant_Identifier' );
 		$dscardbrand       = $mi_obj->get_parameter( 'Ds_Card_Brand' );
-		$dsmechandata      = $mi_obj->get_parameter( 'Ds_MerchantData' );
 		$dscargtype        = $mi_obj->get_parameter( 'Ds_Card_Type' );
 		$dserrorcode       = $mi_obj->get_parameter( 'Ds_ErrorCode' );
 		$dpaymethod        = $mi_obj->get_parameter( 'Ds_PayMethod' ); // D o R, D: Domiciliacion, R: Transferencia. Si se paga por Iupay o TC, no se utiliza.
