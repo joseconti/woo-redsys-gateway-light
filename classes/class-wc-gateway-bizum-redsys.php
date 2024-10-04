@@ -925,8 +925,27 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	 * @return void
 	 */
 	public function receipt_page( $order ) {
+		$allowed_html = array(
+			'form'  => array(
+				'action' => array(),
+				'method' => array(),
+				'id'     => array(),
+				'target' => array(),
+			),
+			'input' => array(
+				'type'  => array(),
+				'class' => array(),
+				'id'    => array(),
+				'value' => array(),
+				'name'  => array(),
+			),
+			'a'     => array(
+				'class' => array(),
+				'href'  => array(),
+			),
+		);
 		echo '<p>' . esc_html__( 'Thank you for your order, please click the button below to pay with Bizum.', 'woo-redsys-gateway-light' ) . '</p>';
-		echo $this->generate_redsys_form( $order );
+		echo wp_kses( $this->generate_redsys_form( $order ), $allowed_html );
 	}
 
 	/**
@@ -1221,96 +1240,80 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_payment_order_number_redsys saved: ' . $order1 );
 				}
-			} else {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', ' ' );
-					$this->log->add( 'bizumredsys', '_payment_order_number_redsys NOT SAVED!!!' );
-					$this->log->add( 'bizumredsys', ' ' );
-				}
+			} elseif ( 'yes' === $this->debug ) {
+				$this->log->add( 'bizumredsys', ' ' );
+				$this->log->add( 'bizumredsys', '_payment_order_number_redsys NOT SAVED!!!' );
+				$this->log->add( 'bizumredsys', ' ' );
 			}
 			if ( ! empty( $dsdate ) ) {
 				WCRedL()->update_order_meta( $order->get_id(), '_payment_date_redsys', $dsdate );
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_payment_date_redsys saved: ' . $dsdate );
 				}
-			} else {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', ' ' );
-					$this->log->add( 'bizumredsys', '_payment_date_redsys NOT SAVED!!!' );
-					$this->log->add( 'bizumredsys', ' ' );
-				}
+			} elseif ( 'yes' === $this->debug ) {
+				$this->log->add( 'bizumredsys', ' ' );
+				$this->log->add( 'bizumredsys', '_payment_date_redsys NOT SAVED!!!' );
+				$this->log->add( 'bizumredsys', ' ' );
 			}
 			if ( ! empty( $dstermnal ) ) {
 				WCRedL()->update_order_meta( $order->get_id(), '_payment_terminal_redsys', $dstermnal );
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_payment_terminal_redsys saved: ' . $dstermnal );
 				}
-			} else {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', ' ' );
-					$this->log->add( 'bizumredsys', '_payment_terminal_redsys NOT SAVED!!!' );
-					$this->log->add( 'bizumredsys', ' ' );
-				}
+			} elseif ( 'yes' === $this->debug ) {
+				$this->log->add( 'bizumredsys', ' ' );
+				$this->log->add( 'bizumredsys', '_payment_terminal_redsys NOT SAVED!!!' );
+				$this->log->add( 'bizumredsys', ' ' );
 			}
 			if ( ! empty( $dshour ) ) {
 				WCRedL()->update_order_meta( $order->get_id(), '_payment_hour_redsys', $dshour );
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_payment_hour_redsys saved: ' . $dshour );
 				}
-			} else {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', ' ' );
-					$this->log->add( 'bizumredsys', '_payment_hour_redsys NOT SAVED!!!' );
-					$this->log->add( 'bizumredsys', ' ' );
-				}
+			} elseif ( 'yes' === $this->debug ) {
+				$this->log->add( 'bizumredsys', ' ' );
+				$this->log->add( 'bizumredsys', '_payment_hour_redsys NOT SAVED!!!' );
+				$this->log->add( 'bizumredsys', ' ' );
 			}
 			if ( ! empty( $id_trans ) ) {
 				WCRedL()->update_order_meta( $order->get_id(), '_authorisation_code_redsys', $authorisation_code );
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_authorisation_code_redsys saved: ' . $authorisation_code );
 				}
-			} else {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', ' ' );
-					$this->log->add( 'bizumredsys', '_authorisation_code_redsys NOT SAVED!!!' );
-					$this->log->add( 'bizumredsys', ' ' );
-				}
+			} elseif ( 'yes' === $this->debug ) {
+				$this->log->add( 'bizumredsys', ' ' );
+				$this->log->add( 'bizumredsys', '_authorisation_code_redsys NOT SAVED!!!' );
+				$this->log->add( 'bizumredsys', ' ' );
 			}
 			if ( ! empty( $currency_code ) ) {
 				WCRedL()->update_order_meta( $order->get_id(), '_corruncy_code_redsys', $currency_code );
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_corruncy_code_redsys saved: ' . $currency_code );
 				}
-			} else {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', ' ' );
-					$this->log->add( 'bizumredsys', '_corruncy_code_redsys NOT SAVED!!!' );
-					$this->log->add( 'bizumredsys', ' ' );
-				}
+			} elseif ( 'yes' === $this->debug ) {
+				$this->log->add( 'bizumredsys', ' ' );
+				$this->log->add( 'bizumredsys', '_corruncy_code_redsys NOT SAVED!!!' );
+				$this->log->add( 'bizumredsys', ' ' );
 			}
 			if ( ! empty( $dscardcountry ) ) {
 				WCRedL()->update_order_meta( $order->get_id(), '_card_country_redsys', $dscardcountry );
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_card_country_redsys saved: ' . $dscardcountry );
 				}
-			} else {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', ' ' );
-					$this->log->add( 'bizumredsys', '_card_country_redsys NOT SAVED!!!' );
-					$this->log->add( 'bizumredsys', ' ' );
-				}
+			} elseif ( 'yes' === $this->debug ) {
+				$this->log->add( 'bizumredsys', ' ' );
+				$this->log->add( 'bizumredsys', '_card_country_redsys NOT SAVED!!!' );
+				$this->log->add( 'bizumredsys', ' ' );
 			}
 			if ( ! empty( $dscargtype ) ) {
 				WCRedL()->update_order_meta( $order->get_id(), '_card_type_redsys', 'C' === $dscargtype ? 'Credit' : 'Debit' );
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_card_type_redsys saved: ' . $dscargtype );
 				}
-			} else {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', ' ' );
-					$this->log->add( 'bizumredsys', '_card_type_redsys NOT SAVED!!!' );
-					$this->log->add( 'bizumredsys', ' ' );
-				}
+			} elseif ( 'yes' === $this->debug ) {
+				$this->log->add( 'bizumredsys', ' ' );
+				$this->log->add( 'bizumredsys', '_card_type_redsys NOT SAVED!!!' );
+				$this->log->add( 'bizumredsys', ' ' );
 			}
 			// This meta is essential for later use.
 			if ( ! empty( $secretsha256 ) ) {
@@ -1318,12 +1321,10 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', '_redsys_secretsha256 saved: ' . $secretsha256 );
 				}
-			} else {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', ' ' );
-					$this->log->add( 'bizumredsys', '_redsys_secretsha256 NOT SAVED!!!' );
-					$this->log->add( 'bizumredsys', ' ' );
-				}
+			} elseif ( 'yes' === $this->debug ) {
+				$this->log->add( 'bizumredsys', ' ' );
+				$this->log->add( 'bizumredsys', '_redsys_secretsha256 NOT SAVED!!!' );
+				$this->log->add( 'bizumredsys', ' ' );
 			}
 			// Payment completed.
 
@@ -1448,10 +1449,8 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 
 		if ( ! empty( $currencycode ) ) {
 			$currency = $currencycode;
-		} else {
-			if ( ! empty( $currency_codes ) ) {
-				$currency = $currency_codes[ get_woocommerce_currency() ];
-			}
+		} elseif ( ! empty( $currency_codes ) ) {
+			$currency = $currency_codes[ get_woocommerce_currency() ];
 		}
 
 		$mi_obj = new RedsysAPI();
