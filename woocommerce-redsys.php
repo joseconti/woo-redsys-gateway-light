@@ -272,6 +272,7 @@ function woocommerce_gateway_redsys_init() {
 	function woocommerce_add_gateway_redsys_gateway( $methods ) {
 		$methods[] = 'WC_Gateway_Bizum_Redsys';
 		$methods[] = 'WC_Gateway_redsys';
+		$methods[] = 'WC_Gateway_GooglePay_Redirection_Redsys';
 		return $methods;
 	}
 	add_filter( 'woocommerce_payment_gateways', 'woocommerce_add_gateway_redsys_gateway' );

@@ -140,8 +140,6 @@ function redsys_return_dsresponse() {
 		'0913' => 'Pedido repetido',
 		'0944' => 'Sesión Incorrecta',
 		'0950' => 'Operación de devolución no permitida',
-		'9912' => 'Emisor no disponible',
-		'0912' => 'Emisor no disponible',
 		'101'  => 'Tarjeta caducada',
 		'102'  => 'Tarjeta en excepción transitoria o bajo sospecha de fraude',
 		'106'  => 'Intentos de PIN excedidos',

@@ -416,11 +416,11 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			'payoptions'       => array(
 				'title'       => __( 'Pay Options', 'woo-redsys-gateway-light' ),
 				'type'        => 'select',
-				'description' => __( 'Chose options in Redsys Gateway (by Default Credit Card + iUpay)', 'woo-redsys-gateway-light' ),
+				'description' => __( 'Chose options in Redsys Gateway (by Default Credit Card)', 'woo-redsys-gateway-light' ),
 				'default'     => 'T',
 				'options'     => array(
 					' ' => __( 'All Methods', 'woo-redsys-gateway-light' ),
-					'T' => __( 'Credit Card & iUpay', 'woo-redsys-gateway-light' ),
+					'T' => __( 'Credit Card', 'woo-redsys-gateway-light' ),
 					'C' => __( 'Credit Card', 'woo-redsys-gateway-light' ),
 				),
 			),
@@ -940,7 +940,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$dscardbrand       = $mi_obj->get_parameter( 'Ds_Card_Brand' );
 		$dscargtype        = $mi_obj->get_parameter( 'Ds_Card_Type' );
 		$dserrorcode       = $mi_obj->get_parameter( 'Ds_ErrorCode' );
-		$dpaymethod        = $mi_obj->get_parameter( 'Ds_PayMethod' ); // D o R, D: Domiciliacion, R: Transferencia. Si se paga por Iupay o TC, no se utiliza.
+		$dpaymethod        = $mi_obj->get_parameter( 'Ds_PayMethod' ); // D o R, D: Domiciliacion, R: Transferencia.
 		$order1            = $ordermi;
 		$order2            = WCRedL()->clean_order_number( $ordermi );
 		$order             = $this->get_redsys_order( (int) $order2 );
