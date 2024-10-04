@@ -22,210 +22,237 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	 * @var string
 	 */
 	public $id;
+
 	/**
 	 * Public $icon
 	 *
 	 * @var string
 	 */
 	public $icon;
+
 	/**
 	 * Public $has_fields
 	 *
-	 * @var boolean
+	 * @var bool
 	 */
 	public $has_fields;
+
 	/**
 	 * Public $liveurl
 	 *
 	 * @var string
 	 */
 	public $liveurl;
+
 	/**
 	 * Public $testurl
 	 *
 	 * @var string
 	 */
 	public $testurl;
+
 	/**
 	 * Public $liveurlws
 	 *
 	 * @var string
 	 */
 	public $liveurlws;
+
 	/**
 	 * Public $testurlws
 	 *
 	 * @var string
 	 */
 	public $testurlws;
+
 	/**
 	 * Public $testsha256
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $testsha256;
+
 	/**
 	 * Public $testmode
 	 *
-	 * @var string
+	 * @var string|bool
 	 */
 	public $testmode;
+
 	/**
 	 * Public $method_title
 	 *
 	 * @var string
 	 */
 	public $method_title;
+
 	/**
 	 * Public $method_description
 	 *
 	 * @var string
 	 */
 	public $method_description;
+
 	/**
 	 * Public $not_use_https
 	 *
-	 * @var string
+	 * @var string|bool
 	 */
 	public $not_use_https;
+
 	/**
 	 * Public $notify_url
 	 *
 	 * @var string
 	 */
 	public $notify_url;
+
 	/**
 	 * Public $notify_url_not_https
 	 *
 	 * @var string
 	 */
 	public $notify_url_not_https;
+
 	/**
 	 * Public $log
 	 *
-	 * @var WC_Logger
+	 * @var WC_Logger|null
 	 */
 	public $log;
+
 	/**
 	 * Public $supports
 	 *
 	 * @var array
 	 */
 	public $supports;
+
 	/**
 	 * Public $debug
 	 *
-	 * @var string
+	 * @var string|bool
 	 */
 	public $debug;
+
 	/**
 	 * Public $testforuser
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $testforuser;
+
 	/**
 	 * Public $testforuserid
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $testforuserid;
+
 	/**
 	 * Public $buttoncheckout
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $buttoncheckout;
+
 	/**
 	 * Public $butonbgcolor
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $butonbgcolor;
+
 	/**
 	 * Public $butontextcolor
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $butontextcolor;
+
 	/**
 	 * Public $orderdo
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $orderdo;
+
 	/**
 	 * Public $redsyslanguage
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $redsyslanguage;
+
 	/**
 	 * Public $title
 	 *
 	 * @var string
 	 */
 	public $title;
+
 	/**
 	 * Public $description
 	 *
 	 * @var string
 	 */
 	public $description;
+
 	/**
 	 * Public $logo
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $logo;
+
 	/**
 	 * Public $customer
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $customer;
+
 	/**
 	 * Public $transactionlimit
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $transactionlimit;
+
 	/**
 	 * Public $commercename
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $commercename;
+
 	/**
 	 * Public $terminal
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $terminal;
+
 	/**
 	 * Public $secretsha256
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $secretsha256;
+
 	/**
 	 * Public $customtestsha256
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $customtestsha256;
+
 	/**
 	 * Public enabled
 	 *
-	 * @var boolean
+	 * @var bool
 	 */
 	public $enabled;
-
-	/**
-	 * Constructor for the gateway.
-	 *
-	 * @return void
-	 */
 	/**
 	 * Copyright: (C) 2013 - 2021 José Conti
 	 */

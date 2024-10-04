@@ -70,13 +70,13 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	/**
 	 * $testsha256
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $testsha256;
 	/**
 	 * $testmode
 	 *
-	 * @var string
+	 * @var string|bool
 	 */
 	public $testmode;
 	/**
@@ -92,9 +92,9 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	 */
 	public $method_description;
 	/**
-	 * $not_use_http
+	 * $not_use_https
 	 *
-	 * @var string
+	 * @var string|bool|null
 	 */
 	public $not_use_https;
 	/**
@@ -106,7 +106,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	/**
 	 * $log
 	 *
-	 * @var WC_Logger
+	 * @var WC_Logger|null
 	 */
 	public $log;
 	/**
@@ -130,43 +130,43 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	/**
 	 * $customer
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $customer;
 	/**
 	 * $commercename
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $commercename;
 	/**
 	 * $terminal
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $terminal;
 	/**
 	 * $secretsha256
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $secretsha256;
 	/**
 	 * $customtestsha256
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $customtestsha256;
 	/**
 	 * $redsyslanguage
 	 *
-	 * @var string
+	 * @var string|null
 	 */
 	public $redsyslanguage;
 	/**
 	 * $debug
 	 *
-	 * @var string
+	 * @var string|bool
 	 */
 	public $debug;
 	/**
