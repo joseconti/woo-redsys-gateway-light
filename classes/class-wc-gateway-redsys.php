@@ -776,9 +776,6 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	 * @param WC_Order $order The order object.
 	 */
 	public function receipt_page( $order ) {
-		if ( ! $order instanceof WC_Order ) {
-			return;
-		}
 
 		// Display thank you message.
 		echo '<p>' . esc_html__( 'Thank you for your order, please click the button below to pay with Credit Card via Servired/RedSys.', 'woo-redsys-gateway-light' ) . '</p>';
