@@ -800,7 +800,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				'href'  => array(),
 			),
 		);
-		echo wp_kses( $this->generate_redsys_form( $order->get_id() ), $allowed_html );
+		echo wp_kses( $this->generate_redsys_form( $order ), $allowed_html );
 	}
 	/**
 	 * Check redsys IPN validity
