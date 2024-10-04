@@ -98,6 +98,11 @@ Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com
 
 == Changelog ==
 
+== 6.2.0 ==
+
+* Fixed a double “Code” tag in Redsys redirection description. https://github.com/joseconti/woo-redsys-gateway-light/issues/22
+* Fixed many Deprecated.
+
 == 6.1.3 ==
 
 * FIX: Refunds in Google Pay redirection.

@@ -8,12 +8,12 @@
  * Requires Plugins: woocommerce
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
- * Version: 6.1.2
+ * Version: 6.2.0
  * Author: José Conti
  * Author URI: https://plugins.joseconti.com/
- * Tested up to: 6.4
+ * Tested up to: 6.6
  * WC requires at least: 7.4
- * WC tested up to: 8.9
+ * WC tested up to: 9.3
  * Text Domain: woo-redsys-gateway-light
  * Domain Path: /languages/
  * Copyright: (C) 2017 - 2024 José Conti.
@@ -21,7 +21,7 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '6.1.2' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '6.2.0' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 if ( ! defined( 'REDSYS_PLUGIN_PATH' ) ) {
 	define( 'REDSYS_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
