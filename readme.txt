@@ -107,6 +107,12 @@ Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com
 * removed some strings (iupay).
 
 
+== 6.2.1 ==
+
+* Removed duplicated items.
+* Moved Class inicialization.
+* Removed iUpay Strings.
+
 == 6.2.0 ==
 
 * Fixed a double “Code” tag in Redsys redirection description. https://github.com/joseconti/woo-redsys-gateway-light/issues/22
