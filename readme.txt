@@ -98,6 +98,11 @@ Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com
 
 == Changelog ==
 
+== 6.2.2 ==
+
+* Updates escaping in Bizum from esc_html_ to kses.
+
+
 == 6.2.1 ==
 
 * Fixed Deprecated $logo.
@@ -105,10 +110,6 @@ Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com
 * Added wp_kses.
 * removed extra items in array().
 * removed some strings (iupay).
-
-
-== 6.2.1 ==
-
 * Removed duplicated items.
 * Moved Class inicialization.
 * Removed iUpay Strings.
