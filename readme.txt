@@ -100,7 +100,7 @@ Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com
 
 == 6.2.2 ==
 
-* Updates escaping in Bizum from esc_html_ to kses.
+* Updated escaping in Bizum from esc_html_ to kses.
 
 
 == 6.2.1 ==
