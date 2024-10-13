@@ -351,50 +351,61 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	 */
 	public function admin_options() {
 		?>
-		<h3><?php esc_html_e( 'Bizum', 'woo-redsys-gateway-light' ); ?></h3>
-		<p><?php esc_html_e( 'Bizum works by sending the user to Bizum Gateway', 'woo-redsys-gateway-light' ); ?></p>
-		<div class="redsysnotice">
+			<h3><?php esc_html_e( 'Bizum', 'woo-redsys-gateway-light' ); ?></h3>
+			<p><?php esc_html_e( 'Bizum works by sending the user to Bizum Gateway', 'woo-redsys-gateway-light' ); ?></p>
+			<div class="updated woocommerce-message inline">
+				<p>
+					<a href="https://woocommerce.com/products/redsys-gateway/" target="_blank" rel="noopener"><img class="aligncenter wp-image-211 size-full" title="Consigue la versión Pro en WooCommerce.com" src="<?php echo esc_url( REDSYS_PLUGIN_URL ) . 'assets/images/banner.png'; ?>" alt="Consigue la versión Pro en WooCommerce.com" width="800" height="150" /></a>
+				</p>
+			</div>
+			<div class="redsysnotice">
 				<span class="dashicons dashicons-welcome-learn-more redsysnotice-dash"></span>
 				<span class="redsysnotice__content">
-					<?php
-					/* translators: check FAQ page for working problems, or open a thread on WordPress.org for support. Please, add a review on WordPress.org */
-					printf( esc_html__( 'check <a href="%1$s" target="_blank" rel="noopener">FAQ page</a> for working problems, or open a <a href="%2$s" target="_blank" rel="noopener">thread on WordPress.org</a> for support. Please, add a <a href="%3$s" target="_blank" rel="noopener">review on WordPress.org</a>', 'woo-redsys-gateway-light' ), 'https://www.joseconti.com/faq-plugin-redsys-woocommerce-com/', 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/', 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/reviews/?rate=5#new-post' );
-					?>
-				</span>
+				<?php
+				// Define allowed HTML tags.
+				$allowed_html = array(
+					'a' => array(
+						'href'   => array(),
+						'target' => array(),
+						'rel'    => array(),
+					),
+				);
+
+				// Define the URLs.
+				$faq_url     = esc_url( 'https://plugins.joseconti.com/redsys-for-woocommerce/' );
+				$support_url = esc_url( 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/' );
+				$review_url  = esc_url( 'https://wordpress.org/support/plugin/woo-redsys-gateway-light/reviews/?rate=5#new-post' );
+
+				$raw_html = sprintf(
+					// Translators: %1$s is the FAQ page URL, %2$s is the support thread URL, %3$s is the review URL.
+					__( 'Check <a href="%1$s" target="_blank" rel="noopener">FAQ page</a> for working problems, or open a <a href="%2$s" target="_blank" rel="noopener">thread on WordPress.org</a> for support. Please, add a <a href="%3$s" target="_blank" rel="noopener">review on WordPress.org</a>', 'woo-redsys-gateway-light' ),
+					$faq_url,
+					$support_url,
+					$review_url
+				);
+				echo wp_kses( $raw_html, $allowed_html );
+				?>
+				<span>
 			</div>
-		<?php if ( class_exists( 'SitePress' ) ) { ?>
-			<div class="updated fade"><h4><?php esc_html_e( 'Attention! WPML detected.', 'woo-redsys-gateway-light' ); ?></h4>
+			<p><?php esc_html_e( 'Servired/RedSys works by sending the user to your bank TPV to enter their payment information.', 'woo-redsys-gateway-light' ); ?></p>
+			<?php
+			if ( class_exists( 'SitePress' ) ) {
+				?>
+				<div class="updated fade"><h4><?php esc_html_e( 'Attention! WPML detected.', 'woo-redsys-gateway-light' ); ?></h4>
 				<p><?php esc_html_e( 'The Gateway will be shown in the customer language. The option "Language Gateway" is not taken into consideration', 'woo-redsys-gateway-light' ); ?></p>
-			</div>
-		<?php } ?>
-		<?php if ( $this->is_valid_for_use() ) : ?>
-			<table class="form-table">
+				</div>
+				<?php } ?>
+			<?php if ( $this->is_valid_for_use() ) : ?>
+				<table class="form-table">
 				<?php
 				// Generate the HTML For the settings form.
 				$this->generate_settings_html();
 				?>
-			</table><!--/.form-table-->
-			<?php
-				else :
-					$currencies          = WCRedL()->allowed_currencies();
-					$formated_currencies = '';
-
-					foreach ( $currencies as $currency ) {
-						$formated_currencies .= $currency . ', ';
-					}
-					?>
-	<div class="inline error"><p><strong>
-					<?php
-					esc_html_e( 'Gateway Disabled', 'woo-redsys-gateway-light' );
-					?>
-		</strong>: 
-					<?php
-					esc_html_e( 'Servired/RedSys only support ', 'woo-redsys-gateway-light' );
-					echo esc_html( $formated_currencies );
-					?>
-		</p></div>
-					<?php
-		endif;
+				</table><!--/.form-table-->
+			<?php else : ?>
+				<div class="inline error"><p><strong><?php esc_html_e( 'Gateway Disabled', 'woo-redsys-gateway-light' ); ?></strong>: <?php esc_html_e( 'Servired/RedSys only support EUROS &euro; and BRL currency.', 'woo-redsys-gateway-light' ); ?></p></div>
+				<?php
+			endif;
 	}
 
 	/**
@@ -1152,7 +1163,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		$dsmechandata      = $mi_obj->get_parameter( 'Ds_MerchantData' );
 		$dscargtype        = $mi_obj->get_parameter( 'Ds_Card_Type' );
 		$dserrorcode       = $mi_obj->get_parameter( 'Ds_ErrorCode' );
-		$dpaymethod        = $mi_obj->get_parameter( 'Ds_PayMethod' ); // D o R, D: Domiciliacion, R: Transferencia. 
+		$dpaymethod        = $mi_obj->get_parameter( 'Ds_PayMethod' ); // D o R, D: Domiciliacion, R: Transferencia.
 		$response          = intval( $response );
 		$secretsha256      = get_transient( 'redsys_signature_' . sanitize_title( $ordermi ) );
 		$order1            = $ordermi;
