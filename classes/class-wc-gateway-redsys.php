@@ -1161,7 +1161,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 
 		$mi_obj = new RedsysAPI();
 
-		$mi_obj->set_parameter( 'DS_MERCHANT_MODULE', $merchant_module );
+		//$mi_obj->set_parameter( 'DS_MERCHANT_MODULE', $merchant_module );
 		$mi_obj->set_parameter( 'DS_MERCHANT_AMOUNT', $amount );
 		$mi_obj->set_parameter( 'DS_MERCHANT_ORDER', $transaction_id );
 		$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTCODE', $this->customer );
