@@ -1199,25 +1199,28 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'redsys', ' ' );
 		}
 
-			$version   = 'HMAC_SHA256_V1';
-			$request   = '';
-			$params    = $mi_obj->create_merchant_parameters();
-			$signature = $mi_obj->create_merchant_signature( $secretsha256 );
+		$version   = 'HMAC_SHA256_V1';
+		$request   = '';
+		$params    = $mi_obj->create_merchant_parameters();
+		$signature = $mi_obj->create_merchant_signature( $secretsha256 );
 
-			$post_arg = wp_remote_post(
-				$redsys_adr,
-				array(
-					'method'      => 'POST',
-					'timeout'     => 45,
-					'httpversion' => '1.0',
-					'user-agent'  => 'WooCommerce',
-					'body'        => array(
-						'Ds_SignatureVersion'   => $version,
-						'Ds_MerchantParameters' => $params,
-						'Ds_Signature'          => $signature,
-					),
-				)
-			);
+		$post_arg = wp_remote_post(
+			$redsys_adr,
+			array(
+				'method'      => 'POST',
+				'timeout'     => 45,
+				'httpversion' => '1.0',
+				'user-agent'  => 'WooCommerce',
+				'body'        => array(
+					'Ds_SignatureVersion'   => $version,
+					'Ds_MerchantParameters' => $params,
+					'Ds_Signature'          => $signature,
+				),
+			)
+		);
+		if ( 'yes' === $this->debug ) {
+			$this->log->add( 'redsys', '$post_arg: ' . print_r( $post_arg, true ) );
+		}
 		if ( is_wp_error( $post_arg ) ) {
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'redsys', ' ' );
