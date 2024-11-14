@@ -216,6 +216,19 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	 * @var string|null
 	 */
 	public $logo;
+	/**
+	 * The live URL for the gateway.
+	 *
+	 * @var string
+	 */
+	public $liveurlrest;
+
+	/**
+	 * The test URL for the gateway.
+	 *
+	 * @var string
+	 */
+	public $testurlrest;
 
 	/**
 	 * Constructor for the gateway.
@@ -237,6 +250,8 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$this->testurl              = 'https://sis-t.redsys.es:25443/sis/realizarPago';
 		$this->liveurlws            = 'https://sis.redsys.es/sis/services/SerClsWSEntrada?wsdl';
 		$this->testurlws            = 'https://sis-t.redsys.es:25443/sis/services/SerClsWSEntrada?wsdl';
+		$this->liveurlrest          = 'https://sis.redsys.es/sis/rest/trataPeticionREST';
+		$this->testurlrest          = 'https://sis-t.redsys.es:25443/sis/rest/trataPeticionREST';
 		$this->testmode             = $this->get_option( 'testmode' );
 		$this->method_title         = __( 'Redsys Lite (by Jose Conti)', 'woo-redsys-gateway-light' );
 		$this->method_description   = __( 'Redsys Lite  works redirecting customers to Redsys.', 'woo-redsys-gateway-light' );
@@ -291,6 +306,19 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			echo '<div class=' . esc_attr( $class ) . '> <p>' . esc_attr( $message ) . '</p></div>';
 		} else {
 			return;
+		}
+	}
+	/**
+	 * Get Redsys URL Gateway
+	 *
+	 * @return string
+	 */
+	public function get_redsys_url_gateway_rest() {
+
+		if ( 'yes' === $this->testmode ) {
+			return $this->testurlrest;
+		} else {
+			return $this->liveurlrest;
 		}
 	}
 	/**
@@ -1102,77 +1130,74 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		} else {
 			$final_notify_url = $this->notify_url;
 		}
-		if ( 'yes' === $this->testmode ) :
-			$redsys_adr = $this->testurl;
-			else :
-				$redsys_adr = $this->liveurl;
-			endif;
+
+			$redsys_adr        = $this->get_redsys_url_gateway_rest();
 			$autorization_code = WCRedL()->get_order_meta( $order_id, '_authorisation_code_redsys', true );
 			$autorization_date = WCRedL()->get_order_meta( $order_id, '_payment_date_redsys', true );
 			$currencycode      = WCRedL()->get_order_meta( $order_id, '_corruncy_code_redsys', true );
 			$merchant_module   = 'WooCommerce_Redsys_Gateway_Light_' . REDSYS_WOOCOMMERCE_VERSION . '_WordPress.org';
 
-			if ( 'yes' === $this->debug ) {
-				$this->log->add( 'redsys', ' ' );
-				$this->log->add( 'redsys', __( 'All data from meta', 'woo-redsys-gateway-light' ) );
-				$this->log->add( 'redsys', '**********************' );
-				$this->log->add( 'redsys', ' ' );
-				$this->log->add( 'redsys', __( 'If something is empty, the data was not saved', 'woo-redsys-gateway-light' ) );
-				$this->log->add( 'redsys', ' ' );
-				$this->log->add( 'redsys', __( 'All data from meta', 'woo-redsys-gateway-light' ) );
-				$this->log->add( 'redsys', __( 'Authorization Code : ', 'woo-redsys-gateway-light' ) . $autorization_code );
-				$this->log->add( 'redsys', __( 'Authorization Date : ', 'woo-redsys-gateway-light' ) . $autorization_date );
-				$this->log->add( 'redsys', __( 'Currency Codey : ', 'woo-redsys-gateway-light' ) . $currencycode );
-				$this->log->add( 'redsys', __( 'Terminal : ', 'woo-redsys-gateway-light' ) . $terminal );
-				$this->log->add( 'redsys', __( 'SHA256 : ', 'woo-redsys-gateway-light' ) . $secretsha256_meta );
-			}
+		if ( 'yes' === $this->debug ) {
+			$this->log->add( 'redsys', ' ' );
+			$this->log->add( 'redsys', __( 'All data from meta', 'woo-redsys-gateway-light' ) );
+			$this->log->add( 'redsys', '**********************' );
+			$this->log->add( 'redsys', ' ' );
+			$this->log->add( 'redsys', __( 'If something is empty, the data was not saved', 'woo-redsys-gateway-light' ) );
+			$this->log->add( 'redsys', ' ' );
+			$this->log->add( 'redsys', __( 'All data from meta', 'woo-redsys-gateway-light' ) );
+			$this->log->add( 'redsys', __( 'Authorization Code : ', 'woo-redsys-gateway-light' ) . $autorization_code );
+			$this->log->add( 'redsys', __( 'Authorization Date : ', 'woo-redsys-gateway-light' ) . $autorization_date );
+			$this->log->add( 'redsys', __( 'Currency Codey : ', 'woo-redsys-gateway-light' ) . $currencycode );
+			$this->log->add( 'redsys', __( 'Terminal : ', 'woo-redsys-gateway-light' ) . $terminal );
+			$this->log->add( 'redsys', __( 'SHA256 : ', 'woo-redsys-gateway-light' ) . $secretsha256_meta );
+		}
 
-			if ( ! empty( $currencycode ) ) {
-				$currency = $currencycode;
-			} elseif ( empty( $currencycode ) ) {
-				$currency = $currency_codes[ get_woocommerce_currency() ];
-			}
-			$merchant_module = 'WooCommerce_Redsys_Gateway_Light_' . REDSYS_WOOCOMMERCE_VERSION . '_WordPress.org';
+		if ( ! empty( $currencycode ) ) {
+			$currency = $currencycode;
+		} elseif ( empty( $currencycode ) ) {
+			$currency = $currency_codes[ get_woocommerce_currency() ];
+		}
+		$merchant_module = 'WooCommerce_Redsys_Gateway_Light_' . REDSYS_WOOCOMMERCE_VERSION . '_WordPress.org';
 
-			$mi_obj = new RedsysAPI();
+		$mi_obj = new RedsysAPI();
 
-			$mi_obj->set_parameter( 'DS_MERCHANT_MODULE', $merchant_module );
-			$mi_obj->set_parameter( 'DS_MERCHANT_AMOUNT', $amount );
-			$mi_obj->set_parameter( 'DS_MERCHANT_ORDER', $transaction_id );
-			$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTCODE', $this->customer );
-			$mi_obj->set_parameter( 'DS_MERCHANT_CURRENCY', $currency );
-			$mi_obj->set_parameter( 'DS_MERCHANT_TRANSACTIONTYPE', $transaction_type );
-			$mi_obj->set_parameter( 'DS_MERCHANT_TERMINAL', $terminal );
-			$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTURL', $final_notify_url );
-			$mi_obj->set_parameter( 'DS_MERCHANT_URLOK', add_query_arg( 'utm_nooverride', '1', $this->get_return_url( $order ) ) );
-			$mi_obj->set_parameter( 'DS_MERCHANT_URLKO', $order->get_cancel_order_url() );
-			$mi_obj->set_parameter( 'DS_MERCHANT_CONSUMERLANGUAGE', '001' );
-			$mi_obj->set_parameter( 'DS_MERCHANT_PRODUCTDESCRIPTION', __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number() );
-			$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTNAME', $this->commercename );
+		$mi_obj->set_parameter( 'DS_MERCHANT_MODULE', $merchant_module );
+		$mi_obj->set_parameter( 'DS_MERCHANT_AMOUNT', $amount );
+		$mi_obj->set_parameter( 'DS_MERCHANT_ORDER', $transaction_id );
+		$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTCODE', $this->customer );
+		$mi_obj->set_parameter( 'DS_MERCHANT_CURRENCY', $currency );
+		$mi_obj->set_parameter( 'DS_MERCHANT_TRANSACTIONTYPE', $transaction_type );
+		$mi_obj->set_parameter( 'DS_MERCHANT_TERMINAL', $terminal );
+		$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTURL', $final_notify_url );
+		$mi_obj->set_parameter( 'DS_MERCHANT_URLOK', add_query_arg( 'utm_nooverride', '1', $this->get_return_url( $order ) ) );
+		$mi_obj->set_parameter( 'DS_MERCHANT_URLKO', $order->get_cancel_order_url() );
+		$mi_obj->set_parameter( 'DS_MERCHANT_CONSUMERLANGUAGE', '001' );
+		$mi_obj->set_parameter( 'DS_MERCHANT_PRODUCTDESCRIPTION', __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number() );
+		$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTNAME', $this->commercename );
 
-			if ( 'yes' === $this->debug ) {
-				$this->log->add( 'redsys', ' ' );
-				$this->log->add( 'redsys', __( 'Data sent to Redsys for refund', 'woo-redsys-gateway-light' ) );
-				$this->log->add( 'redsys', '*********************************' );
-				$this->log->add( 'redsys', ' ' );
-				$this->log->add( 'redsys', __( 'URL to Redsys : ', 'woo-redsys-gateway-light' ) . $redsys_adr );
-				$this->log->add( 'redsys', __( 'DS_MERCHANT_AMOUNT : ', 'woo-redsys-gateway-light' ) . $amount );
-				$this->log->add( 'redsys', __( 'DS_MERCHANT_ORDER : ', 'woo-redsys-gateway-light' ) . $transaction_id );
-				$this->log->add( 'redsys', __( 'DS_MERCHANT_MERCHANTCODE : ', 'woo-redsys-gateway-light' ) . $this->customer );
-				$this->log->add( 'redsys', __( 'DS_MERCHANT_CURRENCY : ', 'woo-redsys-gateway-light' ) . $currency );
-				$this->log->add( 'redsys', __( 'DS_MERCHANT_TRANSACTIONTYPE : ', 'woo-redsys-gateway-light' ) . $transaction_type );
-				$this->log->add( 'redsys', __( 'DS_MERCHANT_TERMINAL : ', 'woo-redsys-gateway-light' ) . $terminal );
-				$this->log->add( 'redsys', __( 'DS_MERCHANT_MERCHANTURL : ', 'woo-redsys-gateway-light' ) . $final_notify_url );
-				$this->log->add( 'redsys', __( 'DS_MERCHANT_URLOK : ', 'woo-redsys-gateway-light' ) . add_query_arg( 'utm_nooverride', '1', $this->get_return_url( $order ) ) );
-				$this->log->add( 'redsys', __( 'DS_MERCHANT_URLKO : ', 'woo-redsys-gateway-light' ) . $order->get_cancel_order_url() );
-				$this->log->add( 'redsys', __( 'DS_MERCHANT_CONSUMERLANGUAGE : 001', 'woo-redsys-gateway-light' ) );
-				$this->log->add( 'redsys', __( 'DS_MERCHANT_PRODUCTDESCRIPTION : ', 'woo-redsys-gateway-light' ) . __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number() );
-				$this->log->add( 'redsys', __( 'DS_MERCHANT_MERCHANTNAME : ', 'woo-redsys-gateway-light' ) . $this->commercename );
-				$this->log->add( 'redsys', __( 'DS_MERCHANT_AUTHORISATIONCODE : ', 'woo-redsys-gateway-light' ) . $autorization_code );
-				$this->log->add( 'redsys', __( 'Ds_Merchant_TransactionDate : ', 'woo-redsys-gateway-light' ) . $autorization_date );
-				$this->log->add( 'redsys', __( 'ask_for_refund Asking for order #: ', 'woo-redsys-gateway-light' ) . $order_id );
-				$this->log->add( 'redsys', ' ' );
-			}
+		if ( 'yes' === $this->debug ) {
+			$this->log->add( 'redsys', ' ' );
+			$this->log->add( 'redsys', __( 'Data sent to Redsys for refund', 'woo-redsys-gateway-light' ) );
+			$this->log->add( 'redsys', '*********************************' );
+			$this->log->add( 'redsys', ' ' );
+			$this->log->add( 'redsys', __( 'URL to Redsys : ', 'woo-redsys-gateway-light' ) . $redsys_adr );
+			$this->log->add( 'redsys', __( 'DS_MERCHANT_AMOUNT : ', 'woo-redsys-gateway-light' ) . $amount );
+			$this->log->add( 'redsys', __( 'DS_MERCHANT_ORDER : ', 'woo-redsys-gateway-light' ) . $transaction_id );
+			$this->log->add( 'redsys', __( 'DS_MERCHANT_MERCHANTCODE : ', 'woo-redsys-gateway-light' ) . $this->customer );
+			$this->log->add( 'redsys', __( 'DS_MERCHANT_CURRENCY : ', 'woo-redsys-gateway-light' ) . $currency );
+			$this->log->add( 'redsys', __( 'DS_MERCHANT_TRANSACTIONTYPE : ', 'woo-redsys-gateway-light' ) . $transaction_type );
+			$this->log->add( 'redsys', __( 'DS_MERCHANT_TERMINAL : ', 'woo-redsys-gateway-light' ) . $terminal );
+			$this->log->add( 'redsys', __( 'DS_MERCHANT_MERCHANTURL : ', 'woo-redsys-gateway-light' ) . $final_notify_url );
+			$this->log->add( 'redsys', __( 'DS_MERCHANT_URLOK : ', 'woo-redsys-gateway-light' ) . add_query_arg( 'utm_nooverride', '1', $this->get_return_url( $order ) ) );
+			$this->log->add( 'redsys', __( 'DS_MERCHANT_URLKO : ', 'woo-redsys-gateway-light' ) . $order->get_cancel_order_url() );
+			$this->log->add( 'redsys', __( 'DS_MERCHANT_CONSUMERLANGUAGE : 001', 'woo-redsys-gateway-light' ) );
+			$this->log->add( 'redsys', __( 'DS_MERCHANT_PRODUCTDESCRIPTION : ', 'woo-redsys-gateway-light' ) . __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number() );
+			$this->log->add( 'redsys', __( 'DS_MERCHANT_MERCHANTNAME : ', 'woo-redsys-gateway-light' ) . $this->commercename );
+			$this->log->add( 'redsys', __( 'DS_MERCHANT_AUTHORISATIONCODE : ', 'woo-redsys-gateway-light' ) . $autorization_code );
+			$this->log->add( 'redsys', __( 'Ds_Merchant_TransactionDate : ', 'woo-redsys-gateway-light' ) . $autorization_date );
+			$this->log->add( 'redsys', __( 'ask_for_refund Asking for order #: ', 'woo-redsys-gateway-light' ) . $order_id );
+			$this->log->add( 'redsys', ' ' );
+		}
 
 			$version   = 'HMAC_SHA256_V1';
 			$request   = '';
