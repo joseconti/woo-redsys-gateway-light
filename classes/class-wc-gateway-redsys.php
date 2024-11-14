@@ -642,7 +642,6 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'redsys', 'NOT Using LWV' );
 			$this->log->add( 'redsys', ' ' );
 		}
-		$mi_obj->set_parameter( 'DS_MERCHANT_MODULE', $merchant_module );
 		if ( ! empty( $this->payoptions ) || ' ' !== $this->payoptions ) {
 			$mi_obj->set_parameter( 'DS_MERCHANT_PAYMETHODS', $this->payoptions );
 		} else {
@@ -1157,11 +1156,10 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		} elseif ( empty( $currencycode ) ) {
 			$currency = $currency_codes[ get_woocommerce_currency() ];
 		}
-		$merchant_module = 'WooCommerce_Redsys_Gateway_Light_' . REDSYS_WOOCOMMERCE_VERSION . '_WordPress.org';
+		$merchant_module = 'WooCommerce_Redsys_Gateway_Light_' . REDSYS_WOOCOMMERCE_VERSION;
 
 		$mi_obj = new RedsysAPI();
 
-		//$mi_obj->set_parameter( 'DS_MERCHANT_MODULE', $merchant_module );
 		$mi_obj->set_parameter( 'DS_MERCHANT_AMOUNT', $amount );
 		$mi_obj->set_parameter( 'DS_MERCHANT_ORDER', $transaction_id );
 		$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTCODE', $this->customer );
