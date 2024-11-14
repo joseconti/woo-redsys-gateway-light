@@ -2,9 +2,9 @@
 Contributors: j.conti
 Tags: woocommerce, redsys, bizum, Google Pay, GPay
 Requires at least: 4.0
-Tested up to: 6.6
+Tested up to: 6.7
 Donate link: https://plugins.joseconti.com/product-category/plugins/donaciones/
-Stable tag: 6.2.1
+Stable tag: 6.2.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 7.5
