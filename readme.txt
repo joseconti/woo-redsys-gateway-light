@@ -101,7 +101,7 @@ Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com
 == 6.2.2 ==
 
 * Updated escaping in Bizum from esc_html_ to kses.
-
+* Removed Merchant Module.
 
 == 6.2.1 ==
 
