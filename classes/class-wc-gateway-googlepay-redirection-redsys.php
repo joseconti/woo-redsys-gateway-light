@@ -658,7 +658,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		}
 
 		// redsys Args.
-		$miobj = new RedsysAPI();
+		$miobj = new RedsysLiteAPI();
 		$miobj->set_parameter( 'DS_MERCHANT_AMOUNT', $gpay_data_send['order_total_sign'] );
 		$miobj->set_parameter( 'DS_MERCHANT_ORDER', $gpay_data_send['transaction_id2'] );
 		$miobj->set_parameter( 'DS_MERCHANT_MERCHANTCODE', $gpay_data_send['customer'] );
@@ -817,7 +817,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 			$version           = sanitize_text_field( wp_unslash( $_POST['Ds_SignatureVersion'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$data              = sanitize_text_field( wp_unslash( $_POST['Ds_MerchantParameters'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$remote_sign       = sanitize_text_field( wp_unslash( $_POST['Ds_Signature'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			$mi_obj            = new RedsysAPI();
+			$mi_obj            = new RedsysLiteAPI();
 			$decodec           = $mi_obj->decode_merchant_parameters( $data );
 			$order_id          = $mi_obj->get_parameter( 'Ds_Order' );
 			$ds_merchant_code  = $mi_obj->get_parameter( 'Ds_MerchantCode' );
@@ -884,7 +884,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 			$version           = sanitize_text_field( wp_unslash( $_POST['Ds_SignatureVersion'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$data              = sanitize_text_field( wp_unslash( $_POST['Ds_MerchantParameters'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			$remote_sign       = sanitize_text_field( wp_unslash( $_POST['Ds_Signature'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			$mi_obj            = new RedsysAPI();
+			$mi_obj            = new RedsysLiteAPI();
 			$decodec           = $mi_obj->decode_merchant_parameters( $data );
 			$order_id          = $mi_obj->get_parameter( 'Ds_Order' );
 			$ds_merchant_code  = $mi_obj->get_parameter( 'Ds_MerchantCode' );
@@ -962,7 +962,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'googlepayredirecredsys', ' ' );
 		}
 
-		$mi_obj            = new RedsysAPI();
+		$mi_obj            = new RedsysLiteAPI();
 		$usesecretsha256   = $this->secretsha256;
 		$dscardnumbercompl = '';
 		$dsexpiration      = '';
@@ -1322,7 +1322,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 			$currency = $currency_codes[ get_woocommerce_currency() ];
 		}
 
-		$mi_obj = new RedsysAPI();
+		$mi_obj = new RedsysLiteAPI();
 		$mi_obj->set_parameter( 'DS_MERCHANT_AMOUNT', $amount );
 		$mi_obj->set_parameter( 'DS_MERCHANT_ORDER', $transaction_id );
 		$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTCODE', $order_fuc );

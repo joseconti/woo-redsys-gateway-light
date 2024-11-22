@@ -55,8 +55,8 @@ add_action(
 /**
  * Required API
  */
-if ( ! class_exists( 'RedsysAPI' ) ) {
-	require_once 'includes/class-redsysapi.php';
+if ( ! class_exists( 'RedsysLiteAPI' ) ) {
+	require_once 'includes/class-redsysliteapi.php';
 }
 require_once 'about-redsys.php';
 

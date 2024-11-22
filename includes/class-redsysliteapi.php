@@ -1,6 +1,6 @@
 <?php
 /**
- * Class RedsysAPI
+ * Class RedsysLiteAPI
  *
  * @package WooCommerce Redsys Gateway Ligth
  *
@@ -28,7 +28,7 @@
  *
  * Redsys Servicios de Procesamiento, S.L., CIF B85955367
  */
-class RedsysAPI {
+class RedsysLiteAPI {
 
 	/**
 	 * Array de DatosEntrada.
