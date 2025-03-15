@@ -923,8 +923,18 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	 * @param array $posted posted data.
 	 * @return void
 	 */
-	public function successful_request( $posted ) {
+	public function successful_request( $posted = null ) {
 		global $woocommerce;
+
+		if ( is_null( $params ) ) {
+			$params = stripslashes_deep( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		}
+
+		if ( 'yes' === $this->testmode ) {
+			$usesecretsha256 = ! empty( $this->customtestsha256 ) ? $this->customtestsha256 : $this->secretsha256;
+		} else {
+			$usesecretsha256 = $this->secretsha256;
+		}
 
 		if ( 'yes' === $this->testmode ) {
 			$usesecretsha256 = $this->customtestsha256;
@@ -937,9 +947,9 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			$usesecretsha256 = $this->secretsha256;
 		}
 
-		$version           = sanitize_text_field( wp_unslash( $_POST['Ds_SignatureVersion'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotValidated
-		$data              = sanitize_text_field( wp_unslash( $_POST['Ds_MerchantParameters'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotValidated
-		$remote_sign       = sanitize_text_field( wp_unslash( $_POST['Ds_Signature'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+		$version           = sanitize_text_field( wp_unslash( $params['Ds_SignatureVersion'] ?? '' ) );
+		$data              = sanitize_text_field( wp_unslash( $params['Ds_MerchantParameters'] ?? '' ) );
+		$remote_sign       = sanitize_text_field( wp_unslash( $params['Ds_Signature'] ?? '' ) );
 		$mi_obj            = new RedsysLiteAPI();
 		$usesecretsha256   = $this->secretsha256;
 		$dscardnumbercompl = '';
