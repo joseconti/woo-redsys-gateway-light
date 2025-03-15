@@ -323,19 +323,13 @@ function woocommerce_gateway_redsys_init() {
 			}
 			if ( $order && $is_redsys_order && ! $is_paid ) {
 				// Check the Redsys URL.
-				if ( isset( $_GET['Ds_MerchantParameters'] ) ) {
-					$params = array(
-						'Ds_MerchantParameters' => sanitize_text_field( wp_unslash( $_GET['Ds_MerchantParameters'] ) ),
-						'Ds_Signature'          => isset( $_GET['Ds_Signature'] ) ? sanitize_text_field( wp_unslash( $_GET['Ds_Signature'] ) ) : '',
+				if ( isset( $_GET['Ds_MerchantParameters'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+					$params          = array(
+						'Ds_MerchantParameters' => sanitize_text_field( wp_unslash( $_GET['Ds_MerchantParameters'] ) ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+						'Ds_Signature'          => isset( $_GET['Ds_Signature'] ) ? sanitize_text_field( wp_unslash( $_GET['Ds_Signature'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 					);
 					$payment_method  = $order->get_payment_method();
 					$payment_gateway = WC_Payment_Gateways::instance()->payment_gateways()[ $payment_method ];
-					if ( $payment_gateway && method_exists( $payment_gateway, 'successful_request' ) ) {
-						$payment_gateway->successful_request( $params );
-						echo '<p>' . __( 'Payment successfully processed via Redsys.', 'woocommerce-redsys' ) . '</p>';
-					} else {
-						echo '<p>' . __( 'Payment validation failed.', 'woocommerce-redsys' ) . '</p>';
-					}
 				}
 			}
 			$is_paid = WCRedL()->is_paid( $order->get_id() );
