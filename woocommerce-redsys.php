@@ -338,9 +338,14 @@ function woocommerce_gateway_redsys_init() {
 			$is_paid = WCRedL()->is_paid( $order->get_id() );
 			if ( $order && $is_redsys_order && $is_paid ) {
 				$order_id            = $order->get_id();
-				$numero_autorizacion = WCRedL()->get_order_meta( $order_id, '_authorisation_code_redsys', true );
+				$website             = get_site_url();
+				$fuc                 = WCRedL()->get_order_meta( $order_id, '_order_fuc_redsys', true );
+				$numero_autorizacion = WCRedL()->get_order_auth( $order_id );
+				$commerce_name       = get_bloginfo( 'name' );
+				$date                = WCRedL()->get_order_date( $order_id );
+				$hour                = WCRedL()->get_order_hour( $order_id );
 				$text                = __( 'Thanks for your purchase, the details of your transaction are: ', 'woo-redsys-gateway-light' ) . '<br />';
-				$text               .= __( 'Website: ', 'woo-redsys-gateway-light' ) . $website . '<br />';
+				$text               .= __( 'Website: ', 'woo-redsys-gateway-light' ) . esc_url( $website ) . '<br />';
 				$text               .= __( 'FUC: ', 'woo-redsys-gateway-light' ) . $fuc . '<br />';
 				$text               .= __( 'Authorization Number: ', 'woo-redsys-gateway-light' ) . $numero_autorizacion . '<br />';
 				$text               .= __( 'Commerce Name: ', 'woo-redsys-gateway-light' ) . $commerce_name . '<br />';

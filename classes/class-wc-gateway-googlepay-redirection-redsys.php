@@ -793,6 +793,33 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Display authentication number and related order metadata on the Thank You page.
+	 *
+	 * @param WC_Order $order Order object.
+	 * @return string
+	 */
+	public function mostrar_numero_autentificacion( $order ) {
+		$order_id            = $order->get_id();
+		$website             = get_site_url();
+		$fuc                 = WCRedL()->get_order_meta( $order_id, '_order_fuc_redsys', true );
+		$numero_autorizacion = WCRedL()->get_order_meta( $order_id, '_authorisation_code_redsys', true );
+		$commerce_name       = $fuc; // El commerce name es el FUC
+		$date                = WCRedL()->get_order_meta( $order_id, '_payment_date_redsys', true );
+		$hour                = WCRedL()->get_order_meta( $order_id, '_payment_hour_redsys', true );
+
+		$text = sprintf(
+			'Order ID: %s<br>Website: %s<br>Commerce Name (FUC): %s<br>Authorization Code: %s<br>Payment Date: %s<br>Payment Hour: %s',
+			$order_id,
+			$website,
+			$commerce_name,
+			$numero_autorizacion,
+			$date,
+			$hour
+		);
+		return $text;
+	}
+
+	/**
 	 * Check redsys IPN validity
 	 */
 	public function check_ipn_request_is_valid() {
