@@ -934,9 +934,9 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	/**
 	 * Successful Payment.
 	 *
-	 * @param array $posted Post data after notify.
+	 * @param array $params Post data after notify.
 	 */
-	public function successful_request( $posted ) {
+	public function successful_request( $params ) {
 
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'googlepayredirecredsys', ' ' );
@@ -946,13 +946,17 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'googlepayredirecredsys', ' ' );
 		}
 
-		if ( ! isset( $_POST['Ds_SignatureVersion'] ) || ! isset( $_POST['Ds_Signature'] ) || ! isset( $_POST['Ds_MerchantParameters'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		if ( is_null( $params ) ) {
+			$params = stripslashes_deep( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		}
+
+		if ( ! isset( $params['Ds_SignatureVersion'] ) || ! isset( $params['Ds_Signature'] ) || ! isset( $params['Ds_MerchantParameters'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			wp_die( 'Do not access this page directly ' );
 		}
 
-		$version     = sanitize_text_field( wp_unslash( $_POST['Ds_SignatureVersion'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$data        = sanitize_text_field( wp_unslash( $_POST['Ds_MerchantParameters'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		$remote_sign = sanitize_text_field( wp_unslash( $_POST['Ds_Signature'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$version     = sanitize_text_field( wp_unslash( $params['Ds_SignatureVersion'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$data        = sanitize_text_field( wp_unslash( $params['Ds_MerchantParameters'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$remote_sign = sanitize_text_field( wp_unslash( $params['Ds_Signature'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'googlepayredirecredsys', ' ' );

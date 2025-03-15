@@ -339,13 +339,13 @@ function woocommerce_gateway_redsys_init() {
 			if ( $order && $is_redsys_order && $is_paid ) {
 				$order_id            = $order->get_id();
 				$numero_autorizacion = WCRedL()->get_order_meta( $order_id, '_authorisation_code_redsys', true );
-				$textthabks          = __( 'Thanks for your purchase, the details of your transaction are: ', 'woo-redsys-gateway-light' ) . '<br />';
-				$textthabks         .= __( 'Website: ', 'woo-redsys-gateway-light' ) . $website . '<br />';
-				$textthabks         .= __( 'FUC: ', 'woo-redsys-gateway-light' ) . $fuc . '<br />';
-				$textthabks         .= __( 'Authorization Number: ', 'woo-redsys-gateway-light' ) . $numero_autorizacion . '<br />';
-				$textthabks         .= __( 'Commerce Name: ', 'woo-redsys-gateway-light' ) . $commerce_name . '<br />';
-				$textthabks         .= __( 'Date: ', 'woo-redsys-gateway-light' ) . $date . '<br />';
-				$textthabks         .= __( 'Hour: ', 'woo-redsys-gateway-light' ) . $hour . '<br />';
+				$text                = __( 'Thanks for your purchase, the details of your transaction are: ', 'woo-redsys-gateway-light' ) . '<br />';
+				$text               .= __( 'Website: ', 'woo-redsys-gateway-light' ) . $website . '<br />';
+				$text               .= __( 'FUC: ', 'woo-redsys-gateway-light' ) . $fuc . '<br />';
+				$text               .= __( 'Authorization Number: ', 'woo-redsys-gateway-light' ) . $numero_autorizacion . '<br />';
+				$text               .= __( 'Commerce Name: ', 'woo-redsys-gateway-light' ) . $commerce_name . '<br />';
+				$text               .= __( 'Date: ', 'woo-redsys-gateway-light' ) . $date . '<br />';
+				$text               .= __( 'Hour: ', 'woo-redsys-gateway-light' ) . $hour . '<br />';
 			}
 		}
 		return $text;
