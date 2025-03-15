@@ -98,6 +98,11 @@ Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com
 
 == Changelog ==
 
+== 6.3.0 ==
+
+* Fixed Google Pay logo checkout.
+* Now orders are marked as paid if Redsys adds parameters to the URL.
+
 == 6.2.2 ==
 
 * Updated escaping in Bizum from esc_html_ to kses.

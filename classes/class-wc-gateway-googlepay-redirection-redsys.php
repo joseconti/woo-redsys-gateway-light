@@ -10,7 +10,7 @@
  * @link https://wordpress.org/plugins/woo-redsys-gateway-light/
  * @license GNU General Public License v3.0
  * @license URI: http://www.gnu.org/licenses/gpl-3.0.html
- * @copyright 2013-2024 José Conti.
+ * @copyright 2017-2025 José Conti.
  */
 
 defined( 'ABSPATH' ) || exit;
