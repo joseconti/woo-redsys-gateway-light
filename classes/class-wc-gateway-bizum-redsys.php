@@ -1246,6 +1246,16 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				$this->log->add( 'bizumredsys', '_payment_order_number_redsys NOT SAVED!!!' );
 				$this->log->add( 'bizumredsys', ' ' );
 			}
+			if ( ! empty( $dscode ) ) {
+				$data['_order_fuc_redsys'] = $dscode;
+				if ( 'yes' === $this->debug ) {
+					$this->log->add( 'googlepayredirecredsys', '_order_fuc_redsys: ' . $dscode );
+				}
+			} elseif ( 'yes' === $this->debug ) {
+				$this->log->add( 'googlepayredirecredsys', ' ' );
+				$this->log->add( 'googlepayredirecredsys', '_order_fuc_redsys NOT SAVED!!!' );
+				$this->log->add( 'googlepayredirecredsys', ' ' );
+			}
 			if ( ! empty( $dsdate ) ) {
 				WCRedL()->update_order_meta( $order->get_id(), '_payment_date_redsys', $dsdate );
 				if ( 'yes' === $this->debug ) {

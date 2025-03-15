@@ -1043,6 +1043,9 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			if ( ! empty( $dsdate ) ) {
 				WCRedL()->update_order_meta( $order->get_id(), '_payment_date_redsys', $dsdate );
 			}
+			if ( ! empty( $dscode ) ) {
+				WCRedL()->update_order_meta( $order->get_id(), '_order_fuc_redsys', $dscode );
+			}
 			if ( ! empty( $dshour ) ) {
 				WCRedL()->update_order_meta( $order->get_id(), '_payment_hour_redsys', $dshour );
 			}
