@@ -803,7 +803,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		$website             = get_site_url();
 		$fuc                 = WCRedL()->get_order_meta( $order_id, '_order_fuc_redsys', true );
 		$numero_autorizacion = WCRedL()->get_order_meta( $order_id, '_authorisation_code_redsys', true );
-		$commerce_name       = $fuc; // El commerce name es el FUC
+		$commerce_name       = $fuc;
 		$date                = WCRedL()->get_order_meta( $order_id, '_payment_date_redsys', true );
 		$hour                = WCRedL()->get_order_meta( $order_id, '_payment_hour_redsys', true );
 
