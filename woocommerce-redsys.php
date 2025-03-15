@@ -314,6 +314,7 @@ function woocommerce_gateway_redsys_init() {
 		if ( ! empty( $order ) ) {
 			$redsys          = new WC_Gateway_Redsys();
 			$is_redsys_order = WCRedL()->is_redsys_order( $order->get_id() );
+			$is_paid         = WCRedL()->is_paid( $order->get_id() );
 			if ( 'yes' === $redsys->debug ) {
 				if ( $is_redsys_order ) {
 					$redsys->log->add( 'redsys', '$is_redsys_order: YES' );
@@ -321,10 +322,16 @@ function woocommerce_gateway_redsys_init() {
 					$redsys->log->add( 'redsys', '$is_redsys_order: NO' );
 				}
 			}
-			if ( $order && $is_redsys_order ) {
+			if ( $order && $is_redsys_order && $is_paid ) {
 				$order_id            = $order->get_id();
 				$numero_autorizacion = WCRedL()->get_order_meta( $order_id, '_authorisation_code_redsys', true );
-				$text               .= '<p>' . esc_html__( 'The Redsys Authorization number is: ', 'woo-redsys-gateway-light' ) . $numero_autorizacion . '</br >';
+				$textthabks          = __( 'Thanks for your purchase, the details of your transaction are: ', 'woo-redsys-gateway-light' ) . '<br />';
+				$textthabks         .= __( 'Website: ', 'woo-redsys-gateway-light' ) . $website . '<br />';
+				$textthabks         .= __( 'FUC: ', 'woo-redsys-gateway-light' ) . $fuc . '<br />';
+				$textthabks         .= __( 'Authorization Number: ', 'woo-redsys-gateway-light' ) . $numero_autorizacion . '<br />';
+				$textthabks         .= __( 'Commerce Name: ', 'woo-redsys-gateway-light' ) . $commerce_name . '<br />';
+				$textthabks         .= __( 'Date: ', 'woo-redsys-gateway-light' ) . $date . '<br />';
+				$textthabks         .= __( 'Hour: ', 'woo-redsys-gateway-light' ) . $hour . '<br />';
 			}
 		}
 		return $text;
