@@ -1095,10 +1095,10 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	/**
 	 * Successful Payment!
 	 *
-	 * @param array $posted Post data successsful request.
+	 * @param array $params Post data successsful request.
 	 * @return void
 	 */
-	public function successful_request( $posted ) {
+	public function successful_request( $params ) {
 
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'bizumredsys', ' ' );
@@ -1108,23 +1108,13 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'bizumredsys', ' ' );
 		}
 
-		if ( isset( $_POST['Ds_SignatureVersion'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			$version = sanitize_text_field( wp_unslash( $_POST['Ds_SignatureVersion'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		} else {
-			$version = '';
+		if ( is_null( $params ) ) {
+			$params = stripslashes_deep( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		}
 
-		if ( isset( $_POST['Ds_MerchantParameters'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			$data = sanitize_text_field( wp_unslash( $_POST['Ds_MerchantParameters'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		} else {
-			$data = '';
-		}
-
-		if ( isset( $_POST['Ds_Signature'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			$remote_sign = sanitize_text_field( wp_unslash( $_POST['Ds_Signature'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-		} else {
-			$remote_sign = '';
-		}
+		$version     = sanitize_text_field( wp_unslash( $params['Ds_SignatureVersion'] ?? '' ) );
+		$data        = sanitize_text_field( wp_unslash( $params['Ds_MerchantParameters'] ?? '' ) );
+		$remote_sign = sanitize_text_field( wp_unslash( $params['Ds_Signature'] ?? '' ) );
 
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'bizumredsys', ' ' );
