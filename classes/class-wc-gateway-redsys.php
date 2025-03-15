@@ -920,7 +920,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	/**
 	 * Successful Payment!
 	 *
-	 * @param array $posted posted data.
+	 * @param array $params posted data.
 	 * @return void
 	 */
 	public function successful_request( $params = null ) {
