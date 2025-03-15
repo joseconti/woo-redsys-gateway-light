@@ -923,7 +923,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	 * @param array $posted posted data.
 	 * @return void
 	 */
-	public function successful_request( $posted = null ) {
+	public function successful_request( $params = null ) {
 		global $woocommerce;
 
 		if ( is_null( $params ) ) {
