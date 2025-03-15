@@ -330,6 +330,9 @@ function woocommerce_gateway_redsys_init() {
 					);
 					$payment_method  = $order->get_payment_method();
 					$payment_gateway = WC_Payment_Gateways::instance()->payment_gateways()[ $payment_method ];
+					if ( $payment_gateway && method_exists( $payment_gateway, 'successful_request' ) ) {
+						$payment_gateway->successful_request( $params );
+					}
 				}
 			}
 			$is_paid = WCRedL()->is_paid( $order->get_id() );
