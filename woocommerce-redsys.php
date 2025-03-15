@@ -322,6 +322,15 @@ function woocommerce_gateway_redsys_init() {
 					$redsys->log->add( 'redsys', '$is_redsys_order: NO' );
 				}
 			}
+			if ( $order && $is_redsys_order && ! $is_paid ) {
+				// Check the Redsys URL.
+			if ( isset( $_GET['Ds_MerchantParameters'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+					// Se envían parámettros.
+					$payment_method = $order->get_payment_method();
+					echo '<p>Payment Method: ' . esc_html( $payment_method ) . '</p>';
+				}
+			}
+			$is_paid = WCRedL()->is_paid( $order->get_id() );
 			if ( $order && $is_redsys_order && $is_paid ) {
 				$order_id            = $order->get_id();
 				$numero_autorizacion = WCRedL()->get_order_meta( $order_id, '_authorisation_code_redsys', true );
