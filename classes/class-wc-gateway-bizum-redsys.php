@@ -1098,7 +1098,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	 * @param array $params Post data successsful request.
 	 * @return void
 	 */
-	public function successful_request( $params ) {
+	public function successful_request( $params = null ) {
 
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'bizumredsys', ' ' );
@@ -1247,14 +1247,14 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				$this->log->add( 'bizumredsys', ' ' );
 			}
 			if ( ! empty( $dscode ) ) {
-				$data['_order_fuc_redsys'] = $dscode;
+				WCRedL()->update_order_meta( $order->get_id(), '_order_fuc_redsys', $dscode );
 				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'googlepayredirecredsys', '_order_fuc_redsys: ' . $dscode );
+					$this->log->add( 'bizumredsys', '_order_fuc_redsys: ' . $dscode );
 				}
 			} elseif ( 'yes' === $this->debug ) {
-				$this->log->add( 'googlepayredirecredsys', ' ' );
-				$this->log->add( 'googlepayredirecredsys', '_order_fuc_redsys NOT SAVED!!!' );
-				$this->log->add( 'googlepayredirecredsys', ' ' );
+				$this->log->add( 'bizumredsys', ' ' );
+				$this->log->add( 'bizumredsys', '_order_fuc_redsys NOT SAVED!!!' );
+				$this->log->add( 'bizumredsys', ' ' );
 			}
 			if ( ! empty( $dsdate ) ) {
 				WCRedL()->update_order_meta( $order->get_id(), '_payment_date_redsys', $dsdate );

@@ -8,7 +8,7 @@
  * Requires Plugins: woocommerce
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
- * Version: 6.3.0
+ * Version: 6.3.1
  * Author: José Conti
  * Author URI: https://plugins.joseconti.com/
  * Tested up to: 6.7
@@ -21,7 +21,7 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '6.3.0' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '6.3.1' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 if ( ! defined( 'REDSYS_PLUGIN_PATH' ) ) {
 	define( 'REDSYS_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
@@ -314,13 +314,6 @@ function woocommerce_gateway_redsys_init() {
 		if ( ! empty( $order ) ) {
 			$is_redsys_order = WCRedL()->is_redsys_order( $order->get_id() );
 			$is_paid         = WCRedL()->is_paid( $order->get_id() );
-			if ( 'yes' === $redsys->debug ) {
-				if ( $is_redsys_order ) {
-					$redsys->log->add( 'redsys', '$is_redsys_order: YES' );
-				} else {
-					$redsys->log->add( 'redsys', '$is_redsys_order: NO' );
-				}
-			}
 			if ( $order && $is_redsys_order && ! $is_paid ) {
 				// Check the Redsys URL.
 				if ( isset( $_GET['Ds_MerchantParameters'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended

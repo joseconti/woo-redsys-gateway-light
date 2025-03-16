@@ -936,7 +936,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	 *
 	 * @param array $params Post data after notify.
 	 */
-	public function successful_request( $params ) {
+	public function successful_request( $params = null ) {
 
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'googlepayredirecredsys', ' ' );
