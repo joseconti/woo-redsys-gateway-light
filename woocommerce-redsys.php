@@ -304,53 +304,6 @@ function woocommerce_gateway_redsys_init() {
 	add_action( 'woocommerce_admin_order_data_after_billing_address', 'add_redsys_meta_box' );
 
 	/**
-	 * Redsys add method.
-	 *
-	 * @param string $text Text in order.
-	 * @param obj    $order Order information.
-	 */
-	function mostrar_numero_autentificacion( $text, $order ) {
-
-		if ( ! empty( $order ) ) {
-			$is_redsys_order = WCRedL()->is_redsys_order( $order->get_id() );
-			$is_paid         = WCRedL()->is_paid( $order->get_id() );
-			if ( $order && $is_redsys_order && ! $is_paid ) {
-				// Check the Redsys URL.
-				if ( isset( $_GET['Ds_MerchantParameters'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-					$params          = array(
-						'Ds_MerchantParameters' => sanitize_text_field( wp_unslash( $_GET['Ds_MerchantParameters'] ) ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-						'Ds_Signature'          => isset( $_GET['Ds_Signature'] ) ? sanitize_text_field( wp_unslash( $_GET['Ds_Signature'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-					);
-					$payment_method  = $order->get_payment_method();
-					$payment_gateway = WC_Payment_Gateways::instance()->payment_gateways()[ $payment_method ];
-					if ( $payment_gateway && method_exists( $payment_gateway, 'successful_request' ) ) {
-						$payment_gateway->successful_request( $params );
-					}
-				}
-			}
-			$is_paid = WCRedL()->is_paid( $order->get_id() );
-			if ( $order && $is_redsys_order && $is_paid ) {
-				$order_id            = $order->get_id();
-				$website             = get_site_url();
-				$fuc                 = WCRedL()->get_order_meta( $order_id, '_order_fuc_redsys', true );
-				$numero_autorizacion = WCRedL()->get_order_auth( $order_id );
-				$commerce_name       = get_bloginfo( 'name' );
-				$date                = WCRedL()->get_order_date( $order_id );
-				$hour                = WCRedL()->get_order_hour( $order_id );
-				$text                = __( 'Thanks for your purchase, the details of your transaction are: ', 'woo-redsys-gateway-light' ) . '<br />';
-				$text               .= __( 'Website: ', 'woo-redsys-gateway-light' ) . esc_url( $website ) . '<br />';
-				$text               .= __( 'FUC: ', 'woo-redsys-gateway-light' ) . $fuc . '<br />';
-				$text               .= __( 'Authorization Number: ', 'woo-redsys-gateway-light' ) . $numero_autorizacion . '<br />';
-				$text               .= __( 'Commerce Name: ', 'woo-redsys-gateway-light' ) . $commerce_name . '<br />';
-				$text               .= __( 'Date: ', 'woo-redsys-gateway-light' ) . $date . '<br />';
-				$text               .= __( 'Hour: ', 'woo-redsys-gateway-light' ) . $hour . '<br />';
-			}
-		}
-		return $text;
-	}
-	add_filter( 'woocommerce_thankyou_order_received_text', 'mostrar_numero_autentificacion', 20, 2 );
-
-	/**
 	 * Redsys head text.
 	 */
 	function redsys_lite_add_head_text() {
@@ -403,3 +356,95 @@ function woocommerce_gateway_redsys_init() {
 	}
 	add_action( 'woocommerce_blocks_loaded', 'woocommerce_gateway_redsys_lite_block_support' );
 }
+
+/**
+ * Mark order as paid.
+ *
+ * @param int $order_id Order ID.
+ */
+function redsyslite_mark_order_as_paid( $order_id ) {
+
+	// Este sleep es para evitar que se ejecute el código antes de que se haya procesado el pago en el caso en que llegue la notificación IPN.
+	sleep( 5 );
+
+	$is_redsys_order = WCRedL()->is_redsys_order( $order_id );
+	$is_paid         = WCRedL()->is_paid( $order_id );
+	$order           = wc_get_order( $order_id );
+
+	if ( ( $order && $is_redsys_order && ! $is_paid ) || WCRed()->is_payment_method_change_order( $order_id ) ) {
+		WCRed()->log( 'redsys', 'No se ha realizado el pago o es una suscripción' );
+		// Check the Redsys URL.
+		if ( isset( $_GET['Ds_MerchantParameters'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$params          = array(
+				'Ds_MerchantParameters' => sanitize_text_field( wp_unslash( $_GET['Ds_MerchantParameters'] ) ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				'Ds_Signature'          => isset( $_GET['Ds_Signature'] ) ? sanitize_text_field( wp_unslash( $_GET['Ds_Signature'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			);
+			$payment_method  = $order->get_payment_method();
+			$payment_gateway = WC_Payment_Gateways::instance()->payment_gateways()[ $payment_method ];
+			if ( $payment_gateway && method_exists( $payment_gateway, 'successful_request' ) ) {
+				$payment_gateway->successful_request( $params );
+			}
+		}
+	} else {
+		WCRed()->log( 'redsys', 'Ya se ha realizado el pago y no es una suscripción' );
+	}
+}
+
+/**
+ * Ejecuta redsys_mark_order_as_paid desde wp_head si estamos en la página de "order received"
+ * y hay una key válida en la URL.
+ */
+add_action( 'wp_head', 'redsyslite_force_mark_order_as_paid_on_thankyou_page' );
+
+/**
+ * Force mark order as paid on thank you page.
+ *
+ * @return void
+ */
+function redsyslite_force_mark_order_as_paid_on_thankyou_page() {
+	if ( ! is_order_received_page() ) {
+		return;
+	}
+
+	if ( isset( $_GET['key'], $_GET['Ds_MerchantParameters'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$order_key = sanitize_text_field( wp_unslash( $_GET['key'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$order_id  = wc_get_order_id_by_order_key( $order_key );
+
+		if ( $order_id && is_numeric( $order_id ) ) {
+			redsyslite_mark_order_as_paid( $order_id );
+		}
+	}
+}
+
+/**
+ * Redsys add method.
+ *
+ * @param string $text Text in order.
+ * @param obj    $order Order information.
+ */
+function mostrar_numero_autentificacion( $text, $order ) {
+
+	if ( ! empty( $order ) ) {
+		$is_redsys_order = WCRedL()->is_redsys_order( $order->get_id() );
+		$is_paid         = WCRedL()->is_paid( $order->get_id() );
+
+		if ( $order && $is_redsys_order && $is_paid ) {
+			$order_id            = $order->get_id();
+			$website             = get_site_url();
+			$fuc                 = WCRedL()->get_order_meta( $order_id, '_order_fuc_redsys', true );
+			$numero_autorizacion = WCRedL()->get_order_auth( $order_id );
+			$commerce_name       = get_bloginfo( 'name' );
+			$date                = WCRedL()->get_order_date( $order_id );
+			$hour                = WCRedL()->get_order_hour( $order_id );
+			$text                = __( 'Thanks for your purchase, the details of your transaction are: ', 'woo-redsys-gateway-light' ) . '<br />';
+			$text               .= __( 'Website: ', 'woo-redsys-gateway-light' ) . esc_url( $website ) . '<br />';
+			$text               .= __( 'FUC: ', 'woo-redsys-gateway-light' ) . $fuc . '<br />';
+			$text               .= __( 'Authorization Number: ', 'woo-redsys-gateway-light' ) . $numero_autorizacion . '<br />';
+			$text               .= __( 'Commerce Name: ', 'woo-redsys-gateway-light' ) . $commerce_name . '<br />';
+			$text               .= __( 'Date: ', 'woo-redsys-gateway-light' ) . $date . '<br />';
+			$text               .= __( 'Hour: ', 'woo-redsys-gateway-light' ) . $hour . '<br />';
+		}
+	}
+	return $text;
+}
+add_filter( 'woocommerce_thankyou_order_received_text', 'mostrar_numero_autentificacion', 20, 2 );
