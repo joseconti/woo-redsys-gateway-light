@@ -372,7 +372,6 @@ function redsyslite_mark_order_as_paid( $order_id ) {
 	$order           = wc_get_order( $order_id );
 
 	if ( ( $order && $is_redsys_order && ! $is_paid ) || WCRed()->is_payment_method_change_order( $order_id ) ) {
-		WCRed()->log( 'redsys', 'No se ha realizado el pago o es una suscripción' );
 		// Check the Redsys URL.
 		if ( isset( $_GET['Ds_MerchantParameters'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$params          = array(
@@ -385,8 +384,6 @@ function redsyslite_mark_order_as_paid( $order_id ) {
 				$payment_gateway->successful_request( $params );
 			}
 		}
-	} else {
-		WCRed()->log( 'redsys', 'Ya se ha realizado el pago y no es una suscripción' );
 	}
 }
 
