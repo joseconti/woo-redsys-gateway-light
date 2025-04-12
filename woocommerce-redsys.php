@@ -371,7 +371,7 @@ function redsyslite_mark_order_as_paid( $order_id ) {
 	$is_paid         = WCRedL()->is_paid( $order_id );
 	$order           = wc_get_order( $order_id );
 
-	if ( ( $order && $is_redsys_order && ! $is_paid ) || WCRed()->is_payment_method_change_order( $order_id ) ) {
+	if ( ( $order && $is_redsys_order && ! $is_paid ) ) {
 		// Check the Redsys URL.
 		if ( isset( $_GET['Ds_MerchantParameters'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$params          = array(
