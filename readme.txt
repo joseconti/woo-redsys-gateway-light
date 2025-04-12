@@ -98,6 +98,11 @@ Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com
 
 == Changelog ==
 
+== 6.4.0 ==
+
+* Updated hook for mark payments as made bu URL Params.
+* Fixed Redsys Data translation in Thankyou Page.
+
 == 6.3.1 ==
 
 * Fixed fatal error in Bizum notification.
