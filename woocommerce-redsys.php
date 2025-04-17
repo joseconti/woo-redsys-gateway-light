@@ -42,6 +42,7 @@ if ( ! defined( 'REDSYS_PLUGIN_CLASS_PATH' ) ) {
 	define( 'REDSYS_PLUGIN_CLASS_PATH', REDSYS_PLUGIN_PATH . 'classes/' );
 }
 
+add_action( 'plugin_loaded', 'redsys_language_init', 12 );
 add_action( 'woocommerce_loaded', 'woocommerce_gateway_redsys_init', 11 );
 
 add_action(
@@ -59,6 +60,13 @@ if ( ! class_exists( 'RedsysLiteAPI' ) ) {
 	require_once 'includes/class-redsysliteapi.php';
 }
 require_once 'about-redsys.php';
+
+/**
+ * Load plugin textdomain.
+ */
+function redsys_language_init() {
+	load_plugin_textdomain( 'woo-redsys-gateway-light', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+}
 
 /**
  * Plugin updates
@@ -134,7 +142,6 @@ function woocommerce_gateway_redsys_init() {
 	if ( ! class_exists( 'WC_Payment_Gateway' ) ) {
 		return;
 	}
-	load_plugin_textdomain( 'woo-redsys-gateway-light', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 	/**
 	 * Redsys menu
 	 */
