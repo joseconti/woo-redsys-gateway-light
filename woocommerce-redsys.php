@@ -42,7 +42,7 @@ if ( ! defined( 'REDSYS_PLUGIN_CLASS_PATH' ) ) {
 	define( 'REDSYS_PLUGIN_CLASS_PATH', REDSYS_PLUGIN_PATH . 'classes/' );
 }
 
-add_action( 'plugins_loaded', 'redsys_language_init', 12 );
+add_action( 'plugins_loaded', 'redsys_language_init', 10 );
 add_action( 'woocommerce_loaded', 'woocommerce_gateway_redsys_init', 11 );
 
 add_action(
