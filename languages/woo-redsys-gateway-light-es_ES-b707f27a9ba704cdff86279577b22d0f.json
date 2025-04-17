@@ -1,0 +1,1 @@
+{"translation-revision-date": "2025-04-17 11:11+0200", "generator": "Poedit 3.6", "source": "resources/js/frontend/index.js", "domain": "messages", "locale_data": {"messages": {"": {"domain": "messages", "lang": "es_ES", "plural-forms": "nplurals=2; plural=(n != 1);"}, "Bizum": ["Bizum"], "Google Pay": ["Google Pay"], "Redsys": ["Redsys"]}}}
