@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: WooCommerce Redsys Gateway Light\n"
-"POT-Creation-Date: 2025-04-17 11:04+0200\n"
-"PO-Revision-Date: 2025-04-17 11:11+0200\n"
+"POT-Creation-Date: 2025-06-07 00:27+0200\n"
+"PO-Revision-Date: 2025-06-07 00:28+0200\n"
 "Last-Translator: José Conti <j.conti@joseconti.com>\n"
 "Language-Team: José Conti <j.conti@joseconti.com>\n"
 "Language: es_ES\n"
@@ -1216,19 +1216,19 @@ msgstr ""
 msgid "Redsys"
 msgstr "Redsys"
 
-#: woocommerce-redsys.php:144
+#: woocommerce-redsys.php:151
 msgid "About Redsys"
 msgstr "Sobre Redsys"
 
-#: woocommerce-redsys.php:195 woocommerce-redsys.php:234
+#: woocommerce-redsys.php:202 woocommerce-redsys.php:241
 msgid "Dismiss"
 msgstr "Descartar"
 
-#: woocommerce-redsys.php:198
+#: woocommerce-redsys.php:205
 msgid "WooCommerce Redsys Gateway has been updated to version "
 msgstr "WooCommerce Redsys Gateway Light ha sido actualizado a la versión "
 
-#: woocommerce-redsys.php:202
+#: woocommerce-redsys.php:209
 msgid ""
 "Discover the improvements that have been made in this version, and how to "
 "take advantage of them "
@@ -1236,27 +1236,27 @@ msgstr ""
 "Descubre las mejoras que ha habido en esta versión, y cómo sacarles "
 "beneficio "
 
-#: woocommerce-redsys.php:205
+#: woocommerce-redsys.php:212
 msgid "Discover the improvements"
 msgstr "Descubre las mejoras"
 
-#: woocommerce-redsys.php:206
+#: woocommerce-redsys.php:213
 msgid "Make a Microsponsor"
 msgstr "Realiza un Microesponsor"
 
-#: woocommerce-redsys.php:207
+#: woocommerce-redsys.php:214
 msgid "Leave a review"
 msgstr "Deja una valoración"
 
-#: woocommerce-redsys.php:208
+#: woocommerce-redsys.php:215
 msgid "Sign up for the Telegram channel"
 msgstr "Date de alta en el canal de Telegram"
 
-#: woocommerce-redsys.php:236
+#: woocommerce-redsys.php:243
 msgid "Do you want to be informed about the world of Redsys?"
 msgstr "¿Quieres estar informado del mundo de Redsys?"
 
-#: woocommerce-redsys.php:239
+#: woocommerce-redsys.php:246
 msgid ""
 "Sign up for the WooCommerce Redsys Gateway Telegram channel, and be the "
 "first to know everything."
@@ -1264,59 +1264,59 @@ msgstr ""
 "Date de alta en el canal de WooCommerce Redsys Gateway de Telegram, y se el "
 "primero en saberlo todo."
 
-#: woocommerce-redsys.php:241
+#: woocommerce-redsys.php:248
 msgid "Don&#39;t miss a single thing!"
 msgstr "¡No te pierdas nada!"
 
-#: woocommerce-redsys.php:287
+#: woocommerce-redsys.php:294
 msgid "Payment Details"
 msgstr "Detalles del pago"
 
-#: woocommerce-redsys.php:288
+#: woocommerce-redsys.php:295
 msgid "Paid with"
 msgstr "Pagado con"
 
-#: woocommerce-redsys.php:290
+#: woocommerce-redsys.php:297
 msgid "Redsys Order Number"
 msgstr "Número de pedido en Redsys"
 
-#: woocommerce-redsys.php:293
+#: woocommerce-redsys.php:300
 msgid "Redsys Date"
 msgstr "Fecha Redsys"
 
-#: woocommerce-redsys.php:297
+#: woocommerce-redsys.php:304
 msgid "Redsys Hour"
 msgstr "Hora Redsys"
 
-#: woocommerce-redsys.php:301
+#: woocommerce-redsys.php:308
 msgid "Redsys Authorisation Code"
 msgstr "Código autorización Redsys"
 
-#: woocommerce-redsys.php:437
+#: woocommerce-redsys.php:444
 msgid "Thanks for your purchase, the details of your transaction are: "
 msgstr "Gracias por su compra, los detalles de la transacción son: "
 
-#: woocommerce-redsys.php:438
+#: woocommerce-redsys.php:445
 msgid "Website: "
 msgstr "Página web: "
 
-#: woocommerce-redsys.php:439
+#: woocommerce-redsys.php:446
 msgid "FUC: "
 msgstr "FUC: "
 
-#: woocommerce-redsys.php:440
+#: woocommerce-redsys.php:447
 msgid "Authorization Number: "
 msgstr "Código autorización: "
 
-#: woocommerce-redsys.php:441
+#: woocommerce-redsys.php:448
 msgid "Commerce Name: "
 msgstr "Nombre de comercio: "
 
-#: woocommerce-redsys.php:442
+#: woocommerce-redsys.php:449
 msgid "Date: "
 msgstr "Fecha: "
 
-#: woocommerce-redsys.php:443
+#: woocommerce-redsys.php:450
 msgid "Hour: "
 msgstr "Hora: "
 
