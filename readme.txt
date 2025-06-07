@@ -100,7 +100,7 @@ Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com
 
 == 6.5.0 ==
 
-* Added translation files to /languages plgin folder.
+* Added translation files to /languages plugin folder.
 
 == 6.4.0 ==
 
