@@ -2,13 +2,13 @@
 Contributors: j.conti
 Tags: woocommerce, redsys, bizum, Google Pay, GPay
 Requires at least: 4.0
-Tested up to: 6.7
+Tested up to: 6.8
 Donate link: https://plugins.joseconti.com/product-category/plugins/donaciones/
-Stable tag: 6.3.1
+Stable tag: 6.5.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 7.5
-WC tested up to: 9.8
+WC tested up to: 9.9
 
 Add Redsys Gateway, BIZUM, and Google Pay redirection to WooCommerce. Lite version of the premium Redsys plugin on WooCommerce.com.
 
@@ -97,6 +97,10 @@ Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com
 4. Language: Set the Redsys Gateway Language.
 
 == Changelog ==
+
+== 6.5.0 ==
+
+* Added translation files to /languages plgin folder.
 
 == 6.4.0 ==
 
