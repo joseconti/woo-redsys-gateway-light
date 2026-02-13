@@ -2,7 +2,7 @@
 /**
  * WooCommerce Redsys Gateway Light
  *
- * @package WooCommerce Redsys Gateway Ligh
+ * @package WooCommerce Redsys Gateway Light
  *
  * Plugin Name: Gateway for Redsys & WooCommerce Light
  * Requires Plugins: woocommerce
@@ -465,11 +465,11 @@ function mostrar_numero_autentificacion( $text, $order ) {
 			$hour                = WCRedL()->get_order_hour( $order_id );
 			$text                = __( 'Thanks for your purchase, the details of your transaction are: ', 'woo-redsys-gateway-light' ) . '<br />';
 			$text               .= __( 'Website: ', 'woo-redsys-gateway-light' ) . esc_url( $website ) . '<br />';
-			$text               .= __( 'FUC: ', 'woo-redsys-gateway-light' ) . $fuc . '<br />';
-			$text               .= __( 'Authorization Number: ', 'woo-redsys-gateway-light' ) . $numero_autorizacion . '<br />';
-			$text               .= __( 'Commerce Name: ', 'woo-redsys-gateway-light' ) . $commerce_name . '<br />';
-			$text               .= __( 'Date: ', 'woo-redsys-gateway-light' ) . $date . '<br />';
-			$text               .= __( 'Hour: ', 'woo-redsys-gateway-light' ) . $hour . '<br />';
+			$text               .= __( 'FUC: ', 'woo-redsys-gateway-light' ) . esc_html( $fuc ) . '<br />';
+			$text               .= __( 'Authorization Number: ', 'woo-redsys-gateway-light' ) . esc_html( $numero_autorizacion ) . '<br />';
+			$text               .= __( 'Commerce Name: ', 'woo-redsys-gateway-light' ) . esc_html( $commerce_name ) . '<br />';
+			$text               .= __( 'Date: ', 'woo-redsys-gateway-light' ) . esc_html( $date ) . '<br />';
+			$text               .= __( 'Hour: ', 'woo-redsys-gateway-light' ) . esc_html( $hour ) . '<br />';
 		}
 	}
 	return $text;

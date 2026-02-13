@@ -477,10 +477,10 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			'orderdo'          => array(
 				'title'       => __( 'What to do after payment?', 'woo-redsys-gateway-light' ),
 				'type'        => 'select',
-				'description' => __( 'Chose what to do after the customer pay the order.', 'woo-redsys-gateway-light' ),
+				'description' => __( 'Choose what to do after the customer pays the order.', 'woo-redsys-gateway-light' ),
 				'default'     => 'processing',
 				'options'     => array(
-					'processing' => __( 'Mark as Processing (default & recomended)', 'woo-redsys-gateway-light' ),
+					'processing' => __( 'Mark as Processing (default & recommended)', 'woo-redsys-gateway-light' ),
 					'completed'  => __( 'Mark as Complete', 'woo-redsys-gateway-light' ),
 				),
 			),
@@ -868,8 +868,6 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	 * @return string
 	 */
 	public function generate_redsys_form( $order_id ) {
-		global $woocommerce;
-
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'bizumredsys', ' ' );
 			$this->log->add( 'bizumredsys', '/****************************/' );
@@ -890,7 +888,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		}
 		wc_enqueue_js(
 			'$("body").block({
-			message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', $woocommerce->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . __( 'Thank you for your order. We are now redirecting you to Bizum to make the payment.', 'woo-redsys-gateway-light' ) . '",
+			message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', WC()->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . __( 'Thank you for your order. We are now redirecting you to Bizum to make the payment.', 'woo-redsys-gateway-light' ) . '",
 			overlayCSS:
 			{
 				background: "#fff",

@@ -1,8 +1,8 @@
 <?php
 /**
- * WooCommerce Redsys Gateway Ligth
+ * WooCommerce Redsys Gateway Light
  *
- * @package WooCommerce Redsys Gateway Ligth
+ * @package WooCommerce Redsys Gateway Light
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -72,7 +72,7 @@ final class WC_Gateway_Redsys_Lite_Support extends AbstractPaymentMethodType {
 		);
 
 		if ( function_exists( 'wp_set_script_translations' ) ) {
-			wp_set_script_translations( 'wc-redsys-payments-blocks', 'woocommerce-gateway-dummy', plugin_abspath_redsys() . 'languages/' );
+			wp_set_script_translations( 'wc-redsys-payments-blocks', 'woo-redsys-gateway-light', plugin_abspath_redsys() . 'languages/' );
 		}
 
 		return array( 'wc-redsys-payments-blocks' );

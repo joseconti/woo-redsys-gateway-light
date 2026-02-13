@@ -189,16 +189,9 @@ class WC_Gateway_Redsys_Global_Lite {
 	public function get_order_meta( $order_id, $key, $single = true ) {
 		$order = wc_get_order( $order_id );
 		if ( $order ) {
-			$context  = 'view';
-			$order_id = $order->get_meta( $key, $single, $context );
-			if ( $order_id ) {
-				$post_id = $order_id;
-			}
-			$meta = $order->get_meta( $key, $single, $context );
-			return $meta;
-		} else {
-			return false;
+			return $order->get_meta( $key, $single, 'view' );
 		}
+		return false;
 	}
 	/**
 	 * Update the meta data for an order.
@@ -1137,7 +1130,8 @@ class WC_Gateway_Redsys_Global_Lite {
 		foreach ( $order->get_items() as $item ) {
 			$product_id .= $item->get_product_id() . ', ';
 			$name       .= $item->get_name() . ', ';
-			$sku        .= get_post_meta( $item->get_product_id(), '_sku', true ) . ', ';
+			$product     = $item->get_product();
+			$sku        .= ( $product ? $product->get_sku() : '' ) . ', ';
 		}
 		// Can be order, id, name or sku.
 		$description_type = $this->get_redsys_option( 'descripredsys', $gateway );

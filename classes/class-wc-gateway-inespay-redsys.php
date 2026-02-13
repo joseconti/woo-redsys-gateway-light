@@ -312,10 +312,10 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 				'orderdo'          => array(
 					'title'       => __( 'What to do after payment?', 'woo-redsys-gateway-light' ),
 					'type'        => 'select',
-					'description' => __( 'Chose what to do after the customer pay the order.', 'woo-redsys-gateway-light' ),
+					'description' => __( 'Choose what to do after the customer pays the order.', 'woo-redsys-gateway-light' ),
 					'default'     => 'processing',
 					'options'     => array(
-						'processing' => __( 'Mark as Processing (default & recomended)', 'woo-redsys-gateway-light' ),
+						'processing' => __( 'Mark as Processing (default & recommended)', 'woo-redsys-gateway-light' ),
 						'completed'  => __( 'Mark as Complete', 'woo-redsys-gateway-light' ),
 					),
 				),

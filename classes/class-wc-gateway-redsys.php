@@ -236,7 +236,6 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	 * @return void
 	 */
 	public function __construct() {
-		global $woocommerce, $checkfor254;
 		$this->id = 'redsys';
 		$logo_url = $this->get_option( 'logo' );
 		if ( ! empty( $logo_url ) ) {
@@ -474,10 +473,10 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			'orderdo'          => array(
 				'title'       => __( 'What to do after payment?', 'woo-redsys-gateway-light' ),
 				'type'        => 'select',
-				'description' => __( 'Chose what to do after the customer pay the order.', 'woo-redsys-gateway-light' ),
+				'description' => __( 'Choose what to do after the customer pays the order.', 'woo-redsys-gateway-light' ),
 				'default'     => 'processing',
 				'options'     => array(
-					'processing' => __( 'Mark as Processing (default & recomended)', 'woo-redsys-gateway-light' ),
+					'processing' => __( 'Mark as Processing (default & recommended)', 'woo-redsys-gateway-light' ),
 					'completed'  => __( 'Mark as Complete', 'woo-redsys-gateway-light' ),
 				),
 			),
@@ -554,7 +553,6 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	 * @param mixed $order order object.
 	 */
 	public function get_redsys_args( $order ) {
-		global $woocommerce;
 		$order_id         = $order->get_id();
 		$currency_codes   = WCRedL()->get_currencies();
 		$transaction_id2  = WCRedL()->prepare_order_number( $order_id );
@@ -693,8 +691,6 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	 * @return string
 	 */
 	public function generate_redsys_form( $order_id ) {
-		global $woocommerce;
-
 		if ( 'yes' === $this->testmode ) {
 			$usesecretsha256 = $this->customtestsha256;
 			if ( ! empty( $usesecretsha256 ) ) {
@@ -721,7 +717,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				wc_enqueue_js(
 					'
 				$("body").block({
-					message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', $woocommerce->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . __( 'Thank you for your order. We are now redirecting you to Servired/RedSys to make the payment.', 'woo-redsys-gateway-light' ) . '",
+					message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', WC()->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . __( 'Thank you for your order. We are now redirecting you to Servired/RedSys to make the payment.', 'woo-redsys-gateway-light' ) . '",
 					overlayCSS:
 					{
 						background: "#fff",
@@ -759,7 +755,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				wc_enqueue_js(
 					'
 				$("body").block({
-					message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', $woocommerce->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . __( 'Thank you for your order. We are now redirecting you to Servired/RedSys to make the payment.', 'woo-redsys-gateway-light' ) . '",
+					message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', WC()->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . __( 'Thank you for your order. We are now redirecting you to Servired/RedSys to make the payment.', 'woo-redsys-gateway-light' ) . '",
 					overlayCSS:
 					{
 						background: "#fff",
@@ -833,8 +829,6 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	 * Check redsys IPN validity
 	 **/
 	public function check_ipn_request_is_valid() {
-		global $woocommerce;
-
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'redsys', 'HTTP Notification received: ' . print_r( $_POST, true ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.PHP.DevelopmentFunctions.error_log_print_r
 		}
@@ -924,8 +918,6 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	 * @return void
 	 */
 	public function successful_request( $params = null ) {
-		global $woocommerce;
-
 		if ( is_null( $params ) ) {
 			$params = stripslashes_deep( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		}

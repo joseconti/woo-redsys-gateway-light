@@ -2,7 +2,7 @@
 /**
  * Devuelve los códigos de respuesta de Redsys
  *
- * @package WooCommerce Redsys Gateway Ligth
+ * @package WooCommerce Redsys Gateway Light
  *
  * @return array
  */

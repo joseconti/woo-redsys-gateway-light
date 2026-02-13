@@ -1,14 +1,15 @@
 === Gateway for Redsys & WooCommerce ===
 Contributors: j.conti
-Tags: woocommerce, redsys, bizum, Google Pay, Apple Pay, Inespay,cGPay
+Tags: woocommerce, redsys, bizum, google pay, apple pay, inespay
 Requires at least: 4.0
-Tested up to: 6.8
+Tested up to: 6.9
+Requires PHP: 7.0
 Donate link: https://plugins.joseconti.com/product-category/plugins/donaciones/
 Stable tag: 7.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
-WC requires at least: 7.5
-WC tested up to: 9.9
+WC requires at least: 7.4
+WC tested up to: 9.8
 
 Add Redsys Gateway, BIZUM, and Apple/Google Pay redirection to WooCommerce. Lite version of the premium Redsys plugin on WooCommerce.com.
 
@@ -26,7 +27,7 @@ With this extension, you get all you need to use Redsys Gateway.
 * PSD2 Compatible
 * Redsys Redirection Lite
 * Bizum Lite
-* Apple & Google Pay redirecction
+* Apple & Google Pay redirection
 * Inespay Lite
 * WPML compatible.
 * Works with SNI certificates like Let's Encrypt, EX: SiteGround, HostFusion, etc

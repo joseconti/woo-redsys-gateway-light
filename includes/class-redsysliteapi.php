@@ -2,7 +2,7 @@
 /**
  * Class RedsysLiteAPI
  *
- * @package WooCommerce Redsys Gateway Ligth
+ * @package WooCommerce Redsys Gateway Light
  *
  * @version 2.0.0
  */

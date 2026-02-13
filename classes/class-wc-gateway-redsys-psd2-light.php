@@ -222,7 +222,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 	public function days( $start_time ) {
 
 		$current_time    = time();
-		$unix_start_time = date( 'U', strtotime( $start_time ) ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+		$unix_start_time = wp_date( 'U', strtotime( $start_time ) );
 		$diff            = (int) abs( $current_time - $unix_start_time );
 
 		// Now, we change seconds for days.
@@ -662,7 +662,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 					}
 				} else {
 					$this->debug( '$ship_address_usage_ind = 01' );
-					$ship_address_usage     = date( 'Ymd' ); // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+					$ship_address_usage     = wp_date( 'Ymd' );
 					$ship_address_usage_ind = '01';
 				}
 			}

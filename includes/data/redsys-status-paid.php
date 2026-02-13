@@ -2,7 +2,7 @@
 /**
  * Devuelve los estados de pedido pagados
  *
- * @package WooCommerce Redsys Gateway Ligth
+ * @package WooCommerce Redsys Gateway Light
  *
  * @return array
  */

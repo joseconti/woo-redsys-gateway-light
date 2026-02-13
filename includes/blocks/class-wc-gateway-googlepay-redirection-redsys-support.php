@@ -72,7 +72,7 @@ final class WC_Gateway_GooglePay_Redirection_Redsys_Support extends AbstractPaym
 		);
 
 		if ( function_exists( 'wp_set_script_translations' ) ) {
-			wp_set_script_translations( 'wc-googlepayredirecredsyss-payments-blocks', 'woo-redsys-gateway-light', plugin_abspath_redsys() . 'languages/' );
+			wp_set_script_translations( 'wc-googlepayredirecredsys-payments-blocks', 'woo-redsys-gateway-light', plugin_abspath_redsys() . 'languages/' );
 		}
 
 		return array( 'wc-googlepayredirecredsys-payments-blocks' );

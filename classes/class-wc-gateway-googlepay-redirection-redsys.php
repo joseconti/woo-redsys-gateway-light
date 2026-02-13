@@ -392,6 +392,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	public function check_user_test_mode( $userid ) {
 
 		$usertest_active = false;
+		$selections      = array();
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'googlepayredirecredsys', ' ' );
 			$this->log->add( 'googlepayredirecredsys', '/****************************/' );
@@ -651,10 +652,10 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 			'lastname'            => $lastname,
 		);
 
-		if ( 'yes' === $redsys->debug ) {
-			$redsys->log->add( 'googlepayredirecredsys', ' ' );
-			$redsys->log->add( 'googlepayredirecredsys', 'Data sent to GPay, $gpay_data_send: ' . print_r( $gpay_data_send, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
-			$redsys->log->add( 'googlepayredirecredsys', ' ' );
+		if ( 'yes' === $this->debug ) {
+			$this->log->add( 'googlepayredirecredsys', ' ' );
+			$this->log->add( 'googlepayredirecredsys', 'Data sent to GPay, $gpay_data_send: ' . print_r( $gpay_data_send, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
+			$this->log->add( 'googlepayredirecredsys', ' ' );
 		}
 
 		// redsys Args.
@@ -720,8 +721,6 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	 * @return string
 	 */
 	public function generate_redsys_form( $order_id ) {
-		global $woocommerce;
-
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'googlepayredirecredsys', ' ' );
 			$this->log->add( 'googlepayredirecredsys', '/****************************/' );
@@ -743,7 +742,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		wc_enqueue_js(
 			'
 		$("body").block({
-			message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', $woocommerce->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . __( 'Thank you for your order. We are now redirecting you to Redsys to make the payment.', 'woo-redsys-gateway-light' ) . '",
+			message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', WC()->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . __( 'Thank you for your order. We are now redirecting you to Redsys to make the payment.', 'woo-redsys-gateway-light' ) . '",
 			overlayCSS:
 			{
 				background: "#fff",
@@ -903,7 +902,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'googlepayredirecredsys', 'Received INVALID notification from Servired/RedSys' );
 					$this->log->add( 'googlepayredirecredsys', '$remote_sign: ' . $remote_sign );
-					$this->log->add( 'googlepayredirecredsys', '$localsecret: ' . $localsecret );
+					$this->log->add( 'googlepayredirecredsys', '$ds_merchant_code: ' . $ds_merchant_code );
 				}
 				return false;
 			}
@@ -915,17 +914,17 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	 */
 	public function check_ipn_response() {
 		@ob_clean(); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		$_POST = stripslashes_deep( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+		$post_data = stripslashes_deep( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( $this->check_ipn_request_is_valid() ) {
 			header( 'HTTP/1.1 200 OK' );
 			/**
 			 * Trigger a valid IPN request for the Google Pay standard gateway.
 			 *
-			 * @param array $_POST The posted data.
+			 * @param array $post_data The posted data.
 			 *
 			 * @since 1.0.0
 			 */
-			do_action( 'valid_' . $this->id . '_standard_ipn_request', $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			do_action( 'valid_' . $this->id . '_standard_ipn_request', $post_data );
 		} else {
 			wp_die( 'There is nothing to see here, do not access this page directly (Google Pay redirection)' );
 		}

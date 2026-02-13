@@ -2,7 +2,7 @@
 /**
  * Devuelve los códigos de idioma
  *
- * @package WooCommerce Redsys Gateway Ligth
+ * @package WooCommerce Redsys Gateway Light
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
