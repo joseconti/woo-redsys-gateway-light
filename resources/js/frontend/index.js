@@ -52,19 +52,67 @@ const Contentinespay = () => {
  */
 const Label = ( props ) => {
 	const { PaymentMethodLabel } = props.components;
-	return <PaymentMethodLabel text={ label } />;
+	const icon = settings.icon;
+	return (
+		<div style={ { display: 'flex', alignItems: 'center' } }>
+			<PaymentMethodLabel text={ label } />
+			{ icon && (
+				<img
+					src={ icon }
+					alt={ label }
+					style={ { marginLeft: '8px', maxHeight: '24px' } }
+				/>
+			) }
+		</div>
+	);
 };
 const Labelbizum = ( props ) => {
 	const { PaymentMethodLabel } = props.components;
-	return <PaymentMethodLabel text={ labelbizum } />;
+	const icon = settingsbizumredsys.icon;
+	return (
+		<div style={ { display: 'flex', alignItems: 'center' } }>
+			<PaymentMethodLabel text={ labelbizum } />
+			{ icon && (
+				<img
+					src={ icon }
+					alt={ labelbizum }
+					style={ { marginLeft: '8px', maxHeight: '24px' } }
+				/>
+			) }
+		</div>
+	);
 };
 const Labelgpayred = ( props ) => {
 	const { PaymentMethodLabel } = props.components;
-	return <PaymentMethodLabel text={ labelgpayred } />;
+	const icon = settingsgpayredsys.icon;
+	return (
+		<div style={ { display: 'flex', alignItems: 'center' } }>
+			<PaymentMethodLabel text={ labelgpayred } />
+			{ icon && (
+				<img
+					src={ icon }
+					alt={ labelgpayred }
+					style={ { marginLeft: '8px', maxHeight: '24px' } }
+				/>
+			) }
+		</div>
+	);
 };
 const Labelinespay = ( props ) => {
 	const { PaymentMethodLabel } = props.components;
-	return <PaymentMethodLabel text={ labelinespay } />;
+	const icon = settingsinespayredsys.icon;
+	return (
+		<div style={ { display: 'flex', alignItems: 'center' } }>
+			<PaymentMethodLabel text={ labelinespay } />
+			{ icon && (
+				<img
+					src={ icon }
+					alt={ labelinespay }
+					style={ { marginLeft: '8px', maxHeight: '24px' } }
+				/>
+			) }
+		</div>
+	);
 };
 
 /**
