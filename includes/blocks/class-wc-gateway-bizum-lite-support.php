@@ -88,7 +88,7 @@ final class WC_Gateway_Bizum_Lite_Support extends AbstractPaymentMethodType {
 		if ( ! empty( $logo_url ) ) {
 			$icon = apply_filters( 'woocommerce_bizumredsys_icon', $logo_url );
 		} else {
-			$icon = apply_filters( 'woocommerce_bizumredsys_icon', plugin_url_redsys() . 'assets/images/bizum.png' );
+			$icon = apply_filters( 'woocommerce_bizumredsys_icon', REDSYS_PLUGIN_URL . 'assets/images/bizum.png' );
 		}
 		return array(
 			'title'       => WCRedL()->get_redsys_option( 'title', 'bizumredsys' ),

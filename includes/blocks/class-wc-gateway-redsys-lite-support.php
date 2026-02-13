@@ -88,7 +88,7 @@ final class WC_Gateway_Redsys_Lite_Support extends AbstractPaymentMethodType {
 		if ( ! empty( $logo_url ) ) {
 			$icon = apply_filters( 'woocommerce_redsys_icon', $logo_url );
 		} else {
-			$icon = apply_filters( 'woocommerce_redsys_icon', plugin_url_redsys() . 'assets/images/redsys.png' );
+			$icon = apply_filters( 'woocommerce_redsys_icon', REDSYS_PLUGIN_URL . 'assets/images/redsys.png' );
 		}
 		return array(
 			'title'       => WCRedL()->get_redsys_option( 'title', 'redsys' ),

@@ -104,7 +104,7 @@ final class WC_Gateway_Inespay_Lite_Support extends AbstractPaymentMethodType {
 		if ( ! empty( $logo_url ) ) {
 			$icon = apply_filters( 'woocommerce_inespayredsys_icon', $logo_url );
 		} else {
-			$icon = apply_filters( 'woocommerce_inespayredsys_icon', plugin_url_redsys() . 'assets/images/inespay.svg' );
+			$icon = apply_filters( 'woocommerce_inespayredsys_icon', REDSYS_PLUGIN_URL . 'assets/images/inespay.svg' );
 		}
 		return array(
 			'title'       => WCRedL()->get_redsys_option( 'title', 'inespayredsys' ),
