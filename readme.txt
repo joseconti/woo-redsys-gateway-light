@@ -4,7 +4,7 @@ Tags: woocommerce, redsys, bizum, Google Pay, Apple Pay, Inespay,cGPay
 Requires at least: 4.0
 Tested up to: 6.8
 Donate link: https://plugins.joseconti.com/product-category/plugins/donaciones/
-Stable tag: 6.5.0
+Stable tag: 7.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 7.5
@@ -97,6 +97,12 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 4. Language: Set the Redsys Gateway Language.
 
 == Changelog ==
+
+== 7.0.0 ==
+
+* NEW: Plugin renamed to "Gateway for Redsys & WooCommerce".
+* NEW: Added Inespay payment gateway.
+* Several code improvements and fixes.
 
 == 6.5.0 ==
 
