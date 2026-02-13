@@ -1058,11 +1058,19 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			}
 		} else {
 			if ( 'yes' === $this->debug ) {
-				$this->log->add( 'bizumredsys', 'Received INVALID notification from Servired/RedSys' );
-				$this->log->add( 'bizumredsys', '$remote_sign: ' . $remote_sign );
-				$this->log->add( 'bizumredsys', '$localsecret: ' . $localsecret );
+				$this->log->add( 'bizumredsys', 'HTTP Notification received: ' . print_r( $_POST, true ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.PHP.DevelopmentFunctions.error_log_print_r
 			}
-			return false;
+			if ( sanitize_text_field( wp_unslash( $_POST['Ds_MerchantCode'] ) ) === $this->customer ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+				if ( 'yes' === $this->debug ) {
+					$this->log->add( 'bizumredsys', 'Received valid notification from Servired/RedSys' );
+				}
+				return true;
+			} else {
+				if ( 'yes' === $this->debug ) {
+					$this->log->add( 'bizumredsys', 'Received INVALID notification from Servired/RedSys' );
+				}
+				return false;
+			}
 		}
 	}
 
@@ -1158,6 +1166,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		$order1            = $ordermi;
 		$order2            = WCRedL()->clean_order_number( $order1 );
 		$order             = WCRedL()->get_order( (int) $order2 );
+		$is_paid           = WCRedL()->is_paid( $order->get_id() );
 
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'bizumredsys', 'SHA256 Settings: ' . $usesecretsha256 );
@@ -1207,6 +1216,16 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			}
 			$order->add_order_note( __( 'There was an error refunding', 'woo-redsys-gateway-light' ) );
 			exit;
+		}
+		if ( 'yes' === $this->debug ) {
+			if ( $is_paid ) {
+				$this->log->add( 'bizumredsys', 'Order is Paid: TRUE' );
+			} else {
+				$this->log->add( 'bizumredsys', 'Order is Paid: FALSE' );
+			}
+		}
+		if ( $is_paid ) {
+			exit();
 		}
 
 		$response = intval( $response );
@@ -1340,10 +1359,9 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 
 			$order->add_order_note( __( 'HTTP Notification received - payment completed', 'woo-redsys-gateway-light' ) );
 			$order->add_order_note( __( 'Authorization code: ', 'woo-redsys-gateway-light' ) . $authorisation_code );
+			$order->payment_complete();
 			if ( 'completed' === $this->orderdo ) {
 				$order->update_status( 'completed', __( 'Order Completed by Bizum', 'woo-redsys-gateway-light' ) );
-			} else {
-				$order->payment_complete();
 			}
 
 			if ( 'yes' === $this->debug ) {
