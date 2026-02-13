@@ -1,8 +1,9 @@
 <?php
 /**
- * WooCommerce Redsys Gateway Lite
+ * WooCommerce Redsys Gateway Lite - Inespay Block Support
  *
  * @package WooCommerce Redsys Gateway Lite
+ * @since 7.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -11,16 +12,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 use Automattic\WooCommerce\Blocks\Payments\Integrations\AbstractPaymentMethodType;
 
 /**
- * Bizum Lite Support
+ * Inespay Lite Block Support
  *
- * @since 5.0.0
+ * @since 7.0.0
  */
-final class WC_Gateway_Bizum_Lite_Support extends AbstractPaymentMethodType {
+final class WC_Gateway_Inespay_Lite_Support extends AbstractPaymentMethodType {
 
 	/**
 	 * The gateway instance.
 	 *
-	 * @var WC_Gateway_Bizum_Redsys
+	 * @var WC_Gateway_Inespay_Redsys
 	 */
 	private $gateway;
 
@@ -29,13 +30,13 @@ final class WC_Gateway_Bizum_Lite_Support extends AbstractPaymentMethodType {
 	 *
 	 * @var string
 	 */
-	protected $name = 'bizumredsys';
+	protected $name = 'inespayredsys';
 
 	/**
 	 * Initializes the payment method type.
 	 */
 	public function initialize() {
-		$this->settings = get_option( 'woocommerce_bizumredsys_settings', array() );
+		$this->settings = get_option( 'woocommerce_inespayredsys_settings', array() );
 	}
 
 	/**
@@ -44,7 +45,22 @@ final class WC_Gateway_Bizum_Lite_Support extends AbstractPaymentMethodType {
 	 * @return boolean
 	 */
 	public function is_active() {
-		return WCRedL()->is_gateway_enabled( 'bizumredsys' );
+		if ( ! WCRedL()->is_gateway_enabled( 'inespayredsys' ) ) {
+			return false;
+		}
+
+		$allowed  = array( 'ES', 'PT', 'IT' );
+		$customer = WC()->customer;
+		$billing  = $customer ? $customer->get_billing_country() : '';
+		$shipping = $customer ? $customer->get_shipping_country() : '';
+		$country  = $shipping ? $shipping : $billing;
+
+		if ( empty( $country ) ) {
+			$base    = wc_get_base_location();
+			$country = isset( $base['country'] ) ? $base['country'] : '';
+		}
+
+		return in_array( strtoupper( $country ), $allowed, true );
 	}
 
 	/**
@@ -64,7 +80,7 @@ final class WC_Gateway_Bizum_Lite_Support extends AbstractPaymentMethodType {
 		$script_url        = plugin_url_redsys() . $script_path;
 
 		wp_register_script(
-			'wc-bizumredsys-payments-blocks',
+			'wc-inespayredsys-payments-blocks',
 			$script_url,
 			$script_asset['dependencies'],
 			$script_asset['version'],
@@ -72,10 +88,10 @@ final class WC_Gateway_Bizum_Lite_Support extends AbstractPaymentMethodType {
 		);
 
 		if ( function_exists( 'wp_set_script_translations' ) ) {
-			wp_set_script_translations( 'wc-bizumredsys-payments-blocks', 'woo-redsys-gateway-light', plugin_abspath_redsys() . 'languages/' );
+			wp_set_script_translations( 'wc-inespayredsys-payments-blocks', 'woo-redsys-gateway-light', plugin_abspath_redsys() . 'languages/' );
 		}
 
-		return array( 'wc-bizumredsys-payments-blocks' );
+		return array( 'wc-inespayredsys-payments-blocks' );
 	}
 
 	/**
@@ -85,8 +101,8 @@ final class WC_Gateway_Bizum_Lite_Support extends AbstractPaymentMethodType {
 	 */
 	public function get_payment_method_data() {
 		return array(
-			'title'       => WCRedL()->get_redsys_option( 'title', 'bizumredsys' ),
-			'description' => WCRedL()->get_redsys_option( 'description', 'bizumredsys' ),
+			'title'       => WCRedL()->get_redsys_option( 'title', 'inespayredsys' ),
+			'description' => WCRedL()->get_redsys_option( 'description', 'inespayredsys' ),
 			'supports'    => array(
 				'products',
 				'refunds',

@@ -219,8 +219,6 @@ class WC_Gateway_Redsys_Global_Lite {
 		// Si existe un ID de pedido asociado, usarlo, de lo contrario, usar el post_id.
 		if ( $order_id ) {
 			$post_id = $order_id;
-		} else {
-			$post_id = $post_id;
 		}
 
 		// Obtener el pedido de WooCommerce.
@@ -1164,9 +1162,8 @@ class WC_Gateway_Redsys_Global_Lite {
 	 */
 	public function get_psd2_arg( $order, $gateway ) {
 		if ( 'yes' === $this->get_redsys_option( 'psd2', $gateway ) ) {
-			return $arg;
-		} else {
-			return '';
+			return WCPSD2L()->get_acctinfo( $order );
 		}
+		return '';
 	}
 }

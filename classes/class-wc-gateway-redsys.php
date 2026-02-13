@@ -374,7 +374,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				);
 				echo wp_kses( $raw_html, $allowed_html );
 				?>
-				<span>
+				</span>
 			</div>
 			<p><?php esc_html_e( 'Servired/RedSys works by sending the user to your bank TPV to enter their payment information.', 'woo-redsys-gateway-light' ); ?></p>
 			<?php
@@ -754,7 +754,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				$redsys_args = $this->get_redsys_args( $order );
 				$form_inputs = array();
 				foreach ( $redsys_args as $key => $value ) {
-					$form_inputs[] .= '<input type="hidden" name="' . $key . '" value="' . esc_attr( $value ) . '" />';
+					$form_inputs[] = '<input type="hidden" name="' . $key . '" value="' . esc_attr( $value ) . '" />';
 				}
 				wc_enqueue_js(
 					'
@@ -1033,7 +1033,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				}
 				// Put this order on-hold for manual checking.
 				/* translators: order an received are the amount */
-				$order->update_status( 'on-hold', sprintf( __( 'Validation error: Order vs. Notification amounts do not match (order: %1$s - received: %2&s).', 'woo-redsys-gateway-light' ), $order_total_compare, $total ) );
+				$order->update_status( 'on-hold', sprintf( __( 'Validation error: Order vs. Notification amounts do not match (order: %1$s - received: %2$s).', 'woo-redsys-gateway-light' ), $order_total_compare, $total ) );
 				exit;
 			}
 			$authorisation_code = $id_trans;

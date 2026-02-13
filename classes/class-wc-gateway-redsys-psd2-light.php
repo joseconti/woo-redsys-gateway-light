@@ -226,6 +226,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 		$diff            = (int) abs( $current_time - $unix_start_time );
 
 		// Now, we change seconds for days.
+		$days = 0;
 		if ( $diff >= DAY_IN_SECONDS ) {
 			$days = round( $diff / DAY_IN_SECONDS );
 		}
@@ -587,8 +588,6 @@ class WC_Gateway_Redsys_PSD2_Light {
 
 			if ( is_user_logged_in() ) {
 				$user_id = get_current_user_id();
-			} else {
-				$user_id = $user_id;
 			}
 			$usr_data         = get_userdata( $user_id );
 			$usr_registered   = $usr_data->user_registered;

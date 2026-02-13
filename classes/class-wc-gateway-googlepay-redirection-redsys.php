@@ -738,7 +738,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		$form_inputs     = array();
 
 		foreach ( $redsys_args as $key => $value ) {
-			$form_inputs[] .= '<input type="hidden" name="' . $key . '" value="' . esc_attr( $value ) . '" />';
+			$form_inputs[] = '<input type="hidden" name="' . $key . '" value="' . esc_attr( $value ) . '" />';
 		}
 		wc_enqueue_js(
 			'
@@ -848,7 +848,6 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 					$this->log->add( 'googlepayredirecredsys', 'Secret SHA256 Settings: ' . $usesecretsha256 );
 					$this->log->add( 'googlepayredirecredsys', ' ' );
 				}
-				$usesecretsha256 = $usesecretsha256;
 			} elseif ( $secretsha256_meta ) {
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'googlepayredirecredsys', ' ' );
@@ -1065,7 +1064,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 				}
 				// Put this order on-hold for manual checking.
 				/* translators: order an received are the amount */
-				$order->update_status( 'on-hold', sprintf( __( 'Validation error: Order vs. Notification amounts do not match (order: %1$s - received: %2&s).', 'woo-redsys-gateway-light' ), $order_total_compare, $total ) );
+				$order->update_status( 'on-hold', sprintf( __( 'Validation error: Order vs. Notification amounts do not match (order: %1$s - received: %2$s).', 'woo-redsys-gateway-light' ), $order_total_compare, $total ) );
 				exit;
 			}
 			$authorisation_code = $id_trans;
@@ -1282,12 +1281,9 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 				$this->log->add( 'googlepayredirecredsys', __( 'Using meta for SHA256', 'woo-redsys-gateway-light' ) );
 				$this->log->add( 'googlepayredirecredsys', __( 'The SHA256 Meta is: ', 'woo-redsys-gateway-light' ) . $secretsha256 );
 			}
-		} else {
-			$secretsha256 = $secretsha256;
-			if ( 'yes' === $this->debug ) {
-				$this->log->add( 'googlepayredirecredsys', __( 'Using settings for SHA256', 'woo-redsys-gateway-light' ) );
-				$this->log->add( 'googlepayredirecredsys', __( 'The SHA256 settings is: ', 'woo-redsys-gateway-light' ) . $secretsha256 );
-			}
+		} elseif ( 'yes' === $this->debug ) {
+			$this->log->add( 'googlepayredirecredsys', __( 'Using settings for SHA256', 'woo-redsys-gateway-light' ) );
+			$this->log->add( 'googlepayredirecredsys', __( 'The SHA256 settings is: ', 'woo-redsys-gateway-light' ) . $secretsha256 );
 		}
 		if ( 'yes' === $this->not_use_https ) {
 			$final_notify_url = $this->notify_url_not_https;
