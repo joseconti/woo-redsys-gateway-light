@@ -4,7 +4,7 @@
  *
  * @package WooCommerce Redsys Gateway Light
  *
- * Plugin Name: Gateway for Redsys & WooCommerce Light
+ * Plugin Name: Payment Gateway for Redsys & WooCommerce Lite
  * Requires Plugins: woocommerce
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/

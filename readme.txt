@@ -1,4 +1,4 @@
-=== Gateway for Redsys & WooCommerce ===
+=== Payment Gateway for Redsys & WooCommerce Lite ===
 Contributors: j.conti
 Tags: woocommerce, redsys, bizum, google pay, apple pay, inespay
 Requires at least: 4.0
