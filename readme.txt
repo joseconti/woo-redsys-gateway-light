@@ -101,7 +101,7 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == 7.0.0 ==
 
-* NEW: Plugin renamed to "Gateway for Redsys & WooCommerce".
+* NEW: Plugin renamed to "Payment Gateway for Redsys & WooCommerce".
 * NEW: Added Inespay payment gateway.
 * Several code improvements and fixes.
 
