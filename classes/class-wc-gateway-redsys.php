@@ -928,22 +928,10 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			$usesecretsha256 = $this->secretsha256;
 		}
 
-		if ( 'yes' === $this->testmode ) {
-			$usesecretsha256 = $this->customtestsha256;
-			if ( ! empty( $usesecretsha256 ) ) {
-				$usesecretsha256 = $this->customtestsha256;
-			} else {
-				$usesecretsha256 = $this->secretsha256;
-			}
-		} else {
-			$usesecretsha256 = $this->secretsha256;
-		}
-
 		$version           = sanitize_text_field( wp_unslash( $params['Ds_SignatureVersion'] ?? '' ) );
 		$data              = sanitize_text_field( wp_unslash( $params['Ds_MerchantParameters'] ?? '' ) );
 		$remote_sign       = sanitize_text_field( wp_unslash( $params['Ds_Signature'] ?? '' ) );
 		$mi_obj            = new RedsysLiteAPI();
-		$usesecretsha256   = $this->secretsha256;
 		$dscardnumbercompl = '';
 		$dsexpiration      = '';
 		$dsmerchantidenti  = '';
