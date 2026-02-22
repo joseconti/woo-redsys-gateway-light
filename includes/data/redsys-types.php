@@ -2,7 +2,7 @@
 /**
  * Devuelve los tipos de retorno
  *
- * @package WooCommerce Redsys Gateway Ligth
+ * @package WooCommerce Redsys Gateway Light
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

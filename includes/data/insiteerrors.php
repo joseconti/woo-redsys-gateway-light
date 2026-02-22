@@ -2,7 +2,7 @@
 /**
  * Devuelve los errores de insite
  *
- * @package WooCommerce Redsys Gateway Ligth
+ * @package WooCommerce Redsys Gateway Light
  *
  * @return array
  */

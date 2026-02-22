@@ -4,9 +4,10 @@ import { registerPaymentMethod } from '@woocommerce/blocks-registry';
 import { decodeEntities } from '@wordpress/html-entities';
 import { getSetting } from '@woocommerce/settings';
 
-const settings            = getSetting( 'redsys_data', {} );
-const settingsbizumredsys = getSetting( 'bizumredsys_data', {} );
-const settingsgpayredsys  = getSetting( 'googlepayredirecredsys_data', {} );
+const settings              = getSetting( 'redsys_data', {} );
+const settingsbizumredsys   = getSetting( 'bizumredsys_data', {} );
+const settingsgpayredsys    = getSetting( 'googlepayredirecredsys_data', {} );
+const settingsinespayredsys = getSetting( 'inespayredsys_data', {} );
 
 const defaultLabel = __(
 	'Redsys',
@@ -20,10 +21,15 @@ const defaultLabelGpayRed = __(
 	'Google Pay',
 	'woo-redsys-gateway-light'
 );
+const defaultLabelInespay = __(
+	'Inespay Bank Transfer',
+	'woo-redsys-gateway-light'
+);
 
-const label        = decodeEntities( settings.title ) || defaultLabel;
-const labelbizum   = decodeEntities( settingsbizumredsys.title ) || defaultLabelBizum;
-const labelgpayred = decodeEntities( settingsgpayredsys.title ) || defaultLabelGpayRed;
+const label         = decodeEntities( settings.title ) || defaultLabel;
+const labelbizum    = decodeEntities( settingsbizumredsys.title ) || defaultLabelBizum;
+const labelgpayred  = decodeEntities( settingsgpayredsys.title ) || defaultLabelGpayRed;
+const labelinespay  = decodeEntities( settingsinespayredsys.title ) || defaultLabelInespay;
 /**
  * Content component
  */
@@ -36,6 +42,9 @@ const Contentbizum = () => {
 const Contengpayred = () => {
 	return decodeEntities( settingsgpayredsys.description || '' );
 };
+const Contentinespay = () => {
+	return decodeEntities( settingsinespayredsys.description || '' );
+};
 /**
  * Label component
  *
@@ -43,15 +52,67 @@ const Contengpayred = () => {
  */
 const Label = ( props ) => {
 	const { PaymentMethodLabel } = props.components;
-	return <PaymentMethodLabel text={ label } />;
+	const icon = settings.icon;
+	return (
+		<div style={ { display: 'flex', alignItems: 'center' } }>
+			<PaymentMethodLabel text={ label } />
+			{ icon && (
+				<img
+					src={ icon }
+					alt={ label }
+					style={ { marginLeft: '8px', maxHeight: '24px' } }
+				/>
+			) }
+		</div>
+	);
 };
 const Labelbizum = ( props ) => {
 	const { PaymentMethodLabel } = props.components;
-	return <PaymentMethodLabel text={ labelbizum } />;
+	const icon = settingsbizumredsys.icon;
+	return (
+		<div style={ { display: 'flex', alignItems: 'center' } }>
+			<PaymentMethodLabel text={ labelbizum } />
+			{ icon && (
+				<img
+					src={ icon }
+					alt={ labelbizum }
+					style={ { marginLeft: '8px', maxHeight: '24px' } }
+				/>
+			) }
+		</div>
+	);
 };
 const Labelgpayred = ( props ) => {
 	const { PaymentMethodLabel } = props.components;
-	return <PaymentMethodLabel text={ labelgpayred } />;
+	const icon = settingsgpayredsys.icon;
+	return (
+		<div style={ { display: 'flex', alignItems: 'center' } }>
+			<PaymentMethodLabel text={ labelgpayred } />
+			{ icon && (
+				<img
+					src={ icon }
+					alt={ labelgpayred }
+					style={ { marginLeft: '8px', maxHeight: '24px' } }
+				/>
+			) }
+		</div>
+	);
+};
+const Labelinespay = ( props ) => {
+	const { PaymentMethodLabel } = props.components;
+	const icon = settingsinespayredsys.icon;
+	return (
+		<div style={ { display: 'flex', alignItems: 'center' } }>
+			<PaymentMethodLabel text={ labelinespay } />
+			{ icon && (
+				<img
+					src={ icon }
+					alt={ labelinespay }
+					style={ { marginLeft: '8px', maxHeight: '24px' } }
+				/>
+			) }
+		</div>
+	);
 };
 
 /**
@@ -90,6 +151,18 @@ const GPayRed = {
 		features: settingsgpayredsys.supports,
 	},
 };
+const Inespay = {
+	name: "inespayredsys",
+	label: <Labelinespay />,
+	content: <Contentinespay />,
+	edit: <Contentinespay />,
+	canMakePayment: () => true,
+	ariaLabel: labelinespay,
+	supports: {
+		features: settingsinespayredsys.supports,
+	},
+};
 registerPaymentMethod( Redsys );
 registerPaymentMethod( Bizum );
 registerPaymentMethod( GPayRed );
+registerPaymentMethod( Inespay );

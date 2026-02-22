@@ -2,7 +2,7 @@
 /**
  * Devuelve los códigos de los países
  *
- * @package WooCommerce Redsys Gateway Ligth
+ * @package WooCommerce Redsys Gateway Light
  *
  * @return array
  */

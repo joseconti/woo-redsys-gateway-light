@@ -1,44 +1,45 @@
-=== WooCommerce Redsys Gateway Light ===
+=== Payment Gateway for Redsys & WooCommerce Lite ===
 Contributors: j.conti
-Tags: woocommerce, redsys, bizum, Google Pay, GPay
+Tags: woocommerce, redsys, bizum, google pay, apple pay, inespay
 Requires at least: 4.0
-Tested up to: 6.8
+Tested up to: 6.9
+Requires PHP: 7.0
 Donate link: https://plugins.joseconti.com/product-category/plugins/donaciones/
-Stable tag: 6.5.0
+Stable tag: 7.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
-WC requires at least: 7.5
-WC tested up to: 9.9
+WC requires at least: 7.4
+WC tested up to: 9.8
 
-Add Redsys Gateway, BIZUM, and Google Pay redirection to WooCommerce. Lite version of the premium Redsys plugin on WooCommerce.com.
+Add Redsys Gateway, BIZUM, and Apple/Google Pay redirection to WooCommerce. Lite version of the premium Redsys plugin on WooCommerce.com.
 
 == Description ==
 
 = Light version Features =
 
-This is the Light version of the official WooCommerce Redsys plugin at WooCommerce.com.
+This is the Light version of the Redsys for WooCommerce Premium at WooCommerce.com.
 
 You can find the PRO version at [plugins.joseconti.com](https://plugins.joseconti.com/product/plugin-woocommerce-redsys-gateway/)
 
 With this extension, you get all you need to use Redsys Gateway.
 
-* Always compatible with the latest WooCommerce version & continuous audits by WooCommerce Team.
+* Always compatible with the latest WooCommerce version.
 * PSD2 Compatible
 * Redsys Redirection Lite
 * Bizum Lite
+* Apple & Google Pay redirection
+* Inespay Lite
 * WPML compatible.
 * Works with SNI certificates like Let's Encrypt, EX: SiteGround, HostFusion, etc
 * Gateway language selection from settings.
 * Checkout logo customization.
 * Added checkout logo customization.
 
-As this is WooCommerce official extension, always will be compatible with the latest WooCommerce version.
-
 Why is it not compatible with versions of WooCommerce lower than 2.9? Because they have vulnerabilities, and I will not support versions that you should not use.
 
 = Premium version Features =
 
-Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com/product/plugin-woocommerce-redsys-gateway/)
+Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/product/plugin-woocommerce-redsys-gateway/)
 
 * Credit card Form in the Checkout as Stripe (InSite)
 * Redsys redirection with Modal (Customer doesn't leave the site.)
@@ -97,6 +98,12 @@ Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com
 4. Language: Set the Redsys Gateway Language.
 
 == Changelog ==
+
+== 7.0.0 ==
+
+* NEW: Plugin renamed to "Payment Gateway for Redsys & WooCommerce".
+* NEW: Added Inespay payment gateway.
+* Several code improvements and fixes.
 
 == 6.5.0 ==
 
@@ -241,7 +248,7 @@ Check [WooCommerce Redsys Gateway premium version](https://plugins.joseconti.com
 * Declared compatibility with WordPress 5.6
 
 == 2.1.0 ==
-* New: Added a notice in the checkout when WooCommerce Redsys Gateway is in Test Mode.
+* New: Added a notice in the checkout when Redsys for WooCommerce is in Test Mode.
 * Fixed PHP Notices when you visit the callback URL.
 * Fixed the Admin Notice URL.
 * Declared compatibility with WooCommerce 4.2

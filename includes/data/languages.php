@@ -2,7 +2,7 @@
 /**
  * Devuelve los idiomas permitidos
  *
- * @package WooCommerce Redsys Gateway Ligth
+ * @package WooCommerce Redsys Gateway Light
  *
  * @return array
  */

@@ -12,7 +12,8 @@
 	text-align: center;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
 }
-a, div{
+.about-wrap-redsys a,
+.about-wrap-redsys div{
 	outline: 0;
 }
 .about-wrap-redsys{
@@ -43,7 +44,7 @@ a, div{
 	top: 0;
 	right: 0
 }
-h1{
+.about-wrap-redsys h1{
 	display: block;
 	font-size: 2em;
 	-webkit-margin-before: 0.67em;
@@ -60,7 +61,7 @@ h1{
 	font-size: 2.8em;
 	font-weight: 400;
 }
-p{
+.about-wrap-redsys p{
 	display: block;
 	-webkit-margin-before: 1em;
 	-webkit-margin-after: 1em;
@@ -78,7 +79,7 @@ p{
 	line-height: 1.6em;
 	font-size: 19px;
 }
-h2{
+.about-wrap-redsys h2{
 	display: block;
 	font-size: 1.5em;
 	-webkit-margin-before: 0.83em;
@@ -87,7 +88,9 @@ h2{
 	-webkit-margin-end: 0px;
 	font-weight: bold;
 }
-h1, h2, h3 {
+.about-wrap-redsys h1,
+.about-wrap-redsys h2,
+.about-wrap-redsys h3 {
 	color: #23282d;
 }
 .wp-clearfix:after{
@@ -117,7 +120,7 @@ h1, h2, h3 {
 	margin: 0 auto;
 	max-width: 700px;
 }
-hr{
+.about-wrap-redsys hr{
 	display: block;
 	-webkit-margin-before: 0.5em;
 	-webkit-margin-after: 0.5em;
@@ -138,15 +141,6 @@ hr{
 	height: 0;
 	margin: 0;
 	border-top: 1px solid rgba(0, 0, 0, .1);
-}
-h2{
-	display: block;
-	font-size: 1.5em;
-	-webkit-margin-before: 0.83em;
-	-webkit-margin-after: 0.83em;
-	-webkit-margin-start: 0px;
-	-webkit-margin-end: 0px;
-	font-weight: bold;
 }
 .about-wrap-redsys h2{
 	margin: 40px 0 .6em;
@@ -245,11 +239,9 @@ h2{
 	margin-right: auto;
 	margin-top: .6em;
 }
-iframe, img{
+.about-wrap-redsys iframe,
+.about-wrap-redsys img{
 	border: 0;
-}
-img{
-	border: none;
 }
 .about-wrap-redsys img{
 	margin: 0;

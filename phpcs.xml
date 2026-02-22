@@ -7,6 +7,9 @@
 	<exclude-pattern>*/node_modules/*</exclude-pattern>
 	<exclude-pattern>*/assets/*</exclude-pattern>
 	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/languages/*</exclude-pattern>
+	<exclude-pattern>*/resources/*</exclude-pattern>
+	<exclude-pattern>*.js</exclude-pattern>
 
 	<!-- Configs -->
 	<config name="minimum_supported_wp_version" value="4.7" />

@@ -2,7 +2,7 @@
 /**
  * Correlacion de monedas.
  *
- * @package WooCommerce Redsys Gateway Ligth
+ * @package WooCommerce Redsys Gateway Light
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

@@ -36,7 +36,6 @@ final class WC_Gateway_Bizum_Lite_Support extends AbstractPaymentMethodType {
 	 */
 	public function initialize() {
 		$this->settings = get_option( 'woocommerce_bizumredsys_settings', array() );
-
 	}
 
 	/**
@@ -85,9 +84,16 @@ final class WC_Gateway_Bizum_Lite_Support extends AbstractPaymentMethodType {
 	 * @return array
 	 */
 	public function get_payment_method_data() {
+		$logo_url = WCRedL()->get_redsys_option( 'logo', 'bizumredsys' );
+		if ( ! empty( $logo_url ) ) {
+			$icon = apply_filters( 'woocommerce_bizumredsys_icon', $logo_url );
+		} else {
+			$icon = apply_filters( 'woocommerce_bizumredsys_icon', REDSYS_PLUGIN_URL . 'assets/images/bizum.png' );
+		}
 		return array(
 			'title'       => WCRedL()->get_redsys_option( 'title', 'bizumredsys' ),
 			'description' => WCRedL()->get_redsys_option( 'description', 'bizumredsys' ),
+			'icon'        => $icon,
 			'supports'    => array(
 				'products',
 				'refunds',

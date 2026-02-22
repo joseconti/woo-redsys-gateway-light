@@ -2,7 +2,7 @@
 /**
  * Devuelve los tipos de orden
  *
- * @package WooCommerce Redsys Gateway Ligth
+ * @package WooCommerce Redsys Gateway Light
  *
  * @return array
  */

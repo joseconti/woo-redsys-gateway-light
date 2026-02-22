@@ -23,7 +23,7 @@ function redsys_about_page() {
 			printf( esc_html__( 'Welcome to WooCommerce Redsys %s', 'woo-redsys-gateway-light' ), esc_attr( REDSYS_WOOCOMMERCE_VERSION ) );
 			?>
 		</h1>
-		<p class="about-text"><?php __( 'Thank you for install the latest version! WooCommerce Redsys Gateway light, democratizing ecommerce.', 'woo-redsys-gateway-light' ); ?></p>
+		<p class="about-text"><?php esc_html_e( 'Thank you for install the latest version! WooCommerce Redsys Gateway light, democratizing ecommerce.', 'woo-redsys-gateway-light' ); ?></p>
 		<div class="wp-badge">
 			<?php
 			/* translators: plugin version number */
@@ -46,21 +46,27 @@ function redsys_about_page() {
 				<p class="lead-description"><?php esc_html_e( 'This gateway is the light version of official WooCommerce Redsys plugin at WooCommerce.com', 'woo-redsys-gateway-light' ); ?></p>
 				<p>
 					<?php
-					/* translators: link to woocommerce.com */
-					printf( esc_html__( 'This WooCommerce extension has all you need for start selling through Redsys. It is full compatible with WPML. If you need more power, you can buy the premium extension at %s.', 'woo-redsys-gateway-light' ), esc_url( $link_shop ) );
+					$allowed_link = array(
+						'a' => array(
+							'href'   => array(),
+							'target' => array(),
+						),
+					);
+					/* translators: %s: link to woocommerce.com */
+					echo wp_kses( sprintf( __( 'This WooCommerce extension has all you need for start selling through Redsys. It is full compatible with WPML. If you need more power, you can buy the premium extension at %s.', 'woo-redsys-gateway-light' ), $link_shop ), $allowed_link );
 					?>
 				</p>
 				<p>
 					<?php
-					/* translators: link to woocommerce.com */
-					printf( esc_html__( 'With the premium version you get many important features like tokenization, refund, two terminals, error actions, Sequential Invoice Number, invoice export, etc. See all features %s', 'woo-redsys-gateway-light' ), esc_url( $link_support ) );
+					/* translators: %s: link to woocommerce.com */
+					echo wp_kses( sprintf( __( 'With the premium version you get many important features like tokenization, refund, two terminals, error actions, Sequential Invoice Number, invoice export, etc. See all features %s', 'woo-redsys-gateway-light' ), $link_support ), $allowed_link );
 					?>
 				</p>
 			</div>
 		</div>
 		<div class="woocommerce-message inline">
 			<p>
-				<center><a href="https://woocommerce.com/products/redsys-gateway/" target="_blank" rel="noopener"><img class="aligncenter wp-image-211 size-full" title="<?php esc_html_e( 'Get the pro version at WooCommerce.com', 'woo-redsys-gateway-light' ); ?>" src="<?php echo esc_url( REDSYS_PLUGIN_URL ) . 'assets/images/banner.png'; ?>" alt="<?php esc_html_e( 'Get the pro version at WooCommerce.com', 'woo-redsys-gateway-light' ); ?>" width="800" height="150" /></a></center>
+				<div style="text-align: center;"><a href="https://woocommerce.com/products/redsys-gateway/" target="_blank" rel="noopener"><img class="aligncenter wp-image-211 size-full" title="<?php esc_html_e( 'Get the pro version at WooCommerce.com', 'woo-redsys-gateway-light' ); ?>" src="<?php echo esc_url( REDSYS_PLUGIN_URL ) . 'assets/images/banner.png'; ?>" alt="<?php esc_html_e( 'Get the pro version at WooCommerce.com', 'woo-redsys-gateway-light' ); ?>" width="800" height="150" /></a></div>
 			</p>
 		</div>
 		<p>&nbsp;</p>
@@ -115,7 +121,7 @@ function redsys_about_page() {
 
 		<div class="feature-section two-col">
 			<div class="col">
-				<h3><?php esc_html_e( 'Video demostration' ); ?></h3>
+				<h3><?php esc_html_e( 'Video demonstration', 'woo-redsys-gateway-light' ); ?></h3>
 				<p><?php esc_html_e( 'You can watch premium features in action in this video. If you watch this video, you can evaluate the features of the premium version and in this way, assess if you are interested. After viewing it, you can evaluate if you are interested in buying it.', 'woo-redsys-gateway-light' ); ?></p>
 			</div>
 			<div class="col">

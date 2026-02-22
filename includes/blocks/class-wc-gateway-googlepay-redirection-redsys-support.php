@@ -72,7 +72,7 @@ final class WC_Gateway_GooglePay_Redirection_Redsys_Support extends AbstractPaym
 		);
 
 		if ( function_exists( 'wp_set_script_translations' ) ) {
-			wp_set_script_translations( 'wc-googlepayredirecredsyss-payments-blocks', 'woo-redsys-gateway-light', plugin_abspath_redsys() . 'languages/' );
+			wp_set_script_translations( 'wc-googlepayredirecredsys-payments-blocks', 'woo-redsys-gateway-light', plugin_abspath_redsys() . 'languages/' );
 		}
 
 		return array( 'wc-googlepayredirecredsys-payments-blocks' );
@@ -84,9 +84,11 @@ final class WC_Gateway_GooglePay_Redirection_Redsys_Support extends AbstractPaym
 	 * @return array
 	 */
 	public function get_payment_method_data() {
+		$icon = apply_filters( 'woocommerce_googlepayredirecredsys_icon', REDSYS_PLUGIN_URL . 'assets/images/GPay-peque.svg' );
 		return array(
 			'title'       => WCRedL()->get_redsys_option( 'title', 'googlepayredirecredsys' ),
 			'description' => WCRedL()->get_redsys_option( 'description', 'googlepayredirecredsys' ),
+			'icon'        => $icon,
 			'supports'    => array(
 				'products',
 				'refunds',

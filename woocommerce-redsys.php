@@ -2,16 +2,16 @@
 /**
  * WooCommerce Redsys Gateway Light
  *
- * @package WooCommerce Redsys Gateway Ligh
+ * @package WooCommerce Redsys Gateway Light
  *
- * Plugin Name: WooCommerce Redsys Gateway Light
+ * Plugin Name: Payment Gateway for Redsys & WooCommerce Lite
  * Requires Plugins: woocommerce
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
- * Version: 6.5.0
+ * Version: 7.0.0
  * Author: José Conti
  * Author URI: https://plugins.joseconti.com/
- * Tested up to: 6.7
+ * Tested up to: 6.9
  * WC requires at least: 7.4
  * WC tested up to: 9.8
  * Text Domain: woo-redsys-gateway-light
@@ -21,7 +21,7 @@
  * License URI: http://www.gnu.org/licenses/gpl-3.0.html
  */
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '6.5.0' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '7.0.0' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 if ( ! defined( 'REDSYS_PLUGIN_PATH' ) ) {
 	define( 'REDSYS_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
@@ -123,9 +123,9 @@ add_action( 'admin_init', 'redsys_welcome_splash', 1 );
  * Redsys CSS.
  */
 function redsys_css_lite() {
-		global $post_type;
+	global $post_type;
 
-		$current_screen = get_current_screen();
+	$current_screen = get_current_screen();
 
 	if ( 'woocommerce_page_wc-settings' === $current_screen->id ) {
 		wp_register_style( 'redsys-css', plugins_url( 'assets/css/redsys-css.css', __FILE__ ), array(), REDSYS_WOOCOMMERCE_VERSION );
@@ -245,7 +245,7 @@ function woocommerce_gateway_redsys_init() {
 					<p>
 					<?php esc_html_e( 'Sign up for the WooCommerce Redsys Gateway Telegram channel, and be the first to know everything.', 'woo-redsys-gateway-light' ); ?>
 					</p>
-					<p><a href="<?php esc_url( REDSYS_TELEGRAM_URL ); ?>" class="button" target="_blank"><?php esc_html_e( 'Don&#39;t miss a single thing!', 'woo-redsys-gateway-light' ); ?></a></p>
+					<p><a href="<?php echo esc_url( REDSYS_TELEGRAM_URL ); ?>" class="button" target="_blank"><?php esc_html_e( 'Don&#39;t miss a single thing!', 'woo-redsys-gateway-light' ); ?></a></p>
 				</div>
 				<?php
 			}
@@ -272,6 +272,7 @@ function woocommerce_gateway_redsys_init() {
 		$methods[] = 'WC_Gateway_Bizum_Redsys';
 		$methods[] = 'WC_Gateway_redsys';
 		$methods[] = 'WC_Gateway_GooglePay_Redirection_Redsys';
+		$methods[] = 'WC_Gateway_Inespay_Redsys';
 		return $methods;
 	}
 	add_filter( 'woocommerce_payment_gateways', 'woocommerce_add_gateway_redsys_gateway' );
@@ -333,6 +334,7 @@ function woocommerce_gateway_redsys_init() {
 	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-redsys.php'; // Redsys redirection 1.0.
 	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-bizum-redsys.php'; // Bizum Version 3.0.
 	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-googlepay-redirection-redsys.php'; // Google Pay redirection 6.0.
+	require_once REDSYS_PLUGIN_CLASS_PATH . 'class-wc-gateway-inespay-redsys.php'; // Inespay 7.0.
 
 	/**
 	 * Redsys block support.
@@ -360,6 +362,13 @@ function woocommerce_gateway_redsys_init() {
 					$payment_method_registry->register( new WC_Gateway_GooglePay_Redirection_Redsys_Support() );
 				}
 			);
+			require_once 'includes/blocks/class-wc-gateway-inespay-lite-support.php';
+			add_action(
+				'woocommerce_blocks_payment_method_type_registration',
+				function ( Automattic\WooCommerce\Blocks\Payments\PaymentMethodRegistry $payment_method_registry ) {
+					$payment_method_registry->register( new WC_Gateway_Inespay_Lite_Support() );
+				}
+			);
 		}
 	}
 	add_action( 'woocommerce_blocks_loaded', 'woocommerce_gateway_redsys_lite_block_support' );
@@ -374,6 +383,19 @@ function redsyslite_mark_order_as_paid( $order_id ) {
 
 	// Este sleep es para evitar que se ejecute el código antes de que se haya procesado el pago en el caso en que llegue la notificación IPN.
 	sleep( 5 );
+
+	// Forzar recarga del pedido desde la BD para evitar doble notificación
+	// si algún hook cargó el pedido antes del sleep y quedó cacheado.
+	// Compatibilidad con CPT (wp_posts) y HPOS (custom tables).
+	clean_post_cache( $order_id );
+	wp_cache_delete( $order_id, 'posts' );
+	wp_cache_delete( $order_id, 'post_meta' );
+	wp_cache_delete( $order_id, 'orders' );
+	wp_cache_delete( $order_id, 'order_meta' );
+	if ( class_exists( 'Automattic\WooCommerce\Caches\OrderCache' ) ) {
+		$order_cache = wc_get_container()->get( \Automattic\WooCommerce\Caches\OrderCache::class );
+		$order_cache->remove( $order_id );
+	}
 
 	$is_redsys_order = WCRedL()->is_redsys_order( $order_id );
 	$is_paid         = WCRedL()->is_paid( $order_id );
@@ -443,11 +465,11 @@ function mostrar_numero_autentificacion( $text, $order ) {
 			$hour                = WCRedL()->get_order_hour( $order_id );
 			$text                = __( 'Thanks for your purchase, the details of your transaction are: ', 'woo-redsys-gateway-light' ) . '<br />';
 			$text               .= __( 'Website: ', 'woo-redsys-gateway-light' ) . esc_url( $website ) . '<br />';
-			$text               .= __( 'FUC: ', 'woo-redsys-gateway-light' ) . $fuc . '<br />';
-			$text               .= __( 'Authorization Number: ', 'woo-redsys-gateway-light' ) . $numero_autorizacion . '<br />';
-			$text               .= __( 'Commerce Name: ', 'woo-redsys-gateway-light' ) . $commerce_name . '<br />';
-			$text               .= __( 'Date: ', 'woo-redsys-gateway-light' ) . $date . '<br />';
-			$text               .= __( 'Hour: ', 'woo-redsys-gateway-light' ) . $hour . '<br />';
+			$text               .= __( 'FUC: ', 'woo-redsys-gateway-light' ) . esc_html( $fuc ) . '<br />';
+			$text               .= __( 'Authorization Number: ', 'woo-redsys-gateway-light' ) . esc_html( $numero_autorizacion ) . '<br />';
+			$text               .= __( 'Commerce Name: ', 'woo-redsys-gateway-light' ) . esc_html( $commerce_name ) . '<br />';
+			$text               .= __( 'Date: ', 'woo-redsys-gateway-light' ) . esc_html( $date ) . '<br />';
+			$text               .= __( 'Hour: ', 'woo-redsys-gateway-light' ) . esc_html( $hour ) . '<br />';
 		}
 	}
 	return $text;
