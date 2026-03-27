@@ -974,6 +974,15 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		$dsexpirymonth     = '';
 		$decodedata        = $mi_obj->decode_merchant_parameters( $data );
 		$localsecret       = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
+
+		// Verify cryptographic signature to prevent payment forgery.
+		if ( $localsecret !== $remote_sign ) {
+			if ( 'yes' === $this->debug ) {
+				$this->log->add( 'googlepayredirecredsys', 'Signature verification failed in successful_request. Local: ' . $localsecret . ' Remote: ' . $remote_sign );
+			}
+			return;
+		}
+
 		$total             = $mi_obj->get_parameter( 'Ds_Amount' );
 		$ordermi           = $mi_obj->get_parameter( 'Ds_Order' );
 		$dscode            = $mi_obj->get_parameter( 'Ds_MerchantCode' );
