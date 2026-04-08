@@ -5,7 +5,7 @@ Requires at least: 4.0
 Tested up to: 6.9
 Requires PHP: 7.0
 Donate link: https://plugins.joseconti.com/product-category/plugins/donaciones/
-Stable tag: 7.0.0
+Stable tag: 7.0.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 7.4
@@ -98,6 +98,11 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 4. Language: Set the Redsys Gateway Language.
 
 == Changelog ==
+
+== 7.0.1 ==
+
+* Security Fix: Added cryptographic signature (Ds_Signature) verification in successful_request() for Redsys, Bizum, and Google Pay gateways to prevent payment forgery via the Order Received page.
+* Fix: Test SHA-256 secret was being overwritten with the production secret in successful_request(), causing signature validation failures in test mode.
 
 == 7.0.0 ==
 
