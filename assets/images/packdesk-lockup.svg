@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 240" width="1060" height="240">
+  
+  <defs>
+    <linearGradient id="pd-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#15968A"></stop>
+      <stop offset="1" stop-color="#0B6B61"></stop>
+    </linearGradient>
+  </defs>
+  <g transform="scale(0.234375)">
+    <rect width="1024" height="1024" rx="232" fill="url(#pd-bg)"></rect>
+    <g transform="rotate(45 512 512)"><rect x="316" y="316" width="392" height="392" rx="94" fill="#FFFFFF"></rect></g>
+    <circle cx="512" cy="350" r="55" fill="#0B6B61"></circle>
+    <path d="M418 546 l77 77 137 -137" stroke="#0B6B61" stroke-width="60" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+  </g>
+  <text x="288" y="152" font-family="-apple-system, &#39;SF Pro Display&#39;, &#39;Helvetica Neue&#39;, Arial, sans-serif" font-weight="800" font-size="150" letter-spacing="-5">
+    <tspan fill="#1D1D1F">Pack</tspan><tspan fill="#0E8074">Desk</tspan>
+  </text>
+</svg>
