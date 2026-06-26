@@ -5,7 +5,7 @@ Requires at least: 4.0
 Tested up to: 6.9
 Requires PHP: 7.0
 Donate link: https://plugins.joseconti.com/product-category/plugins/donaciones/
-Stable tag: 7.0.1
+Stable tag: 7.0.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 7.4
@@ -98,6 +98,15 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 4. Language: Set the Redsys Gateway Language.
 
 == Changelog ==
+
+== 7.0.3 ==
+
+* Fix: Restored the "+" characters in the received Ds_MerchantParameters before validating the notification. On some servers/proxies the "+" of the standard Base64 arrives as a space and sanitize_text_field() collapsed it, breaking the JSON decoding and the signature check (signature did not match), so valid payments were rejected. Applied to the Redsys, Bizum and Google Pay gateways.
+* Fix: The merchant SHA-256 secret key is now trimmed before use, so accidental leading/trailing spaces no longer cause signature mismatches.
+
+== 7.0.2 ==
+
+* Security Fix: Added Inespay notification signature (signatureDataReturn / HMAC-SHA256) and amount verification in the Inespay callback to prevent unauthenticated payment forgery. The 7.0.1 signature hardening did not cover the Inespay gateway. Thanks to Shivamani Vastrala for the responsible disclosure.
 
 == 7.0.1 ==
 
@@ -347,3 +356,9 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 
 == Upgrade Notice ==
+
+= 7.0.3 =
+Fixes signature validation failures (Ds_MerchantParameters "+" arriving as spaces, and spaces in the SHA-256 key) that could reject valid payments on Redsys, Bizum and Google Pay.
+
+= 7.0.2 =
+Security release. Adds signature + amount verification to the Inespay callback. Update immediately if you use Inespay.

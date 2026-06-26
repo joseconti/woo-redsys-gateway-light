@@ -984,7 +984,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				// Sanitize and process the data.
 
 				if ( isset( $_POST['Ds_MerchantParameters'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-					$data = sanitize_text_field( wp_unslash( $_POST['Ds_MerchantParameters'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+					$data = RedsysLiteAPI::sanitize_merchant_parameters( wp_unslash( $_POST['Ds_MerchantParameters'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 					// Sanitize and process the data.
 				}
 
@@ -1118,7 +1118,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		}
 
 		$version     = sanitize_text_field( wp_unslash( $params['Ds_SignatureVersion'] ?? '' ) );
-		$data        = sanitize_text_field( wp_unslash( $params['Ds_MerchantParameters'] ?? '' ) );
+		$data        = RedsysLiteAPI::sanitize_merchant_parameters( wp_unslash( $params['Ds_MerchantParameters'] ?? '' ) );
 		$remote_sign = sanitize_text_field( wp_unslash( $params['Ds_Signature'] ?? '' ) );
 
 		if ( 'yes' === $this->debug ) {

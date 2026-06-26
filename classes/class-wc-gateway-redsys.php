@@ -853,7 +853,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			}
 
 			if ( isset( $_POST['Ds_MerchantParameters'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-				$data = sanitize_text_field( wp_unslash( $_POST['Ds_MerchantParameters'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
+				$data = RedsysLiteAPI::sanitize_merchant_parameters( wp_unslash( $_POST['Ds_MerchantParameters'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			} else {
 				$data = '';
 			}
@@ -929,7 +929,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		}
 
 		$version           = sanitize_text_field( wp_unslash( $params['Ds_SignatureVersion'] ?? '' ) );
-		$data              = sanitize_text_field( wp_unslash( $params['Ds_MerchantParameters'] ?? '' ) );
+		$data              = RedsysLiteAPI::sanitize_merchant_parameters( wp_unslash( $params['Ds_MerchantParameters'] ?? '' ) );
 		$remote_sign       = sanitize_text_field( wp_unslash( $params['Ds_Signature'] ?? '' ) );
 		$mi_obj            = new RedsysLiteAPI();
 		$dscardnumbercompl = '';

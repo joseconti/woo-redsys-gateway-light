@@ -1,0 +1,292 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: INESPAY payment\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-01-25 13:40+0000\n"
+"PO-Revision-Date: 2026-02-18 10:15+0100\n"
+"Last-Translator: \n"
+"Language-Team: Italiano\n"
+"Language: it_IT\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Poedit 3.8\n"
+"X-Loco-Version: 2.5.7; wp-5.8.3\n"
+"X-Domain: inespay\n"
+
+#: inespay.php:263
+msgid "API Key"
+msgstr "API Key"
+
+#: inespay.php:270
+msgid "API Token"
+msgstr "API Token"
+
+#: inespay.php:60
+msgid "Bank Transfer PSD2"
+msgstr "Bonifico Online"
+
+#: inespay.php:347
+msgid "Connection error"
+msgstr "Errore di connessione"
+
+#: inespay.php:245
+msgid "Enable INESPAY"
+msgstr "Abilita INESPAY"
+
+#: inespay.php:241
+msgid "Enable/Disable"
+msgstr "Abilita/Disabilita"
+
+#: inespay.php:243
+msgid "Enable/Disable payment method."
+msgstr "Abilita/disabilita il metodo di pagamento."
+
+#: inespay.php:249
+msgid "Environment"
+msgstr "Ambiente"
+
+#: inespay.php:342
+msgid "Error generating URL"
+msgstr "Errore nella generazione dell'URL di Bonifico Online"
+
+#: inespay.php:223
+msgid "Gateway Disabled"
+msgstr "Metodo di pagamento disabilitato"
+
+#. Author URI of the plugin
+msgid "https://www.inespay.com"
+msgstr "https://www.inespay.com"
+
+#. URI of the plugin
+msgid "https://www.transferenciabancariapsd2.com/comercios/"
+msgstr "https://it.inespay.com/bonificoonline/pagamenti-da-conto-a-conto-powered-by-open-banking/"
+
+#. Author of the plugin
+msgid "INESPAY"
+msgstr "INESPAY"
+
+#: inespay.php:204
+msgid "Inespay"
+msgstr "Bonifico Online"
+
+#: inespay.php:223
+msgid "inespay does not support your store currency."
+msgstr "il plugin non supporta la valuta corrente del negozio."
+
+#. Name of the plugin
+msgid "INESPAY payment"
+msgstr "INESPAY payment"
+
+#: inespay.php:209
+msgid "Instant notification to confirm payment to your customer and release orders without delay."
+msgstr "Il tuo ordine verrà confermato immediatamente."
+
+#: inespay.php:148
+msgid "Invalid params"
+msgstr "Parametri non validi"
+
+#: inespay.php:152
+msgid "Invalid paramteres"
+msgstr "Parametri non validi"
+
+#: inespay.php:337
+msgid "Make payment"
+msgstr "Effettua pagamento"
+
+#: inespay.php:251
+msgid "Mode"
+msgstr "Modalità"
+
+#: inespay.php:142
+msgid "No completed transaction"
+msgstr "Transazione non completata"
+
+#: inespay.php:318
+msgid "Online order"
+msgstr "Ordine"
+
+#: inespay.php:265
+msgid "Paste here the Key API provided by INESPAY"
+msgstr "Incolla qui la API Key fornita da INESPAY"
+
+#: inespay.php:272
+msgid "Paste here the Token API provided by INESPAY"
+msgstr "Incolla qui il Token API fornito da INESPAY"
+
+#: inespay.php:156
+msgid "Payment error:"
+msgstr "Si è verificato un errore nel pagamento:"
+
+#: inespay.php:253
+msgid "Real"
+msgstr "Produzione"
+
+#: inespay.php:208
+msgid "Redirect your customer to their bank to authorize a transfer in real time."
+msgstr "Reindirizza il cliente alla sua banca per autorizzare un bonifico in tempo reale."
+
+#: inespay.php:210
+msgid "Get your credentials at"
+msgstr "Ottieni le tue credenziali su>"
+
+#: inespay.php:145
+msgid "Signature no matching"
+msgstr "La verifica della firma non corrisponde"
+
+#: inespay.php:254
+msgid "Test"
+msgstr "Test/Sandbox"
+
+#: inespay.php:206
+msgid "The new way to accept payments by bank transfer. Authorized and supervised by Bank of Spain."
+msgstr "Il nuovo modo per accettare pagamenti tramite bonifico bancario. Tecnologia Open Banking (PSD2). Servizio autorizzato e supervisionato dalla Banca di Spagna."
+
+#. Description of the plugin
+msgid "This plugin allows to accept transfer payments through the Online banking."
+msgstr "Questo plugin permette di accettare pagamenti in tempo reale tramite Bonifico Online."
+
+#: inespay.php:257
+msgid "To use this payment method in your production online store, you must use the Real Environment credentials. "
+msgstr "Per utilizzare questo metodo di pagamento nel tuo negozio online in produzione, devi utilizzare le credenziali dell'ambiente Reale. "
+
+#: inespay.php:62 inespay.php:385
+msgid "You will be redirected to your bank to authorize the payment in real time."
+msgstr "Verrai reindirizzato alla tua banca per autorizzare il pagamento in tempo reale."
+
+#: inespay.php:64 inespay.php:387
+msgid "Your bank will show you a summary of the payment and will indicate if any commission applies."
+msgstr "La tua banca ti mostrerà un riepilogo del pagamento e ti indicherà se è prevista qualche commissione."
+
+#: inespay.php:63 inespay.php:386
+msgid "Your order will be confirmed immediately and processed without delay."
+msgstr "Il tuo ordine verrà confermato immediatamente e processato senza ritardi."
+
+#: inespay.php
+msgid "Test/Sandbox"
+msgstr "Test/Sandbox"
+
+#: inespay.php
+msgid "Test/Sandbox Credentials"
+msgstr "Credenziali Test/Sandbox"
+
+#: inespay.php
+msgid "You can fill in both groups at the same time: the plugin will automatically use the credentials of the environment selected above."
+msgstr "Puoi compilare entrambi i gruppi contemporaneamente: il plugin utilizzerà automaticamente le credenziali dell'ambiente selezionato sopra."
+
+#: inespay.php
+msgid "API Key (Test/Sandbox)"
+msgstr "API Key (Test/Sandbox)"
+
+#: inespay.php
+msgid "Paste here the Test API Key provided by INESPAY"
+msgstr "Incolla qui la API Key di Test fornita da INESPAY"
+
+#: inespay.php
+msgid "API Token (Test/Sandbox)"
+msgstr "API Token (Test/Sandbox)"
+
+#: inespay.php
+msgid "Paste here the Test API Token provided by INESPAY"
+msgstr "Incolla qui il Token API di Test fornito da INESPAY"
+
+#: inespay.php
+msgid "Production Credentials"
+msgstr "Credenziali di Produzione"
+
+#: inespay.php
+msgid "These fields are REQUIRED when the selected environment is Real. You do not need to delete the Test credentials to use Production, or vice versa."
+msgstr "Questi campi sono OBBLIGATORI quando l'ambiente selezionato è Reale. Non è necessario eliminare le credenziali di Test per utilizzare la Produzione, e viceversa."
+
+#: inespay.php
+msgid "API Key (Production)"
+msgstr "API Key (Produzione)"
+
+#: inespay.php
+msgid "Paste here the Production API Key provided by INESPAY"
+msgstr "Incolla qui la API Key di Produzione fornita da INESPAY"
+
+#: inespay.php
+msgid "API Token (Production)"
+msgstr "API Token (Produzione)"
+
+#: inespay.php
+msgid "Paste here the Production API Token provided by INESPAY"
+msgstr "Incolla qui il Token API di Produzione fornito da INESPAY"
+
+#: inespay.php
+msgid "To use this payment method in your production online store, you must use the Real Environment credentials."
+msgstr "Per utilizzare questo metodo di pagamento nel tuo negozio online in produzione, devi utilizzare le credenziali dell'ambiente Reale fornite da INESPAY."
+
+#: inespay.php
+msgid "Error: When using Real (Production) environment, you must provide both Production API Key and Production API Token."
+msgstr "Errore: Quando si utilizza l'ambiente Reale (Produzione), devi fornire sia la API Key di Produzione che il Token API di Produzione."
+
+#: inespay.php
+msgid "Payment made at the bank, pending confirmation by Inespay."
+msgstr "Pagamento effettuato in banca, in attesa di conferma da parte di Inespay."
+
+#: inespay.php
+msgid "The user has completed the payment at their bank. Reference: %s. Waiting for confirmation from the Inespay server."
+msgstr "L'utente ha completato il pagamento presso la sua banca. Riferimento: %s. In attesa di conferma dal server Inespay."
+
+#: inespay.php
+msgid "Payment confirmed by the Inespay server."
+msgstr "Pagamento confermato dal server Inespay."
+
+#: inespay.php
+msgid "Payment definitively confirmed by Inespay. Reference: %s"
+msgstr "Pagamento definitivamente confermato da Inespay. Riferimento: %s"
+
+#: inespay.php
+msgid "Inespay notification received but the order is already in status: %s"
+msgstr "Notifica Inespay ricevuta ma l'ordine è già nello stato: %s"
+
+#: inespay.php
+msgid "Payment cancelled by the user at the bank."
+msgstr "Pagamento annullato dall'utente in banca."
+
+#: inespay.php
+msgid "User cancelled the payment at the bank. Reference: %s"
+msgstr "L'utente ha annullato il pagamento in banca. Riferimento: %s"
+
+#: inespay.php
+msgid "ADVERTENCIA: Callback recibido sin tipo reconocido (tipo: \"%s\"). El pedido permanece en estado: %s. Referencia: %s. Verificar configuración de URLs."
+msgstr "AVVISO: Callback ricevuto senza tipo riconosciuto (tipo: \"%s\"). L'ordine rimane nello stato: %s. Riferimento: %s. Verificare la configurazione degli URL."
+
+#: inespay.php
+msgid "Payment system connection error."
+msgstr "Errore di connessione con il sistema di pagamento."
+
+#: inespay.php
+msgid "The payment could not be processed at this time. Please try again or contact support if the problem persists."
+msgstr "Il pagamento non può essere elaborato in questo momento. Riprova oppure contatta l'assistenza se il problema persiste."
+
+#: inespay.php
+msgid "Return to checkout"
+msgstr "Torna al checkout"
+
+#: inespay.php
+msgid "Error al conectar con Inespay:"
+msgstr "Errore durante la connessione con Inespay:"
+
+#: inespay.php
+msgid "Code:"
+msgstr "Codice:"
+
+#: inespay.php
+msgid "Please try again or contact support."
+msgstr "Riprova oppure contatta l'assistenza."
+
+#: inespay.php
+msgid "Mark order as Processing"
+msgstr "Segna ordine come In elaborazione"
+
+#: inespay.php
+msgid "Activate"
+msgstr "Abilita"
+
+#: inespay.php
+msgid "Enable this option to automatically set orders to Processing status when a payment is successfully confirmed by Inespay. If disabled, orders will be marked with the custom status \"Transferencia Online: pago confirmado\" and you will need to change the status manually after verifying receipt of funds in your bank."
+msgstr "Abilita questa opzione per impostare automaticamente gli ordini sullo stato In elaborazione quando un pagamento viene confermato con successo da Inespay. Se disabilitato, gli ordini verranno contrassegnati con lo stato personalizzato \"Bonifico Online: pagamento confermato\" e sarà necessario modificare lo stato manualmente dopo aver verificato la ricezione dei fondi sul proprio conto bancario."

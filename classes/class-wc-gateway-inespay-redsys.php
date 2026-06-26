@@ -479,17 +479,49 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 				$data = wp_unslash( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 			}
 
-			// Inespay sends dataReturn (base64 JSON) + signatureDataReturn. Decode it when present.
-			if ( empty( $data['singlePayinId'] ) && ! empty( $data['dataReturn'] ) ) {
-				$decoded_json = base64_decode( sanitize_text_field( $data['dataReturn'] ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'inespayredsys', 'Decoded dataReturn JSON: ' . $decoded_json );
-				}
-				$decoded_arr = json_decode( $decoded_json, true );
-				if ( is_array( $decoded_arr ) ) {
-					$data = array_merge( $data, $decoded_arr );
+			// SECURITY: authenticate the notification before trusting it. Inespay signs every
+			// notification with dataReturn (Base64-encoded JSON) and signatureDataReturn, where
+			// signatureDataReturn = base64( hash_hmac( 'sha256', dataReturn, API_KEY, hex ) ). The
+			// callback is rejected (fail closed) unless that signature is present and valid, so a
+			// forged or unsigned request can never mark an order as paid.
+			$data_return = isset( $data['dataReturn'] ) ? sanitize_text_field( $data['dataReturn'] ) : '';
+			$signature   = '';
+			foreach ( array( 'signatureDataReturn', 'signature_data_return', 'signature' ) as $sig_field ) {
+				if ( ! empty( $data[ $sig_field ] ) ) {
+					$signature = sanitize_text_field( $data[ $sig_field ] );
+					break;
 				}
 			}
+
+			if ( empty( $data_return ) || empty( $signature ) || empty( $this->api_key ) ) {
+				if ( 'yes' === $this->debug ) {
+					$this->log->add( 'inespayredsys', 'Callback rejected: missing dataReturn/signatureDataReturn or API Key not configured.' );
+				}
+				wp_die( 'KO', '', array( 'response' => 401 ) );
+			}
+
+			$expected_signature = base64_encode( hash_hmac( 'sha256', $data_return, $this->api_key, false ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+
+			if ( ! hash_equals( $expected_signature, $signature ) ) {
+				if ( 'yes' === $this->debug ) {
+					$this->log->add( 'inespayredsys', 'Callback rejected: invalid signature.' );
+				}
+				wp_die( 'KO', '', array( 'response' => 401 ) );
+			}
+
+			// Signature verified: decode the authenticated payload and rely ONLY on these values.
+			$decoded_json = base64_decode( $data_return ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+			if ( 'yes' === $this->debug ) {
+				$this->log->add( 'inespayredsys', 'Decoded dataReturn JSON: ' . $decoded_json );
+			}
+			$decoded_arr = json_decode( $decoded_json, true );
+			if ( ! is_array( $decoded_arr ) ) {
+				if ( 'yes' === $this->debug ) {
+					$this->log->add( 'inespayredsys', 'Callback rejected: dataReturn did not decode to a valid payload.' );
+				}
+				wp_die( 'KO', '', array( 'response' => 401 ) );
+			}
+			$data = array_merge( $data, $decoded_arr );
 
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'inespayredsys', 'Callback payload: ' . print_r( $data, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
@@ -512,6 +544,43 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 			}
 
 			if ( ! empty( $data['codStatus'] ) && in_array( $data['codStatus'], array( 'OK', 'SETTLED' ), true ) ) {
+
+				// SECURITY: verify the signed amount matches the order total (defence in depth).
+				$returned_amount = isset( $data['amount'] ) ? intval( $data['amount'] ) : null;
+				$expected_amount = intval( WCRedL()->redsys_amount_format( $order->get_total() ) );
+
+				if ( null !== $returned_amount && $returned_amount !== $expected_amount ) {
+					$order->update_status(
+						'on-hold',
+						sprintf(
+							/* translators: 1: expected amount in cents, 2: received amount in cents. */
+							__( 'Inespay validation error: order vs. notification amount mismatch (order: %1$s - received: %2$s). Payment NOT completed.', 'woo-redsys-gateway-light' ),
+							$expected_amount,
+							$returned_amount
+						)
+					);
+					if ( 'yes' === $this->debug ) {
+						$this->log->add( 'inespayredsys', 'Callback amount mismatch. Expected: ' . $expected_amount . ' Received: ' . $returned_amount . '. Order set on-hold.' );
+					}
+					wp_die( 'OK', '', array( 'response' => 200 ) );
+				}
+
+				// Inespay settles in EUR; refuse to complete an order in any other currency.
+				if ( 'EUR' !== $order->get_currency() ) {
+					$order->update_status(
+						'on-hold',
+						sprintf(
+							/* translators: %s: order currency code. */
+							__( 'Inespay validation error: unexpected order currency (%s). Inespay settles in EUR. Payment NOT completed.', 'woo-redsys-gateway-light' ),
+							esc_html( $order->get_currency() )
+						)
+					);
+					if ( 'yes' === $this->debug ) {
+						$this->log->add( 'inespayredsys', 'Callback currency mismatch: ' . $order->get_currency() . '. Order set on-hold.' );
+					}
+					wp_die( 'OK', '', array( 'response' => 200 ) );
+				}
+
 				$order->payment_complete();
 				$order->add_order_note(
 					sprintf(

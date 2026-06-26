@@ -125,6 +125,21 @@ class RedsysLiteAPI {
 		return $res;
 	}
 	/**
+	 * Sanitize the received Ds_MerchantParameters Base64 string.
+	 *
+	 * Ds_MerchantParameters is standard Base64 ("+/="). Some servers, proxies or
+	 * URL-decoding steps deliver the "+" characters as spaces, and sanitize_text_field()
+	 * then collapses/strips them, which breaks both the JSON decoding and the signature
+	 * verification (the HMAC is calculated over this exact string). This helper restores
+	 * the "+" characters and keeps only valid Base64/Base64URL characters.
+	 *
+	 * @param string $raw Raw Ds_MerchantParameters value.
+	 * @return string
+	 */
+	public static function sanitize_merchant_parameters( $raw ) {
+		return preg_replace( '/[^A-Za-z0-9+\/=_-]/', '', str_replace( ' ', '+', (string) $raw ) );
+	}
+	/**
 	 *  FUNCIONES PARA LA GENERACIÓN DEL FORMULARIO DE PAGO.
 	 */
 	/**
@@ -168,7 +183,7 @@ class RedsysLiteAPI {
 	 */
 	public function create_merchant_signature( $key ) {
 		// Se decodifica la clave Base64.
-		$key = $this->decode_base64( $key );
+		$key = $this->decode_base64( trim( $key ) );
 		// Se genera el parámetro Ds_MerchantParameters.
 		$ent = $this->create_merchant_parameters();
 		// Se diversifica la clave con el Número de Pedido.
@@ -254,7 +269,7 @@ class RedsysLiteAPI {
 	 */
 	public function create_merchant_signature_notif( $key, $datos ) {
 		// Se decodifica la clave Base64.
-		$key = $this->decode_base64( $key );
+		$key = $this->decode_base64( trim( $key ) );
 		// Se decodifican los datos Base64.
 		$decodec = $this->base64_url_decode( $datos );
 		// Los datos decodificados se pasan al array de datos.
@@ -274,7 +289,7 @@ class RedsysLiteAPI {
 	 */
 	public function create_merchant_signature_notif_soap_request( $key, $datos ) {
 		// Se decodifica la clave Base64.
-		$key = $this->decode_base64( $key );
+		$key = $this->decode_base64( trim( $key ) );
 		// Se obtienen los datos del Request.
 		$datos = $this->get_request_notif_soap( $datos );
 		// Se diversifica la clave con el Número de Pedido.
@@ -293,7 +308,7 @@ class RedsysLiteAPI {
 	 */
 	public function create_merchant_signature_notif_soap_response( $key, $datos, $num_pedido ) {
 		// Se decodifica la clave Base64.
-		$key = $this->decode_base64( $key );
+		$key = $this->decode_base64( trim( $key ) );
 		// Se obtienen los datos del Request.
 		$datos = $this->get_response_notif_soap( $datos );
 		// Se diversifica la clave con el Número de Pedido.
