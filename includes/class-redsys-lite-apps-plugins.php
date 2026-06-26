@@ -11,7 +11,7 @@
  *
  * @package WooCommerce Redsys Gateway Light
  * @link https://plugins.joseconti.com
- * @since 7.0.3
+ * @since 7.0.2
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -362,7 +362,7 @@ if ( ! class_exists( 'Redsys_Lite_Apps_Plugins' ) ) :
 			/**
 			 * Filter the featured macOS app data shown in the section.
 			 *
-			 * @since 7.0.3
+			 * @since 7.0.2
 			 *
 			 * @param array $defaults Mac app data.
 			 */
@@ -413,7 +413,7 @@ if ( ! class_exists( 'Redsys_Lite_Apps_Plugins' ) ) :
 			/**
 			 * Filter the free plugins listed in the section.
 			 *
-			 * @since 7.0.3
+			 * @since 7.0.2
 			 *
 			 * @param array $items Free plugins.
 			 */
@@ -512,7 +512,7 @@ if ( ! class_exists( 'Redsys_Lite_Apps_Plugins' ) ) :
 			/**
 			 * Filter the premium plugins listed in the section.
 			 *
-			 * @since 7.0.3
+			 * @since 7.0.2
 			 *
 			 * @param array $items Premium plugins.
 			 */
@@ -563,7 +563,7 @@ if ( ! class_exists( 'Redsys_Lite_Apps_Plugins' ) ) :
 			/**
 			 * Filter the websites and portals listed in the section.
 			 *
-			 * @since 7.0.3
+			 * @since 7.0.2
 			 *
 			 * @param array $items Websites.
 			 */
@@ -627,7 +627,7 @@ if ( ! class_exists( 'Redsys_Lite_Apps_Plugins' ) ) :
 			/**
 			 * Filter the skills listed in the section.
 			 *
-			 * @since 7.0.3
+			 * @since 7.0.2
 			 *
 			 * @param array $items Skills.
 			 */
@@ -667,7 +667,7 @@ if ( ! class_exists( 'Redsys_Lite_Apps_Plugins' ) ) :
 			/**
 			 * Filter the profiles listed in the section.
 			 *
-			 * @since 7.0.3
+			 * @since 7.0.2
 			 *
 			 * @param array $items Profiles.
 			 */
