@@ -2,14 +2,14 @@
 Contributors: j.conti
 Tags: woocommerce, redsys, bizum, google pay, apple pay, inespay
 Requires at least: 4.0
-Tested up to: 6.9
+Tested up to: 7.0
 Requires PHP: 7.0
 Donate link: https://plugins.joseconti.com/product-category/plugins/donaciones/
 Stable tag: 7.0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 7.4
-WC tested up to: 9.8
+WC tested up to: 10.9
 
 Add Redsys Gateway, BIZUM, and Apple/Google Pay redirection to WooCommerce. Lite version of the premium Redsys plugin on WooCommerce.com.
 
