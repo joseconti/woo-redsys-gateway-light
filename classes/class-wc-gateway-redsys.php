@@ -880,20 +880,12 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				return false;
 			}
 		} else {
+			// No SHA256 secret configured: fail closed. Authenticity must rest
+			// solely on the HMAC signature, never on the non-secret Ds_MerchantCode (FUC).
 			if ( 'yes' === $this->debug ) {
-				$this->log->add( 'redsys', 'HTTP Notification received: ' . print_r( $_POST, true ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.PHP.DevelopmentFunctions.error_log_print_r
+				$this->log->add( 'redsys', 'HTTP Notification rejected: no SHA256 secret configured, cannot verify signature.' );
 			}
-			if ( sanitize_text_field( wp_unslash( $_POST['Ds_MerchantCode'] ) ) === $this->customer ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotValidated
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'redsys', 'Received valid notification from Servired/RedSys' );
-				}
-				return true;
-			} else {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'redsys', 'Received INVALID notification from Servired/RedSys' );
-				}
-				return false;
-			}
+			return false;
 		}
 	}
 	/**
@@ -939,7 +931,16 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$dsexpiryyear      = '';
 		$dsexpirymonth     = '';
 		$decodedata        = $mi_obj->decode_merchant_parameters( $data );
-		$localsecret       = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
+
+		// Fail closed: without a real SHA256 secret the HMAC is attacker-computable, so refuse to process.
+		if ( empty( $usesecretsha256 ) ) {
+			if ( 'yes' === $this->debug ) {
+				$this->log->add( 'redsys', 'Payment rejected in successful_request: no SHA256 secret configured.' );
+			}
+			return;
+		}
+
+		$localsecret = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
 
 		// Verify cryptographic signature to prevent payment forgery.
 		if ( $localsecret !== $remote_sign ) {
