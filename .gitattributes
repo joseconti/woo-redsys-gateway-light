@@ -23,3 +23,6 @@ webpack.config.js export-ignore
 .DS_Store export-ignore
 .vscode/ export-ignore
 phpcs.xml export-ignore
+# Keel: workflow files — never in the distributable (git archive)
+.claude/ export-ignore
+CLAUDE.md export-ignore
