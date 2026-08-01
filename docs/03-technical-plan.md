@@ -73,7 +73,15 @@ A second suite, `tests/Integration/`, covers `WC_Gateway_redsys::check_ipn_reque
   ```
   Real run, 2026-08-01: `OK (5 tests, 5 assertions)`. Mutation-tested for real: temporarily replaced the `$localsecret === $remote_sign` comparison with `true` (always-accept) → 3 tests failed as expected; reverted (`diff` confirmed byte-identical to the original) → all 5 green again.
 - **Coverage:** rejects when no SHA-256 secret is configured (fail-closed, matches the manual playground evidence in `docs/05-test-points.md`'s "Adoption — playground verification" row); accepts a correctly-signed notification; rejects a forged signature; rejects a payload tampered with after signing (genuine signature, edited amount); rejects a signature that was valid for a different order (the key-diversification-by-order-number check).
-- **Remaining gap:** the other three gateways (`class-wc-gateway-bizum-redsys.php`, `class-wc-gateway-googlepay-redirection-redsys.php`, `class-wc-gateway-inespay-redsys.php`) share the same `check_ipn_request_is_valid()`/`check_ipn_response()` shape but are not individually tested yet, and no JS test suite exists — tracked as an open deferred item in `docs/PROGRESS.md`.
+Two further integration test classes were added the same session: `tests/Integration/GatewayBizumIpnTest.php` (`WC_Gateway_Bizum_Redsys`, needs a real `WC_Order` fixture unlike Redsys — D-019) and `tests/Integration/GatewayGooglePayIpnTest.php` (`WC_Gateway_GooglePay_Redirection_Redsys` — D-020, whose test suite also caught and fixed a real signature-bypass vulnerability, see `docs/threat-model.md`). A fifth class, `tests/Integration/GatewayInespayIpnTest.php`, covers `WC_Gateway_Inespay_Redsys::handle_callback()` — a genuinely different signature algorithm (plain `hash_hmac('sha256', dataReturn, api_key, false)` then base64 of the hex string, not `RedsysLiteAPI`) and a different method shape (`wp_die()` on every path, caught as `WPDieException`) — see D-021.
+
+- **Remaining gap:** all four gateway classes now have IPN/callback test coverage. No JS test suite exists (the checkout-flow Playwright smoke test recommended in `docs/04-adoption-audit.md` is still open) — tracked as an open deferred item in `docs/PROGRESS.md`.
+- **Full real-run command** (all suites, from the repo root, `wp-env` running):
+  ```
+  npx wp-env run cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && vendor/bin/phpunit"
+  npx wp-env run tests-cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && vendor/bin/phpunit -c phpunit-integration.xml.dist"
+  ```
+  Real run, 2026-08-01: unit `OK (8 tests, 8 assertions)`; integration `OK (20 tests, 29 assertions)` — 28 tests total, all mutation/regression-verified individually (see `docs/05-test-points.md`).
 
 ## Build/lint commands (verified from `package.json`)
 - `npm run build` — `wp-scripts build`, compiles `resources/js/frontend/index.js` → `assets/js/frontend/blocks.js` + `.asset.php`
