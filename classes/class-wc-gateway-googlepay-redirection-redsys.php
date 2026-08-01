@@ -880,33 +880,13 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 				return false;
 			}
 		} else {
-			$version           = sanitize_text_field( wp_unslash( $_POST['Ds_SignatureVersion'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			$data              = RedsysLiteAPI::sanitize_merchant_parameters( wp_unslash( $_POST['Ds_MerchantParameters'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-			$remote_sign       = sanitize_text_field( wp_unslash( $_POST['Ds_Signature'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			$mi_obj            = new RedsysLiteAPI();
-			$decodec           = $mi_obj->decode_merchant_parameters( $data );
-			$order_id          = $mi_obj->get_parameter( 'Ds_Order' );
-			$ds_merchant_code  = $mi_obj->get_parameter( 'Ds_MerchantCode' );
-			$secretsha256      = get_transient( 'redsys_signature_' . sanitize_text_field( $order_id ) );
-			$order1            = $order_id;
-			$order2            = WCRedL()->clean_order_number( $order1 );
-			$secretsha256_meta = WCRedL()->get_order_meta( $order2, '_redsys_secretsha256', true );
+			// No SHA256 secret configured: fail closed. Authenticity must rest
+			// solely on the HMAC signature, never on the non-secret Ds_MerchantCode (FUC) —
+			// it is sent in plaintext in every outgoing payment form and is not a secret.
 			if ( 'yes' === $this->debug ) {
-				$this->log->add( 'googlepayredirecredsys', 'HTTP Notification received: ' . print_r( $_POST, true ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.PHP.DevelopmentFunctions.error_log_print_r
+				$this->log->add( 'googlepayredirecredsys', 'HTTP Notification rejected: no SHA256 secret configured, cannot verify signature.' );
 			}
-			if ( $ds_merchant_code === $this->customer ) {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'googlepayredirecredsys', 'Received valid notification from Servired/RedSys' );
-				}
-				return true;
-			} else {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'googlepayredirecredsys', 'Received INVALID notification from Servired/RedSys' );
-					$this->log->add( 'googlepayredirecredsys', '$remote_sign: ' . $remote_sign );
-					$this->log->add( 'googlepayredirecredsys', '$ds_merchant_code: ' . $ds_merchant_code );
-				}
-				return false;
-			}
+			return false;
 		}
 	}
 
