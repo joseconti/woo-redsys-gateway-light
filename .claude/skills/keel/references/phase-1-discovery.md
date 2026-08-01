@@ -16,6 +16,8 @@ So: give an honest, critical assessment even when it's uncomfortable.
 
 This is constructive honesty, not destructive criticism: every objection comes with its reasoning and, where possible, a concrete alternative. The user explicitly wants the truth even when it hurts. Do not soften an assessment to be agreeable, and do not let a weak idea proceed unchallenged just because the user is invested in it.
 
+**Closure protocol.** The assessment never trails off into conversation: it ends in a recorded verdict — **proceed / adjust scope / do not build** — plus the user's decision on it. Proceeding against a negative assessment is the user's right; it is recorded in `docs/decisions.md` as "proceeds against negative assessment: <reason>". If the user parks or discards the project, PROGRESS.md records `Status: parked — <why>` and every artifact produced so far stays in place — never deleted — so a future session can resume or close it cleanly. Once verdict and decision are recorded, the matter is settled: the assistant never re-litigates the verdict in later sessions.
+
 ## What to produce
 
 - The project state files, initialized FIRST (see step 0a): `docs/PROGRESS.md`, `docs/decisions.md`, `docs/lessons-learned.md`.
@@ -27,19 +29,27 @@ This is constructive honesty, not destructive criticism: every objection comes w
 
 ### 0a. Initialize the project state (before anything else)
 
-Read `references/project-state.md` (if not already loaded). Confirm with the user where the project lives — the project directory / repository — and create it if it doesn't exist; never write into an arbitrary working directory. Then create `docs/PROGRESS.md`, `docs/decisions.md`, and `docs/lessons-learned.md` from the templates in that reference, filling the project card with what is known so far (the rest is filled as this phase decides it). From this moment on, every decision goes to `decisions.md` and every position change goes to `PROGRESS.md` — at the moment it happens, not at phase end. Stamp the project card's `Keel baseline:` line with the running Keel version — the post-update reconciliation (`references/project-state.md`) relies on it.
+Read `references/project-state.md` (if not already loaded). Confirm with the user where the project lives — the project directory / repository — and create it if it doesn't exist; never write into an arbitrary working directory.
 
-Also make the workflow portable across environments (the user may continue this project from the Claude app, Cowork, Claude Code in VS Code, or another AI — per `references/project-state.md` "Portability"):
+**Settle durability before creating a single file** (SKILL.md, "Work never lives only on this machine" — Question 0 of the session-start setup batch). Once the location is known, check it mechanically: is it a Git repository (`git rev-parse --git-dir`), does it have a remote (`git remote -v`), and does its absolute path sit inside a folder that replicates off this machine (Dropbox, iCloud Drive, Google Drive, OneDrive, pCloud, Sync, Nextcloud, a network volume)? Never infer sync from a folder name alone — confirm it with the user. State what was found in one line and, for whatever is missing, recommend the concrete fix rather than a warning: `git init` plus the first commit, publishing to a remote on the forge the user names (Keel prepares the exact commands, and runs them where a forge CLI is authenticated), or moving the project inside a synced folder. **A repository with no remote is not a pass** — local commits survive a bad edit, not a dead disk. Do it now, before `docs/` exists, so the project's very first artifacts are already covered. If the user declines, record it in `docs/decisions.md` as an accepted risk with its consequence spelled out and put `Durability: NONE — accepted risk (D-0XX)` on the project card; otherwise record what covers it. From here on, nothing this project produces is left uncommitted (SKILL.md, "Git flow"): if the repo has only `main`/`master`, create `develop` from it before the first commit.
 
-- **Create the `CLAUDE.md` lock** at the repo root (or insert the Keel block between its delimiters if a `CLAUDE.md` already exists). This binds ANY future assistant/session opening the repo to the Keel workflow, whether or not the skill is installed there. Mirror it in `AGENTS.md` if the user works with non-Claude assistants.
-- **Offer to embed the skill** at `.claude/skills/keel/` (recommended): the repo becomes self-sufficient — Claude Code loads it as a project skill automatically, and any other environment reads it as files via the lock. Ask once; record the choice in the project card.
-- **Offer the native Claude Code config package** (optional — per `references/claude-config.md`): `.claude/rules/` and `.claude/agents/` generated at Phase 2 close from the recorded conventions and security profile, `.claude/settings.json` with a minimal confirmed allow-list, the confidential-data pre-commit gate, and `.mcp.json` when the plan defines development MCP servers — each piece materialized when its source exists, never now. Ask it in the same batch as the embed question; record `Claude config: [none / rules / rules+agents / full]` in the project card. Mention once that `CLAUDE.local.md` and `.claude/settings.local.json` are the user's personal, never-committed files — Keel never creates them but always gitignores them.
+Then create `docs/PROGRESS.md`, `docs/decisions.md`, and `docs/lessons-learned.md` from the templates in that reference, filling the project card with what is known so far (the rest is filled as this phase decides it). From this moment on, every decision goes to `decisions.md` and every position change goes to `PROGRESS.md` — at the moment it happens, not at phase end. Stamp the project card's `Keel baseline:` line with the running Keel version — the post-update reconciliation (`references/project-state.md`) relies on it.
+
+Also make the workflow portable across environments (the user may continue this project from the Claude app, Cowork, Claude Code in VS Code, OpenAI Codex, GitHub Copilot, Cursor, Gemini CLI, Windsurf, or another AI — per `references/project-state.md` "Portability"):
+
+- **Create the portability lock** at the repo root: the same Keel block in `CLAUDE.md` AND `AGENTS.md`, always both (insert between the delimiters if either file already exists). This binds ANY future assistant/session opening the repo to the Keel workflow, whether or not the skill is installed there. If the user works with Gemini CLI, ask its one extra question (a `GEMINI.md` mirror, or `context.fileName` in `.gemini/settings.json` — per the lock section).
+- **Offer to embed the skill** at `.claude/skills/keel/` + `.agents/skills/keel/` (recommended): the repo becomes self-sufficient — Claude Code, Codex, Copilot, Cursor, Gemini CLI, Windsurf and most other tools load it as a project skill automatically from one tree or the other, and any other environment reads it as files via the lock. Ask once; record the choice in the project card.
+- **Offer the native assistant config package** (optional — per `references/assistant-config.md`): ask which assistants will work on this repo, then offer their native config — path-scoped rules and reviewer/verifier subagents generated at Phase 2 close from the recorded conventions and security profile, permission allow-lists confirmed with the user, the confidential-data pre-commit gate, and MCP registration when the plan defines development MCP servers — one container per accepted tool, each piece materialized when its source exists, never now. Ask it in the same batch as the embed question; record `Assistant config: [none / rules / rules+agents / full] (tools: ...)` in the project card. Mention once that every tool has personal, never-committed files (`CLAUDE.local.md`, `.claude/settings.local.json`, Codex's `AGENTS.override.md`) — Keel never creates them but always gitignores them.
+
+**Run the session-start setup batch here if it has not run yet** (SKILL.md, "Session start setup"): the four questions — durability (where the work survives if this machine does not, asked first and answered before anything is created), automatic mode yes or no (everything else hangs off it: in automatic Keel does not ask and does every merge to the integration branch and every push itself), the after-sprint issue duty (and, if accepted, its sweep interval — default 24h), and the out-of-band notification channel with its recipient — asked in ONE batch, with the notification capability PROBED before anything is offered (`references/notifications.md`), never inferred from a tool list. Write the answers to the project card's `Durability:`, `Autonomy:`, `Branches:` and `Notify:` lines and record a D-entry. From here on the batch is never re-asked; a later session reads the card and applies it.
+
+**Create `docs/keel-conformance.md` in the same breath** (SKILL.md "Applying Keel completely"). Read `MANIFEST.md` Table 1 and write one row per requirement, each with its state at this moment: `present` for what step 0a just created, `missing` for what a later phase will create (with the phase named), `n/a` where the condition excludes it (quoting the condition from the manifest's own Condition column), `declined` where the user has already refused something with its D-entry. It starts almost entirely `missing`, and that is correct — the file is a checklist that empties as the project advances, and every phase's definition of done updates the rows that phase was responsible for. Creating it here is what makes the Phase 7 gate and `scripts/keel-verify` able to check it later, and what makes it impossible for a requirement to be silently never applied.
 
 If the project already has real code but no Keel state, this is not Phase 1 — it is an adoption: switch to `references/adoption.md`.
 
-### 0. Competitive scan (always first — before any other step)
+### 0. Competitive scan (first — before any other step of a NEW project)
 
-The honest assessment in this phase is only as good as the assistant's view of the landscape. Before asking what the idea is supposed to do, scan for what already exists. The output of this step feeds the honest assessment, the feature list, the v1 scope decision, and any optional AI/MCP layer proposal — all of which are weaker or guesswork if this step is skipped.
+The honest assessment in this phase is only as good as the assistant's view of the landscape. Before asking what the idea is supposed to do, scan for what already exists. The output of this step feeds the honest assessment, the feature list, the v1 scope decision, and any optional AI/MCP layer proposal — all of which are weaker or guesswork if this step is skipped. (In adoption it is recommended-but-optional — see `references/adoption.md`.)
 
 Always ask the user upfront: **"Which competitors / similar projects do you already know about?"** The user's own list is a useful seed; combine it with the automated research below.
 
@@ -75,6 +85,20 @@ Based on (a)–(c), the assistant proposes:
 - **Differentiator candidates** — gaps users complain about that the new project could close. These are grounded in (c), not invented.
 - **AI / MCP / agentic layer proposals (optional).** Only when they add real, logical value (e.g. semantic search over the project's content, MCP exposure of operations a power user would actually script, an agent step that compresses a repetitive workflow). Each AI/MCP proposal is labelled explicitly as **"added value"** (with the reason it actually helps) or **"forced filler"** (AI for AI's sake). Forced filler is dropped, not softened — same honesty rule as the rest of Phase 1. If no AI/MCP layer is warranted, say so plainly.
 
+These three feed the **proposed v1** in step 3 and are then confronted against it, row by row, in step 3a — which is where the scope actually closes. Producing the lists and never putting them side by side with the plan is the failure this whole step exists to prevent, so the scan is not finished when the file is written; it is finished when every functionality in it has a recorded decision.
+
+#### Run the scan in subagents when the environment provides them
+
+When the environment provides subagents, run the scan in one — or several in parallel, one per competitor, which is the per-unit shape of the fan-out rule in `references/assistant-config.md` ("Parallel fan-out"). Subagents return the drafted scan artifacts and conclusions, never raw dumps of pages or search results; the main session validates that every external-demand item resolves to a source before accepting the draft. This keeps the main session's context clean for the discovery conversation that follows.
+
+#### When the first pass finds zero competitors
+
+An empty first pass is never accepted as final. Retry with differently-phrased queries and with adjacent product categories before concluding anything. If the scan is still empty, record "no competitors found" as its own analysis block in `docs/00-competitive-landscape.md`, feeding the honest assessment: either this is a genuinely new niche, or it is a sign of no market / wrong search framing — say which and why, and let the user react. Table stakes then derive from the nearest adjacent category: the products users would reach for today in the absence of this one.
+
+#### What "partial" means on the scan status line
+
+The discovery template's scan status offers done / partial / SKIPPED. Partial is a defined state, not a softer done: the scan ran but one or more artifacts is incomplete — sources not visited, fewer competitors examined than intended, a list built only from search snippets. Record exactly which parts are missing and why; any unified-list item without a resolving source is marked unverified.
+
 #### When the scan cannot be done in this environment
 
 If the assistant cannot perform the scan from this environment (no web/search tool available, no network access, sandboxed terminal, search tool restricted, etc.), it MUST NOT silently skip it. Instead, say so plainly and concretely. For example:
@@ -84,7 +108,7 @@ If the assistant cannot perform the scan from this environment (no web/search to
 Then offer the user three options, in this order:
 
 1. **Move the conversation to an environment with web access** (e.g. from a terminal Claude Code session to the desktop Claude app where web tools are available, or to a Cowork session, or to any client where browsing/search is enabled). This is the preferred option.
-2. **Use a different agent or tool** that has web research, run the scan there, and bring the findings back into this session as input.
+2. **Use a different agent or tool** that has web research, run the scan there, and bring the findings back into this session as input. The assistant composes the complete, ready-to-paste prompt for that agent (what to scan, the three artifacts to produce, the citation rule) — per the SKILL.md boundary rule, the user carries a prompt, never a description of one.
 3. **Skip the scan and proceed** — explicitly, with the warning below recorded in `docs/01-discovery.md`.
 
 If the user chooses option 3, record it clearly in `docs/01-discovery.md` under a "Competitive scan: SKIPPED" subsection, and include this warning (do not soften it — the honest-assessment principle applies):
@@ -110,6 +134,8 @@ Ask the user, in batched questions, only what you can't infer:
 - What's the single most important outcome it must deliver?
 - Is this a new project or a feature/extension of an existing one? If extending, what does it plug into?
 
+**A vague idea is a valid entry — build the ramp, don't raise the bar.** Many users arrive with no development background and something as thin as "I want something to organize my recipes". That is a normal Phase 1 entry, not a defect to push back on. When the idea is vague, or the user visibly cannot answer these questions in their own terms: do not interrogate — propose. Offer 2–3 concrete interpretations of what the idea could be (grounded in the step 0 scan where it helps), each described in one plain-language line — what it would do, for whom — using the interactive question tool if available, and let the user pick or correct one. Infer everything inferable from what they said and from the scan; ask only what remains. Never stall the phase on a question the user cannot answer: turn it into options with a recommended default instead (per SKILL.md "How to run a phase", every question must be answerable by a non-developer).
+
 ### 2. Fix the project type (this drives everything)
 
 Pin down exactly one primary type (note a secondary if it genuinely spans):
@@ -122,9 +148,62 @@ Pin down exactly one primary type (note a secondary if it genuinely spans):
 
 The type selects: the security profile (load it now — see SKILL.md "Security routing"), the project structure, the release/packaging rules, and whether design is needed at all. Fixing the type — and its target platform(s) — also selects the accessibility toolkit: load `references/accessibility.md` now too (see SKILL.md "Accessibility") and apply it from here on, exactly like the security profile.
 
-### 3. Feature discussion
+### 3. Proposed v1 — the assistant proposes, the user reacts
 
-Draft a feature list with the user. For each feature capture: what it does, who uses it, priority (must / should / could), and any hard constraint. Separate **v1 scope** from **later**. Push back gently on scope creep — a tight v1 is a feature, not a limitation.
+Never ask the user to build a feature list from a blank page. By this point Phase 1 has already produced everything needed to propose one: the unified feature list (table stakes), the external-demand list (differentiator candidates), the AI/MCP added-value proposals (step 0.d), the honest assessment, and the user's own idea. Assemble them into a **proposed v1** and present it unprompted — always, without waiting to be asked — as a draft for the user to react to, never as a decision already made:
+
+- **The proposed feature table.** For each feature: what it does, who uses it, priority (must / should / could), and **why it is in** — `table stakes (competitors X, Y)`, `differentiator (source)`, `AI/MCP added value (step 0.d)`, or `user's idea`. The why is what lets a non-developer judge each row on its merits.
+- **An explicit "Later" list.** Everything deliberately left out of v1, so cutting is visible and painless — deferred, not lost.
+- **Tight by default.** A tight v1 is a feature, not a limitation. Keep the proposal minimal, and explicitly invite the user to REMOVE items — removing is as valid a reaction as adding. The proposal is a starting point, not an anchor: the user's corrections always win.
+
+If the user already arrived with a defined feature list or scope of their own, do not re-propose from scratch — present the **diff against the scan** instead: table stakes they are missing, items of theirs that belong in Later, differentiator candidates they may want. Same honesty, zero condescension.
+
+Then iterate until the **v1 / Later** split is agreed, capturing any hard constraint per feature, and push back gently on scope creep along the way — but do not close the scope here. Step 3a is where it actually closes, because the proposal is not trustworthy until it has been confronted, line by line, with everything the competition already has.
+
+### 3a. Confront the v1 against the competitive baseline (blocking — the scope closes here)
+
+The scan in step 0 produced the category's baseline; step 3 produced a proposal. Neither is worth much until they are put **side by side**, in full, and every difference is decided out loud. Skipping this is how a v1 ships missing something every competitor has had for three years — not because anyone decided to leave it out, but because nobody ever looked at the two lists together.
+
+#### The confrontation table
+
+Present it whole — **every** functionality from the unified feature list and the external-demand list, not a curated selection, because a curated selection is the assistant deciding on the user's behalf exactly what this step exists to prevent. One row per functionality:
+
+```markdown
+| # | Functionality | Who has it | Demand evidence | In the proposed v1? | Est. cost (AI h + dev h) | Assistant's recommendation |
+|---|---|---|---|---|---|---|
+| 1 | [what it does, in plain language] | [competitors X, Y — or "none: external demand"] | [top request in <link> / 4 of 5 competitors / 1-star reviews cite it — or "none found"] | [yes / no] | [rough range] | [include / defer / drop — with a one-line reason] |
+```
+
+Rules for the columns that carry the weight:
+
+- **Who has it** decides whether it is table stakes. A functionality present in nearly every competitor is a baseline the product is judged against on day one, whether or not anyone requested it.
+- **Demand evidence** is a citable source or the honest words "none found" — never a guess dressed as a finding. "Every competitor has it" and "users actively ask for it" are different arguments and both matter; a feature that every competitor has and nobody ever mentions is often cargo cult, and saying so is part of the job.
+- **Est. cost** is a rough per-feature range in the AI-time model of `references/estimation-budget.md`: **the AI's working hours plus the vibe coder's supervision hours — never what a human team would take.** This is the SKILL.md unbreakable rule applied here, and it is worth restating at this exact table because a feature-by-feature cost list is the most tempting place to slip into human-team thinking: a row that reads "3 weeks" when the real answer is "4 hours of AI time plus 1 hour of yours" does not just exaggerate, it inverts the decision — the user drops a feature that was cheap. Label the unit on the column and on every figure you say out loud. Rough is fine and must be marked as rough; the point is relative magnitude, so the user can see that row 7 costs four times row 3. These per-feature numbers feed the preliminary estimate in step 10, so the work is not repeated.
+- **Recommendation** is the assistant's honest position, and it is given on every row before the user chooses — including the uncomfortable ones. "Four competitors have this, nobody asks for it, it costs a lot: drop it" is exactly the kind of call this step exists for. The Phase 1 honesty rule is in full force: never pad the v1 to look generous, and never trim it to look disciplined.
+
+#### Then ask the user how they want to decide — three ways, and the recommendation is the third
+
+Put the question explicitly, with the three options laid out and their trade-offs stated in one line each:
+
+1. **Add everything.** Every gap becomes part of the scope. Fast to decide; it produces the biggest v1, the longest timeline and the highest cost, and it almost always drags in features nobody asked for. State the summed cost estimate when offering this, so "everything" is a number and not a mood.
+2. **Add a selection.** The user names the rows they want; the rest go to Later. Faster than the third option and appropriate when the user already knows the category well.
+3. **Go through them one by one — recommended.** The assistant walks the rows in order, one at a time, and for each one presents: what it does, who has it, the demand evidence, the estimated cost, and its recommendation. The user answers **in v1 / Later / never** and moves on. It takes longer and it is the option that produces a scope somebody actually chose, feature by feature, with the cost of each one visible at the moment of choosing.
+
+**Never assume the answer.** If the user says "whatever you think", that is a valid answer per the Phase 1 question rule: apply the assistant's recommendation column as written, tell the user that is what was applied, and record it as "default accepted" — do not quietly widen the scope beyond what was recommended.
+
+#### Record every decision, including the noes
+
+Each row ends with a decision, and every decision is written down with its reason — **especially the rejections**. A feature deliberately not built is a decision (`docs/decisions.md`); a feature nobody ever discussed is a gap that resurfaces mid-build as "how did we not think of this". This is the SKILL.md rule that a recorded omission is a decision and a silent one is a trap, applied to scope instead of to security.
+
+- **In v1** → the feature row is added to the feature list with its why and its constraint.
+- **Later** → the Later list, with the reason it is not now (cost, dependency, insufficient demand) so a future revisit starts from the argument rather than from scratch.
+- **Never** → recorded as a D-entry in `docs/decisions.md` with the reason. This one matters most: without it, the same feature is re-proposed by the next session, the next competitor scan, or the user themselves six months on, and the analysis is paid for twice.
+
+When the confrontation changes the scope materially — and it usually does — the honest assessment from earlier in this phase is revisited before the phase closes: a v1 that just doubled is a different proposition, and saying so is the point of the assessment.
+
+#### When there was no scan
+
+If step 0 was skipped or came back empty, this step still runs, against the nearest adjacent category's baseline, and its limitation is stated plainly: the confrontation is only as good as the landscape behind it. Recording "confronted against an incomplete landscape" is honest; running it silently against nothing and calling the scope closed is not.
 
 ### 4. Constraints and non-negotiables
 
@@ -141,10 +220,48 @@ State plainly to the user, now, that everything with a UI will be built accessib
 
 - **Confirm the target platform(s).** Accessibility tooling is platform-specific: web/HTML, WordPress/WooCommerce, iOS/iPadOS, Android, macOS, Windows, or a cross-platform framework (Flutter, React Native, MAUI, Electron/Tauri). Record which — a project may span several — so the matching section(s) of `references/accessibility.md` apply.
 - **Load `references/accessibility.md`** now (alongside the security profile) and keep it live through every later phase.
+- **Load `references/anti-patterns.md`** now too — the third file the project type selects. Read its universal section plus the section(s) matching this type, so the known traps of this class of project are prevented rather than rediscovered. It is consulted again at every sprint close, at the Phase 7 gate, and at adoption; its self-audit is the source of new `scripts/keel-verify` checks.
 - **State the targeted conformance level.** Default and recommended: WCAG 2.2 AA as the floor, AAA where feasible, plus EN 301 549 / the European Accessibility Act where they apply (the EAA has applied since 28 June 2025 and covers EU e-commerce and digital services — in scope for the user's market), plus each target platform's native accessibility API and assistive technologies. Aiming below AA is a conscious decision with a recorded reason — never a silent default.
 - This propagates downstream: Phase 2 acceptance criteria include accessibility conditions, the Phase 3 design brief requires Design to specify accessibility, Phase 5 gives every slice an accessibility test point, and Phase 7 has an accessibility release gate.
 
 Record the decision in the discovery doc.
+
+### 5a. Environment preflight (blocking for the platforms it rules out — the earliest possible moment)
+
+The project type is fixed (step 2) and the target platforms are fixed (step 5), which is the first moment the assistant can tell whether this machine can actually build and TEST what is about to be planned. Doing it now costs minutes; discovering it at the Phase 5 scaffold costs a sprint, and discovering it because a test run hijacked the user's screen costs their afternoon.
+
+Load `references/test-automation.md` now. This is a preflight, not the full doctor: the exhaustive requirements table is written at Phase 2 §4d and `scripts/keel-doctor` is generated at the Phase 5 scaffold. Here, answer six questions and record them in the discovery doc:
+
+0. **Can this session run commands where the repository lives, at all?** Answer this first, because everything else depends on it. Some environments give the assistant a shell on the machine holding the repo; others (a chat surface with no execution, a sandbox that cannot reach the user's disk) do not. If the answer is no, say so plainly now and record it: the driven-test contract still holds, but its execution moves to a session that has a shell — the assistant writes the tests and the exact commands, and hands over a ready-to-paste prompt (`NO-EXECUTION`, per `references/test-automation.md`). It never degrades into asking the user to click through screens. Also distinguish, where they differ, the machine the user works on, the machine holding the repo, and the machine that will run the tests — the questions below have different answers per machine.
+1. **What must exist on the machine that will run the tests, for this project type?** Detect what is already there, non-destructively — nothing is installed at this step. Report it as the doctor's table (requirement / detected / required / state / how to install), with `OK`, `TOO OLD`, `NOT OPERATIONAL` and `MISSING` distinguished. "Installed but not running" is its own state: proposing a Docker reinstall when the daemon merely needs starting is the classic version of this mistake.
+2. **Is any target platform impossible here?** Say it plainly and immediately, because it changes the plan rather than the schedule. The hard cases: **Apple platforms require macOS with full Xcode** — `xcodebuild` and the simulator runtimes do not exist on Windows or Linux, and there is no emulation, port or workaround; **native Windows UI automation requires an interactive, unlocked Windows session** with autologon. If a platform is out of reach, the options are a second machine, a hosted runner, or dropping that platform from v1 — and that is the user's decision, made now, not a surprise later.
+3. **Will testing take over the user's screen, and on which platforms?** Web, API, MCP, CLI, Android and the iOS Simulator all run without touching it. A **macOS or native Windows UI test drives the real cursor and keyboard** and cannot be made headless — if the project has one of those surfaces, agree the mitigation now (a dedicated machine or VM, a separate user session, or batching those runs at an agreed time) and record it. The user should never be ambushed by an automated test grabbing their keyboard.
+4. **What will need installing, and does the user agree?** Show the list — the requirement, the exact command, and what it changes. **Offer to install it now**, with the same mechanics the doctor will use later (show the plan, one OK, install, re-detect, report). Installing here rather than three phases later matters more than it looks: Phase 4 builds real UI, and a build nobody can run is a build nobody can verify. If the user prefers to wait, that is fine and it is recorded — but the offer is made, once, explicitly. Flag anything with a licence or privilege consequence in the same breath — Docker Desktop can create a paid-licence obligation the developer has no authority to accept, and adding a user to the `docker` group is effectively granting root. Where a lighter path exists (Docker Engine on Linux, Colima on macOS, a version manager in the user's home instead of a system package, the browser-based WordPress runtime instead of Docker at all), offer it.
+
+5. **Is the assistant's own CLI available on this machine, and does it run?** — asked when the project card's `Chaining:` (settled at step 0a) is `prefill` or `start`, **and independently whenever this project may fan a sprint out over git worktrees** (Phase 5), because that dispatch launches one CLI process per worker and therefore needs the same binary for a different reason. The row is not applicable only when BOTH are false: a card that says `Chaining: off` on a project that will never fan out. Ask the fan-out half plainly at this step rather than inferring it — a project that discovers the answer at dispatch time discovers it with the sprint already planned.
+
+   **`command -v claude` is the first probe, not the verdict.** Apply the corroboration rule in `references/test-automation.md` ("Detection rules that are not obvious") in both directions: a negative is corroborated against the login shell, the platform's install locations and `CLAUDE_CODE_EXECPATH` before it may be written as missing, since an assistant's restricted `PATH` hides binaries that work perfectly in the user's own shell; and a positive is followed by `claude --version` against the package's declared engine before it may be written as available. Record the absolute path that actually works, because that is what the fan-out dispatch will use.
+
+   Probing rather than assuming is worth the two commands, because it is genuinely not obvious: **neither the desktop app nor the VS Code extension puts `claude` on PATH** — the app runs Claude Code graphically, and the extension bundles a private copy for its own panel — so someone can have both installed, use Claude Code every day, and still have no `claude` command. The official documentation says it plainly: the desktop app includes Claude Code, and using `claude` from the terminal means installing the CLI separately. Missing → **offer the install** with the command for this platform, and record the answer either way:
+   - **macOS** — `curl -fsSL https://claude.ai/install.sh | bash`, or `brew install --cask claude-code`.
+   - **Windows** — `irm https://claude.ai/install.ps1 | iex`, or `winget install Anthropic.ClaudeCode`.
+   - **Linux** — the same install script, the signed apt/dnf/apk repositories, or `npm install -g @anthropic-ai/claude-code`.
+
+   **The `npm` route installs onto whatever runtime is active and only WARNS when the package declares a newer one** (`EBADENGINE`), so it can leave a `claude` on PATH whose runtime does not meet the requirement — verify with `claude --version` after installing, never from the installer's exit code. Where the user's runtime is managed by a version manager or a conda environment and can change under them, prefer the native installer, which bundles its own.
+
+   Declined, or unavailable on this machine → **`start` is not offered, `prefill` is the maximum**, and the reason is recorded beside the `Chaining:` answer. This is the fourth gate on `start` (`references/project-state.md`); what this step adds is the probe and the offer, so the requirement is discovered here instead of at the first close-out of a chain — which under `start` is precisely when nobody is watching. The same answer governs the fan-out independently: **no working CLI means a sprint is built serially in the session**, which is recorded here as a fact about the machine, so Phase 5 plans around it instead of discovering it at dispatch.
+
+6. **What can this session's environment NOT do?** Some environments cannot do what the rest of this skill assumes, and the cost of finding that out late is measured in retries rather than minutes. Detect what this session can actually do and say it in one line, at Phase 1, alongside the English-docs default and the accessibility commitment — a protected environment is a fact about the session, not a failure, and saying it late is what makes it expensive. The measured case is Cowork's device bridge, and every item below was hit for real:
+
+   - **The bridge to the user's disk cannot delete files.** `rm` returns `Operation not permitted`. Git therefore leaves `.lock` files behind that then block the user's own repository — this happened repeatedly and cost real time.
+   - **The bridge has no network:** no `push`, no `fetch`, no dependency install.
+   - **Two separate filesystems.** The cloud container has network but not the user's files; the bridge has the files but no network. **Neither can execute commands where the repository lives AND reach the network at the same time** — which is exactly what playgrounds, dependency installs and test runs need.
+   - **No `localhost` on the user's machine**, so a playground run locally is invisible to the session that started it.
+   - **No screen control and no window capture.**
+
+   Where any of these holds, say which, and say what it removes: what cannot be installed, what cannot be run, what cannot be verified from here and where it moves instead (`NO-EXECUTION` and its partial case, `references/test-automation.md`). Do not plan around a capability the session has not got, and do not discover it by watching a command fail.
+
+Record in `docs/01-discovery.md` under `## Environment & test drivers`: whether this session can execute commands where the repo lives, what the session's environment cannot do at all (network, deletion, localhost, screen — the protected-environment line, or "no restrictions found"), what is present, what is missing, what is impossible on the test machine and the chosen way around it, the screen-stealing verdict per platform, the `claude`-on-PATH verdict where chaining is wanted, and whether the user accepted installing the missing pieces now. This feeds Phase 2 §4d directly.
 
 ### 6. Internationalization & output language (blocking — decide now, never later)
 
@@ -160,7 +277,7 @@ The language the user and assistant *converse in* (often Spanish) and the langua
 
 Record the decision in the discovery doc and `decisions.md`. It propagates to Phase 3 (Design must not hardcode copy; strings are translatable) and is a hard verification point in Phase 5.
 
-### 7. Project website intent (global picture only — execution is a separate skill)
+### 7. Project website intent (global picture only — built later in Phase 8 of this skill)
 
 Ask now whether the project will have its own presentation website. This is asked early only so the global picture is known (it can influence naming, branding, domain). Record: will there be a project site? and if so, own domain or a subdomain of the user's existing domain? Do NOT build it here — the website is built in Phase 8 of this skill, normally after the first release. This step only captures the intent so it informs naming/branding/domain.
 
@@ -207,6 +324,24 @@ Record the decision in the discovery doc, `docs/decisions.md`, and the PROGRESS.
 
 With the v1 scope agreed, produce the preliminary estimate so the user can answer whoever asked for a quote. Load `references/estimation-budget.md` and follow it: itemized AI working hours (per phase, session wall-clock ranges), itemized vibe coder hours (segments — what the developer does + hours), contingency, and the AI cost mode (subscription ≈ 0 marginal cost / API with verified per-token prices). Record it as **Estimate v1 (preliminary)** in `docs/estimate.md`, with wide ranges and stated assumptions, and create `docs/token-ledger.md` (template in that reference) so actual token usage is recorded from here on. NEVER estimate from traditional human development time — the estimate is AI time + supervision time, full stop. If the user needs a client-facing preliminary budget now, produce it per the same reference, clearly marked preliminary; the firm budget comes at Phase 2 close.
 
+### Chat chaining — asked here, with its warning visible
+
+Ask once, alongside the other opening decisions, and record the answer as `Chaining:` on the project card. It is NOT a card field to fill in silently: two of the three values change how the user works, and they must know that before choosing, not after.
+
+> **Do you want development to chain automatically between chats?**
+>
+> - `off` (recommended) — every chat ends with the hand-off written to `docs/continuation-prompt.md` and the prompt ready to copy. You decide when it continues.
+> - `prefill` — the next chat opens with the instruction already typed; you press Enter.
+> - `start` — the next chat opens **and starts by itself**, without you touching anything.
+>
+> **If you choose `start`, that happens in the CLI, not in your editor.** It is the only verified way to automate the full cycle: the VS Code URI pre-fills and does not submit, and its handler accepts no parameter that changes this. Choosing `start` means development moves to command-line sessions.
+>
+> **And it means development advances with nobody watching.** Decide whether that is acceptable on this project before choosing it.
+
+`off` and `prefill` are always available. **`start` is gated**: it is not offered until the project has the single-lane lock (`references/project-state.md`), and it is verified on macOS only — offer `prefill` as the maximum where either condition fails, and say which one. Whatever the answer, the hand-off file is written and the prompt shown at every session end; chaining only decides whether a window also opens. Full contract in `references/project-state.md`.
+
+Ask here, once — and never again in any later phase: **is there a client to bill or a quote to produce?** Record the answer in the PROGRESS.md project card as `Client budget: yes/no`. `docs/estimate.md` and `docs/token-ledger.md` are produced always — the user needs the numbers whether or not anyone is billed. The client-facing `docs/budget.md` (Phase 2 close) is produced only when `Client budget: yes`; when no, none of the client questions (rate, currency, budget language) are asked — not now, not at Phase 2.
+
 ## `docs/01-discovery.md` structure
 
 ALWAYS use this template:
@@ -225,13 +360,21 @@ ALWAYS use this template:
 ## Project type
 - Primary: [type]   Secondary: [type or none]
 - Security profile loaded: [filename]
-## Feature list
-| Feature | What it does | Users | Priority | Constraint |
+## Feature list (proposed by the assistant in step 3, agreed with the user)
+| Feature | What it does | Users | Priority | Why in v1 (table stakes / differentiator / AI-MCP added value / user's idea) | Constraint |
+## Competitive confrontation (step 3a — EVERY competitor functionality vs the proposed v1)
+- Decision mode chosen by the user: [add everything / add a selection / one by one (recommended)]
+| # | Functionality | Who has it | Demand evidence (cited, or "none found") | In proposed v1? | Est. cost (AI h + dev h, rough) | Recommendation | DECISION (v1 / Later / never) + reason |
+- Scope impact: [what the confrontation added or removed vs the step 3 proposal]
+- Honest assessment revisited after the confrontation? [yes/no — required when the scope changed materially]
 ## Scope
 - v1: ...
-- Later: ...
+- Later: ... (deliberately deferred — visible, not lost)
+- Never: ... (rejected on the record; each also a D-entry in decisions.md so it is not re-proposed)
 ## Honest assessment
-- [the truthful evaluation of the idea, grounded in the competitive landscape: weaknesses, prior art, scope realism — and the verdict]
+- [the truthful evaluation of the idea, grounded in the competitive landscape: weaknesses, prior art, scope realism]
+- Verdict: [proceed / adjust scope / do not build — with the reasoning]
+- User decision: [proceed / adjust / park / discard] (against a negative verdict → decisions.md entry "proceeds against negative assessment: <reason>"; parked/discarded → PROGRESS.md Status: parked — <why>, artifacts kept)
 ## Constraints & non-negotiables
 ## License
 - License: [e.g. GPL-3.0-or-later] (constrains dependency choices from Phase 5; verified shipping in Phase 7)
@@ -250,6 +393,7 @@ ALWAYS use this template:
 ## Accessibility (non-negotiable — stated up front)
 - Target platform(s): [web / WordPress-Woo / iOS / Android / macOS / Windows / cross-platform framework — one or several]
 - Reference loaded: references/accessibility.md
+- Reference loaded: references/anti-patterns.md
 - Targeted level: [WCAG 2.2 AA floor + AAA where feasible; EN 301 549 / EAA if EU scope; native platform a11y APIs] (below AA only with a recorded reason)
 ## Project website intent
 - Will there be a project site? [yes / no]   If yes: own domain / subdomain of user's domain
@@ -268,9 +412,21 @@ ALWAYS use this template:
   - Personality: [2–3 adjectives]   References: [liked/disliked]
   - Modes: [dark mode intent]   Iconography & imagery: [style]   Vetoes: [banned things]
   - Unanswered items: [→ SPEC/open-questions.md for Design to ask]
+## Environment & test drivers (step 5a preflight)
+- This session can run commands where the repo lives: [yes / no — if no, execution moves to a shell-capable session under `NO-EXECUTION`; tests are still written here]
+- Environment restrictions found: [none / the measured list: no network on the machine holding the files, cannot delete files, no localhost, no screen control, execution and files on different filesystems — and what each one removes]
+- `claude` on PATH: [yes / no + install offered and the user's answer / n/a — Chaining: off] (no → start is not offered; prefill is the maximum)
+- Machines in play: [user's machine / repo host / test runner — same or different, one line]
+- Present on the test machine: [tool + detected version, one line each]
+- Missing or too old: [tool + required version + how it will be installed — nothing installed yet at this step]
+- Impossible on this machine: [platform + the structural reason + the agreed way around it: second machine / hosted runner / dropped from v1]
+- Screen-stealing verdict per platform: [platform → headless / takes the screen + the agreed mitigation]
+- Licence or privilege consequences flagged to the user: [e.g. Docker Desktop licensing, docker group = root — or none]
 ## Preliminary estimate (AI-time based)
 - Estimate v1 (preliminary) recorded in docs/estimate.md: AI hours [X–Y], vibe coder hours [X–Y], contingency [+N%], AI cost mode [subscription / API]
 - Token ledger created: docs/token-ledger.md (actuals recorded from here on)
+- Client budget: [yes / no — asked once here, recorded in the project card; yes → docs/budget.md at Phase 2 close, no → no budget.md and the client questions (rate, currency, budget language) are never asked]
+- Chaining: [off (default) / prefill / start — asked once here with its warning shown; start is gated on the single-lane lock and macOS-verified only, so offer prefill as the maximum where either fails]
 ## Open questions for the user
 - [anything still undefined — must be resolved before Phase 2]
 ```
@@ -278,21 +434,33 @@ ALWAYS use this template:
 ## Definition of done
 
 - State files initialized per `references/project-state.md` (`docs/PROGRESS.md` with the project card filled, `docs/decisions.md` with this phase's decisions recorded, `docs/lessons-learned.md` present) and PROGRESS.md reflects this phase's real status.
-- The `CLAUDE.md` lock is in place at the repo root (Keel block between delimiters), and the embed-the-skill and Claude-config questions were asked and recorded in the project card.
+- The portability lock is in place at the repo root (the same Keel block between delimiters in `CLAUDE.md` and `AGENTS.md`, plus the Gemini pick if applicable), and the embed-the-skill and assistant-config questions were asked and recorded in the project card.
 - Competitive scan completed: `docs/00-competitive-landscape.md` exists with per-competitor inventory, unified feature list, and external-demand list (each item cited). OR — if the scan was impossible from this environment — the user has been informed with the specific reason, the three options were offered, and either (a) the conversation moved to a capable environment and the scan was done there, (b) a different agent/tool produced the scan and the findings were brought back, or (c) the user explicitly chose to skip and the full warning block is recorded verbatim in `docs/01-discovery.md`.
 - The "Competitive landscape & opportunity" section of `docs/01-discovery.md` lists table-stakes, differentiator candidates, and AI/MCP layer proposals labelled as added-value or forced-filler (with forced-filler dropped).
-- The idea received an honest assessment, grounded in the competitive landscape, and the verdict is recorded (not default praise).
+- The idea received an honest assessment, grounded in the competitive landscape, and the closure protocol ran: the verdict (proceed / adjust scope / do not build) AND the user's decision are recorded (not default praise). Proceeding against a negative assessment → `docs/decisions.md` entry with the reason; parked/discarded → `Status: parked — <why>` in PROGRESS.md with all artifacts kept.
 - Project type is fixed and the matching security profile has been loaded.
-- v1 scope is explicit and the user agreed to it.
+- A proposed v1 was presented unprompted (or, when the user arrived with a defined scope of their own, the diff against the scan was), each feature carrying its why; the v1 scope is explicit and the user agreed to it.
+- The competitive confrontation (step 3a) ran on the COMPLETE set of competitor functionalities and external demands — not a curated subset — each row carrying who has it, its demand evidence (cited or "none found"), a rough AI-time cost estimate and the assistant's recommendation.
+- The user was explicitly offered the three decision modes (add everything / add a selection / one by one) and chose one; the choice is recorded. "Whatever you think" was resolved by applying the recommendation column and recording it as default accepted, never by silently widening the scope.
+- Every row ended in a recorded decision: v1 features carry their why, deferred ones their reason, and rejected ones a D-entry in `docs/decisions.md` — so no rejected feature is re-proposed later as if it had never been considered.
+- If the confrontation changed the scope materially, the honest assessment was revisited before the phase closed.
 - Installed-base/upgrade reality is recorded; if there's an installed base, the migration obligation is noted.
 - External dependencies are listed with exact version, source, and fail-safe behavior.
 - The license is decided and recorded (it gates dependency adoption in Phase 5).
 - The multi-language vs single-language decision is made and recorded, with the target output locales and mechanism; the base/output language is recorded (English by default — always English for WordPress/WooCommerce, off-English only with a recorded reason); and the docs language (separate from the output language) is recorded (English by default — token economy; off-English only as an explicit user choice with the cost trade-off acknowledged).
 - Accessibility commitment recorded and stated to the user up front: target platform(s) captured, `references/accessibility.md` loaded, and the targeted conformance level stated (WCAG 2.2 AA floor by default; below AA only with a recorded reason).
+- `references/anti-patterns.md` loaded for this project type, alongside the security profile and the accessibility reference.
+- Environment preflight (step 5a) ran and is recorded in `docs/01-discovery.md` under `## Environment & test drivers`: whether this session can execute commands where the repo lives, which out-of-band notification channels actually DELIVER in this environment (compose-only connectors recorded as such, per `references/notifications.md`), what is present, what is missing, any target platform the test machine cannot build or test at all (with the agreed way around it), and the screen-stealing verdict per platform with its mitigation. `references/test-automation.md` is loaded. The missing pieces were offered for installation with their exact commands, and the user's answer is recorded either way.
+- Any restriction this session's environment imposes was stated to the user up front and recorded on the restrictions line — no network where the files are, no deletion, no localhost, no screen control, execution and files on separate filesystems — or the line says none was found. A restriction discovered by a command failing later is a preflight defect, not an environment defect.
+- Where `Chaining:` is `prefill` or `start`, OR the project may fan a sprint out over worktrees, the CLI was probed AND corroborated in both directions — a negative against the login shell, the install locations and `CLAUDE_CODE_EXECPATH` before being called missing; a positive against `claude --version` and the declared engine before being called available — the install was offered if it was genuinely absent, and the answer is recorded with the absolute path that works. Absent and declined → the card says at most `prefill`, naming the requirement that failed, and the fan-out is recorded as unavailable so Phase 5 plans serially.
+- The work does not live only on this machine, and it was settled BEFORE anything was created (step 0a): the repository and its remote were checked with commands, off-machine replication was confirmed with the user rather than guessed from a folder name, whatever was missing was offered as a concrete fix, and the project card's `Durability:` line records the outcome — including `NONE — accepted risk` with its D-entry when the user declined. Everything produced so far is committed on `develop` or on a work branch bound for it; a repo that had only `main`/`master` got `develop` created.
+- `docs/keel-conformance.md` exists (step 0a), derived from `MANIFEST.md` Table 1, with every applicable row carrying a state — the Phase 1 rows now `present`, later-phase rows `missing` with their phase named, excluded rows `n/a` quoting their condition.
 - Project-website intent is captured (yes/no + domain choice).
 - "Design needed?" is answered.
 - If design is needed: the design-system decision is recorded (existing with source/location, founding with future home, or one-off with reason) in the discovery doc, `decisions.md`, and the project card — including the target surfaces/platforms the system must cover (marking which ship in this project vs which it anticipates for reuse).
 - Preliminary estimate produced per `references/estimation-budget.md`: `docs/estimate.md` (Estimate v1 — itemized AI hours and vibe coder hours, contingency, AI cost mode, assumptions stated, wide ranges marked as such) and `docs/token-ledger.md` created. No number is based on traditional human development time.
+- The client question was asked once — is there a client to bill or a quote to produce? — and `Client budget: yes/no` is on the project card (yes → `docs/budget.md` at Phase 2 close; no → the client questions are never asked).
+- The chaining question was asked once, WITH its warning shown (that `start` moves development to CLI sessions rather than the editor, and that it removes the only person supervising), and `Chaining:` is on the project card. If the answer was `start`, the single-lane lock exists and the platform is verified; otherwise `prefill` was offered instead and the reason recorded.
 - `docs/01-discovery.md` exists and has zero open questions left unresolved.
 
 Do not enter Phase 2 with open discovery questions — an unresolved idea-level question becomes an expensive rework later.

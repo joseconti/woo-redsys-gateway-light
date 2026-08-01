@@ -714,8 +714,9 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				foreach ( $redsys_args as $key => $value ) {
 					$form_inputs .= '<input type="hidden" name="' . $key . '" value="' . esc_attr( $value ) . '" />';
 				}
-				wc_enqueue_js(
-					'
+				wp_add_inline_script(
+					'woocommerce',
+					'jQuery( function( $ ) {
 				$("body").block({
 					message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', WC()->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . __( 'Thank you for your order. We are now redirecting you to Servired/RedSys to make the payment.', 'woo-redsys-gateway-light' ) . '",
 					overlayCSS:
@@ -734,7 +735,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 					}
 				});
 			jQuery("#submit_redsys_payment_form").click();
-			'
+			} );'
 				);
 			return '<form action="' . esc_url( $redsys_adr ) . '" method="post" id="redsys_payment_form" target="_top">
 				' . $form_inputs . '
@@ -752,8 +753,9 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				foreach ( $redsys_args as $key => $value ) {
 					$form_inputs[] = '<input type="hidden" name="' . $key . '" value="' . esc_attr( $value ) . '" />';
 				}
-				wc_enqueue_js(
-					'
+				wp_add_inline_script(
+					'woocommerce',
+					'jQuery( function( $ ) {
 				$("body").block({
 					message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', WC()->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . __( 'Thank you for your order. We are now redirecting you to Servired/RedSys to make the payment.', 'woo-redsys-gateway-light' ) . '",
 					overlayCSS:
@@ -772,7 +774,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 					}
 				});
 			jQuery("#submit_redsys_payment_form").click();
-			'
+			} );'
 				);
 			return '<form action="' . esc_url( $redsys_adr ) . '" method="post" id="redsys_payment_form" target="_top">
 				' . implode( '', $form_inputs ) . '

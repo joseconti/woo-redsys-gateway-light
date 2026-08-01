@@ -17,10 +17,9 @@ Load this when the project type is a WordPress plugin or WooCommerce extension. 
 
 ## MCP / OAuth (the user's common surface)
 
-- The MCP Adapter endpoint and `/mcp/` requests must enforce Bearer token validation; 401 with the correct `WWW-Authenticate` pointing to resource metadata when missing/invalid.
-- OAuth 2.1 with PKCE (S256): validate code challenge/verifier; never accept a public client without PKCE.
-- Scope every MCP ability to a capability; do not expose a privileged ability without an authorization check equivalent to the underlying WP capability.
-- Never log tokens, secrets, or full Authorization headers.
+- Map every MCP ability/tool to a WordPress capability check, exactly as REST routes map `permission_callback` — no ability without one; use the least capability that fits.
+- Application passwords and OAuth tokens carry the full capabilities of their WP user: connect the least-privileged user that works, honor revocation, require HTTPS, and never store, log, or echo one in plaintext — core keeps only the hash.
+- **When the plugin ships an MCP server or ability surface, load `references/security/mcp-server.md` IN FULL — this section is the WP mapping, not a substitute for that profile (redirect-URI allow-lists, blast radius, model-facing threats live there).**
 
 ## Secrets & data
 
@@ -41,6 +40,11 @@ Load this when the project type is a WordPress plugin or WooCommerce extension. 
 - `LIKE` queries escape the term with `$wpdb->esc_like()` *before* `$wpdb->prepare()`.
 - Every `register_setting()` has a real `sanitize_callback`; settings are re-sanitized on save, not only on render.
 - Cron/background handlers and `admin-post`/`admin-ajax` endpoints re-check capability and nonce — being "not linked in the UI" is not protection.
+- SSRF: any `wp_remote_get`/`wp_remote_post` whose URL is influenced by user input is validated first — `wp_http_validate_url()`, reject private/internal ranges, `wp_safe_remote_*` semantics / safe redirects.
+- Object injection: never `unserialize()` (or `maybe_unserialize()`) data that crossed a trust boundary — store and transport JSON instead.
+- Identifiers: `$wpdb->prepare()` placeholders do not cover table/column names or `ORDER BY` — use the `%i` identifier placeholder (WP 6.2+) or a strict allow-list.
+- Timing: compare tokens, license keys and HMACs with `hash_equals()`, never `==`/`===` string comparison.
+- Translations are third-party input: translated strings are escaped at output like any other variable (`esc_html__()`, `esc_attr__()`, or escape at the point of output) — a malicious `.po`/`.mo` is a real vector.
 
 ## Plugin-platform specifics
 
@@ -59,3 +63,36 @@ Load this when the project type is a WordPress plugin or WooCommerce extension. 
 - MCP/OAuth: token validation + PKCE + per-ability authz confirmed; no secret logged.
 - ABSPATH guard present in every PHP file; redirects via `wp_safe_redirect`; LIKE terms escaped; settings have sanitize callbacks.
 - Uninstall path leaves no sensitive residue (unless opted in).
+
+## Verify with
+
+- `phpcs` with the WordPress standard including the security sniffs: `phpcs --standard=WordPress` — `WordPress.Security.*` must be clean.
+- The Plugin Check plugin: `wp plugin check <slug>`.
+- `composer audit` / `npm audit` when the plugin bundles dependencies.
+
+At a test point, the command and its result are the evidence recorded in `docs/05-test-points.md` — an unrecorded check did not happen.
+
+## Deliberate omissions (seed the "Not defended" table)
+
+This profile hardens what it covers and is silent on the rest. Silence is not protection, so the
+project's `docs/threat-model.md` (Phase 2 §4c) carries a "Not defended" table naming what is
+deliberately out of scope, its consequence, and what the user would add if their risk profile needs
+it. **An omission that is written down is a decision; an omission that is silent is a trap** — six
+months on, nobody can tell "we decided against it" from "we forgot".
+
+Start from these rows, keep the ones that apply, add the project's own, and move any row into the
+"Defended" table the moment the control actually ships with its evidence:
+
+| Not defended | Consequence | If you need it |
+|---|---|---|
+| A compromised or malicious site administrator | An administrator can already execute PHP; no plugin-level control survives that | Nothing at the plugin level — it is the site's hosting and account-security problem |
+| Other plugins and the theme | They share the process, the database and the global scope; a hostile or broken one can alter this plugin's behaviour | Defensive prefixing, capability re-checks at each entry point, and no reliance on another plugin's sanitization |
+| Data at rest in the database | Options, meta and custom tables are stored as written; the platform offers no encryption layer | Encrypt the specific sensitive field in the plugin before storing, and own the key handling |
+| Brute force against wp-login and the REST API | Out of the plugin's scope; the platform's own surface | A dedicated security plugin, host-level rate limiting, or a WAF |
+| Supply chain of bundled dependencies beyond an audit | `composer audit` reports known advisories; it does not attest artifacts | Pin by hash where the ecosystem allows it and review dependency diffs on update |
+| PII in debug logs the site owner enables | The debug switch writes what the code logs, wherever the site puts its logs | Redact at the log call, never at the reader |
+
+Every remaining control in the "Defended" table carries its delivery state — `IN PLACE` (built and
+verified), `TO BUILD` (a named slice), `MANUAL` (a human configures it) or `VERIFY` (only a real
+environment confirms it) — and only `IN PLACE` may be written in the present tense anywhere in the
+project's documentation.

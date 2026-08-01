@@ -1,0 +1,179 @@
+#!/usr/bin/env bash
+#
+# keel-verify — mechanical checks that this project's docs match reality.
+#
+# Checks (see docs/PROGRESS.md / docs/03-technical-plan.md for why each
+# exists):
+#   1. Version touchpoints agree: woocommerce-redsys.php header `Version:`,
+#      the REDSYS_WOOCOMMERCE_VERSION constant, readme.txt `Stable tag:`,
+#      and readme.txt's top changelog entry. package.json is DELIBERATELY
+#      excluded — it is a recorded, accepted drift (docs/PROGRESS.md
+#      "Deferred items"), not a bug this check should re-discover every run.
+#   2. Every docs/api/INDEX.md row's surface name actually exists in the
+#      source tree (grep-check, not a claim).
+#   3. docs/keel-conformance.md exists.
+#   4. No unclosed markdown fenced code blocks (``` ... ```) anywhere in docs/.
+#   5. Internal doc links (relative markdown links to other files in docs/,
+#      or elsewhere in the repo) resolve to real files.
+#
+# Exits 0 if everything passes, 1 otherwise. Every failure is printed with
+# the file and line, never just "something's wrong".
+
+set -u
+cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
+
+FAIL=0
+fail() { echo "FAIL: $*"; FAIL=1; }
+ok() { echo "OK:   $*"; }
+
+echo "== 1. Version touchpoints =="
+
+MAIN_FILE="woocommerce-redsys.php"
+README_FILE="readme.txt"
+
+HEADER_VERSION=$(grep -m1 -oE '^ \* Version:[[:space:]]*[0-9][0-9A-Za-z.\-]*' "$MAIN_FILE" | sed -E 's/^ \* Version:[[:space:]]*//')
+CONST_VERSION=$(grep -m1 -oE "REDSYS_WOOCOMMERCE_VERSION',[[:space:]]*'[0-9][0-9A-Za-z.\-]*" "$MAIN_FILE" | sed -E "s/.*'([0-9][0-9A-Za-z.\-]*)/\1/")
+STABLE_TAG=$(grep -m1 -oE '^Stable tag:[[:space:]]*[0-9][0-9A-Za-z.\-]*' "$README_FILE" | sed -E 's/^Stable tag:[[:space:]]*//')
+CHANGELOG_TOP=$(awk '/== Changelog ==/{found=1; next} found && /^== [0-9]/{gsub(/^== /,""); gsub(/ ==$/,""); print; exit}' "$README_FILE")
+
+if [ -z "$HEADER_VERSION" ]; then fail "$MAIN_FILE: could not find 'Version:' header"; fi
+if [ -z "$CONST_VERSION" ]; then fail "$MAIN_FILE: could not find REDSYS_WOOCOMMERCE_VERSION constant"; fi
+if [ -z "$STABLE_TAG" ]; then fail "$README_FILE: could not find 'Stable tag:'"; fi
+if [ -z "$CHANGELOG_TOP" ]; then fail "$README_FILE: could not find top changelog entry under '== Changelog =='"; fi
+
+if [ -n "$HEADER_VERSION" ] && [ -n "$CONST_VERSION" ] && [ -n "$STABLE_TAG" ] && [ -n "$CHANGELOG_TOP" ]; then
+	if [ "$HEADER_VERSION" = "$CONST_VERSION" ] && [ "$CONST_VERSION" = "$STABLE_TAG" ] && [ "$STABLE_TAG" = "$CHANGELOG_TOP" ]; then
+		ok "version touchpoints agree: $HEADER_VERSION (header, constant, Stable tag, changelog top entry)"
+	else
+		fail "version touchpoints disagree: $MAIN_FILE Version=$HEADER_VERSION, REDSYS_WOOCOMMERCE_VERSION=$CONST_VERSION, readme.txt Stable tag=$STABLE_TAG, changelog top=$CHANGELOG_TOP"
+	fi
+fi
+echo "(package.json version is intentionally NOT checked here — recorded gap, docs/PROGRESS.md 'Deferred items')"
+
+echo
+echo "== 2. docs/api/INDEX.md rows point at real surfaces =="
+
+INDEX="docs/api/INDEX.md"
+if [ ! -f "$INDEX" ]; then
+	fail "$INDEX does not exist"
+else
+	# Parse table rows (skip header/separator), extract the first column
+	# (Surface). Handles backticked names and the "`a` / `b` / `c`" pattern
+	# by checking that at least one backticked token in the cell is found
+	# in the source tree.
+	# Gateway IDs used to build dynamic hook/filter names at runtime
+	# (e.g. do_action( 'valid_' . $this->id . '_standard_ipn_request', ... )).
+	# A doc row naming the RESOLVED hook (e.g. valid_redsys_standard_ipn_request)
+	# will never appear as that literal string in source — only its two
+	# static halves do, either side of the concatenation. So: try a literal
+	# match first, and if that fails, try each known gateway id as the
+	# dynamic segment and fuzzy-match the two static halves around it.
+	GATEWAY_IDS="redsys bizumredsys googlepayredirecredsys inespayredsys"
+
+	ROW_N=0
+	while IFS= read -r line; do
+		ROW_N=$((ROW_N+1))
+		# skip header and separator rows
+		case "$line" in
+			"| Surface"*|"|---"*|"|-"*) continue ;;
+		esac
+		[ -z "$line" ] && continue
+		SURFACE_CELL=$(echo "$line" | awk -F'|' '{print $2}')
+		# extract every backticked token in the cell
+		TOKENS=$(echo "$SURFACE_CELL" | grep -oE '`[^`]+`' | sed -E 's/^`//; s/`$//')
+		if [ -z "$TOKENS" ]; then
+			continue
+		fi
+		FOUND_ANY=0
+		while IFS= read -r tok; do
+			[ -z "$tok" ] && continue
+			# skip placeholder patterns like woocommerce_<gateway_id>_args —
+			# they are documentation of a pattern, not a real surface name
+			case "$tok" in
+				*"<"*">"*) continue ;;
+			esac
+			if grep -rqF -- "$tok" classes/ includes/ 2>/dev/null; then
+				FOUND_ANY=1
+			else
+				# fuzzy: try each known gateway id as the dynamic segment
+				for gid in $GATEWAY_IDS; do
+					case "$tok" in
+						*"$gid"*)
+							fuzzy=$(printf '%s' "$tok" | sed "s/$gid/.*/")
+							if grep -rqE -- "$fuzzy" classes/ includes/ 2>/dev/null; then
+								FOUND_ANY=1
+							fi
+							;;
+					esac
+				done
+			fi
+		done <<< "$TOKENS"
+		if [ "$FOUND_ANY" -eq 1 ]; then
+			ok "INDEX row found in source: $(echo "$TOKENS" | tr '\n' ' ')"
+		else
+			fail "$INDEX row's surface not found in classes/ or includes/: $(echo "$TOKENS" | tr '\n' ' ')"
+		fi
+	done < "$INDEX"
+fi
+
+echo
+echo "== 3. docs/keel-conformance.md exists =="
+if [ -f "docs/keel-conformance.md" ]; then
+	ok "docs/keel-conformance.md exists"
+else
+	fail "docs/keel-conformance.md is missing"
+fi
+
+echo
+echo "== 4. No unclosed markdown code fences in docs/ =="
+FENCE_FAIL=0
+while IFS= read -r -d '' f; do
+	COUNT=$(grep -cE '^[[:space:]]*```' "$f" 2>/dev/null)
+	[ -z "$COUNT" ] && COUNT=0
+	if [ $(( COUNT % 2 )) -ne 0 ]; then
+		fail "$f has an odd number of \`\`\` fence markers ($COUNT) — an unclosed code fence"
+		FENCE_FAIL=1
+	fi
+done < <(find docs -type f -name '*.md' -print0)
+[ "$FENCE_FAIL" -eq 0 ] && ok "all markdown files in docs/ have balanced code fences"
+
+echo
+echo "== 5. Internal doc links resolve =="
+LINK_FAIL=0
+while IFS= read -r -d '' f; do
+	DIR=$(dirname "$f")
+	# extract markdown links [text](target) where target does not start with
+	# http://, https://, mailto:, or #
+	grep -noE '\]\([^)]+\)' "$f" | while IFS=: read -r lineno match; do
+		target=$(echo "$match" | sed -E 's/^\]\(//; s/\)$//')
+		# strip any #anchor suffix
+		target_path="${target%%#*}"
+		case "$target" in
+			http://*|https://*|mailto:*|"#"*|"") continue ;;
+		esac
+		[ -z "$target_path" ] && continue
+		# resolve relative to the file's directory
+		resolved="$DIR/$target_path"
+		if [ ! -e "$resolved" ]; then
+			echo "FAIL: $f:$lineno links to '$target_path' which does not resolve to an existing file ($resolved)"
+		fi
+	done
+done < <(find docs -type f -name '*.md' -print0) > /tmp/keel-verify-links.$$ 2>&1
+
+if [ -s /tmp/keel-verify-links.$$ ]; then
+	cat /tmp/keel-verify-links.$$
+	LINK_FAIL=1
+	FAIL=1
+else
+	ok "all internal doc links resolve"
+fi
+rm -f /tmp/keel-verify-links.$$
+
+echo
+if [ "$FAIL" -eq 0 ]; then
+	echo "keel-verify: ALL CHECKS PASSED"
+	exit 0
+else
+	echo "keel-verify: FAILURES FOUND (see FAIL lines above)"
+	exit 1
+fi

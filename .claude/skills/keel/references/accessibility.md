@@ -13,7 +13,7 @@ Building accessibly from line one and "making it accessible" at the end are not 
 The commitment is the **maximum reasonably achievable**, never a token gesture. Concretely:
 
 - **WCAG 2.2 Level AA is the floor** for anything with a UI (web and, as the shared vocabulary, native apps too). Meet AA fully; reach **AAA where feasible** (it often is for contrast, target size, and reading level).
-- **EN 301 549** and the **European Accessibility Act (EAA)** where they apply. The EAA has applied since 28 June 2025 and covers e-commerce and many digital products/services in the EU — it applies to the user's market and customers, so treat it as in scope by default for anything sold or offered to EU users. Section 508 / ADA (US) map onto the same WCAG criteria if the project targets the US.
+- **EN 301 549** and the **European Accessibility Act (EAA)** where they apply. The EAA has applied since 28 June 2025 and covers e-commerce and many digital products/services in the EU — it applies to the user's market and customers, so treat it as in scope by default for anything sold or offered to EU users. Section 508 / ADA (US) map onto the same WCAG criteria if the project targets the US. Products and sites in EU scope also produce a public **accessibility statement** — for websites a required page in the Phase 8 section catalogue; its content (conformance status, known gaps, feedback channel) derives from `docs/accessibility.md`.
 - **The native accessibility API and assistive technologies of each target platform**, fully supported — not partially. "Use every accessibility tool the platform offers" is the standing rule: screen readers, switch access, voice control, text scaling, reduced-motion and high-contrast preferences, and every semantic hook the platform exposes.
 
 State the targeted level to the user in Phase 1 and record it in `docs/01-discovery.md`. Aiming below AA is a conscious user decision with a recorded reason — never a silent default.
@@ -65,7 +65,24 @@ Whatever the platform exposes, honor it — never override or ignore it:
 - **Dark mode / color scheme** — support and don't fight the system setting; keep contrast in both.
 - **Reduce transparency**, **differentiate without color**, **bold text**, **button shapes** — honor where the platform offers them.
 
+## Guided assistive-technology pass (the user is the assistant's hands)
+
+The assistant cannot run VoiceOver, NVDA, TalkBack, or Narrator itself — so the real-AT pass is executed as a guided loop, with the same mechanics as Phase 4's guided external-setup loop: one step at a time, confirmation per step, never batched. Per screen or flow:
+
+1. The assistant gives ONE concrete instruction — what to activate, where to move focus, which gesture or key to use.
+2. It states what SHOULD be announced or happen.
+3. The user reports what actually happened.
+4. The result is recorded per item — pass / fail + note — in `docs/accessibility.md`, before the next instruction.
+
+A fail is a defect like any other: it enters the normal defect flow, never a "polish later" note. If no user pass is possible in the current environment (no device, no assistive technology, no user available), the items are marked `⚠ unverified` in `docs/accessibility.md` — and Phase 7's gate closes every one of them out: re-attempt in the real environment, or explicit user acceptance on record. An `⚠ unverified` item never silently becomes a pass.
+
 ## Platform sections
+
+Every "Verify with" list below splits into three, not two — and the middle one is new, because it used to be handed to the user for no good reason:
+
+1. **Automated passes** (axe-core, pa11y, Lighthouse, the platform inspectors and audit APIs) — run BY the assistant where the environment allows, with the command and its result recorded.
+2. **Driven passes** — also run BY the assistant, using the same test drivers as any other test (`references/test-automation.md`): **keyboard-only operation and focus order** (drive `Tab` / `Shift-Tab` / `Enter` / `Space` / `Esc` / arrows through the flow and assert the sequence of focused elements, that no trap exists, that focus lands correctly after opening and closing a dialog, and that focus is visible), the accessibility-tree snapshot as a regression artifact, text scaling and reduced-motion behaviour where the platform lets a test set them. A keyboard pass is a sequence of key presses and assertions — a machine does it faster, exhaustively and repeatably, and there is no reason a person should be doing it by hand.
+3. **Human passes** — real assistive technology, and only that: a screen reader (VoiceOver, NVDA, JAWS, TalkBack), switch control, voice control. These route through the guided loop above under the `ASSISTIVE-TECH` tag, because they tell you what a person actually *hears* and *can do*, which no assertion reproduces. When a subagent environment exists, the `a11y-auditor` agent (`references/assistant-config.md`) runs the automated pass and prepares the guided-loop script — dispatched alongside the gate's reading verifiers in one parallel block rather than queued behind them (`references/assistant-config.md`, "Parallel fan-out"), and never beside a second agent executing against the same environment — with the one carved-out exception of the Phase 8 pairing with `launch-verifier`, which comes with its own `429`/`5xx` guard.
 
 ### Web / HTML
 
@@ -75,7 +92,9 @@ Whatever the platform exposes, honor it — never override or ignore it:
 - Focus: visible focus style (`:focus-visible`), managed focus for dialogs/menus/disclosure, no `tabindex > 0`, no keyboard traps. Modal dialogs use `role="dialog"`/`aria-modal`, trap focus while open, restore focus on close.
 - Live updates via `aria-live` regions; don't hijack scrolling or the browser's zoom.
 - Honor `prefers-reduced-motion`, `prefers-contrast`, `prefers-color-scheme`, and `forced-colors` (Windows High Contrast) — don't paint over system colors.
-- **Verify with:** axe-core / axe DevTools, Lighthouse, WAVE, or pa11y in CI; a **keyboard-only pass** (Tab/Shift-Tab/Enter/Space/Esc/arrows); and a **real screen-reader pass** (NVDA or JAWS on Windows, VoiceOver on macOS/iOS, TalkBack on Android). Automated tools catch at most ~30–40% — the manual passes are mandatory, not optional.
+- **Verify with:** axe-core / axe DevTools, Lighthouse, WAVE, or pa11y in CI (automated, assistant-run); a **keyboard-only pass** (Tab/Shift-Tab/Enter/Space/Esc/arrows) — **driven by the assistant**, asserting the focus sequence, the absence of traps, focus restoration after dialogs, and focus visibility; and a **real screen-reader pass** (NVDA or JAWS on Windows, VoiceOver on macOS/iOS, TalkBack on Android), which is the one pass that needs a person (`ASSISTIVE-TECH`).
+
+  **On what automation actually covers, stated once and correctly, because the two numbers in circulation measure different things:** Deque's study puts automated detection at about **57% of the total volume of issues** — which is the honest figure for "how much does axe find". Measured instead as *WCAG success criteria fully covered*, the figure is far lower, in the 20–30% range, and the W3C is explicit that no tool alone determines conformance. Both are true and they are not interchangeable: use the volume figure to argue that automation is worth running on every state, and the criteria figure to refuse any claim that a green automated run means conformance. Never quote 57% as WCAG coverage — least of all to a client.
 
 ### WordPress / WooCommerce
 
@@ -167,7 +186,7 @@ Do not claim conformance that wasn't verified, and do not ship an **accessibilit
 - The universal core holds for every UI surface built.
 - The section(s) matching the target platform(s) are applied, using the platform's native accessibility API and assistive technologies.
 - User preferences (reduced motion, text scaling, contrast, color scheme) are honored, not overridden.
-- Contrast, keyboard/AT operability, visible focus, programmatic name/role/state, target size, and error identification are verified — automated tools **and** a real assistive-technology pass (automated tooling alone is insufficient).
+- Contrast, keyboard/AT operability, visible focus, programmatic name/role/state, target size, and error identification are verified — automated tools **and** the guided assistive-technology pass completed with per-item results recorded (or its items explicitly `⚠ unverified`, pending Phase 7 closure); automated tooling alone is insufficient.
 - The targeted conformance level (WCAG 2.2 AA floor, AAA where feasible; EN 301 549 / EAA where in scope) is met or the shortfall is honestly recorded.
 - `docs/accessibility.md` states what was applied, how to keep it intact, and any known gaps.
 - No accessibility overlay stands in for real accessibility; no unverified conformance claim.

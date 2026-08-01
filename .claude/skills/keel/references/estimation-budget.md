@@ -1,13 +1,17 @@
 # Estimation & Budget — AI-time based (cross-cutting)
 
+> **Every figure in this file, and every duration the assistant ever states anywhere — in a doc, in a table, or in plain conversation — is AI development time plus the vibe coder's supervision time. Never human-team development time.** The gap between the two is orders of magnitude, not a margin: the same work is hours here and months in a traditional team. An unqualified duration is read as the human one, so the unit is named every time it is given. A human-team comparison appears only when it is explicitly useful, explicitly labelled, and placed BESIDE the AI figure — never instead of it. This is the SKILL.md unbreakable rule; this file is its procedure.
+
 Load this reference at these moments, and only these:
 
-- **Close of Phase 1 (Discovery)** → produce the **preliminary estimate** (ranges), so the user can answer a client quickly.
-- **Close of Phase 2 (Functional spec + technical plan)** → produce the **firm estimate** and the **client-facing budget**.
+- **Close of Phase 1 (Discovery)** → produce the **preliminary estimate** (ranges), so the user can answer a client quickly. Its per-feature inputs already exist: the Phase 1 §3a confrontation costed every competitor functionality the user accepted, in this same model — reuse those numbers instead of re-deriving them.
+- **Close of Phase 2 (Functional spec + technical plan)** → produce the **firm estimate** — and, when the project card says `Client budget: yes`, the **client-facing budget**.
 - **Any recorded scope change after a budget exists** → recompute and issue a new budget version (see "Scope changes").
 - **Adoption / existing projects**: when the user needs to quote a piece of planned work (remediation sprint, new feature) to a client, run the same procedure on that scope.
 - The user asks "what would this cost / how long will this take" at any point.
 - **End of every working session (and every phase/sprint close)** → append the session's row to `docs/token-ledger.md` (see "The token ledger" below — one line, cheap).
+
+Whether a client budget exists at all is decided once — at Phase 1 step 10, with one question: is there a client to bill or a quote to produce? — and recorded in the PROGRESS.md project card as `Client budget: yes/no`. `docs/estimate.md` and `docs/token-ledger.md` are unconditional: every project gets them, client or not. `docs/budget.md` is produced only when `Client budget: yes`; when `Client budget: no`, the rate, currency and budget-language questions are never asked.
 
 ## The rule this reference exists for (UNBREAKABLE)
 
@@ -64,21 +68,23 @@ Close the table with: **total (range)** → **planning figure with margin** ("pl
 Never assume any of these; ask them together when producing the firm budget (at the preliminary estimate, ask only for what the user wants included):
 
 1. **Hourly rate and currency** for the developer's hours (one rate by default; per-segment rates only if the user wants them).
-2. **AI access mode**: subscription (Claude Pro/Max — no marginal per-token cost) or **API pay-per-token**; and which model(s) will be used (e.g. a top model for planning, a mid model for code).
+2. **AI access mode**: subscription (Claude Pro/Max, ChatGPT Plus/Pro, Gemini AI plans or similar — no marginal per-token cost) or **API pay-per-token**; and which model(s) will be used (e.g. a top model for planning, a mid model for code).
 3. **Contingency %** (default 20–30%).
 4. **Budget language** — the budget is a client-facing deliverable: ask which language the client reads and write `docs/budget.md` in it (the internal `docs/estimate.md` stays in English per SKILL.md "Token economy").
 5. **Taxes**: amounts are stated tax-exclusive with a note (e.g. "+ IVA / VAT") unless the user says otherwise. Keel does not compute tax regimes.
 6. **Availability**: how many hours/week the developer will dedicate → converts hours into an estimated **calendar delivery** (always labeled as an estimate).
 7. Optional: quote validity period, payment terms, fixed price vs hours. If the user converts the estimate into a **fixed price**, the risk margin on top is their business decision — recommend one explicitly (contingency + margin), never a bare optimistic number.
 
+With `Client budget: no` on the project card there is no budget and no client: never ask 1, 4, 5 or 7 — only what the estimate itself needs (AI mode, contingency, availability).
+
 ## Step 4 — AI cost (tokens, per model)
 
 Two modes:
 
-- **Subscription** (Claude Pro/Max or similar): the marginal token cost of this project is ≈ 0 — the user already pays a flat monthly fee. Record the mode in the estimate; the **default recommendation** is not to bill the AI as a separate line (it is not an extra expense), and the supervision hours are already billed as developer hours. Whether to bill it anyway (as tooling overhead) is the user's call in Step 6.
+- **Subscription** (Claude Pro/Max, ChatGPT Plus/Pro, Gemini AI plans or similar): the marginal token cost of this project is ≈ 0 — the user already pays a flat monthly fee. Record the mode in the estimate; the **default recommendation** is not to bill the AI as a separate line (it is not an extra expense), and the supervision hours are already billed as developer hours. Whether to bill it anyway (as tooling overhead) is the user's call in Step 6.
 - **API pay-per-token**: estimate and price it:
   1. **Estimate total tokens** per project size — order of magnitude, state as ±50% and round up: small (≤5 slices) ≈ 5–15M total tokens; medium (6–15 slices) ≈ 15–40M; large (16+ slices) ≈ 40–100M+. Input tokens typically run 3–8× output tokens (state re-reads, iteration); Keel's fixed reading order and stable artifacts keep the effective input cost near the low end thanks to prompt caching (cache reads are ~0.1× input price on Anthropic).
-  2. **Verify current prices before quoting — ALWAYS.** Model prices change. Check the provider's official pricing page (Anthropic: `https://platform.claude.com/docs/en/about-claude/pricing`; other providers: their own page) with the web tool. If the environment has no web access, use the fallback table below, state its date in the estimate, and say the price should be re-verified.
+  2. **Verify current prices before quoting — ALWAYS.** Model prices change. Check the provider's official pricing page (Anthropic: `https://platform.claude.com/docs/en/about-claude/pricing`; OpenAI: `https://platform.openai.com/docs/pricing`; Google: `https://ai.google.dev/gemini-api/docs/pricing`; other providers: their own page) with the web tool. If the environment has no web access, use the fallback table below, state its date in the estimate, and say the price should be re-verified.
   3. Compute: `input tokens × input price + output tokens × output price`, with the cached-input share stated as an assumption. Give a cost **range**, not a point.
 
 Fallback table — Anthropic API, **verified July 2026** (per million tokens; cache read ≈ 0.1× input; batch −50%):
@@ -130,7 +136,7 @@ Preliminary (v1) uses wide ranges and says so. Firm (v2+) narrows them from the 
 
 ## Step 6 — `docs/budget.md` (client-facing, in the client's language)
 
-Written in the language asked in Step 3.4, with perfect orthography. **The two cost blocks are always separate** — developer services and AI cost — so the user decides exactly what the client sees and what gets billed:
+Produced only when the project card says `Client budget: yes` (asked once at Phase 1 step 10 — never re-asked here). Written in the language asked in Step 3.4, with perfect orthography. **The two cost blocks are always separate** — developer services and AI cost — so the user decides exactly what the client sees and what gets billed:
 
 ```
 # Budget — [Project name] — v[N] — [date]
@@ -159,6 +165,8 @@ If the user wants a shareable file (PDF or similar) and the environment can prod
 
 ## Step 7 — Present, adjust, approve (mandatory loop)
 
+With `Client budget: no` this loop reduces to presenting the estimate — there is no budget to adjust or approve. Otherwise:
+
 1. Present both artifacts: the internal estimate (how the numbers were built) and the client budget.
 2. Ask explicitly: **does the budget look right, or do you want adjustments?** Typical adjustments, offered proactively: not billing the AI cost (subscription = no extra expense); rounding totals; adding a commercial margin; a different rate; folding contingency into the rate; removing segments the user will not charge for.
 3. Iterate until the user **explicitly approves**. Client acceptance is the user's business — Keel does not block the project on it, but the budget document itself must be approved by the user before it is considered done.
@@ -166,7 +174,7 @@ If the user wants a shareable file (PDF or similar) and the environment can prod
 
 ## The token ledger — actuals, recorded as the project runs (`docs/token-ledger.md`)
 
-An estimate without actuals never improves. From the first estimate on, actual token usage is recorded in `docs/token-ledger.md` — one row per working session, appended at session end and verified at phase/sprint closes. Create it together with Estimate v1.
+An estimate without actuals never improves. From the first estimate on, actual token usage is recorded in `docs/token-ledger.md` — one row per working session, appended at session end and verified at phase/sprint closes. Create it together with Estimate v1. Appending the session's row is part of the continuation-prompt procedure in `references/project-state.md`: a session that ends mid-work still appends its row before producing the prompt.
 
 ```
 # Token Ledger — [Project name]
@@ -190,20 +198,22 @@ Running total: [input] / [output] — updated with each row.
 
 How to get the numbers, in order of preference:
 
-1. **Measured** — whatever the environment exposes: a session cost/usage counter (e.g. Claude Code's `/cost`), API usage logs, or the provider's console/dashboard (ask the user to read it out when exact figures matter).
+1. **Measured** — whatever the environment exposes: a session cost/usage counter (e.g. Claude Code's `/cost`, Codex's `/status`, Gemini CLI's `/stats`), API usage logs, or the provider's console/dashboard (ask the user to read it out when exact figures matter).
 2. **Estimated** — when nothing is exposed (typical in subscription apps): estimate from the volume actually produced and read (≈ 4 characters per token in English), state the method, round up. Never leave the row blank because measurement was unavailable — and never present an estimated row as measured.
 
 At release, Phase 7 runs the **final reconciliation** as part of its artifacts: total the ledger by model, price it at verified current prices, compute the deviation vs the estimate (tokens and cost; hours too if the user tracked them), report it to the user plainly, and record the calibration lesson — every finished project makes the next project's estimate better.
 
 ## Scope changes (after a budget exists)
 
+A scope change is an artifact event first, a budget event second: follow the "Scope changes" playbook in `references/project-state.md` (spec amendment → design delta → BUILD-SPEC delta), then recompute here as described below.
+
 Any scope change recorded in `decisions.md` that affects the work (new feature, dropped feature, changed integration) → recompute the affected lines, append **Estimate v[N+1]** to `docs/estimate.md`, produce **budget v[N+1]**, and run Step 7 again. The budget never silently drifts from the recorded scope; "we'll absorb it" is a user decision to record, not a default.
 
 ## Definition of done (each run of this reference)
 
 - `docs/estimate.md` has the new version: itemized AI hours, itemized vibe coder hours (segment | what the developer does | hours), contingency, calendar estimate, AI cost with mode — and, if API, prices with source and verification date. All grounded in the recorded scope, with assumptions stated.
-- The Step 3 questions were asked and answered (firm budget), including rate + currency and the budget language.
-- `docs/budget.md` produced in the client's language, itemized per segment with amounts, the developer block and the AI block **separate**, total and terms present.
-- The user explicitly approved the budget (or adjustments were applied and re-approved); the approval and its choices are recorded in `docs/decisions.md`; `docs/PROGRESS.md` updated.
+- The Step 3 questions were asked and answered (firm budget), including rate + currency and the budget language — or, with `Client budget: no`, only the estimate questions (AI mode, contingency, availability) and no client question at all.
+- With `Client budget: yes`: `docs/budget.md` produced in the client's language, itemized per segment with amounts, the developer block and the AI block **separate**, total and terms present. With `Client budget: no`: no budget.md, by design — not an omission.
+- The user explicitly approved the budget (or adjustments were applied and re-approved) and the approval and its choices are recorded in `docs/decisions.md` — not applicable when `Client budget: no`; `docs/PROGRESS.md` updated either way.
 - `docs/token-ledger.md` exists from Estimate v1 on, with a row per working session (method stated); at release the final reconciliation (totals by model, cost at verified prices, deviation vs estimate, calibration lesson) is done and reported to the user.
 - No number anywhere is based on traditional human development time.
