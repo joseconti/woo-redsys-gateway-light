@@ -39,6 +39,7 @@ languages/                                                  [E] es_ES .po/.mo/.l
 bin/build_i18n.sh                                           [E] i18n JSON-build helper invoked from package.json
 docs/                                                        [E] Keel state + reconstructed docs (this adoption)
 .reference/inespay-payment/                                  [E] vendored third-party reference plugin, gitignored (relocated from docs/, D-006)
+.wp-env-mu-plugins/                                           [E] dev/test-only wp-env mu-plugin(s); mapped via .wp-env.json's `mappings`, never shipped (D-029)
 ```
 
 **Not shipped as source-controlled minified pairs** — `assets/js/frontend/blocks.js` is a build OUTPUT (correctly `[G]`), but the CSS files have no `*.min.css` counterpart at all: the project has never adopted Keel's "source first, minified for production" contract. This is a real gap, recorded in `docs/04-adoption-audit.md` and NOT silently fixed during adoption (adoption changes no code beyond the user-approved license reconciliation, D-003/D-006).
@@ -52,7 +53,7 @@ docs/                                                        [E] Keel state + re
 - Directory-protection stub files (`index.php` at various levels) use non-standard ASCII-art comments instead of the one-line `// Silence is golden.` convention — cosmetic, harmless, left as-is (adoption doesn't impose style changes).
 
 ## Testing (real, verified commands)
-PHPUnit 9.6 unit tests exist for `RedsysLiteAPI` (`tests/Unit/RedsysLiteAPITest.php`), the plugin's HMAC-SHA256 signature creation/verification class — the highest-risk code path per `docs/threat-model.md`. No `jest.config.*` or JS test suite exists yet.
+PHPUnit 9.6 unit tests exist for `RedsysLiteAPI` (`tests/Unit/RedsysLiteAPITest.php`), the plugin's HMAC-SHA256 signature creation/verification class — the highest-risk code path per `docs/threat-model.md`. No `jest.config.*` or JS test suite exists — a deliberate decision (D-031), not a gap: see the "Remaining gap" paragraph below.
 
 - **Scope decision:** these are true unit tests against `RedsysLiteAPI` in isolation, not `WP_UnitTestCase` integration tests against a booted WordPress. The class has no WordPress runtime dependency beyond `wp_json_encode()`, which `tests/bootstrap.php` stubs — booting full WP core for this class would add engineering cost with no coverage benefit. See D-016 in `docs/decisions.md`.
 - **Where it runs:** the host machine has no local PHP/Composer; tests run inside the `wp-env` `cli` Docker container (PHP 7.4, matches `.wp-env.json`), which already has Composer 2.10 and downloads PHPUnit 9.6.35 project-locally via `composer.json`.
@@ -77,13 +78,16 @@ Two further integration test classes were added the same session: `tests/Integra
 
 A checkout-flow smoke test was added the same session: `tests/e2e/checkout-redsys.spec.js` (Playwright/`@playwright/test`, config at `playwright.config.js`), driving a real guest checkout against the wp-env playground — product → checkout → order → the generated Redsys payment form — with every request to `*.redsys.es` intercepted and aborted, so it never depends on Redsys's live infrastructure. See D-022 in `docs/decisions.md` and `docs/playground.md`'s "Automated checkout smoke test" section (including the one-time environment setup it needs — pretty permalinks + a configured Redsys gateway, neither present in the playground by default).
 
-- **Remaining gap:** all four gateway classes have IPN/callback test coverage, and the classic (shortcode) checkout flow has a real, mutation-tested smoke test. Not covered: the WooCommerce Blocks checkout (this playground's Checkout page uses the classic `[woocommerce_checkout]` shortcode), the other three gateways' checkout flows, and any JS unit-test suite for `resources/js/frontend/index.js`.
+All four gateways' checkout flows now have e2e coverage: `tests/e2e/checkout-bizum.spec.js` (D-027) and `tests/e2e/checkout-googlepay.spec.js` (D-027) mirror `checkout-redsys.spec.js`'s classic-checkout shape; `tests/e2e/checkout-inespay.spec.js` (D-029) needed a materially different technique, since Inespay's `process_payment()` makes a real server-side API call rather than redirecting to a self-submitting form — `.wp-env-mu-plugins/inespay-http-stub.php` (dev/test-only, mapped via `.wp-env.json`'s `mappings` key) fakes that call's response, gated behind an option that's off by default. `tests/e2e/checkout-blocks-redsys.spec.js` (D-028) covers the WooCommerce Blocks checkout for the first time (Redsys, representative of the shared `AbstractPaymentMethodType` integration pattern all four gateways use). `tests/e2e/inespay-transaction-limit.spec.js` (D-030) covers `disable_inespay()`'s fractional-total float comparison, previously code-review-verified only.
+
+- **Remaining gap:** none of the four testability gaps recorded after the previous sprint remain open. No JS unit-test suite (Jest) was added for `resources/js/frontend/index.js` — a deliberate decision (D-031), not an oversight: the file is pure declarative `registerPaymentMethod()` config with no independent logic, and `checkout-blocks-redsys.spec.js` already exercises its real compiled output end to end.
 - **Full real-run command** (all suites, from the repo root, `wp-env` running):
   ```
   npx wp-env run cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && vendor/bin/phpunit"
   npx wp-env run tests-cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && vendor/bin/phpunit -c phpunit-integration.xml.dist"
+  npx playwright test
   ```
-  Real run, 2026-08-01: unit `OK (8 tests, 8 assertions)`; integration `OK (20 tests, 29 assertions)` — 28 tests total, all mutation/regression-verified individually (see `docs/05-test-points.md`).
+  Real run, 2026-08-01: unit `OK (8 tests, 8 assertions)`; integration `OK (31 tests, 295 assertions)`; e2e `7 passed` (`checkout-redsys`, `checkout-bizum`, `checkout-googlepay`, `checkout-inespay`, `checkout-blocks-redsys`, `inespay-transaction-limit` ×2) — 46 automated tests total, all mutation/regression-verified individually (see `docs/05-test-points.md`).
 
 ## Build/lint commands (verified from `package.json`)
 - `npm run build` — `wp-scripts build`, compiles `resources/js/frontend/index.js` → `assets/js/frontend/blocks.js` + `.asset.php`

@@ -2,42 +2,29 @@
 const { test, expect } = require( '@playwright/test' );
 
 /**
- * Checkout smoke test: guest checkout with the Redsys (card redirection)
+ * Checkout smoke test: guest checkout with the Google Pay (redirection)
  * gateway, through WordPress + WooCommerce + this plugin in the wp-env
- * playground (docs/playground.md).
+ * playground (docs/playground.md). Mirrors checkout-redsys.spec.js —
+ * Google Pay generates the same kind of self-submitting
+ * Ds_MerchantParameters/Ds_Signature form as Redsys, against the same
+ * *.redsys.es sandbox; only the gateway id, radio selector, thank-you copy
+ * and settings option differ.
  *
- * Scope: proves the classic (shortcode) checkout → gateway selection →
- * order creation → Redsys payment-form generation chain works end to end,
- * with the exact hidden fields (Ds_MerchantParameters/Ds_Signature) a real
- * notification will later need to match. It deliberately never lets a real
- * request reach Redsys's servers (every request to *.redsys.es is aborted)
- * — this is a LOCAL smoke test, not a real Redsys sandbox round trip
- * (docs/playground.md already documents that as CREDENTIAL/unverified: no
- * Redsys test merchant credentials exist for this project beyond Redsys's
- * own published test FUC/secret, used here only to exercise this plugin's
- * own form-generation code).
- *
- * Not covered by this file: the WooCommerce Blocks checkout — see
- * checkout-blocks-redsys.spec.js. The other three gateways have their own
- * sibling specs (checkout-bizum.spec.js, checkout-googlepay.spec.js,
- * checkout-inespay.spec.js), all enabled at the same time in this
- * playground, so this test explicitly selects its own gateway rather than
- * relying on WooCommerce's "only one gateway" auto-select/hide behavior.
+ * It deliberately never lets a real request reach Redsys's servers (every
+ * request to *.redsys.es is aborted) — a LOCAL smoke test, not a real
+ * sandbox round trip.
  */
 
-test( 'guest checkout with the Redsys gateway generates a correctly-signed payment form', async ( { page } ) => {
-	// Never let a real request reach Redsys's infrastructure.
+test( 'guest checkout with the Google Pay gateway generates a correctly-signed payment form', async ( { page } ) => {
 	await page.route( '**/*redsys.es/**', ( route ) => route.abort() );
 
 	await page.goto( '/?add-to-cart=10' );
 
 	await page.goto( '/checkout/' );
-	// Several gateways are enabled in this playground, so Redsys is not
-	// auto-selected — select it explicitly.
-	const redsysRadio = page.locator( '#payment_method_redsys' );
-	await expect( redsysRadio ).toBeAttached();
-	await redsysRadio.check();
-	await expect( redsysRadio ).toBeChecked();
+	const gpayRadio = page.locator( '#payment_method_googlepayredirecredsys' );
+	await expect( gpayRadio ).toBeAttached();
+	await gpayRadio.check();
+	await expect( gpayRadio ).toBeChecked();
 
 	await page.fill( '#billing_first_name', 'Ada' );
 	await page.fill( '#billing_last_name', 'Lovelace' );
@@ -60,7 +47,7 @@ test( 'guest checkout with the Redsys gateway generates a correctly-signed payme
 	await page.click( '#place_order' );
 
 	await page.waitForURL( /\/checkout\/order-pay\// );
-	await expect( page.getByText( 'Thank you for your order, please click the button below to pay with Credit Card via Servired/RedSys.' ) ).toBeVisible();
+	await expect( page.getByText( 'Thank you for your order, please click the button below to pay with Google Pay.' ) ).toBeVisible();
 
 	const form = page.locator( '#redsys_payment_form' );
 	await expect( form ).toBeVisible();
@@ -68,7 +55,6 @@ test( 'guest checkout with the Redsys gateway generates a correctly-signed payme
 	const action = await form.getAttribute( 'action' );
 	expect( action ).toMatch( /^https:\/\/sis-t\.redsys\.es(:25443)?\/sis\/realizarPago/ );
 
-	// The exact fields a real Redsys notification's signature depends on.
 	await expect( form.locator( 'input[name="Ds_SignatureVersion"]' ) ).toHaveCount( 1 );
 	await expect( form.locator( 'input[name="Ds_MerchantParameters"]' ) ).toHaveCount( 1 );
 	await expect( form.locator( 'input[name="Ds_Signature"]' ) ).toHaveCount( 1 );

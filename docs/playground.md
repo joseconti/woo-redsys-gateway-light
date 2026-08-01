@@ -188,6 +188,10 @@ npx wp-env run cli wp rewrite structure '/%postname%/'
 npx wp-env run cli wp rewrite flush --hard
 npx wp-env run cli wp option update woocommerce_redsys_settings --format=json \
   '{"enabled":"yes","title":"Redsys","description":"Pay with card via Redsys","customer":"999008881","commercename":"Test Shop","payoptions":"T","terminal":"1","not_use_https":"no","lwvactive":"no","orderdo":"processing","secretsha256":"sq7HjrUOBfKmC576ILgskD5srU870gJ7","customtestsha256":"","redsyslanguage":"002","testmode":"yes","debug":"no"}'
+npx wp-env run cli wp option update woocommerce_bizumredsys_settings --format=json \
+  '{"enabled":"yes","title":"Bizum","description":"Pay via Bizum you can pay with your Bizum account.","customer":"999008881","commercename":"Test Shop","terminal":"1","orderdo":"processing","not_use_https":"no","secretsha256":"sq7HjrUOBfKmC576ILgskD5srU870gJ7","customtestsha256":"","redsyslanguage":"002","testmode":"yes","debug":"no"}'
+npx wp-env run cli wp option update woocommerce_googlepayredirecredsys_settings --format=json \
+  '{"enabled":"yes","title":"Google Pay","description":"Pay via GPay you can pay with your Google account.","customer":"999008881","commercename":"Test Shop","terminal":"1","not_use_https":"no","secretsha256":"sq7HjrUOBfKmC576ILgskD5srU870gJ7","customtestsha256":"","redsyslanguage":"002","testmode":"yes","testshowgateway":[""],"debug":"no"}'
 ```
 
 `999008881` / terminal `1` / `sq7HjrUOBfKmC576ILgskD5srU870gJ7` are Redsys's
@@ -202,10 +206,82 @@ remains unverified and is not claimed. A real round trip against Redsys's
 live test environment still needs credentials issued to an actual
 (test) merchant account, per step 7 above.
 
-The test also expects the product from `docs/05-test-points.md`'s earlier
+`googlepayredirecredsys`'s `testshowgateway:[""]` is needed ONLY for this
+gateway: `check_user_show_payment_method()` hides Google Pay from any guest
+whenever `testmode` is `yes` and this allowlist option is unset — a
+deliberate feature (don't show a live-test-mode gateway to anonymous real
+customers), not a bug. `[""]` is the value that satisfies the class's own
+"show to everyone" branch; see D-027 (`docs/decisions.md`) for the full
+trace of why this was needed.
+
+All three gateways are enabled simultaneously in this playground, so none of
+them is WooCommerce's auto-selected/hidden "only one gateway" case — every
+e2e spec explicitly selects its own gateway's radio button.
+
+The tests also expect the product from `docs/05-test-points.md`'s earlier
 runs (post ID 10, "Test Product") to exist; create one via Products → Add
 New if starting from a genuinely fresh install (`npx wp-env clean all`
 removes it).
+
+#### WooCommerce Blocks checkout page (for `checkout-blocks-redsys.spec.js`)
+
+The default Checkout page uses the classic `[woocommerce_checkout]`
+shortcode. A second page using the WooCommerce Blocks `Checkout` block is
+needed for the Blocks-checkout e2e test:
+
+```
+npx wp-env run cli wp post create --post_type=page \
+  --post_title="Checkout Blocks" --post_name="checkout-blocks" \
+  --post_status=publish \
+  --post_content='<!-- wp:woocommerce/checkout /-->'
+```
+
+(The real content inserted by the block editor is more verbose — inner
+blocks for contact information, payment, totals, etc. — but WooCommerce
+expands the bare `<!-- wp:woocommerce/checkout /-->` shortcut into the full
+block tree at render time, so this minimal form is enough for the e2e test.)
+
+#### Inespay checkout page (for `checkout-inespay.spec.js`)
+
+Inespay's `process_payment()` makes a real server-side API call
+(`apiflow.inespay.com`) during checkout, which Playwright cannot intercept
+in the browser. `.wp-env-mu-plugins/inespay-http-stub.php` — mapped into
+`wp-content/mu-plugins` via `.wp-env.json`'s `mappings` key, dev/test infra
+only, never shipped in the plugin — fakes that API response, but only when
+explicitly turned on:
+
+```
+npx wp-env run cli wp option update redsyslite_e2e_stub_inespay yes
+npx wp-env run cli wp option update woocommerce_inespayredsys_settings --format=json \
+  '{"enabled":"yes","title":"Inespay Bank Transfer","description":"Pay via instant bank transfer.","api_key":"e2e-test-api-key","api_token":"e2e-test-api-token","testmode":"yes","transactionlimit":"200","debug":"no"}'
+npx wp-env run cli wp wc product create --user=1 --name="E2E Transaction Limit Product" --type=simple --regular_price=200.50 --porcelain
+```
+
+`api_key`/`api_token` are dummy values — the stub intercepts the request
+before either is ever sent anywhere real. Inespay is also only offered in
+`ES`/`PT`/`IT` (`is_allowed_country()`), and this playground's store base
+location is `US`, so the e2e specs themselves set the billing country to
+Spain before expecting to see the gateway — no extra playground setup
+needed for that part. See D-029 (`docs/decisions.md`) for the full design
+rationale.
+
+`transactionlimit: "200"` and the `E2E Transaction Limit Product` (€200.50,
+created by the command above, added to the cart by its slug
+`/product/e2e-transaction-limit-product/` rather than a numeric post ID)
+exist for `inespay-transaction-limit.spec.js`'s fractional-total coverage of
+`disable_inespay()` — see D-030 (`docs/decisions.md`).
+
+#### Mutation-testing gotcha: the `wordpress` container caches PHP via opcache
+
+If you mutation-test a PHP change (temporarily break something, confirm a
+test fails, revert, confirm it passes again) and the "should now be green"
+run still shows the OLD (corrupted) behavior even though the file on disk is
+confirmed reverted, **don't re-suspect the revert** — opcache in the
+persistent `wordpress` container can cache the corrupted bytecode across a
+same-second file edit. Fix: `docker restart <project>-wordpress-1` (find the
+exact name with `docker ps`), then re-run. See L-005 in
+`docs/lessons-learned.md` for the full diagnosis (this does NOT affect
+PHPUnit, which runs as a fresh short-lived CLI process every time).
 
 ### Running it
 

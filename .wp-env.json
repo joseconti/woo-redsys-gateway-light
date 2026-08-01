@@ -6,6 +6,9 @@
 		".",
 		"https://downloads.wordpress.org/plugin/woocommerce.7.4.0.zip"
 	],
+	"mappings": {
+		"wp-content/mu-plugins": "./.wp-env-mu-plugins"
+	},
 	"config": {
 		"WP_DEBUG": true,
 		"WP_DEBUG_LOG": true,
