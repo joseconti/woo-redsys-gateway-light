@@ -122,3 +122,10 @@
 - Why: standard PHP project hygiene — `vendor/` is a regenerable build artifact (`composer install`), not source; the lock file is what makes that regeneration reproducible.
 - Alternatives rejected: committing `vendor/` — unnecessary repo bloat for a dev-only dependency (PHPUnit never ships in the plugin's production package).
 - Supersedes: none
+
+## D-018 — Integration tests for the gateway's IPN validation, via wp-env's own WP core test scaffold
+- Date / phase: 2026-08-01 / Phase 5 (sprint)
+- Decision: added a second PHPUnit suite, `tests/Integration/` (`phpunit-integration.xml.dist`, `tests/bootstrap-integration.php`), covering `WC_Gateway_redsys::check_ipn_request_is_valid()` as a real `WP_UnitTestCase` against a booted WordPress + WooCommerce. It runs inside `wp-env`'s `tests-cli` container, reusing the WordPress core PHPUnit scaffold already provisioned there (`WP_TESTS_DIR=/wordpress-phpunit`) — no separate `install-wp-tests.sh` step was needed. Added `yoast/phpunit-polyfills` as a dev dependency (required by the WP core test bootstrap).
+- Why: `WC_Gateway_redsys` extends `WC_Payment_Gateway` and genuinely depends on WordPress/WooCommerce (hooks, options, `WC_Logger`), unlike `RedsysLiteAPI` (D-016) — a true unit test would have to fake too much of WooCommerce to be trustworthy. This automates the exact fail-closed scenario already driven manually in the playground (`docs/05-test-points.md`, "Adoption — playground verification" row) plus forged-signature, tampered-payload, and wrong-order-signature cases.
+- Alternatives rejected: mocking `WC_Payment_Gateway`/WooCommerce instead of booting it for real — rejected because the class under test IS the integration with WooCommerce; mocking it away would test the mock, not the gateway.
+- Supersedes: none

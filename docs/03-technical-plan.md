@@ -63,7 +63,17 @@ PHPUnit 9.6 unit tests exist for `RedsysLiteAPI` (`tests/Unit/RedsysLiteAPITest.
   ```
   Real run, 2026-08-01: `OK (8 tests, 8 assertions)`. Mutation-tested for real (not just self-consistency): temporarily broke `mac256()`'s call site in `create_merchant_signature_notif()`/`_soap_request()`/`_soap_response()` → 3 tests failed as expected; reverted (`diff` confirmed byte-identical to the original) → all 8 green again.
 - **Coverage:** signature matches an independent reference implementation of Redsys's documented algorithm (built from `openssl`/`hash_hmac` directly in the test, not by calling the class under test); a tampered notification payload produces a different signature; a different merchant secret produces a different signature; `sanitize_merchant_parameters()` restores space→`+` and strips out-of-alphabet/null-byte characters.
-- **Remaining gap:** only `RedsysLiteAPI` is covered. The gateway classes (`classes/class-wc-gateway-*.php`), the notification handlers' fail-closed paths, and JS are still untested — tracked as an open deferred item in `docs/PROGRESS.md`.
+A second suite, `tests/Integration/`, covers `WC_Gateway_redsys::check_ipn_request_is_valid()` — the fail-closed gate in front of every payment notification — against a real, booted WordPress + WooCommerce.
+
+- **Scope decision:** this class extends `WC_Payment_Gateway` and genuinely needs WordPress/WooCommerce loaded, so it runs as a `WP_UnitTestCase` integration suite, separate from the fast unit suite above. It reuses the WordPress core PHPUnit test scaffold that `wp-env` already provisions inside the `tests-cli` container at `WP_TESTS_DIR=/wordpress-phpunit` — no separate install step was needed. `yoast/phpunit-polyfills` was added as a dev dependency, required by that scaffold. See D-018 in `docs/decisions.md`.
+- **Verified commands** (from the repo root, `wp-env` running):
+  ```
+  npx wp-env run cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && composer update -W"
+  npx wp-env run tests-cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && vendor/bin/phpunit -c phpunit-integration.xml.dist"
+  ```
+  Real run, 2026-08-01: `OK (5 tests, 5 assertions)`. Mutation-tested for real: temporarily replaced the `$localsecret === $remote_sign` comparison with `true` (always-accept) → 3 tests failed as expected; reverted (`diff` confirmed byte-identical to the original) → all 5 green again.
+- **Coverage:** rejects when no SHA-256 secret is configured (fail-closed, matches the manual playground evidence in `docs/05-test-points.md`'s "Adoption — playground verification" row); accepts a correctly-signed notification; rejects a forged signature; rejects a payload tampered with after signing (genuine signature, edited amount); rejects a signature that was valid for a different order (the key-diversification-by-order-number check).
+- **Remaining gap:** the other three gateways (`class-wc-gateway-bizum-redsys.php`, `class-wc-gateway-googlepay-redirection-redsys.php`, `class-wc-gateway-inespay-redsys.php`) share the same `check_ipn_request_is_valid()`/`check_ipn_response()` shape but are not individually tested yet, and no JS test suite exists — tracked as an open deferred item in `docs/PROGRESS.md`.
 
 ## Build/lint commands (verified from `package.json`)
 - `npm run build` — `wp-scripts build`, compiles `resources/js/frontend/index.js` → `assets/js/frontend/blocks.js` + `.asset.php`

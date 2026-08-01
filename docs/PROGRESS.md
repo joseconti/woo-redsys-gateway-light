@@ -34,14 +34,14 @@
 | 2 Functional spec | adopted (as-built) | docs/02-functional-spec.md, docs/03-technical-plan.md |
 | 3 Design handoff | n/a — pre-existing UI, no design contract (see docs/03-technical-plan.md) | — |
 | 4 Faithful build | n/a — same as above | — |
-| 5 Development | scaffold complete (D-014), playground verified for real, first slice done (#93), second slice done (RedsysLiteAPI unit tests, D-016) | docs/issues.md, docs/playground.md, scripts/keel-doctor, scripts/keel-verify, scripts/keel-handoff-verify, docs/sprints/, docs/05-test-points.md, composer.json, phpunit.xml.dist, tests/ |
+| 5 Development | scaffold complete (D-014), playground verified for real; slices done: #93 fix, RedsysLiteAPI unit tests (D-016), WC_Gateway_redsys IPN integration tests (D-018) | docs/issues.md, docs/playground.md, scripts/keel-doctor, scripts/keel-verify, scripts/keel-handoff-verify, docs/sprints/, docs/05-test-points.md, composer.json, phpunit.xml.dist, phpunit-integration.xml.dist, tests/ |
 | 6 Documentation | in progress — `docs/api/INDEX.md` created; per-surface docs backfilled progressively | docs/api/INDEX.md |
 | 7 Release | not started (next real release runs the full gate) | — |
 | 8 Website | n/a — no website intent (D-005) | — |
 
 ## Current position
-- Phase: Adoption complete, Phase 5 scaffold built and playground verified for real (D-014); first real slice done (issue #93 fix); second slice done — first automated test coverage (`RedsysLiteAPI` unit tests, D-016/D-017)
-- Next action: bump the plugin version and cut a release (Phase 7) so the #93 fix reaches users and the reporter can confirm it — or continue picking up further work first (e.g. extend test coverage to the gateway classes' notification handlers) and batch it into the same release. All 8 open GitHub issues have now been triaged for real (see `docs/issues.md`): 7 turned out to be stale/already-resolved (commented on GitHub, left open for the reporter/maintainer to close), 1 (#93) got a real fix this session.
+- Phase: Adoption complete, Phase 5 scaffold built and playground verified for real (D-014); first real slice done (issue #93 fix); second slice done — `RedsysLiteAPI` unit tests (D-016/D-017); third slice done — `WC_Gateway_redsys` IPN validation integration tests (D-018)
+- Next action: bump the plugin version and cut a release (Phase 7) so the #93 fix reaches users and the reporter can confirm it — or continue picking up further work first (e.g. extend the same integration-test pattern to the other three gateway classes, or a Playwright smoke test for the checkout flow) and batch it into the same release. All 8 open GitHub issues have now been triaged for real (see `docs/issues.md`): 7 turned out to be stale/already-resolved (commented on GitHub, left open for the reporter/maintainer to close), 1 (#93) got a real fix this session. GitHub also reported 55 Dependabot alerts on the default branch after this session's push — not investigated yet, unrelated to any dependency this session touched.
 
 ## Open items
 - Unresolved user questions: none
@@ -50,8 +50,9 @@
 - Forge issues in progress: see `docs/issues.md` — E-001 (#93) fix landed, unreleased; awaiting a version bump + release before the reporter can test it. 7 stale issues commented on, left open (never closed by Keel on its own reading of the code, per protocol).
 
 ### Deferred items (consciously postponed work)
-- Automated test suite covers only `RedsysLiteAPI` (unit tests, D-016) — the gateway classes (`classes/class-wc-gateway-*.php`), their notification/fail-closed handlers, and any JS remain untested. Flagged in `docs/04-adoption-audit.md` (Testability), severity now medium (was high — the single highest-risk function is covered), review trigger "before the next release, or the next time a gateway notification handler is touched"
+- Automated test coverage: `RedsysLiteAPI` (unit tests, D-016) and `WC_Gateway_redsys`'s IPN validation (integration tests, D-018) are covered. The other three gateway classes (`class-wc-gateway-bizum-redsys.php`, `class-wc-gateway-googlepay-redirection-redsys.php`, `class-wc-gateway-inespay-redsys.php`) share the same `check_ipn_request_is_valid()` shape but are not individually tested yet, and no JS test suite exists. Flagged in `docs/04-adoption-audit.md` (Testability), severity low-medium (was high — both highest-risk paths are now covered), review trigger "before the next release, or the next time one of the other three gateway classes' notification handler is touched"
+- GitHub reported 55 Dependabot vulnerability alerts (1 critical, 32 high, 19 moderate, 3 low) on the default branch after this session's `develop` push — not investigated, unrelated to any dependency change made this session (likely `node_modules`/`package-lock.json`, which this session did not touch). Review trigger: next time the user wants a dependency/security pass, or before the next release's Phase 7 gate.
 - `package.json` carries a stale `wp-scripts ^0.0.1-security` dependency (looks like a squatted/placeholder package name, distinct from `@wordpress/scripts`) — severity medium, review trigger "next time package.json dependencies are touched"
 - `package.json` version (`4.0.0`) is out of sync with the plugin's real version (`7.0.2`) — severity low, review trigger "next release"
 
-Last updated: 2026-08-01 — Phase 5 sprint (RedsysLiteAPI unit tests)
+Last updated: 2026-08-01 — Phase 5 sprint (RedsysLiteAPI unit tests + WC_Gateway_redsys IPN integration tests)
