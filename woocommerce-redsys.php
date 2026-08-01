@@ -375,18 +375,13 @@ function woocommerce_gateway_redsys_init() {
 }
 
 /**
- * Mark order as paid.
+ * Forzar recarga del pedido desde la BD para evitar doble notificación
+ * si algún hook cargó el pedido antes del sleep y quedó cacheado.
+ * Compatibilidad con CPT (wp_posts) y HPOS (custom tables).
  *
  * @param int $order_id Order ID.
  */
-function redsyslite_mark_order_as_paid( $order_id ) {
-
-	// Este sleep es para evitar que se ejecute el código antes de que se haya procesado el pago en el caso en que llegue la notificación IPN.
-	sleep( 5 );
-
-	// Forzar recarga del pedido desde la BD para evitar doble notificación
-	// si algún hook cargó el pedido antes del sleep y quedó cacheado.
-	// Compatibilidad con CPT (wp_posts) y HPOS (custom tables).
+function redsyslite_bust_order_cache( $order_id ) {
 	clean_post_cache( $order_id );
 	wp_cache_delete( $order_id, 'posts' );
 	wp_cache_delete( $order_id, 'post_meta' );
@@ -396,6 +391,37 @@ function redsyslite_mark_order_as_paid( $order_id ) {
 		$order_cache = wc_get_container()->get( \Automattic\WooCommerce\Caches\OrderCache::class );
 		$order_cache->remove( $order_id );
 	}
+}
+
+/**
+ * Mark order as paid.
+ *
+ * @param int $order_id Order ID.
+ */
+function redsyslite_mark_order_as_paid( $order_id ) {
+
+	// Rate-limit: without this, an unauthenticated visitor who has (or
+	// leaks) a valid order key could repeat this endpoint indefinitely,
+	// each call costing a blocking 5s server-side — a cheap, repeatable
+	// resource-exhaustion vector. See docs/threat-model.md.
+	$attempt_guard = 'redsyslite_mark_paid_attempt_' . $order_id;
+	if ( get_transient( $attempt_guard ) ) {
+		return;
+	}
+	set_transient( $attempt_guard, 1, 30 );
+
+	// Cheap early exit before the blocking sleep below: an already-resolved
+	// order has nothing to wait for, which is the common case on a repeat
+	// visit to the thank-you page.
+	redsyslite_bust_order_cache( $order_id );
+	if ( WCRedL()->is_paid( $order_id ) ) {
+		return;
+	}
+
+	// Este sleep es para evitar que se ejecute el código antes de que se haya procesado el pago en el caso en que llegue la notificación IPN.
+	sleep( 5 );
+
+	redsyslite_bust_order_cache( $order_id );
 
 	$is_redsys_order = WCRedL()->is_redsys_order( $order_id );
 	$is_paid         = WCRedL()->is_paid( $order_id );

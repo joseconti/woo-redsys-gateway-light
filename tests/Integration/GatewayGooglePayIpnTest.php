@@ -228,4 +228,32 @@ class GatewayGooglePayIpnTest extends WP_UnitTestCase {
 			'successful_request() must complete a test-mode order correctly signed with the CUSTOM TEST secret, not silently do nothing because it checked the wrong (live) secret.'
 		);
 	}
+
+	/**
+	 * Regression test for a bug fixed 2026-08-01 (docs/decisions.md D-024):
+	 * resolve_notification_secret() called WCRedL()->get_order() — which
+	 * throws on a nonexistent order — with an attacker-controlled Ds_Order,
+	 * BEFORE the signature was verified. An uncaught exception there would
+	 * surface as a 500 to an unauthenticated caller. It must now reject the
+	 * notification cleanly instead of crashing.
+	 */
+	public function test_does_not_crash_on_a_notification_referencing_a_nonexistent_order() {
+		$gateway = $this->configured_gateway();
+
+		// Deliberately no create_mapped_order() call — '000000099999' maps to
+		// no real order via clean_order_number()'s fallback (no transient set).
+		$fixture                        = $this->build_signed_notification( '000000099999' );
+		$_POST['Ds_MerchantParameters'] = $fixture['param'];
+		$_POST['Ds_Signature']          = $fixture['signature'];
+		$_POST['Ds_SignatureVersion']   = 'HMAC_SHA256_V1';
+
+		// Whether it accepts or rejects isn't the point of this test (the
+		// signature can still validate against the gateway's own default
+		// secret even for an order that doesn't exist) — the point is that
+		// resolving the secret for a nonexistent order must not throw an
+		// uncaught exception (a pre-fix `new WC_Order()` call did, which
+		// would surface as an unauthenticated 500).
+		$result = $gateway->check_ipn_request_is_valid();
+		$this->assertIsBool( $result );
+	}
 }

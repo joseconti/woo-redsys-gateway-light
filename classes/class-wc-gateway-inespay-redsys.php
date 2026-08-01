@@ -198,8 +198,11 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 		 */
 		public function disable_inespay( $available_gateways ) {
 			if ( ! is_admin() && is_checkout() ) {
-				$total = (int) WC()->cart->total;
-				$limit = (int) $this->transactionlimit;
+				// Compare as floats: an (int) cast here truncated a cart total
+				// like 200.50 down to 200, letting it incorrectly pass a 200
+				// transaction limit.
+				$total = (float) WC()->cart->total;
+				$limit = (float) $this->transactionlimit;
 				if ( ! empty( $limit ) && $limit > 0 ) {
 					if ( $total > $limit ) {
 						unset( $available_gateways['inespayredsys'] );
@@ -543,6 +546,29 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 				wp_die( 'OK', '', array( 'response' => 200 ) );
 			}
 
+			// An OK/SETTLED callback for an order that's already resolved
+			// (paid, completed, or refunded) is not a new payment — it can be
+			// a refund confirmation reusing the same status codes, or a
+			// retried/duplicate notification. Treat it as informational only,
+			// so it doesn't re-fire payment_complete()'s side effects (the
+			// "payment completed" note, the payment-method/_redsys_done meta,
+			// and inespay_post_payment_complete) under a misleading label.
+			if ( ! empty( $data['codStatus'] ) && in_array( $data['codStatus'], array( 'OK', 'SETTLED' ), true ) && ! $order->needs_payment() ) {
+				$order->add_order_note(
+					sprintf(
+						/* translators: 1: Inespay ID, 2: Status, 3: current order status */
+						__( 'Inespay callback received for an already-resolved order (current status: %3$s). ID: %1$s, Status: %2$s', 'woo-redsys-gateway-light' ),
+						esc_html( $data['singlePayinId'] ),
+						esc_html( $data['codStatus'] ),
+						esc_html( $order->get_status() )
+					)
+				);
+				if ( 'yes' === $this->debug ) {
+					$this->log->add( 'inespayredsys', 'Callback for already-resolved order ' . $order->get_id() . ' (status ' . $order->get_status() . '); not re-processing as a payment completion.' );
+				}
+				wp_die( 'OK', '', array( 'response' => 200 ) );
+			}
+
 			if ( ! empty( $data['codStatus'] ) && in_array( $data['codStatus'], array( 'OK', 'SETTLED' ), true ) ) {
 
 				// SECURITY: verify the signed amount matches the order total (defence in depth).
@@ -649,7 +675,10 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 				return new WP_Error( 'inespay_refund_missing_payin', __( 'No Inespay payment ID found for this order.', 'woo-redsys-gateway-light' ) );
 			}
 
-			$refund_amount = $amount ? $amount : $order->get_total();
+			// A falsy check here treated an explicit refund amount of 0 the
+			// same as "not given," silently refunding the full order total
+			// instead of nothing — check for null specifically.
+			$refund_amount = null !== $amount ? $amount : $order->get_total();
 			/* translators: 1: Order number, 2: Refund reason. */
 			$description = sprintf( __( 'Refund order %1$s %2$s', 'woo-redsys-gateway-light' ), $order->get_order_number(), $reason );
 			$payload     = array(

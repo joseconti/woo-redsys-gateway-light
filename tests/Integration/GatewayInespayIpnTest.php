@@ -221,4 +221,104 @@ class GatewayInespayIpnTest extends WP_UnitTestCase {
 		$order = wc_get_order( $order->get_id() );
 		$this->assertSame( 'on-hold', $order->get_status() );
 	}
+
+	/**
+	 * Regression test for a bug fixed 2026-08-01 (docs/decisions.md D-024):
+	 * an OK/SETTLED callback for an order that's already resolved (e.g. a
+	 * refund confirmation reusing the same status codes) used to fall into
+	 * the same branch as a genuine payment, adding a misleading "payment
+	 * completed" note and re-firing inespay_post_payment_complete.
+	 */
+	public function test_a_callback_for_an_already_completed_order_does_not_add_a_misleading_payment_note() {
+		$order = $this->create_matched_order( 'payin-6', 1.00 );
+		$order->payment_complete();
+		$notes_before = wc_get_order_notes( array( 'order_id' => $order->get_id() ) );
+
+		$gateway = $this->configured_gateway();
+
+		$fixture                      = $this->build_signed_callback(
+			array(
+				'singlePayinId' => 'payin-6',
+				'codStatus'     => 'OK',
+				'amount'        => '100',
+			)
+		);
+		$_POST['dataReturn']          = $fixture['data_return'];
+		$_POST['signatureDataReturn'] = $fixture['signature'];
+
+		try {
+			$gateway->handle_callback();
+			$this->fail( 'Expected handle_callback() to call wp_die().' );
+		} catch ( WPDieException $e ) {
+			$this->assertSame( 'OK', $e->getMessage() );
+			$this->assertSame( 200, $e->getCode() );
+		}
+
+		$notes_after = wc_get_order_notes( array( 'order_id' => $order->get_id() ) );
+		$this->assertCount(
+			count( $notes_before ) + 1,
+			$notes_after,
+			'Exactly one informational note should be added — not the "payment completed" note plus whatever payment_complete() itself would have added again.'
+		);
+		$this->assertStringNotContainsString( 'payment completed', strtolower( $notes_after[0]->content ) );
+	}
+
+	/**
+	 * Regression test for a bug fixed 2026-08-01 (docs/decisions.md D-024):
+	 * process_refund( $order_id, 0 ) used a falsy check ($amount ? $amount :
+	 * $order->get_total()) that treated an explicit 0 the same as "no
+	 * amount given," silently sending a full-order-total refund request to
+	 * Inespay's API instead of a 0 amount.
+	 */
+	public function test_process_refund_with_an_explicit_zero_amount_does_not_refund_the_full_total() {
+		$order = $this->create_matched_order( 'payin-7', 25.00 );
+
+		$captured_body = null;
+		$intercept     = function ( $preempt, $args ) use ( &$captured_body ) {
+			$captured_body = json_decode( $args['body'], true );
+			return array(
+				'response' => array( 'code' => 200 ),
+				'body'     => wp_json_encode( array( 'status' => '200' ) ),
+			);
+		};
+		add_filter( 'pre_http_request', $intercept, 10, 2 );
+
+		$gateway = $this->configured_gateway();
+		$gateway->process_refund( $order->get_id(), 0, 'test' );
+
+		remove_filter( 'pre_http_request', $intercept, 10 );
+
+		$this->assertNotNull( $captured_body, 'process_refund() must call the Inespay API.' );
+		$this->assertSame(
+			'000',
+			(string) $captured_body['amount'],
+			'An explicit 0 refund amount must be sent as 0 (redsys_amount_format(0) === "000"), not silently upgraded to the full order total ("2500").'
+		);
+	}
+
+	/**
+	 * A null $amount (WooCommerce's "refund the full order" convention)
+	 * must still work exactly as before.
+	 */
+	public function test_process_refund_with_no_amount_given_refunds_the_full_total() {
+		$order = $this->create_matched_order( 'payin-8', 25.00 );
+
+		$captured_body = null;
+		$intercept     = function ( $preempt, $args ) use ( &$captured_body ) {
+			$captured_body = json_decode( $args['body'], true );
+			return array(
+				'response' => array( 'code' => 200 ),
+				'body'     => wp_json_encode( array( 'status' => '200' ) ),
+			);
+		};
+		add_filter( 'pre_http_request', $intercept, 10, 2 );
+
+		$gateway = $this->configured_gateway();
+		$gateway->process_refund( $order->get_id(), null, 'test' );
+
+		remove_filter( 'pre_http_request', $intercept, 10 );
+
+		$this->assertNotNull( $captured_body );
+		$this->assertSame( '2500', (string) $captured_body['amount'] );
+	}
 }

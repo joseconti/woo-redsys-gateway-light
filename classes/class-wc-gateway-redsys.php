@@ -869,7 +869,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			$mi_obj      = new RedsysLiteAPI();
 			$localsecret = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
 
-			if ( $localsecret === $remote_sign ) {
+			if ( hash_equals( $localsecret, $remote_sign ) ) {
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'redsys', 'Received valid notification from Servired/RedSys' );
 					$this->log->add( 'redsys', $data );
@@ -945,7 +945,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$localsecret = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
 
 		// Verify cryptographic signature to prevent payment forgery.
-		if ( $localsecret !== $remote_sign ) {
+		if ( ! hash_equals( $localsecret, $remote_sign ) ) {
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'redsys', 'Signature verification failed in successful_request. Local: ' . $localsecret . ' Remote: ' . $remote_sign );
 			}

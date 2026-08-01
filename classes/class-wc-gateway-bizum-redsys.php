@@ -985,9 +985,19 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		$secretsha256      = get_transient( 'redsys_signature_' . sanitize_title( $order_id ) );
 		$order2            = WCRedL()->clean_order_number( $order_id );
 		$secretsha256_meta = WCRedL()->get_order_meta( $order2, '_redsys_secretsha256', true );
-		$order             = WCRedL()->get_order( $order2 );
-		$user_id           = $order->get_user_id();
-		$usesecretsha256   = $this->get_redsys_sha256( $user_id );
+
+		// WCRedL()->get_order() does `new WC_Order( $order_id )`, which throws
+		// on an invalid/nonexistent ID — reachable here from an unauthenticated
+		// caller's Ds_Order value, before any signature has been verified.
+		// Fall back to the guest/no-user secret rather than letting that
+		// exception surface as an uncaught 500.
+		try {
+			$order   = WCRedL()->get_order( $order2 );
+			$user_id = $order->get_user_id();
+		} catch ( Exception $e ) {
+			$user_id = 0;
+		}
+		$usesecretsha256 = $this->get_redsys_sha256( $user_id );
 
 		if ( $secretsha256_meta ) {
 			$usesecretsha256 = $secretsha256_meta;
@@ -1042,7 +1052,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			}
 
 			$localsecret = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
-			if ( $localsecret === $remote_sign ) {
+			if ( hash_equals( $localsecret, $remote_sign ) ) {
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', 'Received valid notification from Servired/RedSys' );
 					$this->log->add( 'bizumredsys', $data );
@@ -1155,7 +1165,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		$localsecret = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
 
 		// Verify cryptographic signature to prevent payment forgery.
-		if ( $localsecret !== $remote_sign ) {
+		if ( ! hash_equals( $localsecret, $remote_sign ) ) {
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'bizumredsys', 'Signature verification failed in successful_request. Local: ' . $localsecret . ' Remote: ' . $remote_sign );
 			}
