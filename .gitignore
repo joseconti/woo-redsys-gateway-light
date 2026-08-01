@@ -39,3 +39,6 @@ build/Release
 .claude/settings.local.json
 CLAUDE.local.md
 docs/continuation-prompt.md
+
+# Vendored third-party reference material (not part of the shipped plugin)
+.reference/

@@ -3,7 +3,7 @@
 	"title": "WooCommerce Redsys Gateway Ligh",
 	"version": "4.0.0",
 	"author": "José Conti",
-	"license": "GPL-3.0+",
+	"license": "GPL-2.0-or-later",
 	"keywords": [],
 	"engines": {
 		"node": ">=6.9.4",

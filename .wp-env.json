@@ -1,0 +1,23 @@
+{
+	"$schema": "https://raw.githubusercontent.com/WordPress/gutenberg/trunk/schemas/json/wp-env.schema.json",
+	"core": "https://wordpress.org/wordpress-7.0.zip",
+	"phpVersion": "7.4",
+	"plugins": [
+		".",
+		"https://downloads.wordpress.org/plugin/woocommerce.7.4.0.zip"
+	],
+	"config": {
+		"WP_DEBUG": true,
+		"WP_DEBUG_LOG": true,
+		"WP_DEBUG_DISPLAY": false,
+		"SCRIPT_DEBUG": true
+	},
+	"env": {
+		"tests": {
+			"config": {
+				"WP_DEBUG": true,
+				"WP_DEBUG_LOG": true
+			}
+		}
+	}
+}

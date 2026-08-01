@@ -17,8 +17,8 @@
  * Text Domain: woo-redsys-gateway-light
  * Domain Path: /languages/
  * Copyright: (C) 2017 - 2025 José Conti.
- * License: GNU General Public License v3.0
- * License URI: http://www.gnu.org/licenses/gpl-3.0.html
+ * License: GPLv2 or later
+ * License URI: http://www.gnu.org/licenses/gpl-2.0.html
  */
 
 define( 'REDSYS_WOOCOMMERCE_VERSION', '7.0.2' );

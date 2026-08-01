@@ -26,3 +26,8 @@ phpcs.xml export-ignore
 # Keel: workflow files — never in the distributable (git archive)
 .claude/ export-ignore
 CLAUDE.md export-ignore
+AGENTS.md export-ignore
+docs/ export-ignore
+scripts/ export-ignore
+.wp-env.json export-ignore
+README.md export-ignore

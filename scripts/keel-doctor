@@ -1,0 +1,225 @@
+#!/usr/bin/env bash
+#
+# keel-doctor — environment doctor for woo-redsys-gateway-light
+#
+# Modes:
+#   --check (default)  Detect only. Never touches the machine. Exits non-zero
+#                       if anything BLOCKING is missing.
+#   --plan              Detect, then print the exact commands that --fix WOULD
+#                       run, without running them.
+#   --fix               Run those commands, after the user has seen --plan.
+#                       Installs ONLY this project's npm devDependencies
+#                       (`npm install`) — never anything system-global.
+#   --json               Emit the same result as machine-readable JSON instead
+#                       of the human table. Combine with --check/--plan/--fix.
+#
+# This project's playground (docs/playground.md) is `wp-env`, which needs a
+# working Docker daemon. Node/npm are needed to run `npx wp-env` and the
+# front-end build (`npm run build`). PHP is used by phpcs/phpcbf locally but
+# is NOT required to run wp-env itself (PHP runs inside the containers).
+
+set -u
+
+MODE="check"
+JSON=0
+
+for arg in "$@"; do
+	case "$arg" in
+		--check) MODE="check" ;;
+		--plan) MODE="plan" ;;
+		--fix) MODE="fix" ;;
+		--json) JSON=1 ;;
+		-h|--help)
+			echo "Usage: scripts/keel-doctor [--check|--plan|--fix] [--json]"
+			exit 0
+			;;
+		*)
+			echo "Unknown argument: $arg" >&2
+			exit 2
+			;;
+	esac
+done
+
+# Rows accumulate as pipe-separated records:
+# requirement|detected|required|state|severity|how_to_install
+ROWS=()
+BLOCKING_MISSING=0
+
+add_row() {
+	ROWS+=("$1|$2|$3|$4|$5|$6")
+	if [ "$4" != "OK" ] && [ "$5" = "blocking" ]; then
+		BLOCKING_MISSING=1
+	fi
+}
+
+version_ge() {
+	# returns 0 (true) if $1 >= $2, comparing dotted version numbers
+	[ "$1" = "$2" ] && return 0
+	local a b
+	a=$(printf '%s\n' "$1" | awk -F. '{ printf "%d%03d%03d", $1,$2,$3 }')
+	b=$(printf '%s\n' "$2" | awk -F. '{ printf "%d%03d%03d", $1,$2,$3 }')
+	[ "$a" -ge "$b" ]
+}
+
+# --- Node.js -----------------------------------------------------------
+if command -v node >/dev/null 2>&1; then
+	NODE_V=$(node -p "process.versions.node" 2>/dev/null || echo "")
+	if [ -n "$NODE_V" ] && version_ge "$NODE_V" "18.0.0"; then
+		add_row "Node.js" "$NODE_V" ">=18" "OK" "blocking" "—"
+	elif [ -n "$NODE_V" ]; then
+		add_row "Node.js" "$NODE_V" ">=18" "TOO OLD" "blocking" "mise use -g node@lts (or nvm install --lts)"
+	else
+		add_row "Node.js" "present, version unreadable" ">=18" "NOT OPERATIONAL" "blocking" "reinstall Node.js (nvm/mise/nodejs.org)"
+	fi
+else
+	add_row "Node.js" "absent" ">=18" "MISSING" "blocking" "install via nvm/mise, or https://nodejs.org/"
+fi
+
+# --- npm -----------------------------------------------------------------
+if command -v npm >/dev/null 2>&1; then
+	NPM_V=$(npm -v 2>/dev/null || echo "")
+	if [ -n "$NPM_V" ]; then
+		add_row "npm" "$NPM_V" "any" "OK" "blocking" "—"
+	else
+		add_row "npm" "present, version unreadable" "any" "NOT OPERATIONAL" "blocking" "reinstall Node.js (npm ships with it)"
+	fi
+else
+	add_row "npm" "absent" "any" "MISSING" "blocking" "install Node.js (npm ships with it)"
+fi
+
+# --- Docker CLI ------------------------------------------------------------
+if command -v docker >/dev/null 2>&1; then
+	DOCKER_V=$(docker version --format '{{.Client.Version}}' 2>/dev/null || echo "")
+	if [ -n "$DOCKER_V" ]; then
+		add_row "Docker (CLI)" "$DOCKER_V" "any" "OK" "blocking" "—"
+	else
+		add_row "Docker (CLI)" "present, version unreadable" "any" "NOT OPERATIONAL" "blocking" "reinstall Docker Desktop / Docker Engine"
+	fi
+else
+	add_row "Docker (CLI)" "absent" "any" "MISSING" "blocking" "install Docker Desktop (macOS/Windows) or Docker Engine (Linux); Colima is an MIT-licensed drop-in on macOS/Linux"
+fi
+
+# --- Docker daemon -----------------------------------------------------
+if command -v docker >/dev/null 2>&1; then
+	if docker info >/dev/null 2>&1; then
+		add_row "Docker (daemon)" "responding" "running" "OK" "blocking" "—"
+	else
+		add_row "Docker (daemon)" "not responding" "running" "NOT OPERATIONAL" "blocking" "start Docker Desktop, or 'colima start' / 'systemctl start docker'"
+	fi
+else
+	add_row "Docker (daemon)" "n/a — CLI absent" "running" "MISSING" "blocking" "install Docker first"
+fi
+
+# --- npx / wp-env (via @wordpress/env devDependency, run through npx) ---
+if command -v npx >/dev/null 2>&1; then
+	add_row "npx" "present" "any" "OK" "blocking" "—"
+else
+	add_row "npx" "absent" "any" "MISSING" "blocking" "install Node.js (npx ships with npm >=5.2)"
+fi
+
+# wp-env itself is a devDependency of @wordpress/scripts's sibling package,
+# invoked as `npx wp-env`. It only resolves once `npm install` has run.
+if [ -d "node_modules/.bin" ] && [ -x "node_modules/.bin/wp-env" ]; then
+	add_row "wp-env (local)" "installed (node_modules/.bin/wp-env)" "any" "OK" "optional" "—"
+else
+	add_row "wp-env (local)" "not installed" "any" "MISSING" "optional" "npm install (adds @wordpress/env as a devDependency if not already present) — npx wp-env also works without a local install, it fetches on first run"
+fi
+
+# --- PHP (used for phpcs/phpcbf locally; NOT required to run wp-env) ----
+if command -v php >/dev/null 2>&1; then
+	PHP_V=$(php -r 'echo PHP_VERSION;' 2>/dev/null || echo "")
+	if [ -n "$PHP_V" ]; then
+		add_row "PHP (local, for phpcs)" "$PHP_V" ">=7.4 recommended" "OK" "optional" "—"
+	else
+		add_row "PHP (local, for phpcs)" "present, version unreadable" ">=7.4 recommended" "NOT OPERATIONAL" "optional" "reinstall PHP"
+	fi
+else
+	add_row "PHP (local, for phpcs)" "absent" ">=7.4 recommended" "MISSING" "optional" "install PHP locally to run phpcs outside Docker (not required — wp-env's own containers carry PHP)"
+fi
+
+# --- Permission mode (advisory, per Keel test-automation.md) -----------
+PERM_MODE="manual"
+if [ -f ".claude/settings.local.json" ] && grep -q '"defaultMode"[[:space:]]*:[[:space:]]*"auto"' .claude/settings.local.json 2>/dev/null; then
+	PERM_MODE="auto"
+fi
+if [ "$PERM_MODE" = "auto" ]; then
+	add_row "Permission mode" "auto" "not manual" "OK" "advisory" "—"
+else
+	add_row "Permission mode" "manual (or unset)" "not manual" "MISSING" "advisory" "write .claude/settings.local.json (permissions.defaultMode: \"auto\"), or start with --permission-mode auto"
+fi
+
+# ---------------------------------------------------------------------------
+print_table() {
+	printf '%-24s %-32s %-16s %-16s %-10s %s\n' "Requirement" "Detected" "Required" "State" "Severity" "How to install"
+	printf '%-24s %-32s %-16s %-16s %-10s %s\n' "-----------" "--------" "--------" "-----" "--------" "--------------"
+	for row in "${ROWS[@]}"; do
+		IFS='|' read -r req det req2 state sev how <<< "$row"
+		printf '%-24s %-32s %-16s %-16s %-10s %s\n' "$req" "$det" "$req2" "$state" "$sev" "$how"
+	done
+}
+
+print_json() {
+	echo "{"
+	echo "  \"mode\": \"$MODE\","
+	echo "  \"rows\": ["
+	local n=${#ROWS[@]}
+	local i=0
+	for row in "${ROWS[@]}"; do
+		i=$((i+1))
+		IFS='|' read -r req det req2 state sev how <<< "$row"
+		esc() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'; }
+		printf '    { "requirement": "%s", "detected": "%s", "required": "%s", "state": "%s", "severity": "%s", "how_to_install": "%s" }' \
+			"$(esc "$req")" "$(esc "$det")" "$(esc "$req2")" "$(esc "$state")" "$(esc "$sev")" "$(esc "$how")"
+		if [ "$i" -lt "$n" ]; then echo ","; else echo ""; fi
+	done
+	echo "  ],"
+	echo "  \"blocking_missing\": $([ "$BLOCKING_MISSING" -eq 1 ] && echo true || echo false)"
+	echo "}"
+}
+
+case "$MODE" in
+	check)
+		if [ "$JSON" -eq 1 ]; then print_json; else
+			print_table
+			echo
+			if [ "$BLOCKING_MISSING" -eq 1 ]; then
+				echo "Result: BLOCKING requirements missing. Run 'scripts/keel-doctor --plan' to see what --fix would run."
+			else
+				echo "Result: all blocking requirements OK."
+			fi
+		fi
+		[ "$BLOCKING_MISSING" -eq 1 ] && exit 1 || exit 0
+		;;
+	plan)
+		echo "The following commands would run under --fix:"
+		echo
+		echo "  npm install"
+		echo
+		echo "This is the ONLY command --fix runs. It installs this project's own"
+		echo "npm devDependencies (into ./node_modules) — nothing system-global, no"
+		echo "sudo, no global npm packages. Node.js and Docker themselves are NOT"
+		echo "installed by this script — install them yourself (see the table above),"
+		echo "or via your OS package manager / nvm / mise / Docker Desktop."
+		[ "$JSON" -eq 1 ] && print_json
+		exit 0
+		;;
+	fix)
+		echo "keel-doctor --fix: this installs ONLY 'npm install' (this project's own"
+		echo "devDependencies). It will not touch anything system-global."
+		echo
+		if ! command -v npm >/dev/null 2>&1; then
+			echo "npm is not available — cannot run 'npm install'. Install Node.js first" >&2
+			echo "(see 'scripts/keel-doctor --check')." >&2
+			exit 1
+		fi
+		echo "Running: npm install"
+		npm install
+		STATUS=$?
+		if [ $STATUS -eq 0 ]; then
+			echo "npm install completed."
+		else
+			echo "npm install failed (exit $STATUS)." >&2
+		fi
+		exit $STATUS
+		;;
+esac
