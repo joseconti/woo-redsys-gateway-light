@@ -52,7 +52,18 @@ docs/                                                        [E] Keel state + re
 - Directory-protection stub files (`index.php` at various levels) use non-standard ASCII-art comments instead of the one-line `// Silence is golden.` convention — cosmetic, harmless, left as-is (adoption doesn't impose style changes).
 
 ## Testing (real, verified commands)
-**None exist.** No `phpunit.xml`, no `tests/` directory, no `jest.config.*`, no test script in `package.json`. This was verified by searching the tree during adoption inventory, not run (there is nothing to run). See the Testability gap in `docs/04-adoption-audit.md`.
+PHPUnit 9.6 unit tests exist for `RedsysLiteAPI` (`tests/Unit/RedsysLiteAPITest.php`), the plugin's HMAC-SHA256 signature creation/verification class — the highest-risk code path per `docs/threat-model.md`. No `jest.config.*` or JS test suite exists yet.
+
+- **Scope decision:** these are true unit tests against `RedsysLiteAPI` in isolation, not `WP_UnitTestCase` integration tests against a booted WordPress. The class has no WordPress runtime dependency beyond `wp_json_encode()`, which `tests/bootstrap.php` stubs — booting full WP core for this class would add engineering cost with no coverage benefit. See D-016 in `docs/decisions.md`.
+- **Where it runs:** the host machine has no local PHP/Composer; tests run inside the `wp-env` `cli` Docker container (PHP 7.4, matches `.wp-env.json`), which already has Composer 2.10 and downloads PHPUnit 9.6.35 project-locally via `composer.json`.
+- **Verified commands** (from the repo root, `wp-env` running):
+  ```
+  npx wp-env run cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && composer install"
+  npx wp-env run cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && vendor/bin/phpunit"
+  ```
+  Real run, 2026-08-01: `OK (8 tests, 8 assertions)`. Mutation-tested for real (not just self-consistency): temporarily broke `mac256()`'s call site in `create_merchant_signature_notif()`/`_soap_request()`/`_soap_response()` → 3 tests failed as expected; reverted (`diff` confirmed byte-identical to the original) → all 8 green again.
+- **Coverage:** signature matches an independent reference implementation of Redsys's documented algorithm (built from `openssl`/`hash_hmac` directly in the test, not by calling the class under test); a tampered notification payload produces a different signature; a different merchant secret produces a different signature; `sanitize_merchant_parameters()` restores space→`+` and strips out-of-alphabet/null-byte characters.
+- **Remaining gap:** only `RedsysLiteAPI` is covered. The gateway classes (`classes/class-wc-gateway-*.php`), the notification handlers' fail-closed paths, and JS are still untested — tracked as an open deferred item in `docs/PROGRESS.md`.
 
 ## Build/lint commands (verified from `package.json`)
 - `npm run build` — `wp-scripts build`, compiles `resources/js/frontend/index.js` → `assets/js/frontend/blocks.js` + `.asset.php`

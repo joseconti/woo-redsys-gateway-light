@@ -5,6 +5,7 @@ coverage
 
 # Dependency directories
 node_modules/
+vendor/
 
 # Logs
 logs
@@ -42,3 +43,7 @@ docs/continuation-prompt.md
 
 # Vendored third-party reference material (not part of the shipped plugin)
 .reference/
+
+# PHPUnit
+.phpunit.result.cache
+/tests/coverage/

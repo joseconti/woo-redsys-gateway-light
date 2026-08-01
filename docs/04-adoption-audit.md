@@ -54,6 +54,8 @@ The plugin already exposes a reasonable set of hooks (see `docs/api/INDEX.md`): 
 - No stable test identifiers on interactive elements (not verified in detail, but no test-automation attributes were observed during the code read).
 - **This is the single highest-value remediation area** — without an environment and drivers, every future bug report becomes "install this and tell me if it works." Recommended as the first real Phase 5 sprint (wp-env + a minimal Playwright smoke test for the checkout flow + a PHPUnit test for `RedsysLiteAPI` signature verification, which is the highest-risk single function in the codebase).
 
+> **Update, 2026-08-01 (Phase 5 sprint, post-adoption):** the wp-env playground and the `RedsysLiteAPI` PHPUnit coverage recommended above are now built — see `docs/playground.md` and `docs/03-technical-plan.md` §Testing / D-016 / D-017 in `docs/decisions.md`. This snapshot is left unedited above as the as-adopted record; still open: a Playwright smoke test for the checkout flow, and PHPUnit coverage for the gateway classes' notification handlers.
+
 ## Known traps (anti-patterns self-audit, applied against this tree)
 Run against `references/anti-patterns.md`'s universal + WordPress/WooCommerce sections, evidence-based (not from impression):
 - **Declared tool that never runs:** `phpcs.xml` exists but was not confirmed to run cleanly (not run during this read-only adoption pass) — flagged as `VERIFY`, not claimed as passing.

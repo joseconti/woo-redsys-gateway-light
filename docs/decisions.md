@@ -108,3 +108,17 @@
 - What this required: installing the standalone `claude` CLI to `~/.local/bin/claude` (it was not previously on this machine's PATH — neither the desktop app nor a VS Code extension expose it), confirmed added to `~/.zshrc`. Built and end-to-end verified in a scratch `/tmp` repo (never in this project's own working tree): the single-lane lock (claim / busy-detection against a genuinely live PID / orphan recovery from a dead PID / release restricted to the owning session), the launch receipt (atomic `mkdir`, keyed by the hand-off's own `Generated`+`Commit` identity so a regenerated hand-off gets a fresh launch and a re-run of the same one does not fire twice), and the real `osascript` fire — which genuinely opened a new Terminal.app window, ran `claude` in the correct directory, and submitted the prompt; the test window was closed immediately after confirming.
 - Alternatives rejected: `prefill` (the safer middle ground, human presses Enter) — user asked for full `start` directly, was given the choice between installing the CLI, recording the decision without it working yet, or staying `off`, and chose to install the CLI and get the real thing.
 - Supersedes: none — the earlier `off` (recorded as the un-asked default, never a formal D-entry) is superseded by this one.
+
+## D-016 — First automated test coverage: `RedsysLiteAPI` unit tests, no WordPress bootstrap
+- Date / phase: 2026-08-01 / Phase 5 (sprint)
+- Decision: added PHPUnit 9.6 unit tests for `RedsysLiteAPI` (`tests/Unit/RedsysLiteAPITest.php`, `composer.json`, `phpunit.xml.dist`, `tests/bootstrap.php`) as true unit tests against the class in isolation — `wp_json_encode()` is stubbed in `tests/bootstrap.php` rather than booting a full WordPress core test suite (`WP_UnitTestCase`). Tests run inside the existing `wp-env` `cli` Docker container (the host has no local PHP/Composer), via `composer install` + `vendor/bin/phpunit`.
+- Why: `RedsysLiteAPI` has no WordPress runtime dependency beyond that one function, so a full WP bootstrap (WP_TESTS_DIR, `wp-env run tests-cli`, a test database) would add real engineering and runtime cost for zero additional coverage on this class. This was the highest-risk untested code path per `docs/threat-model.md`, flagged as a deferred item in `docs/PROGRESS.md`.
+- Alternatives rejected: full `WP_UnitTestCase` integration bootstrap against the `tests-wordpress`/`tests-cli` containers — the right choice once tests are written for code that DOES touch WordPress (hooks, `$wpdb`, the gateway classes), but unnecessary overhead for this specific class; revisit when the gateway classes themselves get test coverage.
+- Supersedes: none
+
+## D-017 — `vendor/` gitignored, `composer.lock` committed
+- Date / phase: 2026-08-01 / Phase 5 (sprint)
+- Decision: `vendor/` (Composer's downloaded dependencies) is gitignored; `composer.lock` is committed so every environment installs the exact same dependency versions.
+- Why: standard PHP project hygiene — `vendor/` is a regenerable build artifact (`composer install`), not source; the lock file is what makes that regeneration reproducible.
+- Alternatives rejected: committing `vendor/` — unnecessary repo bloat for a dev-only dependency (PHPUnit never ships in the plugin's production package).
+- Supersedes: none
