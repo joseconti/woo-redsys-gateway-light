@@ -13,7 +13,7 @@
 | Control | Delivery state | Evidence / where |
 |---|---|---|
 | Notification signature verification (HMAC_SHA256_V1) before trusting any Redsys/Inespay notification | `IN PLACE` | `includes/class-redsysliteapi.php` (`create_merchant_signature_notif`), invoked from each gateway's `check_ipn_response`/`handle_callback` handler |
-| Fail closed when no SHA-256 secret is configured (reject rather than trust an unauthenticated notification) | `IN PLACE` | `classes/class-wc-gateway-redsys.php` ~lines 868–943; confirmed by the 7.0.1/7.0.2 `readme.txt` changelog entries describing this exact hardening |
+| Fail closed when no SHA-256 secret is configured (reject rather than trust an unauthenticated notification) | `IN PLACE` | `classes/class-wc-gateway-redsys.php` ~lines 868–943; confirmed by the 7.0.1/7.0.2 `readme.txt` changelog entries describing this exact hardening; **driven-verified 2026-08-01** in the wp-env playground — two fabricated POSTs to `?wc-api=WC_Gateway_redsys` with no configured secret were rejected and the target order stayed `wc-pending`, see `docs/playground.md` |
 | Order-amount cross-check against the notification total before marking an order paid | `IN PLACE` | `classes/class-wc-gateway-redsys.php` ~line 1026 (mismatch → `on-hold`, never silently trusted) |
 | Text domain / i18n consistency (no obvious string-injection surface via translations) | `IN PLACE` | sampled `class-wc-gateway-redsys.php`, consistent `__()`/`_e()` usage with escaping functions (`esc_html__`, `esc_html_e`) present in the sample |
 | No secrets committed to the repository | `IN PLACE` | verified during adoption's confidential-data scan (no `.env`, no literal keys found; SHA-256 secret is a runtime WooCommerce option) |

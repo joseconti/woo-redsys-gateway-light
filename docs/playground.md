@@ -1,10 +1,26 @@
 # Playground — local WordPress + WooCommerce environment
 
-> last verified: not yet run — this environment (the session that wrote this
-> file) has Docker and Node available (`scripts/keel-doctor --check` passes),
-> but `npx wp-env start` was not executed as part of writing this document.
-> The first session that runs it should update this stamp with the real date
-> and the real command output.
+> last verified: 2026-08-01 — `npx wp-env start` run for real (WordPress 7.0 +
+> WooCommerce 7.4.0 up in ~40s). WooCommerce came up active; this plugin did
+> NOT auto-activate on first start despite being in `.wp-env.json`'s `plugins`
+> list — `wp plugin activate woo-redsys-gateway-light` was needed manually
+> (worth a closer look if it recurs — noted in `docs/lessons-learned.md`).
+> Once active, all four gateways (`redsys`, `bizumredsys`,
+> `googlepayredirecredsys`, `inespayredsys`) registered with WooCommerce with
+> no fatal error. Step 6 below (fail-closed notification check) was driven
+> for real: a test order was created via `wp eval-file`, then two fabricated
+> POSTs were sent to `?wc-api=WC_Gateway_redsys` (one with a malformed
+> `Ds_MerchantParameters`, one with well-formed-but-fake JSON + a bogus
+> signature, gateway configured with `enabled=yes` and an EMPTY secret). Both
+> were rejected — HTTP 500 via the plugin's own `wp_die( 'Do not access this
+> page directly ...' )` guard in `check_ipn_request_is_valid()` /
+> `successful_request()` (`classes/class-wc-gateway-redsys.php` lines
+> ~880–903) — and the order's status stayed `wc-pending` throughout, never
+> flipped to paid. This is a real, driven confirmation of the `IN PLACE`
+> fail-closed control recorded in `docs/threat-model.md`, not an inference
+> from reading code. Step 7 (a real Redsys sandbox round trip) remains
+> `⚠ unverified — CREDENTIAL` as documented below — no Redsys test merchant
+> credentials exist for this project.
 
 This project uses [`@wordpress/env`](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-env/) (`wp-env`), configured at the repo root
 in `.wp-env.json`. It runs WordPress + WooCommerce + this plugin inside Docker

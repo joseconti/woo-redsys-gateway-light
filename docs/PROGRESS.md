@@ -34,20 +34,20 @@
 | 2 Functional spec | adopted (as-built) | docs/02-functional-spec.md, docs/03-technical-plan.md |
 | 3 Design handoff | n/a — pre-existing UI, no design contract (see docs/03-technical-plan.md) | — |
 | 4 Faithful build | n/a — same as above | — |
-| 5 Development | scaffold complete (D-014) — maintenance mode, no sprint planned yet | docs/issues.md, docs/playground.md, scripts/keel-doctor, scripts/keel-verify, scripts/keel-handoff-verify, docs/sprints/, docs/05-test-points.md |
+| 5 Development | scaffold complete (D-014), playground verified for real, first slice done (#93) | docs/issues.md, docs/playground.md, scripts/keel-doctor, scripts/keel-verify, scripts/keel-handoff-verify, docs/sprints/, docs/05-test-points.md |
 | 6 Documentation | in progress — `docs/api/INDEX.md` created; per-surface docs backfilled progressively | docs/api/INDEX.md |
 | 7 Release | not started (next real release runs the full gate) | — |
 | 8 Website | n/a — no website intent (D-005) | — |
 
 ## Current position
-- Phase: Adoption complete, Phase 5 scaffold built (D-014) → entering normal maintenance
-- Next action: `npx wp-env start` to verify the playground for real (currently `last verified: not yet run` in docs/playground.md), then triage the 8 open GitHub issues per `docs/issues.md` — issue #12 and #1 (both "high" priority estimates, fatal error / order not marked completed) are the natural first slice
+- Phase: Adoption complete, Phase 5 scaffold built and playground verified for real (D-014); first real slice done (issue #93 fix)
+- Next action: bump the plugin version and cut a release (Phase 7) so the #93 fix reaches users and the reporter can confirm it — or continue picking up further work first and batch it into the same release. All 8 open GitHub issues have now been triaged for real (see `docs/issues.md`): 7 turned out to be stale/already-resolved (commented on GitHub, left open for the reporter/maintainer to close), 1 (#93) got a real fix this session.
 
 ## Open items
 - Unresolved user questions: none
 - Open Design Requests: none — no design system in place
 - Unverified external steps/assets: none
-- Forge issues in progress: see `docs/issues.md` — 8 open issues inventoried, none yet worked
+- Forge issues in progress: see `docs/issues.md` — E-001 (#93) fix landed, unreleased; awaiting a version bump + release before the reporter can test it. 7 stale issues commented on, left open (never closed by Keel on its own reading of the code, per protocol).
 
 ### Deferred items (consciously postponed work)
 - No automated test suite exists (phpunit/jest) — flagged in `docs/04-adoption-audit.md` (Testability), severity high, review trigger "before the next release, or the first time a signature-verification code path is touched"
