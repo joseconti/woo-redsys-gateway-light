@@ -965,6 +965,43 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	/**
 	 * Copyright: (C) 2013 - 2021 José Conti
 	 */
+	/**
+	 * Resolve the SHA-256 secret to verify an already-decoded notification
+	 * against: an order-level override (a short-lived transient set at
+	 * checkout, or the persisted order meta) takes precedence over the
+	 * gateway's own settings-based secret. $mi_obj must already have had
+	 * decode_merchant_parameters() called on it, so Ds_Order is available.
+	 *
+	 * check_ipn_request_is_valid() and successful_request() both call this
+	 * SAME method rather than each re-implementing the resolution — a past
+	 * bug had successful_request() using only the live-mode settings secret,
+	 * ignoring test mode and per-order overrides (see docs/lessons-learned.md).
+	 *
+	 * @param RedsysLiteAPI $mi_obj Notification data, already decoded.
+	 * @return string
+	 */
+	private function resolve_notification_secret( $mi_obj ) {
+		$order_id          = $mi_obj->get_parameter( 'Ds_Order' );
+		$secretsha256      = get_transient( 'redsys_signature_' . sanitize_title( $order_id ) );
+		$order2            = WCRedL()->clean_order_number( $order_id );
+		$secretsha256_meta = WCRedL()->get_order_meta( $order2, '_redsys_secretsha256', true );
+		$order             = WCRedL()->get_order( $order2 );
+		$user_id           = $order->get_user_id();
+		$usesecretsha256   = $this->get_redsys_sha256( $user_id );
+
+		if ( $secretsha256_meta ) {
+			$usesecretsha256 = $secretsha256_meta;
+		} elseif ( ! empty( $secretsha256 ) ) {
+			$usesecretsha256 = $secretsha256;
+		}
+
+		if ( 'yes' === $this->debug ) {
+			$this->log->add( 'bizumredsys', 'resolve_notification_secret: order=' . $order_id . ' source=' . ( $secretsha256_meta ? 'meta' : ( $secretsha256 ? 'transient' : 'settings' ) ) );
+		}
+
+		return $usesecretsha256;
+	}
+
 	public function check_ipn_request_is_valid() {
 
 		if ( 'yes' === $this->debug ) {
@@ -995,53 +1032,15 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				}
 				// Sanitize and process the data.
 			}
-			$mi_obj            = new RedsysLiteAPI();
-			$decodec           = $mi_obj->decode_merchant_parameters( $data );
-			$order_id          = $mi_obj->get_parameter( 'Ds_Order' );
-			$secretsha256      = get_transient( 'redsys_signature_' . sanitize_title( $order_id ) );
-			$order1            = $order_id;
-			$order2            = WCRedL()->clean_order_number( $order1 );
-			$secretsha256_meta = WCRedL()->get_order_meta( $order2, '_redsys_secretsha256', true );
+			$mi_obj          = new RedsysLiteAPI();
+			$decodec         = $mi_obj->decode_merchant_parameters( $data );
+			$order_id        = $mi_obj->get_parameter( 'Ds_Order' );
+			$usesecretsha256 = $this->resolve_notification_secret( $mi_obj );
 
 			if ( 'yes' === $this->debug ) {
-				$this->log->add( 'bizumredsys', ' ' );
 				$this->log->add( 'bizumredsys', 'Signature from Redsys: ' . $remote_sign );
-				$this->log->add( 'bizumredsys', 'Name transient remote: redsys_signature_' . sanitize_title( $order_id ) );
-				$this->log->add( 'bizumredsys', 'Secret SHA256 transcient: ' . $secretsha256 );
-				$this->log->add( 'bizumredsys', ' ' );
 			}
 
-			if ( 'yes' === $this->debug ) {
-				$order_id = $mi_obj->get_parameter( 'Ds_Order' );
-				$this->log->add( 'bizumredsys', 'Order ID: ' . $order_id );
-			}
-			$order           = WCRedL()->get_order( $order2 );
-			$user_id         = $order->get_user_id();
-			$usesecretsha256 = $this->get_redsys_sha256( $user_id );
-			if ( empty( $secretsha256 ) && ! $secretsha256_meta ) {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', ' ' );
-					$this->log->add( 'bizumredsys', 'Using $usesecretsha256 Settings' );
-					$this->log->add( 'bizumredsys', 'Secret SHA256 Settings: ' . $usesecretsha256 );
-					$this->log->add( 'bizumredsys', ' ' );
-				}
-			} elseif ( $secretsha256_meta ) {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', ' ' );
-					$this->log->add( 'bizumredsys', 'Using $secretsha256_meta Meta' );
-					$this->log->add( 'bizumredsys', 'Secret SHA256 Meta: ' . $secretsha256_meta );
-					$this->log->add( 'bizumredsys', ' ' );
-				}
-				$usesecretsha256 = $secretsha256_meta;
-			} else {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', ' ' );
-					$this->log->add( 'bizumredsys', 'Using $secretsha256 Transcient' );
-					$this->log->add( 'bizumredsys', 'Secret SHA256 Transcient: ' . $secretsha256 );
-					$this->log->add( 'bizumredsys', ' ' );
-				}
-				$usesecretsha256 = $secretsha256;
-			}
 			$localsecret = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
 			if ( $localsecret === $remote_sign ) {
 				if ( 'yes' === $this->debug ) {
@@ -1124,22 +1123,34 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		}
 
 		$mi_obj            = new RedsysLiteAPI();
-		$usesecretsha256   = $this->secretsha256;
 		$dscardnumbercompl = '';
 		$dsexpiration      = '';
 		$dsmerchantidenti  = '';
 		$dscardnumber4     = '';
 		$dsexpiryyear      = '';
 		$dsexpirymonth     = '';
-		$decodedata        = $mi_obj->decode_merchant_parameters( $data );
 
-		// Fail closed: without a real SHA256 secret the HMAC is attacker-computable, so refuse to process.
+		// Same test/live gate check_ipn_request_is_valid() uses: without a real
+		// SHA256 secret configured for this mode, the HMAC is attacker-computable,
+		// so refuse to process before even decoding.
+		if ( 'yes' === $this->testmode ) {
+			$usesecretsha256 = ! empty( $this->customtestsha256 ) ? $this->customtestsha256 : $this->secretsha256;
+		} else {
+			$usesecretsha256 = $this->secretsha256;
+		}
+
 		if ( empty( $usesecretsha256 ) ) {
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'bizumredsys', 'Payment rejected in successful_request: no SHA256 secret configured.' );
 			}
 			return;
 		}
+
+		// Resolve the ACTUAL secret to verify against — same method
+		// check_ipn_request_is_valid() uses, so test mode and any per-order
+		// override are both honored (see resolve_notification_secret()'s docblock).
+		$decodedata      = $mi_obj->decode_merchant_parameters( $data );
+		$usesecretsha256 = $this->resolve_notification_secret( $mi_obj );
 
 		$localsecret = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
 

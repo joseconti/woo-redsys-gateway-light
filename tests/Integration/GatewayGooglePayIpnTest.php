@@ -179,4 +179,53 @@ class GatewayGooglePayIpnTest extends WP_UnitTestCase {
 
 		$this->assertFalse( $gateway->check_ipn_request_is_valid() );
 	}
+
+	/**
+	 * Regression test for the bug fixed 2026-08-01 (docs/decisions.md D-023):
+	 * successful_request() used to always verify against $this->secretsha256
+	 * (the live-mode secret), never the testmode-aware one
+	 * check_ipn_request_is_valid() and get_redsys_sha256() use. A genuinely
+	 * valid test-mode notification, correctly signed with the CUSTOM TEST
+	 * secret, would fail this second (redundant) verification and the order
+	 * would silently never be marked paid.
+	 */
+	public function test_successful_request_completes_the_order_when_signed_with_the_test_mode_secret() {
+		$order = $this->create_mapped_order( '000000000007' );
+		$order->set_total( 1.00 );
+		$order->save();
+
+		$gateway                   = new WC_Gateway_GooglePay_Redirection_Redsys();
+		$gateway->testmode         = 'yes';
+		$gateway->customtestsha256 = $this->secret; // Different from secretsha256 below.
+		$gateway->secretsha256     = base64_encode( str_repeat( 'L', 24 ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- the (deliberately different) "live" secret.
+		$gateway->debug            = 'no';
+		$gateway->orderdo          = 'processing';
+
+		$json  = wp_json_encode(
+			array(
+				'Ds_Order'        => '000000000007',
+				'Ds_Response'     => '0000',
+				'Ds_Amount'       => '100',
+				'Ds_MerchantCode' => '999999999',
+			)
+		);
+		$param = strtr( base64_encode( $json ), '+/', '-_' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+
+		$api       = new RedsysLiteAPI();
+		$signature = $api->create_merchant_signature_notif( $this->secret, $param );
+
+		$gateway->successful_request(
+			array(
+				'Ds_MerchantParameters' => $param,
+				'Ds_Signature'          => $signature,
+				'Ds_SignatureVersion'   => 'HMAC_SHA256_V1',
+			)
+		);
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assertTrue(
+			$order->has_status( array( 'processing', 'completed' ) ),
+			'successful_request() must complete a test-mode order correctly signed with the CUSTOM TEST secret, not silently do nothing because it checked the wrong (live) secret.'
+		);
+	}
 }
