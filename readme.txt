@@ -99,6 +99,19 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == Changelog ==
 
+== Unreleased ==
+
+* Security Fix: The Google Pay redirection gateway's notification check now fails closed when no SHA-256 secret is configured, matching the Redsys and Bizum gateways (it previously accepted the notification in that case).
+* Fix: The final signature check on the order-received page (successful_request()) was verifying test-mode payments against the wrong secret for Bizum and Google Pay, so a genuinely valid test-mode payment could be left unmarked as paid with no error shown.
+* Fix: Removed an unauthenticated, repeatable 5-second delay on the order-received page; it is now rate-limited per order.
+* Fix: Bizum and Google Pay no longer risk a fatal error when a payment notification references an order that does not exist.
+* Fix: Corrected the internal order-number mapping used to match delayed or retried notifications to their order — previously, roughly 1 in 5 such notifications could resolve to the wrong order.
+* Fix: Signature comparisons now use a constant-time comparison across all gateways.
+* Fix: An Inespay refund-confirmation notification could be mislabeled as a completed payment; it is now correctly ignored once the order is already paid.
+* Fix: Inespay's transaction-limit check no longer truncates decimals in the cart total, so a configured limit (e.g. 200) is now correctly enforced against totals like 200.50.
+* Fix: An Inespay refund explicitly requested for 0 is no longer silently upgraded to a full refund of the order.
+* Fix: Replaced a deprecated WooCommerce function (wc_enqueue_js()) with wp_add_inline_script() on the order-received page (props to the reporter of issue #93 on WordPress.org).
+
 == 7.0.2 ==
 
 * Security Fix: Added Inespay notification signature (signatureDataReturn / HMAC-SHA256) and amount verification in the Inespay callback to prevent unauthenticated payment forgery. The 7.0.1 signature hardening did not cover the Inespay gateway. Thanks to Shivamani Vastrala for the responsible disclosure.
