@@ -180,3 +180,10 @@
 - Why: user explicitly scoped this session's fixes to the two Highs only; documenting the rest here satisfies "a deliberate omission is recorded, always" rather than letting real, found bugs silently vanish once the session moves on.
 - Alternatives rejected: fixing all 9 now — user chose to scope down.
 - Supersedes: none
+
+## D-025 — Plaintext-secret-in-order-meta finding: documented, not fixed, decision deferred
+- Date / phase: 2026-08-01 / Phase 5 (sprint, full-plugin review)
+- Decision: the second "Alto" finding from the same review — `class-wc-gateway-bizum-redsys.php` and `class-wc-gateway-googlepay-redirection-redsys.php` persist the actual Redsys SHA-256 signing secret in plaintext, permanently, to order postmeta (`_redsys_secretsha256`) — is documented in `docs/threat-model.md` ("Known vulnerabilities") but NOT fixed this session. Three options were presented to the user (stop persisting it and accept the residual risk to any per-user test-mode notification arriving after the 1h transient expires; encrypt it before storing and decrypt on read; leave it documented only) and the user chose the third: leave it documented, decide later.
+- Why: this meta write is load-bearing for a real feature (per-user test-mode secrets, `testforuser`/`testforuserid` settings) — removing it without understanding how often that combination is actually used in production could silently break delayed notification verification (refund confirmations, retried IPNs) for real merchants; the user wanted more time to think it through rather than have either fix guessed at during an already long session.
+- Alternatives rejected: fixing it now with either approach above — deferred at the user's explicit request.
+- Supersedes: none — this is the resolution of the "Blocked, awaiting the user" item `docs/PROGRESS.md` recorded earlier in this same session; it is now recorded as a deliberate deferral, not an open question.
