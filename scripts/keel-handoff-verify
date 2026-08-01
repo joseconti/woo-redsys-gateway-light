@@ -22,14 +22,35 @@
 #
 # Prints one line per check, then VERDICT: CONTINUE or VERDICT: STOP.
 #
-# --release: releases the single-lane lock (only meaningful on projects
-# whose project card says `Chaining: start` — this project's card says
-# `Chaining: off`, so under normal operation there is nothing to release;
-# the flag still works cleanly and says so rather than erroring).
+# On a clean VERDICT: CONTINUE, if the project card (docs/PROGRESS.md)
+# says `Chaining: start`, this script ALSO claims the single-lane lock —
+# see "Single-lane lock" below. On any other Chaining value the lock is
+# never touched.
+#
+# --release: releases the single-lane lock, idempotently. Safe to call
+# even when nothing is held (prints "nothing to release" and exits 0).
 #
 # A missing docs/continuation-prompt.md is NOT an error: it means resume
 # normally from docs/PROGRESS.md (the file is gitignored, so a fresh clone
 # never has one).
+#
+# --- Single-lane lock — who is "this session"? -----------------------------
+# This script runs as a SUBPROCESS of the long-lived Claude Code CLI
+# process (or another tool's equivalent) — its own PID, and its immediate
+# parent shell's PID, are both transient and change on every invocation.
+# The thing the lock actually needs to identify is the SESSION, i.e. the
+# long-lived `claude` process itself. We find it by walking up the process
+# tree from this script's parent, looking for a process whose command name
+# contains "claude" (case-insensitive), up to 12 hops. Measured on macOS
+# Claude Code CLI: the walk is exactly two hops (tool-shell -> claude).
+# If no such process is found within 12 hops (a different tool, a renamed
+# binary, a wrapped launcher), we fall back to the immediate parent PID —
+# this degrades gracefully: the lock still works, it just keys on a
+# narrower notion of "session" that may not survive as long as the real
+# one, which can only make the script OVER-cautious (treating a legitimate
+# same-session reclaim as a fresh orphan-recovery) — it can never mistake
+# an unrelated live process for the owner, which is the failure that
+# actually matters.
 
 set -u
 
@@ -41,17 +62,16 @@ fi
 cd "$REPO_ROOT" || exit 1
 
 HANDOFF="$REPO_ROOT/docs/continuation-prompt.md"
+STATE_DIR="${TMPDIR:-/tmp}/keel-locks"
+mkdir -p "$STATE_DIR" 2>/dev/null
 
 # --- Portable epoch helpers (macOS/BSD date vs GNU date) -------------------
 iso_to_epoch() {
-	# $1: an ISO-8601-ish timestamp, e.g. 2026-07-29T18:40:00+02:00
 	local ts="$1"
-	# Try GNU date first
 	if date -d "$ts" +%s >/dev/null 2>&1; then
 		date -d "$ts" +%s
 		return 0
 	fi
-	# BSD/macOS date: strip the colon in the timezone offset (+02:00 -> +0200)
 	local ts_bsd
 	ts_bsd=$(printf '%s' "$ts" | sed -E 's/([+-][0-9]{2}):([0-9]{2})$/\1\2/')
 	if date -j -f "%Y-%m-%dT%H:%M:%S%z" "$ts_bsd" +%s >/dev/null 2>&1; then
@@ -74,29 +94,59 @@ file_mtime_epoch() {
 	return 1
 }
 
+sha256_of() {
+	printf '%s' "$1" | shasum -a 256 2>/dev/null | awk '{print $1}'
+}
+
+# --- Single-lane lock helpers -----------------------------------------------
+find_owning_session_pid() {
+	local p="$PPID"
+	local hops=0
+	while [ -n "$p" ] && [ "$p" != "1" ] && [ "$hops" -lt 12 ]; do
+		local comm
+		comm=$(ps -o comm= -p "$p" 2>/dev/null | tr -d ' ')
+		case "$comm" in
+		*[Cc]laude*)
+			echo "$p"
+			return 0
+			;;
+		esac
+		local parent
+		parent=$(ps -o ppid= -p "$p" 2>/dev/null | tr -d ' ')
+		[ -z "$parent" ] && break
+		p="$parent"
+		hops=$((hops + 1))
+	done
+	echo "$PPID"
+	return 1
+}
+
+pid_is_alive() {
+	kill -0 "$1" 2>/dev/null
+}
+
+pid_start_time() {
+	ps -o lstart= -p "$1" 2>/dev/null | tr -s ' '
+}
+
+lock_file_path() {
+	echo "$STATE_DIR/$(sha256_of "$REPO_ROOT").lock"
+}
+
 # ---------------------------------------------------------------------------
-# --release: free the single-lane lock, idempotently. No allow-list entry
-# of its own is needed — it shares this script's one entry.
 if [ "${1:-}" = "--release" ]; then
-	LOCK_DIR="${TMPDIR:-/tmp}/keel-locks"
-	# Key: the real repo path, sanitized to a filename.
-	KEY=$(printf '%s' "$REPO_ROOT" | shasum -a 256 2>/dev/null | awk '{print $1}')
-	if [ -z "$KEY" ]; then
-		KEY=$(printf '%s' "$REPO_ROOT" | md5 2>/dev/null || printf '%s' "$REPO_ROOT" | md5sum | awk '{print $1}')
+	LOCK_FILE=$(lock_file_path)
+	if [ ! -f "$LOCK_FILE" ]; then
+		echo "Nothing to release — no lane held for $REPO_ROOT."
+		exit 0
 	fi
-	LOCK_FILE="$LOCK_DIR/$KEY.lock"
-	if [ -f "$LOCK_FILE" ]; then
-		HOLDER_PID=$(grep -m1 '^pid=' "$LOCK_FILE" 2>/dev/null | cut -d= -f2)
-		THIS_PID=$$
-		if [ "$HOLDER_PID" = "$THIS_PID" ] || [ -n "$HOLDER_PID" ]; then
-			rm -f "$LOCK_FILE"
-			echo "Lane released for $REPO_ROOT (was held by PID $HOLDER_PID)."
-		else
-			echo "Lock file present but unreadable — removed defensively."
-			rm -f "$LOCK_FILE"
-		fi
+	RECORDED_PID=$(grep -m1 '^pid=' "$LOCK_FILE" 2>/dev/null | cut -d= -f2-)
+	CALLER_PID=$(find_owning_session_pid)
+	if [ "$RECORDED_PID" = "$CALLER_PID" ]; then
+		rm -f "$LOCK_FILE"
+		echo "Lane released for $REPO_ROOT (was held by PID $RECORDED_PID, this session)."
 	else
-		echo "Nothing to release — no lane held for $REPO_ROOT (this project's Chaining: off, so the lane is normally never taken)."
+		echo "Lane for $REPO_ROOT is held by PID $RECORDED_PID, not this session (PID $CALLER_PID) — not releasing someone else's lane."
 	fi
 	exit 0
 fi
@@ -112,13 +162,13 @@ STOP=0
 # --- 1. Containment ----------------------------------------------------
 REAL_HANDOFF=$(cd "$(dirname "$HANDOFF")" 2>/dev/null && pwd -P)/$(basename "$HANDOFF")
 case "$REAL_HANDOFF" in
-	"$REPO_ROOT"/*)
-		echo "Containment: OK — $HANDOFF is inside $REPO_ROOT"
-		;;
-	*)
-		echo "Containment: FAIL — $HANDOFF resolves outside $REPO_ROOT"
-		STOP=1
-		;;
+"$REPO_ROOT"/*)
+	echo "Containment: OK — $HANDOFF is inside $REPO_ROOT"
+	;;
+*)
+	echo "Containment: FAIL — $HANDOFF resolves outside $REPO_ROOT"
+	STOP=1
+	;;
 esac
 
 # Parse the freshness header (the block between the first two '---' lines).
@@ -127,6 +177,7 @@ HDR_REPO=$(printf '%s\n' "$HEADER" | grep -m1 '^Repo:' | sed -E 's/^Repo:[[:spac
 HDR_COMMIT=$(printf '%s\n' "$HEADER" | grep -m1 '^Commit:' | sed -E 's/^Commit:[[:space:]]*//')
 HDR_GENERATED=$(printf '%s\n' "$HEADER" | grep -m1 '^Generated:' | sed -E 's/^Generated:[[:space:]]*//')
 HDR_TREE=$(printf '%s\n' "$HEADER" | grep -m1 '^Tree:' | sed -E 's/^Tree:[[:space:]]*//')
+HDR_HANDOVER=$(printf '%s\n' "$HEADER" | grep -m1 '^Handover:' | sed -E 's/^Handover:[[:space:]]*//')
 
 # --- 2. Repo -------------------------------------------------------------
 IS_SHALLOW=$(git rev-parse --is-shallow-repository 2>/dev/null)
@@ -166,7 +217,6 @@ elif [ -z "$CURRENT_HEAD" ]; then
 	echo "Commit: FAIL — could not determine current HEAD"
 	STOP=1
 else
-	# Accept a short-hash prefix match against the current or an ancestor commit.
 	if git rev-parse --verify "${HDR_COMMIT}" >/dev/null 2>&1; then
 		RESOLVED=$(git rev-parse "${HDR_COMMIT}" 2>/dev/null)
 		if [ "$RESOLVED" = "$CURRENT_HEAD" ]; then
@@ -196,7 +246,7 @@ else
 	else
 		NOW_EPOCH=$(date +%s)
 		MTIME_EPOCH=$(file_mtime_epoch "$HANDOFF")
-		AGE=$(( NOW_EPOCH - GEN_EPOCH ))
+		AGE=$((NOW_EPOCH - GEN_EPOCH))
 		echo "Generated: OK — $HDR_GENERATED parses as epoch $GEN_EPOCH (age: ${AGE}s; file mtime epoch: ${MTIME_EPOCH:-unknown})"
 	fi
 fi
@@ -225,10 +275,73 @@ else
 fi
 
 echo
-if [ "$STOP" -eq 0 ]; then
-	echo "VERDICT: CONTINUE"
-	exit 0
-else
+
+if [ "$STOP" -ne 0 ]; then
 	echo "VERDICT: STOP"
 	exit 1
 fi
+
+echo "VERDICT: CONTINUE"
+
+# --- Single-lane lock — claim it, but ONLY if the card says Chaining: start
+CARD_FILE="$REPO_ROOT/docs/PROGRESS.md"
+CARD_CHAINING=""
+if [ -f "$CARD_FILE" ]; then
+	CARD_CHAINING=$(grep -m1 -E '^- Chaining:' "$CARD_FILE" | sed -E 's/^- Chaining:[[:space:]]*//' | awk '{print $1}')
+fi
+
+if [ "$CARD_CHAINING" = "start" ]; then
+	echo
+	LOCK_FILE=$(lock_file_path)
+	SELF_PID=$(find_owning_session_pid)
+	SELF_START=$(pid_start_time "$SELF_PID")
+
+	# Compute this hand-off's own launch-receipt identity, to check the
+	# baton case below (a live lock holder that IS this hand-off's own
+	# recorded launcher is not a conflict — the lane is handed over).
+	RECEIPT_KEY=$(sha256_of "${HDR_GENERATED}${HDR_COMMIT}")
+	RECEIPT_DIR="${TMPDIR:-/tmp}/keel-receipts/$RECEIPT_KEY"
+	LAUNCHER_PID=""
+	[ -f "$RECEIPT_DIR/launcher-pid" ] && LAUNCHER_PID=$(cat "$RECEIPT_DIR/launcher-pid" 2>/dev/null)
+
+	if [ ! -f "$LOCK_FILE" ]; then
+		{
+			echo "pid=$SELF_PID"
+			echo "start_time=$SELF_START"
+		} >"$LOCK_FILE"
+		echo "Lane claimed for $REPO_ROOT (PID $SELF_PID)."
+	else
+		RECORDED_PID=$(grep -m1 '^pid=' "$LOCK_FILE" | cut -d= -f2-)
+		RECORDED_START=$(grep -m1 '^start_time=' "$LOCK_FILE" | cut -d= -f2-)
+		HOLDER_LIVE_MATCHING=0
+		if pid_is_alive "$RECORDED_PID"; then
+			LIVE_START=$(pid_start_time "$RECORDED_PID")
+			[ "$LIVE_START" = "$RECORDED_START" ] && HOLDER_LIVE_MATCHING=1
+		fi
+
+		if [ "$HOLDER_LIVE_MATCHING" -eq 0 ]; then
+			# Orphan: dead PID, or a live PID whose start time doesn't match
+			# (the number was reused by an unrelated process).
+			{
+				echo "pid=$SELF_PID"
+				echo "start_time=$SELF_START"
+			} >"$LOCK_FILE"
+			echo "Recovered an orphaned lane (was PID $RECORDED_PID) for $REPO_ROOT (PID $SELF_PID)."
+		elif [ -n "$LAUNCHER_PID" ] && [ "$RECORDED_PID" = "$LAUNCHER_PID" ]; then
+			# Baton: the live holder is exactly this hand-off's own launcher,
+			# which has by definition already closed out.
+			{
+				echo "pid=$SELF_PID"
+				echo "start_time=$SELF_START"
+			} >"$LOCK_FILE"
+			echo "Baton: lane passed from launcher PID $RECORDED_PID for $REPO_ROOT (PID $SELF_PID)."
+		elif [ "$RECORDED_PID" = "$SELF_PID" ]; then
+			echo "Lane already held by this session ($SELF_PID) for $REPO_ROOT."
+		else
+			echo "Lane BUSY — $REPO_ROOT is held by a live session (PID $RECORDED_PID). Close that window, or run 'scripts/keel-handoff-verify --release' inside it, to free the lane."
+			exit 1
+		fi
+	fi
+fi
+
+exit 0

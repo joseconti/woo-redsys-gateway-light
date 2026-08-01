@@ -1,0 +1,249 @@
+#!/usr/bin/env bash
+#
+# keel-continue — detects the tool this session is running in, looks up
+# its row in Keel's chaining registry (references/project-state.md, "The
+# tool registry"), and either fires the recorded action to open the next
+# chat or prints the continuation prompt for the user to paste. It writes
+# nothing and decides nothing beyond that: no state file it doesn't already
+# own, no retry, no improvisation.
+#
+# Called from EXACTLY ONE place: a session's close-out, at most once per
+# hand-off. Never invoked mid-session.
+#
+# Exit 0 on every path that leaves the user with either an opened chat or
+# a printed prompt. Non-zero only when neither happened.
+
+set -u
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+if [ -z "$REPO_ROOT" ]; then
+	echo "Not inside a git repository — cannot continue."
+	exit 1
+fi
+cd "$REPO_ROOT" || exit 1
+
+HANDOFF="$REPO_ROOT/docs/continuation-prompt.md"
+STATE_DIR="${TMPDIR:-/tmp}"
+
+print_prompt_and_exit() {
+	local reason="$1"
+	echo "$reason"
+	echo
+	if [ -f "$HANDOFF" ]; then
+		echo "--- Paste this into a new chat ---"
+		# Everything after the header's closing '---' line.
+		awk '/^---$/{n++; next} n>=2{print}' "$HANDOFF"
+	else
+		echo "(no docs/continuation-prompt.md exists to print)"
+	fi
+	exit 0
+}
+
+sha256_of() {
+	printf '%s' "$1" | shasum -a 256 2>/dev/null | awk '{print $1}'
+}
+
+# --- 1. Verify the hand-off first — never compose the checks inline --------
+VERIFY_OUTPUT=$("$REPO_ROOT/scripts/keel-handoff-verify" 2>&1)
+VERIFY_EXIT=$?
+if [ ! -f "$HANDOFF" ]; then
+	echo "No docs/continuation-prompt.md — nothing to continue from."
+	exit 0
+fi
+if [ "$VERIFY_EXIT" -ne 0 ] || ! printf '%s\n' "$VERIFY_OUTPUT" | grep -q '^VERDICT: CONTINUE$'; then
+	print_prompt_and_exit "Hand-off verification did not pass — printing the prompt instead of chaining:
+$VERIFY_OUTPUT"
+fi
+
+# --- 2. Parse the header -----------------------------------------------
+HEADER=$(awk '/^---$/{n++; next} n==1{print} n>=2{exit}' "$HANDOFF")
+HDR_COMMIT=$(printf '%s\n' "$HEADER" | grep -m1 '^Commit:' | sed -E 's/^Commit:[[:space:]]*//')
+HDR_GENERATED=$(printf '%s\n' "$HEADER" | grep -m1 '^Generated:' | sed -E 's/^Generated:[[:space:]]*//')
+HDR_HANDOVER=$(printf '%s\n' "$HEADER" | grep -m1 '^Handover:' | sed -E 's/^Handover:[[:space:]]*//')
+
+if [ "$HDR_HANDOVER" != "clean" ]; then
+	print_prompt_and_exit "Handover is '$HDR_HANDOVER', not clean — this is a blocked hand-off. Not chaining."
+fi
+
+# --- 3. Read the card's Chaining: value ---------------------------------
+CARD_FILE="$REPO_ROOT/docs/PROGRESS.md"
+CARD_CHAINING="off"
+if [ -f "$CARD_FILE" ]; then
+	FOUND=$(grep -m1 -E '^- Chaining:' "$CARD_FILE" | sed -E 's/^- Chaining:[[:space:]]*//' | awk '{print $1}')
+	[ -n "$FOUND" ] && CARD_CHAINING="$FOUND"
+fi
+
+if [ "$CARD_CHAINING" = "off" ]; then
+	print_prompt_and_exit "This project's card says Chaining: off. Hand-off is ready — nothing opens automatically."
+fi
+
+# --- 4. Detect the tool, per the registry -------------------------------
+# Only claude-vscode is matched BY NAME (it is the only row whose behaviour
+# differs — a URI handler that pre-fills and never submits). Every other
+# CLAUDECODE=1 process is treated as the CLI, whatever entrypoint label it
+# reports — the vendor extends that set over time and this rule must not
+# age. No CLAUDECODE at all -> unrecognized tool.
+TOOL_ROW=""
+TOOL_TIER=""
+if [ "${CLAUDECODE:-}" = "1" ]; then
+	if [ "${CLAUDE_CODE_ENTRYPOINT:-}" = "claude-vscode" ]; then
+		TOOL_ROW="claude-vscode"
+		TOOL_TIER="prefill"
+	else
+		TOOL_ROW="claude-cli"
+		TOOL_TIER="start"
+	fi
+fi
+
+if [ -z "$TOOL_ROW" ]; then
+	print_prompt_and_exit "No recognised chaining tool in this environment (no CLAUDECODE marker). Hand-off is ready — nothing opens automatically."
+fi
+
+# --- 5. Downgrade to what the card allows, never upgrade ----------------
+EFFECTIVE_TIER="$TOOL_TIER"
+if [ "$CARD_CHAINING" = "prefill" ] && [ "$TOOL_TIER" = "start" ]; then
+	EFFECTIVE_TIER="prefill"
+fi
+if [ "$CARD_CHAINING" = "start" ] && [ "$TOOL_TIER" = "prefill" ]; then
+	EFFECTIVE_TIER="prefill"
+fi
+
+# The CLI row only knows `start` — on a card that only allows `prefill`,
+# it has no action at that tier, so it prints (never substitutes).
+if [ "$TOOL_ROW" = "claude-cli" ] && [ "$EFFECTIVE_TIER" = "prefill" ]; then
+	print_prompt_and_exit "Tool is the Claude Code CLI, whose only recorded action is 'start', but the card only allows 'prefill'. The CLI row has no action at that tier. Hand-off is ready — nothing opens automatically."
+fi
+
+# claude-vscode row only knows `prefill`, and macOS `start` verification
+# does not apply to it — never upgrade it to `start` even if the card
+# allows it.
+if [ "$TOOL_ROW" = "claude-vscode" ]; then
+	EFFECTIVE_TIER="prefill"
+fi
+
+# `start` is verified on macOS only.
+if [ "$EFFECTIVE_TIER" = "start" ]; then
+	OS_NAME="$(uname -s 2>/dev/null)"
+	if [ "$OS_NAME" != "Darwin" ]; then
+		print_prompt_and_exit "Effective tier is 'start' but this is not verified outside macOS (detected: $OS_NAME). Hand-off is ready — nothing opens automatically."
+	fi
+	if ! command -v osascript >/dev/null 2>&1; then
+		print_prompt_and_exit "Effective tier is 'start' but 'osascript' is not available. Hand-off is ready — nothing opens automatically."
+	fi
+	if ! command -v claude >/dev/null 2>&1; then
+		print_prompt_and_exit "Effective tier is 'start' but the 'claude' CLI is not on PATH. Hand-off is ready — nothing opens automatically."
+	fi
+fi
+
+# --- 6. Claim the launch receipt ATOMICALLY (mkdir), keyed by the ---------
+#        hand-off's OWN identity (Generated + Commit), not the repo path —
+#        a regenerated hand-off is a genuinely different continuation and
+#        must get its own, fresh receipt.
+RECEIPT_KEY=$(sha256_of "${HDR_GENERATED}${HDR_COMMIT}")
+RECEIPT_ROOT="$STATE_DIR/keel-receipts"
+RECEIPT_DIR="$RECEIPT_ROOT/$RECEIPT_KEY"
+mkdir -p "$RECEIPT_ROOT" 2>/dev/null
+
+# --- Circuit breaker: more than 3 receipts for THIS repo within the last
+#     hour means something is re-running a close-out in a loop.
+REPO_KEY=$(sha256_of "$REPO_ROOT")
+COUNTER_FILE="$RECEIPT_ROOT/$REPO_KEY.count"
+NOW_EPOCH=$(date +%s)
+RECENT=0
+if [ -f "$COUNTER_FILE" ]; then
+	while IFS= read -r ts; do
+		[ -z "$ts" ] && continue
+		AGE=$((NOW_EPOCH - ts))
+		if [ "$AGE" -lt 3600 ]; then
+			RECENT=$((RECENT + 1))
+		fi
+	done <"$COUNTER_FILE"
+fi
+if [ "$RECENT" -ge 3 ]; then
+	print_prompt_and_exit "Circuit breaker: $RECENT+ launches already fired for this repository in the last hour — something is re-running a close-out. Chaining disabled for this session. Hand-off is ready — nothing opens automatically."
+fi
+
+if ! mkdir "$RECEIPT_DIR" 2>/dev/null; then
+	print_prompt_and_exit "This exact hand-off (Generated=$HDR_GENERATED, Commit=$HDR_COMMIT) was already launched once. Not firing again. Hand-off is ready — nothing opens automatically."
+fi
+
+# Record this launch for the circuit breaker, and record OUR pid as the
+# launcher, immediately after the claim, before firing anything.
+echo "$NOW_EPOCH" >>"$COUNTER_FILE"
+
+find_owning_session_pid() {
+	local p="$PPID"
+	local hops=0
+	while [ -n "$p" ] && [ "$p" != "1" ] && [ "$hops" -lt 12 ]; do
+		local comm
+		comm=$(ps -o comm= -p "$p" 2>/dev/null | tr -d ' ')
+		case "$comm" in
+		*[Cc]laude*)
+			echo "$p"
+			return 0
+			;;
+		esac
+		local parent
+		parent=$(ps -o ppid= -p "$p" 2>/dev/null | tr -d ' ')
+		[ -z "$parent" ] && break
+		p="$parent"
+		hops=$((hops + 1))
+	done
+	echo "$PPID"
+	return 1
+}
+LAUNCHER_PID=$(find_owning_session_pid)
+echo "$LAUNCHER_PID" >"$RECEIPT_DIR/launcher-pid"
+
+PROMPT_TEXT="Lee $HANDOFF y continúa."
+
+if [ "$EFFECTIVE_TIER" = "prefill" ]; then
+	# prefill: pre-fill only, never submit. Only claude-vscode is verified
+	# here, via its URI handler.
+	if [ "$TOOL_ROW" != "claude-vscode" ]; then
+		print_prompt_and_exit "Effective tier is 'prefill' but no verified prefill action exists for this tool ($TOOL_ROW). Hand-off is ready — nothing opens automatically."
+	fi
+	ENCODED_PROMPT=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1]))" "$PROMPT_TEXT" 2>/dev/null)
+	if [ -z "$ENCODED_PROMPT" ]; then
+		print_prompt_and_exit "Could not percent-encode the prompt for the URI handler. Hand-off is ready — nothing opens automatically."
+	fi
+	URI="vscode://anthropic.claude-code/open?prompt=${ENCODED_PROMPT}"
+	# --- Release the lane IMMEDIATELY BEFORE firing ---
+	"$REPO_ROOT/scripts/keel-handoff-verify" --release >/dev/null 2>&1
+	if command -v open >/dev/null 2>&1; then
+		if open "$URI" 2>/dev/null; then
+			echo "Opened a pre-filled chat in VS Code. Press Enter there to continue."
+			exit 0
+		fi
+	fi
+	print_prompt_and_exit "Could not fire the VS Code URI handler. Hand-off is ready — nothing opens automatically."
+fi
+
+# --- 7. EFFECTIVE_TIER = start, tool = claude-cli, macOS, osascript+claude
+#        present. Fire exactly once, never retried. ------------------------
+
+ABS_REPO_ROOT="$REPO_ROOT"
+
+# Write the AppleScript to a temp file rather than composing it inline —
+# three levels of quoting (shell, AppleScript, inner shell command) is a
+# documented, measured trap when hand-interpolated.
+APPLESCRIPT_FILE=$(mktemp -t keel-continue-XXXXXX.applescript)
+INNER_CMD="cd '${ABS_REPO_ROOT}' && claude '${PROMPT_TEXT}'"
+{
+	printf 'tell application "Terminal"\n'
+	printf '\tactivate\n'
+	printf '\tdo script "%s"\n' "$(printf '%s' "$INNER_CMD" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+	printf 'end tell\n'
+} >"$APPLESCRIPT_FILE"
+
+# --- Release the lane IMMEDIATELY BEFORE firing ---
+"$REPO_ROOT/scripts/keel-handoff-verify" --release >/dev/null 2>&1
+
+if osascript "$APPLESCRIPT_FILE" >/dev/null 2>&1; then
+	rm -f "$APPLESCRIPT_FILE"
+	echo "Opened a new Terminal window and started a fresh 'claude' session in $ABS_REPO_ROOT."
+	exit 0
+else
+	rm -f "$APPLESCRIPT_FILE"
+	print_prompt_and_exit "osascript failed to open Terminal.app — could not confirm a window appeared. Not retrying. Hand-off is ready — nothing opens automatically."
+fi

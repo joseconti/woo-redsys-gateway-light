@@ -25,7 +25,7 @@
 - Autonomy: automatic — Keel does not ask before pushing to `develop`, and performs every merge/push itself; never merges to `master` or tags without explicit instruction / issues: after-sprint / Issue sweep interval: 24h / Issue capture: off (D-011)
 - Branches: integration branch `develop` (created 2026-07-31 from `master`, published to `origin`); current work: adoption on `develop`; nothing yet queued for `master`
 - Notify: `PushNotification` tool (desktop + phone via Remote Control) — delivers (D-011)
-- Chaining: off (default — not explicitly changed)
+- Chaining: start (D-015) — a clean close-out opens and submits a fresh Claude Code CLI session automatically via `osascript`/Terminal.app; verified end-to-end on macOS with `claude` on PATH at `~/.local/bin/claude`
 
 ## Phase status
 | Phase | Status | Key artifacts |

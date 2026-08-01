@@ -41,8 +41,8 @@
 | `scripts/keel-doctor` | present | scripts/keel-doctor | `--check`/`--plan`/`--fix`/`--json`; run clean, all blocking requirements OK |
 | `scripts/` build/minify script (CSS) | missing | — | project ships unminified CSS with no minify step at all — deferred, low urgency (cosmetic/perf only) |
 | `scripts/keel-handoff-verify` | present | scripts/keel-handoff-verify | five courier checks + `VERDICT`; correctly returned `STOP` against the stale pre-adoption `docs/continuation-prompt.md` (regenerated at this session's close) |
-| Single-lane lock | n/a | Chaining: off | — |
-| `scripts/keel-continue` | n/a | Chaining: off | — |
+| Single-lane lock | present | `scripts/keel-handoff-verify` (claim/release/orphan-recovery/baton logic) | D-015 — Chaining: start |
+| `scripts/keel-continue` | present | scripts/keel-continue | D-015 — verified end-to-end in a scratch repo (real `osascript` fire, real Terminal.app window, real `claude` session) |
 | `.githooks/pre-commit` | n/a | D-008 | Assistant config package not accepted |
 | Permission allow-lists (scaffolded) | n/a | D-008 | machine-local `.claude/settings.local.json` already covers automatic mode; the MANIFEST row is about the scaffolded package, not accepted |
 | CI workflow | n/a | D-008 | Assistant config package not accepted |
@@ -62,10 +62,10 @@
 | `docs/04-adoption-audit.md` | present | docs/04-adoption-audit.md | created this pass |
 
 ## Summary
-- **Applied (present):** 27
+- **Applied (present):** 29
 - **Present but partial (flagged, listed above):** 4
 - **Declined (recorded decision):** 2 — `.agents/skills/keel/` mirror (D-008), `guide/` end-user guide (D-013 — declined for now, "no by default" answered when asked)
-- **Not applicable:** 20
+- **Not applicable:** 18
 - **Missing, created in this adoption pass:** `docs/threat-model.md`, `docs/architecture.md`, `docs/security.md`, `docs/accessibility.md`, `README.md`, `docs/04-adoption-audit.md`, `docs/estimate.md`, `docs/token-ledger.md`, `docs/sprints/`, `docs/05-test-points.md`, `docs/playground.md`, `.wp-env.json`, `scripts/keel-doctor`, `scripts/keel-verify`, `scripts/keel-handoff-verify`
 - **Missing, still deferred:** a CSS minify script (low urgency, cosmetic/perf only), `docs/flows/` (progressive backfill as each flow is next touched), `docs/07-release.md` (created at the next real release)
 
