@@ -129,3 +129,10 @@
 - Why: `WC_Gateway_redsys` extends `WC_Payment_Gateway` and genuinely depends on WordPress/WooCommerce (hooks, options, `WC_Logger`), unlike `RedsysLiteAPI` (D-016) — a true unit test would have to fake too much of WooCommerce to be trustworthy. This automates the exact fail-closed scenario already driven manually in the playground (`docs/05-test-points.md`, "Adoption — playground verification" row) plus forged-signature, tampered-payload, and wrong-order-signature cases.
 - Alternatives rejected: mocking `WC_Payment_Gateway`/WooCommerce instead of booting it for real — rejected because the class under test IS the integration with WooCommerce; mocking it away would test the mock, not the gateway.
 - Supersedes: none
+
+## D-019 — Bizum IPN tests use a real WC_Order fixture (order-number-mapping transient)
+- Date / phase: 2026-08-01 / Phase 5 (sprint)
+- Decision: added `tests/Integration/GatewayBizumIpnTest.php`, covering `WC_Gateway_Bizum_Redsys::check_ipn_request_is_valid()`. Unlike `WC_Gateway_redsys` (D-018), this method requires a real `WC_Order`: it maps the incoming `Ds_Order` back to a real order ID via `WCRedL()->clean_order_number()` (a `redys_order_temp_<Ds_Order>` transient) and calls `WCRedL()->get_order()`, which throws on a nonexistent order. The test fixture builder creates a real order with `wc_create_order()` and sets that transient directly, mirroring what `WCRedL()->prepare_order_number()` does for real outgoing payments.
+- Why: L-003 (`docs/lessons-learned.md`) records that an earlier attempt copied `GatewayRedsysIpnTest.php`'s fixture assuming the same shape, and it errored (`Invalid order`) because Bizum's method is genuinely different. This decision records the correct approach found by reading the full method.
+- Alternatives rejected: none — mutation-tested for real (bypassed the signature comparison, confirmed 3/5 Bizum-specific tests failed, reverted, confirmed 10/10 green again across both integration test classes).
+- Supersedes: none

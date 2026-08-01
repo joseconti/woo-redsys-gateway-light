@@ -1,0 +1,183 @@
+<?php
+/**
+ * Integration tests for WC_Gateway_Bizum_Redsys::check_ipn_request_is_valid().
+ *
+ * Unlike WC_Gateway_redsys (see GatewayRedsysIpnTest — the two do NOT share
+ * the same shape, see docs/lessons-learned.md L-003), this method requires
+ * a real WC_Order to exist: after the initial gate check it maps the
+ * incoming Ds_Order back to a real order ID via
+ * WCRedL()->clean_order_number() (reading a `redys_order_temp_<Ds_Order>`
+ * transient), then calls WCRedL()->get_order( $order_id ), which throws if
+ * that order does not exist. The effective signing secret is then
+ * get_redsys_sha256( $order->get_user_id() ) unless a per-order override
+ * (transient or `_redsys_secretsha256` order meta) is present — this suite
+ * exercises the plain case (no override, no test-mode-per-user), which is
+ * what a real production notification hits.
+ *
+ * Runs only inside wp-env's tests-cli container — see
+ * tests/bootstrap-integration.php.
+ *
+ * @package WooCommerce Redsys Gateway Light
+ */
+
+class GatewayBizumIpnTest extends WP_UnitTestCase {
+
+	/**
+	 * A fixed, syntactically valid but non-production Base64 secret —
+	 * shaped like a real Redsys SHA-256 merchant key (24 raw bytes for
+	 * 3DES) but not a real credential.
+	 *
+	 * @var string
+	 */
+	private $secret;
+
+	/**
+	 * Ds_Order values used across a single test, so tearDown can clean up
+	 * the order-number-mapping transients it created.
+	 *
+	 * @var string[]
+	 */
+	private $ds_orders_used = array();
+
+	public function set_up() {
+		parent::set_up();
+		$this->secret         = base64_encode( str_repeat( 'B', 24 ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$this->ds_orders_used = array();
+	}
+
+	public function tear_down() {
+		unset( $_POST['Ds_MerchantParameters'], $_POST['Ds_Signature'], $_POST['Ds_SignatureVersion'] );
+		foreach ( $this->ds_orders_used as $ds_order ) {
+			delete_transient( 'redys_order_temp_' . $ds_order );
+		}
+		parent::tear_down();
+	}
+
+	/**
+	 * Creates a real WC_Order and maps a Ds_Order string to it, exactly as
+	 * WCRedL()->clean_order_number() expects to find it (a
+	 * `redys_order_temp_<Ds_Order>` transient holding the real order ID —
+	 * the same mechanism WCRedL()->prepare_order_number() uses when building
+	 * the outgoing payment request).
+	 *
+	 * @param string $ds_order The Ds_Order value the fixture notification will carry.
+	 * @return WC_Order
+	 */
+	private function create_mapped_order( $ds_order ) {
+		$order = wc_create_order();
+		set_transient( 'redys_order_temp_' . $ds_order, $order->get_id(), 3600 );
+		$this->ds_orders_used[] = $ds_order;
+		return $order;
+	}
+
+	/**
+	 * @param string $order Ds_Order value.
+	 * @return array{param: string, signature: string}
+	 */
+	private function build_signed_notification( $order ) {
+		$json  = wp_json_encode( array(
+			'Ds_Order'    => $order,
+			'Ds_Response' => '0000',
+			'Ds_Amount'   => '100',
+		) );
+		$param = strtr( base64_encode( $json ), '+/', '-_' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+
+		$api       = new RedsysLiteAPI();
+		$signature = $api->create_merchant_signature_notif( $this->secret, $param );
+
+		return array(
+			'param'     => $param,
+			'signature' => $signature,
+		);
+	}
+
+	/**
+	 * @return WC_Gateway_Bizum_Redsys
+	 */
+	private function configured_gateway() {
+		$gateway               = new WC_Gateway_Bizum_Redsys();
+		$gateway->secretsha256 = $this->secret;
+		$gateway->testmode     = 'no';
+		$gateway->debug        = 'no';
+		$gateway->testforuser  = 'no';
+		return $gateway;
+	}
+
+	public function test_rejects_the_notification_when_no_secret_is_configured() {
+		// The outer gate is checked before any order lookup, so no real
+		// order is needed for this case.
+		$gateway               = new WC_Gateway_Bizum_Redsys();
+		$gateway->secretsha256 = '';
+		$gateway->testmode     = 'no';
+		$gateway->debug        = 'no';
+
+		$fixture                        = $this->build_signed_notification( '000000000001' );
+		$_POST['Ds_MerchantParameters'] = $fixture['param'];
+		$_POST['Ds_Signature']          = $fixture['signature'];
+		$_POST['Ds_SignatureVersion']   = 'HMAC_SHA256_V1';
+
+		$this->assertFalse(
+			$gateway->check_ipn_request_is_valid(),
+			'With no SHA-256 secret configured, the gateway must fail closed even for an otherwise well-formed notification.'
+		);
+	}
+
+	public function test_accepts_a_correctly_signed_notification_for_a_real_order() {
+		$this->create_mapped_order( '000000000002' );
+		$gateway = $this->configured_gateway();
+
+		$fixture                        = $this->build_signed_notification( '000000000002' );
+		$_POST['Ds_MerchantParameters'] = $fixture['param'];
+		$_POST['Ds_Signature']          = $fixture['signature'];
+		$_POST['Ds_SignatureVersion']   = 'HMAC_SHA256_V1';
+
+		$this->assertTrue( $gateway->check_ipn_request_is_valid() );
+	}
+
+	public function test_rejects_a_notification_with_a_forged_signature() {
+		$this->create_mapped_order( '000000000003' );
+		$gateway = $this->configured_gateway();
+
+		$fixture                        = $this->build_signed_notification( '000000000003' );
+		$_POST['Ds_MerchantParameters'] = $fixture['param'];
+		$_POST['Ds_Signature']          = strtr( base64_encode( str_repeat( 'x', 32 ) ), '+/', '-_' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$_POST['Ds_SignatureVersion']   = 'HMAC_SHA256_V1';
+
+		$this->assertFalse( $gateway->check_ipn_request_is_valid() );
+	}
+
+	public function test_rejects_a_notification_whose_amount_was_tampered_with_after_signing() {
+		$this->create_mapped_order( '000000000004' );
+		$gateway = $this->configured_gateway();
+
+		$fixture = $this->build_signed_notification( '000000000004' );
+
+		$tampered_json  = wp_json_encode( array(
+			'Ds_Order'    => '000000000004',
+			'Ds_Response' => '0000',
+			'Ds_Amount'   => '999999',
+		) );
+		$tampered_param = strtr( base64_encode( $tampered_json ), '+/', '-_' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+
+		$_POST['Ds_MerchantParameters'] = $tampered_param;
+		$_POST['Ds_Signature']          = $fixture['signature'];
+		$_POST['Ds_SignatureVersion']   = 'HMAC_SHA256_V1';
+
+		$this->assertFalse( $gateway->check_ipn_request_is_valid() );
+	}
+
+	public function test_rejects_a_notification_signed_for_a_different_order() {
+		$this->create_mapped_order( '000000000005' );
+		$this->create_mapped_order( '000000000006' );
+		$gateway = $this->configured_gateway();
+
+		$order_a = $this->build_signed_notification( '000000000005' );
+		$order_b = $this->build_signed_notification( '000000000006' );
+
+		$_POST['Ds_MerchantParameters'] = $order_b['param'];
+		$_POST['Ds_Signature']          = $order_a['signature'];
+		$_POST['Ds_SignatureVersion']   = 'HMAC_SHA256_V1';
+
+		$this->assertFalse( $gateway->check_ipn_request_is_valid() );
+	}
+}
