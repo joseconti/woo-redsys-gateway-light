@@ -75,7 +75,9 @@ A second suite, `tests/Integration/`, covers `WC_Gateway_redsys::check_ipn_reque
 - **Coverage:** rejects when no SHA-256 secret is configured (fail-closed, matches the manual playground evidence in `docs/05-test-points.md`'s "Adoption — playground verification" row); accepts a correctly-signed notification; rejects a forged signature; rejects a payload tampered with after signing (genuine signature, edited amount); rejects a signature that was valid for a different order (the key-diversification-by-order-number check).
 Two further integration test classes were added the same session: `tests/Integration/GatewayBizumIpnTest.php` (`WC_Gateway_Bizum_Redsys`, needs a real `WC_Order` fixture unlike Redsys — D-019) and `tests/Integration/GatewayGooglePayIpnTest.php` (`WC_Gateway_GooglePay_Redirection_Redsys` — D-020, whose test suite also caught and fixed a real signature-bypass vulnerability, see `docs/threat-model.md`). A fifth class, `tests/Integration/GatewayInespayIpnTest.php`, covers `WC_Gateway_Inespay_Redsys::handle_callback()` — a genuinely different signature algorithm (plain `hash_hmac('sha256', dataReturn, api_key, false)` then base64 of the hex string, not `RedsysLiteAPI`) and a different method shape (`wp_die()` on every path, caught as `WPDieException`) — see D-021.
 
-- **Remaining gap:** all four gateway classes now have IPN/callback test coverage. No JS test suite exists (the checkout-flow Playwright smoke test recommended in `docs/04-adoption-audit.md` is still open) — tracked as an open deferred item in `docs/PROGRESS.md`.
+A checkout-flow smoke test was added the same session: `tests/e2e/checkout-redsys.spec.js` (Playwright/`@playwright/test`, config at `playwright.config.js`), driving a real guest checkout against the wp-env playground — product → checkout → order → the generated Redsys payment form — with every request to `*.redsys.es` intercepted and aborted, so it never depends on Redsys's live infrastructure. See D-022 in `docs/decisions.md` and `docs/playground.md`'s "Automated checkout smoke test" section (including the one-time environment setup it needs — pretty permalinks + a configured Redsys gateway, neither present in the playground by default).
+
+- **Remaining gap:** all four gateway classes have IPN/callback test coverage, and the classic (shortcode) checkout flow has a real, mutation-tested smoke test. Not covered: the WooCommerce Blocks checkout (this playground's Checkout page uses the classic `[woocommerce_checkout]` shortcode), the other three gateways' checkout flows, and any JS unit-test suite for `resources/js/frontend/index.js`.
 - **Full real-run command** (all suites, from the repo root, `wp-env` running):
   ```
   npx wp-env run cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && vendor/bin/phpunit"
@@ -87,6 +89,7 @@ Two further integration test classes were added the same session: `tests/Integra
 - `npm run build` — `wp-scripts build`, compiles `resources/js/frontend/index.js` → `assets/js/frontend/blocks.js` + `.asset.php`
 - `npm run start` — `wp-scripts start` (watch mode)
 - `npm run i18n:pot` — generates the `.pot` via `wp i18n make-pot` (WP-CLI, not verified runnable in this environment — requires WP-CLI + a WordPress install)
+- `npm run test:e2e` (`playwright test`) — runs `tests/e2e/`; needs `npx wp-env start` and the one-time environment setup in `docs/playground.md`
 - `phpcs.xml` — `WooCommerce-Core` + `WordPress-Extra` ruleset; not verified to run cleanly during adoption (adoption is read-only; running phpcs and recording its output is a Phase 5/gap-audit follow-up, not repeated here to avoid a stale claim)
 
 ## Version touchpoints (verified, and their current agreement)

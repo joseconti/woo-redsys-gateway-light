@@ -161,6 +161,61 @@ resettable with `npx wp-env clean all`.
    this leg stays `⚠ unverified — CREDENTIAL` and steps 1–6 above are what
    the assistant can and does verify without it.
 
+## Automated checkout smoke test (Playwright)
+
+`tests/e2e/checkout-redsys.spec.js` drives a real guest checkout through this
+playground with the Redsys gateway — product → checkout → order → the
+generated Redsys payment form — using Playwright/Chromium. It never lets a
+real request reach `*.redsys.es` (every such request is intercepted and
+aborted), so it proves the plugin's own checkout → signed-form chain works
+without depending on Redsys's live infrastructure or needing a real
+merchant contract. **Real run, 2026-08-01: 1 passed.** Mutation-tested for
+real: temporarily corrupted the merchant code sent in the form (`DS_MERCHANT_MERCHANTCODE`),
+confirmed the test failed on the expected assertion, reverted, confirmed it
+passed again.
+
+### One-time environment setup (not scripted — do these once per fresh `wp-env` instance)
+
+This project's `wp-env` starts with plain (`?p=123`) permalinks and no
+payment gateway configured, neither of which the classic WooCommerce
+checkout page needs to render correctly for a human clicking through the
+admin — but the e2e test visits pretty URLs (`/checkout/`) and needs a
+gateway to select. Run once after `npx wp-env start` (or after
+`npx wp-env clean all`):
+
+```
+npx wp-env run cli wp rewrite structure '/%postname%/'
+npx wp-env run cli wp rewrite flush --hard
+npx wp-env run cli wp option update woocommerce_redsys_settings --format=json \
+  '{"enabled":"yes","title":"Redsys","description":"Pay with card via Redsys","customer":"999008881","commercename":"Test Shop","payoptions":"T","terminal":"1","not_use_https":"no","lwvactive":"no","orderdo":"processing","secretsha256":"sq7HjrUOBfKmC576ILgskD5srU870gJ7","customtestsha256":"","redsyslanguage":"002","testmode":"yes","debug":"no"}'
+```
+
+`999008881` / terminal `1` / `sq7HjrUOBfKmC576ILgskD5srU870gJ7` are Redsys's
+own widely-published generic test/demo merchant values — the exact same
+secret this plugin's own source already hardcodes as `$this->testsha256`'s
+default in `class-wc-gateway-redsys.php`, `class-wc-gateway-bizum-redsys.php`
+and `class-wc-gateway-googlepay-redirection-redsys.php`. They are used here
+only to exercise this plugin's own form-generation code locally; **this
+does not confirm they authenticate against Redsys's real sandbox** — no
+network request reaches Redsys during this test (see above), so that
+remains unverified and is not claimed. A real round trip against Redsys's
+live test environment still needs credentials issued to an actual
+(test) merchant account, per step 7 above.
+
+The test also expects the product from `docs/05-test-points.md`'s earlier
+runs (post ID 10, "Test Product") to exist; create one via Products → Add
+New if starting from a genuinely fresh install (`npx wp-env clean all`
+removes it).
+
+### Running it
+
+```
+npm install          # once, installs @playwright/test
+npx playwright install --with-deps chromium   # once, downloads the browser
+npx wp-env start      # if not already running
+npx playwright test   # or: npm run test:e2e
+```
+
 ## What this playground does NOT verify
 
 - A real Redsys/Bizum/Apple-Google Pay/Inespay round trip against Redsys's

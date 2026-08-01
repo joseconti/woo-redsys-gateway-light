@@ -47,3 +47,9 @@ docs/continuation-prompt.md
 # PHPUnit
 .phpunit.result.cache
 /tests/coverage/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

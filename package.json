@@ -10,6 +10,7 @@
 		"npm": ">=1.1.0"
 	},
 	"devDependencies": {
+		"@playwright/test": "^1.62.1",
 		"@woocommerce/dependency-extraction-webpack-plugin": "^1.7.0",
 		"@wordpress/env": "^10.0.0",
 		"@wordpress/scripts": "^30.20.0",
@@ -23,7 +24,8 @@
 		"i18n:build": "npm run i18n:pot && ./bin/build_i18n.sh",
 		"i18n:pot": "php -d xdebug.max_nesting_level=512 $(which wp) i18n make-pot --exclude=\"node_modules/,languages/,assets/\" --headers='{\"Report-Msgid-Bugs-To\":\"https://woocommerce.com/my-account/create-a-ticket/\", \"language-team\":\"LANGUAGE <EMAIL@ADDRESS>\"}' . languages/woo-redsys-gateway-light.pot",
 		"i18n:json": "$(which wp) i18n make-json languages --no-purge",
-		"check-engines": "wp-scripts check-engines"
+		"check-engines": "wp-scripts check-engines",
+		"test:e2e": "playwright test"
 	},
 	"dependencies": {
 		"react-scripts": "^5.0.1",

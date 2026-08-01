@@ -150,3 +150,11 @@
 - Why: reading the full method (per the L-003 rule) showed it does not share the other gateways' shape at all — deliberately built its own fixture rather than forcing the Redsys/Bizum/GooglePay pattern onto it.
 - Alternatives rejected: none. Mutation-tested for real (bypassed the `hash_equals()` signature check, confirmed 2/5 tests failed as expected, reverted, confirmed 20/20 integration + 8/8 unit tests green again). Found a pre-existing, out-of-scope issue while writing the "accepts a valid callback" test — `handle_callback()` writes WooCommerce's internal `_payment_method` meta key via the generic meta API instead of `set_payment_method()` — acknowledged with `setExpectedIncorrectUsage()` rather than silently fixed or hidden; recorded as L-004 (`docs/lessons-learned.md`) and a deferred item in `docs/PROGRESS.md`.
 - Supersedes: none
+
+## D-022 — Playwright checkout smoke test, with real playground setup gaps found and documented
+- Date / phase: 2026-08-01 / Phase 5 (sprint)
+- Decision: added `@playwright/test` as a devDependency, `playwright.config.js`, and `tests/e2e/checkout-redsys.spec.js` — a guest-checkout smoke test against the wp-env playground with the Redsys gateway, from product to the generated (correctly signed) Redsys payment form. Every request to `*.redsys.es` is intercepted and aborted, so the test never depends on Redsys's live infrastructure. `npm run test:e2e` runs it.
+- Why: recommended in `docs/04-adoption-audit.md` as the remaining testability gap after the PHPUnit suites; user chose to add it before the next release rather than after.
+- What it needed that the playground didn't already have: pretty permalinks (the playground starts with plain `?p=` links, so `/checkout/` 404s) and a configured, enabled Redsys gateway (none is configured by default). Both are now documented as a one-time setup step in `docs/playground.md` rather than scripted into `.wp-env.json`, since they change playground *state* (options, rewrite rules) rather than its *definition* — `npx wp-env clean all` reverts both, and the setup step says so.
+- Alternatives rejected: none. Mutation-tested for real (corrupted the merchant code written into the payment form, confirmed the test failed on the expected assertion, reverted, confirmed it passed again, 3 consecutive clean runs).
+- Supersedes: none
