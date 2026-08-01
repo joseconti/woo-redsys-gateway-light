@@ -33,3 +33,9 @@ build/Release
 # dotenv environment variables file
 .env
 .vscode
+
+# Keel — machine-local state, never committed
+.keel-update-check
+.claude/settings.local.json
+CLAUDE.local.md
+docs/continuation-prompt.md
