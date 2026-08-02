@@ -111,6 +111,7 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 * Fix: Inespay's transaction-limit check no longer truncates decimals in the cart total, so a configured limit (e.g. 200) is now correctly enforced against totals like 200.50.
 * Fix: An Inespay refund explicitly requested for 0 is no longer silently upgraded to a full refund of the order.
 * Fix: Replaced a deprecated WooCommerce function (wc_enqueue_js()) with wp_add_inline_script() on the order-received page (props to the reporter of issue #93 on WordPress.org).
+* Fix: Payment and refund notifications for orders with 10+ digit IDs (common on long-running stores using WooCommerce's order tables) could resolve to the wrong order, or fail with a fatal error, once the short-lived internal order-number mapping expired. Notifications now also fall back to a permanent record of the order number, and refunds refresh that record with a longer validity window at the time the refund is requested.
 
 == 7.0.2 ==
 

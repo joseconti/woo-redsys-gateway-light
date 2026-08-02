@@ -1630,6 +1630,12 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				$this->log->add( 'bizumredsys', __( 'check_redsys_refund Asking for order #: ', 'woo-redsys-gateway-light' ) . $order_id );
 			}
 
+			// Re-save the Ds_Order -> order_id mapping now, with a 24h TTL: the
+			// mapping created by prepare_order_number() at payment time (1h TTL)
+			// is long gone by the time a refund is requested, and the real
+			// order_id is known for certain right here.
+			set_transient( 'redys_order_temp_' . $transaction_id, $order_id, DAY_IN_SECONDS );
+
 			$refund_asked = $this->ask_for_refund( $order_id, $transaction_id, $order_total_sign );
 
 			if ( is_wp_error( $refund_asked ) ) {

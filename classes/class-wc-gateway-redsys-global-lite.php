@@ -1079,6 +1079,14 @@ class WC_Gateway_Redsys_Global_Lite {
 	/**
 	 * Clean the order number.
 	 *
+	 * The "1 billion bug": for an order_id of 10+ digits, prepare_order_number()
+	 * already overwrites its high-order digits with the random prefix when
+	 * building the 12-character Ds_Order, so they are never recoverable from
+	 * the Ds_Order string itself once the mapping transient (1h TTL) has
+	 * expired — the substr()/ltrim() fallback below is lossy for those IDs.
+	 * Before falling back to it, reverse-look up the order by the Ds_Order
+	 * persisted in postmeta at payment time, which has no such loss.
+	 *
 	 * @param string $ordernumber The order number to clean.
 	 * @return string The cleaned order number.
 	 */
@@ -1086,9 +1094,43 @@ class WC_Gateway_Redsys_Global_Lite {
 		$real_order = get_transient( 'redys_order_temp_' . $ordernumber );
 		if ( $real_order ) {
 			return $real_order;
-		} else {
-			return ltrim( substr( $ordernumber, 3 ), '0' );
 		}
+		$found = $this->get_order_id_by_redsys_order_number( $ordernumber );
+		if ( $found ) {
+			return (string) $found;
+		}
+		return ltrim( substr( $ordernumber, 3 ), '0' );
+	}
+	/**
+	 * Reverse-look up the real order ID from a Ds_Order value persisted in
+	 * postmeta at payment time (`_payment_order_number_redsys`).
+	 *
+	 * @param string $ordernumber The Ds_Order value received from Redsys.
+	 * @return int|false The order ID if found, false otherwise.
+	 */
+	public function get_order_id_by_redsys_order_number( $ordernumber ) {
+		$ordernumber = (string) $ordernumber;
+		if ( '' === $ordernumber ) {
+			return false;
+		}
+		$orders = wc_get_orders(
+			array(
+				'limit'      => 1,
+				'return'     => 'ids',
+				'status'     => 'any',
+				'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+					array(
+						'key'     => '_payment_order_number_redsys',
+						'value'   => $ordernumber,
+						'compare' => '=',
+					),
+				),
+			)
+		);
+		if ( ! empty( $orders ) ) {
+			return (int) $orders[0];
+		}
+		return false;
 	}
 	/**
 	 * Prepare the order number.

@@ -60,4 +60,55 @@ class GlobalLiteOrderNumberTest extends WP_UnitTestCase {
 			);
 		}
 	}
+
+	/**
+	 * The "1 billion bug": prepare_order_number() only reserves 9 digits for
+	 * the real order ID inside the 12-character Ds_Order (str_pad(...,12)
+	 * then substr_replace(..., 0, -9)). For an order_id of 10+ digits (HPOS
+	 * installs with a long order history routinely reach this), the
+	 * high-order digits are overwritten by the random prefix and are gone
+	 * from the Ds_Order string itself — the substr()/ltrim() fallback can
+	 * never reconstruct them once the mapping transient (1h TTL) expires.
+	 * clean_order_number() must recover the order via the persistent
+	 * `_payment_order_number_redsys` postmeta instead.
+	 */
+	public function test_clean_order_number_recovers_large_order_ids_via_persistent_meta_lookup() {
+		$lite = $this->global_lite();
+
+		$large_order_id = '9788419493178'; // 13 digits, as seen in a real HPOS report.
+		$ds_order       = $lite->prepare_order_number( $large_order_id );
+		delete_transient( 'redys_order_temp_' . $ds_order );
+
+		// A real order stands in for the order the payment was originally
+		// made against, carrying the persistent meta a gateway writes at
+		// payment time.
+		$order = wc_create_order();
+		$order->update_meta_data( '_payment_order_number_redsys', $ds_order );
+		$order->save();
+
+		$recovered = $lite->clean_order_number( $ds_order );
+
+		$this->assertSame(
+			(string) $order->get_id(),
+			$recovered,
+			'clean_order_number() must recover the order via the persistent _payment_order_number_redsys meta lookup once the transient is gone, even when the substr()/ltrim() fallback is lossy for a 10+ digit order ID.'
+		);
+	}
+
+	/**
+	 * With neither a live transient nor a matching persistent meta record,
+	 * clean_order_number() still has to return SOMETHING (its legacy
+	 * substr()/ltrim() heuristic) rather than error out.
+	 */
+	public function test_clean_order_number_falls_back_to_the_legacy_heuristic_when_nothing_matches() {
+		$lite = $this->global_lite();
+
+		$ds_order = $lite->prepare_order_number( 42 );
+		delete_transient( 'redys_order_temp_' . $ds_order );
+
+		$this->assertSame(
+			ltrim( substr( $ds_order, 3 ), '0' ),
+			$lite->clean_order_number( $ds_order )
+		);
+	}
 }
