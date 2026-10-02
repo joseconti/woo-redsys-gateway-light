@@ -1,0 +1,5 @@
+[shell_environment_policy]
+inherit = "core"
+
+[shell_environment_policy.set]
+PATH = "/Users/joseconti/.local/bin:/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin"
