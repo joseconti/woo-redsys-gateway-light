@@ -53,6 +53,10 @@ scripts/
 
 **Not shipped as source-controlled minified pairs** — `assets/js/frontend/blocks.js` is a build OUTPUT (correctly `[G]`), but the CSS files have no `*.min.css` counterpart at all: the project has never adopted Keel's "source first, minified for production" contract. This is a real gap, recorded in `docs/04-adoption-audit.md` and NOT silently fixed during adoption (adoption changes no code beyond the user-approved license reconciliation, D-003/D-006).
 
+## Change map
+
+The change map — recurring change types and every artifact each one must touch — lives in [`02-functional-spec.md`](02-functional-spec.md), section "Change map (recurring change types → what must be touched)". Read its row before changing anything.
+
 ## Observed conventions
 - Class file naming: `class-wc-gateway-<name>-redsys.php`, kebab-case, `class-` prefix (WordPress convention).
 - Gateway IDs: lowercase, no separators (`redsys`, `bizumredsys`, `googlepayredirecredsys`, `inespayredsys`).

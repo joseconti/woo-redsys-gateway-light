@@ -373,6 +373,17 @@
 ## D-047 — The reconciliation commits are pushed past the pre-push hook, once, with the user's approval
 - Date / phase: 2026-10-06 / post-update reconciliation
 - Decision: the commits of this reconciliation are pushed to `develop` with the pre-push hook bypassed. The user approved it explicitly, for these commits, after being told why: the hook's selection for them is the entire suite (they touch `playwright.config.js` and the selector itself), and the suite cannot run because the playground does not build (D-044).
+- Not checked: whether the suite could have been run somewhere other than this machine (a second machine, a CI runner, or the sibling project's running wp-env with this plugin mounted into it) — none was tried; the claim is only that this checkout's own playground does not build today.
 - What this does and does not cover: it covers the commits of sprint 2 only, none of which touches plugin code. It is not a standing permission. The next push that reaches product code goes through the hook, which needs S-036 first.
 - Why: the alternative was leaving the work on one machine, which is the state Keel's durability rule exists to eliminate; the hook's remedy was one the session could not perform.
+- Supersedes: none.
+
+## D-048 — One-time verifications of the reconciliation: what was observed, what was proven only in fixtures, what is scheduled (S-037)
+- Date / phase: 2026-10-06 / post-update reconciliation, slice S-026
+- Decision: the evidence for the new scaffolding is recorded as it is, in three grades, in `docs/05-test-points.md` (sprint 2 row):
+  1. **Observed for real in this repository:** the chaining smoke test (`scripts/keel-chain-check --smoke` opened a Terminal window, read the marker back, and a second fire opened nothing — it wrote `Chain verified:`); the Stop hook blocking a live turn four times, for uncommitted work, unpushed commits, the plan behind the work, and a non-empty queue; the confidential-data gate running on every commit since `core.hooksPath` was set, and blocking a non-public key in a throwaway repository; the post-commit hook deleting a hand-off on a real commit.
+  2. **Proven in throwaway fixtures only:** every Stop-hook rule in both directions including the cede to a live session, the close-out discharge and the rename and path-with-space cases (35 assertions); the launcher's degrade and terminal paths; `scripts/keel-affected-tests` on historical and synthetic diffs and the pre-push hook against a stub runner; the `scripts/keel-time` report in its three named cases; `scripts/keel-verify`'s new checks in both directions (110 cases).
+  3. **Not done, scheduled as slice S-037:** the Stop hook observed after a full session restart; the timing report read in this repository over a real multi-session slice; a real push through `.githooks/pre-push` with a real selection (needs S-036).
+- The allow-list entry for running `scripts/keel-stop-hook` by hand is NOT added: the hook is invoked by the harness, not through the shell tool, and the user confirmed the committed allow-list by name without it (D-043). Offered again only if manual runs of the hook turn out to be needed.
+- Why: fixture evidence is real evidence of the logic and no evidence of the wiring; writing the two down separately is what keeps "verified" from meaning "ran somewhere".
 - Supersedes: none.

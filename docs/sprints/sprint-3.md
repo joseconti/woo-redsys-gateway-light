@@ -60,6 +60,14 @@ slices:
     actual_source: estimated
     depends_on: [S-036]
     criteria: []
+  - id: S-037
+    title: Remaining one-time verifications of the Keel scaffolding (Stop hook after a session restart, timing report over a real multi-session slice, a real push through pre-push)
+    status: not-started
+    hours: 0.5
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-036]
+    criteria: []
   - id: S-032
     title: Phase 7 release gate on the candidate (full suite, version proposed to the user, package hygiene)
     status: not-started
