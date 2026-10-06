@@ -101,6 +101,7 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == Unreleased ==
 
+* Fix: A notification to the Bizum gateway that arrived without its signature-version field ended in a PHP error (an HTTP 500 on PHP 8). It was already rejected; it is now rejected without the error.
 * Fix: On WooCommerce 9.2 or newer with the legacy order storage, recovering an order from its Redsys order number (refund notifications, late notifications) wrote a "not supported on the current order datastore" notice to the debug log. The lookup no longer uses that query there.
 * Fix: On PHP 8.1 or newer, a notification without a date or an hour wrote two deprecation notices to the debug log (Redsys, Bizum and Google Pay gateways).
 * Tweak: Several text colours of the About page did not reach the 4.5:1 contrast of WCAG 2.2 AA; they are darker now.

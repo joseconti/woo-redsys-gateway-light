@@ -120,7 +120,7 @@ Requests the plugin makes or sends the customer to. Hosts are fixed in the code.
 | Payment form, live | `https://sis.redsys.es/sis/realizarPago` | browser form `POST` | `liveurl` in the three Redsys-protocol classes |
 | Payment form, test | `https://sis-t.redsys.es:25443/sis/realizarPago` | browser form `POST` | `testurl` in the same classes |
 | Card refund | `https://sis.redsys.es/sis/rest/trataPeticionREST` (live) or the same path on the test host | `wp_remote_post()`, 45 s timeout | `classes/class-wc-gateway-redsys.php:1256` |
-| Bizum / Google Pay refund | the payment-form URL above for the active mode | `wp_remote_post()`, 45 s timeout | `classes/class-wc-gateway-bizum-redsys.php:1657`, `classes/class-wc-gateway-googlepay-redirection-redsys.php:1438` |
+| Bizum / Google Pay refund | the payment-form URL above for the active mode | `wp_remote_post()`, 45 s timeout | `classes/class-wc-gateway-bizum-redsys.php:1660`, `classes/class-wc-gateway-googlepay-redirection-redsys.php:1438` |
 | Inespay pay-in | `https://apiflow.inespay.com/pro/v22/payins/single/init` (live) or `…/san/…` (test) | `wp_remote_post()`, 30 s timeout, headers `X-Api-Key` and `Authorization` | `classes/class-wc-gateway-inespay-redsys.php:457` |
 | Inespay refund | `https://apiflow.inespay.com/pro/v22/refunds/init` (live) or `…/san/…` (test) | `wp_remote_post()`, 30 s timeout, same headers | `classes/class-wc-gateway-inespay-redsys.php:762` |
 

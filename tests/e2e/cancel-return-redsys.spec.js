@@ -58,7 +58,10 @@ test( 'a customer returning from a payment Redsys cancelled is told the order wa
 	expect( new URL( urlKo ).searchParams.get( 'order_id' ) ).toBe( orderId );
 
 	// What the notification handler does when Redsys reports the payment refused or abandoned.
-	execFileSync( 'npx', [ 'wp-env', 'run', 'cli', 'wp', 'eval', `wc_get_order( ${ Number( orderId ) } )->update_status( 'cancelled', 'Cancelled by Redsys' );` ], { stdio: 'pipe' } );
+	// WP_ENV_CONFIG selects the instance under test (docs/playground.md);
+	// without it the order would be looked up in the pinned one.
+	const instance = process.env.WP_ENV_CONFIG ? [ '--config', process.env.WP_ENV_CONFIG ] : [];
+	execFileSync( 'npx', [ 'wp-env', 'run', ...instance, 'cli', 'wp', 'eval', `wc_get_order( ${ Number( orderId ) } )->update_status( 'cancelled', 'Cancelled by Redsys' );` ], { stdio: 'pipe' } );
 
 	await page.goto( urlKo );
 

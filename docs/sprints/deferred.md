@@ -65,6 +65,14 @@ items:
     reason: D-060 — both need a valid signature to matter; refactoring the verification head of successful_request() is not a security-fix change
     depends_on: []
     criteria: []
+  - id: S-065
+    title: The Spanish translation of the Blocks checkout script is never loaded — its JSON file is named after the source path, not after the script WordPress loads
+    status: not-started
+    hours: 0.5
+    target: null
+    reason: D-072 — found by the gate's self-audit and confirmed on the ceiling instance; today it only affects the fallback label "Inespay Bank Transfer" when the merchant set no title; older than this release
+    depends_on: []
+    criteria: []
 ---
 
 # Deferred — wanted, not in the current plan
