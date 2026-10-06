@@ -1,6 +1,6 @@
 # Test automation — the assistant drives every test it can drive
 
-Load this at five moments: (a) Phase 1 §5a, for the environment preflight as soon as the project type and target platforms are fixed; (b) Phase 2 §4/§4d, when the technical plan picks the drivers and writes the environment requirements table; (c) the Phase 5 scaffold, when `scripts/keel-doctor` is generated and the drivers are stood up; (d) every Phase 5 test point and sprint close, when the tests are actually driven; (e) the Phase 7 gate, for the clean-machine run.
+Load this at five moments: (a) Phase 1 §5a, for the environment preflight as soon as the project type and target platforms are fixed; (b) Phase 2 §4/§4d/§4e, when the technical plan picks the drivers, writes the environment requirements table and settles the test-first policy; (c) the Phase 5 scaffold, when `scripts/keel-doctor` is generated and the drivers are stood up; (d) every Phase 5 test point and sprint close, when the tests are actually driven; (e) the Phase 7 gate, for the clean-machine run.
 
 It is the operating manual for one rule. `references/playground-recipes.md` says WHAT environment each project type gets; this file says WHO exercises it and how that is proven.
 
@@ -64,6 +64,191 @@ Two of these need their own rule, because they are the ones that could otherwise
 
 **The scope rule for `CREDENTIAL`.** A credential blocks only the leg that needs it, never the whole flow. A checkout that cannot complete against a real gateway is still driven end to end against an offline payment method, with only the gateway leg delegated. Delegating the entire purchase because one payment method needs a key is the most common way this contract gets quietly broken.
 
+## When the test is written — the test-first policy
+
+Everything above settles WHO drives a test. This section settles WHEN it is written, and it exists for one failure the rest of this file cannot catch.
+
+**A test written after the implementation is written by someone who already knows how the implementation works.** It describes what the code does, not what the requirement asked for. Where those two differ — which is exactly the case worth catching — the difference is invisible, because it is present in both the code and the test. The suite goes green, stays green, and the defect is now protected by a passing test that everyone will read, correctly, as evidence. It is "declared is not delivered" (SKILL.md) in its most convincing disguise, and no amount of driving fixes it: a driven test that asserts the wrong thing is driven, recorded, reproducible and wrong.
+
+A test written BEFORE the code cannot copy the implementation, because there is nothing to copy. That is the whole argument, and it is the only one this section rests on. The classic case for test-first — design pressure on the API — carries much less weight here, since the shape of the code is already fixed by the technical plan; do not use it to justify going further than the scopes below.
+
+### It is a policy, not a doctrine — three values, one card line
+
+Test-first is deliberately NOT applied uniformly. Where it is cheap it is mandatory; where it is expensive it is opt-in and decided per project; where it is counterproductive it is forbidden outright, and "more rigour" is not a reason to overrule that. The project's choice is one line on the project card — `Test-first policy:` — asked once at Phase 2 §4e and recorded with the rest of the technical plan.
+
+Two levels are referred to throughout, and they are defined in full just below: **Level B** is test-first on pure logic (the cheap half), **Level A** is the slice's acceptance criterion turned into a failing check first (the expensive half).
+
+| Value | What it means |
+|---|---|
+| `pure-logic` | **Default for new projects.** Level B is mandatory; Level A is not applied. |
+| `pure-logic + acceptance` | Levels A and B are both mandatory. |
+| `none` | Neither level applies. Requires its own `docs/decisions.md` entry — the default is never dropped silently. |
+
+**The bug-reproduction rule below is not part of this policy and does not move with it.** It applies on every project, at every value, including `none`.
+
+### Level B — pure logic, test first (the half that always pays)
+
+Mandatory wherever the policy is not `none`. It covers code that is a function of its inputs, with a closed contract and no framework state to stand up:
+
+- signature computation and verification, token and hash derivation, cryptographic envelopes;
+- parsers, serializers, format converters, encoders;
+- validators (identifiers, bank codes, postal formats, schema checks);
+- state machines and their transition tables (subscription lifecycles, retry ladders, order status);
+- money: proration, tax, rounding, currency conversion, totals;
+- entitlement and expiry resolution (licences, trials, grace periods);
+- anything else whose test needs no environment beyond the language runtime.
+
+Here the test costs minutes to write, runs in milliseconds, and is where a defect costs the most in the field — a wrong signature or a wrong proration reaches real money. Writing it first is not a ceremony on this code; it is the cheapest verification the project will ever buy.
+
+### Level A — the acceptance criterion first (the opt-in half)
+
+Applied only where the card says `pure-logic + acceptance`. The slice begins by translating the acceptance criterion it implements — the `AC-nn` from `docs/02-functional-spec.md` §6, not a paraphrase of it — into ONE executable check that fails, at whatever level the criterion actually lives (integration, driven end-to-end, a real call against the playground). Then the slice is built until that check passes, and the rest of the slice's tests are written as usual.
+
+This is the level that carries the argument at the top of this section into user-visible behaviour, and it is also the expensive one: expect it to add materially to the front of each slice, concentrated in the slices that need a driver stood up. It is opt-in for exactly that reason. A project that wants it on one subsystem and not on the whole codebase records that scope in the technical plan's `## Testing`, beside the policy line, rather than pretending the card value covers it.
+
+### Where test-first is NOT applied — on any policy value
+
+Naming this is as much of the policy as the mandatory half is, because a rule with no boundary gets applied where it does damage and then gets abandoned entirely:
+
+| Not applied to | Because |
+|---|---|
+| UI markup, layout, styling, block editor markup | The assertion is a design judgment until the design exists; the test would encode the first guess |
+| Framework glue — hook registrations, service wiring, bootstrapping | Standing up the global state costs more than the check is worth, and the playground already exercises it |
+| Exploratory integration with a third party whose real behaviour is not yet known | See the spike rule below — a test written against a guessed response shape is a guess with an assertion on it |
+| One-line configuration, constants, generated files | There is nothing to get wrong that a compile or a lint does not catch |
+
+Coverage of these still exists — it comes from the driven tests, the playground and the static checks that the rest of this file already mandates. What changes is only the ORDER, and only where the order buys something.
+
+### The spike escape hatch (and its closing condition)
+
+When the real shape of a third-party response, a platform API or an undocumented behaviour is unknown, writing the test first is writing fiction. The correct move is a spike: explore against the real thing until the shape is known, in code that is understood to be disposable. **The escape hatch closes the moment the shape is known** — the behaviour is then pinned with a test, and the spike code is either deleted or rewritten behind it. A spike that quietly becomes the implementation, with its test written afterwards from the code it produced, is the exact failure this section exists to prevent, arriving by the one door left open for it. Record the spike and its closing in the slice's notes.
+
+### Guard 1 — the test is not edited to make it pass (UNBREAKABLE)
+
+When a test-first test fails, the cheapest available action is to change the test. It is also, almost always, the wrong one — and an assistant under pressure to reach a green gate will find it first.
+
+**A test derived from a recorded requirement — an `AC-nn`, or a reproduced bug — is NEVER modified to make it pass.** If the test is genuinely wrong, then the REQUIREMENT is wrong, and that is a decision the user makes: it takes a `docs/decisions.md` entry, or a Design Request where a design contract is involved (`references/phase-4-faithful-build.md`). The assistant proposes; it does not settle it by editing the assertion and moving on.
+
+What is NOT covered by this rule, and needs no entry: renaming a test, moving it between files, improving its failure message, fixing its own scaffolding (a broken import, a wrong fixture path, a flaky wait). The line is precise and it is about the assertion: **if the set of behaviours that would pass the test changes, the rule applies.** If it does not, the rule does not.
+
+This is the same rule as `references/phase-5-development.md`'s "never 'fix' the failure by deleting, skipping, or loosening the test" (§2, the three-attempt rule), stated for the one case where the loosening looks like authorship rather than damage — because the test was written minutes ago, by this session, and feels like its own to change.
+
+### Guard 2 — the red is observed, and for the right reason
+
+A test that has never failed is not evidence of anything, and a test that fails on a missing import is evidence of even less. Before the production code is written:
+
+1. **Run the test and observe the failure.** Not "expect it to fail" — run it.
+2. **Confirm the failure message matches the absent behaviour**, not a setup error, a syntax error, a missing dependency or a typo'd fixture. A red for the wrong reason is a green in waiting: it goes away when the setup is fixed, whether or not the behaviour was ever built.
+3. **Record the red beside the green.** The one-line failure output goes in the test point's evidence cell, and the row's `Red first` column says `observed`.
+
+Skip step 2 and the project accumulates tests that could never have failed — the most expensive failure mode in this whole file, because it produces confidence with nothing underneath it, and nobody ever re-examines a green test.
+
+### The bug-reproduction rule (every project, every policy value)
+
+**A bug fix begins with a test that reproduces the bug and fails, before the fix is written.** This applies on every project regardless of the `Test-first policy:` line, in Phase 5 slices, in maintenance and in hotfixes (`references/maintenance.md`).
+
+Keel already required that every fixed bug carry a regression test. The order is what this rule adds, and it is not cosmetic: a test written after the fix demonstrates that the code now does what the code now does. It never actually reproduced the bug, so nothing proves it would catch the bug's return — which is the only thing a regression test is for. The reproduction failing first is the proof that the test and the bug are about the same thing.
+
+Under time pressure — a production hotfix, an incident — this is the rule most likely to be skipped, and it is the one whose absence surfaces three versions later as the same report from the same customer. It costs minutes. It is not tradeable against urgency; if the fix is urgent enough to ship without it, that is a `docs/decisions.md` entry with the consequence stated, not a silent omission.
+
+### What is recorded, and what checks it
+
+- **The policy** — the project card's `Test-first policy:` line, plus any narrower scope in `docs/03-technical-plan.md` `## Testing`.
+- **The red** — `docs/05-test-points.md` gains a `Red first` column, holding exactly one of five values: `observed` (the failure line is in the evidence cell), `n/a — policy` (the card's `Test-first policy:` does not cover this row — `none`, or a Level A row on a `pure-logic` project), `n/a — out of scope` (the row is in the not-applied table above), `n/a — predates` (the row existed before the project adopted the policy — it is not retroactive), `n/a — delegated` (the row's `Coverage` is one of the eight tags, so nobody here ran it; on `NO-EXECUTION` the test is still WRITTEN first and handed over, and that goes in the delegation steps).
+- **`scripts/keel-verify`** checks three things, and the asymmetry between them is deliberate. It **FAILS** a row whose `Red first` cell is empty or holds anything outside the five values — the same enum check `Coverage` already gets, and the reason both enums are closed is that a script can only count what it can recognise. It **FAILS** a row claiming `observed` with no failure output in its evidence cell — a claim without its evidence, which is the one thing this skill never tolerates. And it **REPORTS**, never fails, every row whose value is not `observed` and not `n/a — delegated` — the delegated ones are already accounted for by their tag and their steps, and everything else is an escape valve. The rule is deliberately blunt for one reason: the script cannot decide whether a given piece of code is pure logic, so ANY judgment-bearing value has to be visible, or the assistant simply picks the mildest one that nobody looks at. The list goes in the sprint-close report for a person to judge. On a project whose card says `none` the report is one line naming the policy and its decision entry instead of a row list — there the escape was taken deliberately, once, on the record.
+
+## Which tests run when — the change at every push, everything at the release (UNBREAKABLE)
+
+Writing a test for everything is right, and nothing below relaxes it. Running every test on every
+push is a different decision, and on a large project it is the wrong one: the suite grows with every
+slice, a push that used to cost seconds starts costing many minutes, and a flow that commits and
+pushes dozens of times a sprint turns testing into the bottleneck of all the work — while buying
+nothing a correct selection does not, because **a change can only break what it reaches.** The
+question a push asks is "did THIS change break what it touches?". The question a release asks is
+"is anything anywhere broken?". They get different answers because they are different questions.
+
+### The moments, and what each runs
+
+| Moment | What runs | Base of the diff |
+|---|---|---|
+| Test point (every slice) | The slice's own tests plus the affected selection of the slice's diff | the commit the slice started from |
+| Every push (`.githooks/pre-push`) | The affected selection of everything being pushed | the remote ref being updated; for a new branch, its merge-base with the integration branch |
+| Sprint close | The affected selection of the whole sprint's diff | the commit the sprint started from |
+| **Release — the Phase 7 gate, a hotfix and a maintenance release included** | **The ENTIRE suite, on the release candidate** | — |
+
+On `Push test scope: full` (the user's explicit choice, with its D-entry) every row runs the entire
+suite. Static analysers and sniffers follow the same split: the changed files at a test point and a
+push, the whole tree at the release. `scripts/keel-verify` is cheap and runs whole, always.
+
+### `scripts/keel-affected-tests` — the selection is a script, never a judgment
+
+Generated at the Phase 5 scaffold from the technical plan's `Test selection` line. `--base <ref>`
+sets the base (default: the upstream of the current branch, else the merge-base with the integration
+branch); `--run` executes what it selected; without it, it only prints. It builds the selection from
+exactly four inclusions:
+
+1. **The tests of every changed source file** — by the stack's own impact tool where one exists,
+   otherwise by the plan's path convention (`src/Foo/Bar.php` → `tests/**/BarTest.php`).
+2. **The tests of everything that depends on a changed file** — its reverse dependencies, from the
+   import/`use`/`require` graph or the stack's dependency tool, followed transitively. This is what
+   keeps a sprint-3 change that breaks sprint-1 code inside the selection.
+3. **Every test file added or modified in the diff**, and every regression test tied to a bug the
+   diff fixes.
+4. **The always-run set the plan names**, if it names one — a handful of smoke checks, never a
+   growing second suite.
+
+And it WIDENS, from a closed list, where a file mapping cannot bound the reach of the change:
+
+| The diff touches | The selection becomes |
+|---|---|
+| A dependency manifest or lockfile, the test runner's configuration or bootstrap, shared fixtures or helpers, build configuration, the playground or environment configuration, CI configuration, or `scripts/keel-affected-tests` itself | the entire suite |
+| A database schema or migration | the affected selection plus every integration and upgrade test |
+| A source file that maps to no test and has no dependent that does | the tests of its enclosing module or package — and the uncovered file is reported as a coverage gap, not passed over |
+| Only documentation (`docs/`, `*.md`, `guide/` text) | no tests — `scope: none — docs only`, and `scripts/keel-verify` still runs |
+
+**An empty selection for a diff that touches source code is a failure of the selector, never a
+green** — the script exits non-zero and says so. A selection tool that errors falls back to the entire
+suite and says why. Both exist because the silent failure of this mechanism looks exactly like success.
+
+Every run prints ONE scope line, and that line goes in the evidence cell of `docs/05-test-points.md`:
+`scope: affected — 37 of 412 tests — base 1a2b3c4` (with `widened: <reason>` where it widened),
+`scope: full — 412 of 412 tests`, or `scope: none — docs only`.
+
+**Impact tools by stack** — the plan names the one the project uses; where a stack has none, the path
+convention plus the reverse-dependency grep IS the tool, written into the script:
+
+| Stack | Selection |
+|---|---|
+| Jest | `jest --findRelatedTests <files>` (follows the import graph) or `--changedSince=<base>` |
+| Vitest | `vitest related <files> --run`, or `vitest --changed <base>` |
+| Playwright | `--only-changed=<base>` for spec files changed; flows mapped to source through tags (`--grep @flow-name`) |
+| pytest | `pytest-testmon` (coverage-based), or the path convention plus the import graph |
+| PHPUnit (WordPress, PrestaShop, Laravel) | no native impact analysis: path convention, `#[CoversClass]`/`@covers` grep, and a grep for the changed classes, functions and hook names across `tests/` — then `phpunit <files>` or `--filter` |
+| Go | changed packages plus their reverse dependencies from `go list -deps -test ./...` → `go test <packages>` |
+| Rust | changed crates plus their dependents from `cargo metadata` → `cargo test -p <crate>…` |
+| Monorepos | `nx affected -t test --base=<base>`, `turbo run test --filter=...[<base>]`, Bazel `rdeps` |
+| Xcode | changed modules mapped to test targets → `xcodebuild test -only-testing:<target>` |
+
+### `.githooks/pre-push` — so the rule holds when nobody remembers it
+
+Generated with the script, under the same `core.hooksPath` as the other hooks. It reads the refs git
+passes it, runs `scripts/keel-affected-tests --run --base <remote sha>` for each branch being pushed
+(a new branch: the merge-base with the integration branch), and refuses the push when the selection is
+red or the selector failed. A tag push is skipped: a tag is a release, and the release's evidence is
+the full-suite run the Phase 7 gate recorded on the candidate. Bypassing it with `--no-verify` is a
+user's act, never the assistant's.
+
+### What does not move
+
+- **The full suite at every release is not optional**, and a hotfix is a release. The one reduction
+  that already existed — the hotfix path may narrow the END-TO-END run to the flows the fix touches,
+  on the record (`references/maintenance.md`) — is unchanged and is the only one.
+- **Every behaviour still gets its test**, the reproduction test still comes before every bug fix,
+  and a test derived from an `AC-nn` or a reproduced bug is still never edited to make it pass.
+- **Where the card carries `E2E:`**, the end-to-end run at a push follows the selection (the flows the
+  change reaches) and the release gate on `docs/.keel/e2e-status.json` still requires the full run on
+  the candidate's commit.
+
 ## Make the product drivable (this is a build requirement, not a test requirement)
 
 A UI that cannot be addressed reliably forces a human back into the loop, so addressability is built in from the first slice, exactly like accessibility:
@@ -104,10 +289,15 @@ Generated at the Phase 5 scaffold from the technical plan's environment requirem
 | phpMyAdmin | absent | — | MISSING | optional | (not needed for tests) |
 | Permission mode | `manual` | not `manual` | MISSING | advisory | write `.claude/settings.local.json` (`defaultMode: "auto"`) or start with `--permission-mode auto` |
 | Notification channel | none responding | a delivering channel | MISSING | advisory | authorize the recorded channel, or accept in-chat only (`references/notifications.md`) |
+| Browser MCP scope | `playwright` in `~/.claude.json` `mcpServers` | project `.mcp.json` only | MISSING | advisory | `claude mcp remove -s user playwright`; register it in the project's `.mcp.json` |
+| Browser MCP flags | `.mcp.json` args without `--headless` | `--headless` + `--isolated`, or `--cdp-endpoint` | MISSING | advisory | add the flags to the `playwright` entry's `args` |
+| Orphaned Playwright browsers | 3 (PPID 1) | 0 | MISSING | advisory | `kill <the listed PIDs>` |
 
 The four states matter more than they look. Collapsing `NOT OPERATIONAL` into `MISSING` is the single most common doctor bug: it makes the assistant propose reinstalling Docker when all that was needed was to start it. Severity is its own column, not a footnote: **blocking** means no work is possible without it, **optional** means quality of life, **advisory** means the work will complete but under friction the user should know about. Neither an optional nor an advisory row that is missing fails the run, and neither gates a release.
 
 **The permission-mode row is the standing advisory one.** The doctor reports the session's active permission mode and whether `.claude/settings.local.json` exists with a `permissions.defaultMode` other than `manual`. `manual` — or no file and no mode passed — is reported as MISSING at **advisory** severity, with the fix named: write the local settings file, or start with `claude --permission-mode auto`. It never exits non-zero on this row and never blocks a gate; it exists because a session in `manual` mode hits a dialog on every composite command and the driven-test protocol quietly degrades into asking the user, which is the failure this whole reference exists to prevent. The full procedure and the file's exact contents are in `references/keel-maintenance.md` ("Permission mode"). The notification-channel row is advisory for the same reason and reports the same way: the channel is PROBED, a compose-only connector is never counted as delivering, and "no channel" is a stated result rather than a silent one (`references/notifications.md`).
+
+**The three browser-MCP rows exist because the rule they check was a sentence that did not hold** ("A browser MCP costs one browser per session", above). They are generated whenever the technical plan has a browser surface OR any browser MCP is registered anywhere on the machine, and they are advisory: the work completes, the machine just pays for it. **Scope** reads every user-level container the accepted tools use (the top-level `mcpServers` of `~/.claude.json` — not its per-project entries, which are local scope and bind one checkout — plus `~/.cursor/mcp.json`, `~/.codex/config.toml`, `~/.gemini/settings.json`, and the enabled user-level plugins' bundled servers) for a server whose command or args name `@playwright/mcp` or a server named `playwright`; any hit is MISSING. **Flags** reads the project's own registration: `--headless` and `--isolated` both present, or `--cdp-endpoint` present, is OK; anything else is MISSING, with the absent flag named. **Orphans** lists processes whose command line contains `ms-playwright` (where Playwright keeps its browsers and the MCP its profiles) and whose PPID is 1 — `ps -axo pid=,ppid=,rss=,command=` on macOS and Linux — and reports the count with their combined resident memory, so "3 orphans, 2.1 GB" says why the row matters. `--fix` kills exactly those PIDs and nothing else; it never runs `pkill -f ms-playwright`, which would take down browsers that live sessions are driving.
 
 Emit the same content as JSON (`--json`) so the assistant decides from structured data instead of parsing its own table.
 
@@ -182,6 +372,20 @@ This is the point that makes the difference between "the assistant tests everyth
 - **macOS apps: it always steals the screen, and there is no fix inside the machine.** A macOS UI test moves the real cursor and types on the real keyboard, which is why Apple requires granting Accessibility permission to Xcode Helper. The mitigations, in order of preference: a dedicated Mac or VM, a separate macOS user account whose session runs the tests, or a hosted macOS runner. Record which one applies in the technical plan. If none is available, macOS UI tests are scheduled deliberately — announced, batched, and run when the user is not working — never fired mid-conversation.
 - **Windows native apps: same shape as macOS.** A dedicated Windows VM with autologon, or the tests are scheduled.
 - **Linux desktop apps: solved by `xvfb-run`.** The app runs against a virtual display the user never sees. Force X11 inside Xvfb rather than trying to automate a live Wayland session: Wayland has no client API to enumerate or activate another application's windows, and global input injection needs portal consent, which defeats unattended runs. AT-SPI itself works fine under Wayland (it rides D-Bus), which is why the accessibility route survives where `xdotool` does not.
+
+### A browser MCP costs one browser per session — share one, close it, reap the orphans
+
+Driving a browser through an MCP server (the Playwright MCP, `@playwright/mcp`) has a cost the test runner does not: **every assistant session that has the server registered starts its own server process, and every server launches its own Chromium.** Four sessions open on one machine are four browsers holding memory whether or not anything is being tested, and a session that ends without closing its browser leaves the Chromium behind, reparented to PID 1 and still resident. The measured case: four concurrent sessions exhausted a 32 GB laptop. Nothing failed loudly — the machine swapped until it stopped being usable. So the browser MCP is configured, shared and cleaned up by rule, and the doctor checks all three (below):
+
+- **Registered per project, never per user.** The server goes in the repo-level file of the projects whose technical plan has a browser surface — `.mcp.json` for Claude Code, the matching container for the other tools (`references/assistant-config.md`, "MCP registration") — and nowhere else. A user-level registration (`claude mcp add -s user`, the top-level `mcpServers` of `~/.claude.json`, `~/.cursor/mcp.json`, `~/.codex/config.toml`, `~/.gemini/settings.json`, or a plugin enabled at user level that bundles the server) starts a browser in EVERY session on the machine, including the ones working on a library with no UI. A project without a browser surface has no browser MCP at all.
+- **Headless and isolated by default.** The registration passes `--headless` (the server's own default is headed: it opens a window, which also takes the screen) and `--isolated` (an in-memory profile discarded when the browser closes, so no profile directory accumulates and no two sessions fight over one persistent profile lock). A headed MCP browser is an on-demand choice exactly like the headed test script, never the registered default.
+- **One shared browser where several sessions run at once.** Launch ONE Chrome with `--remote-debugging-port=9222 --remote-debugging-address=127.0.0.1 --user-data-dir=<a dedicated throwaway directory> --headless=new`, and register the server with `--cdp-endpoint http://127.0.0.1:9222` instead of letting it launch its own: every session then attaches to that one browser rather than adding another. The debugging port is full remote control of that browser, so it is bound to `127.0.0.1` only and it NEVER runs on the user's everyday profile (current Chrome refuses remote debugging on the default profile anyway) — the dedicated directory holds no sign-ins, cookies or history of theirs. Record which shape the project uses (own browser per session, or the shared endpoint) in the technical plan's `## Testing` block beside the run mode.
+- **Closed at the end of every test.** A driven check through the MCP ends with `browser_close`, success or failure — the same discipline as a fixture's teardown. On the shared endpoint it closes this session's pages and context, not the browser the other sessions are using.
+- **Orphans are reaped, not tolerated.** A Playwright browser whose parent is PID 1 belongs to no session any more. The doctor lists them (below) and its `--fix` kills exactly those PIDs after the user's OK. The blunt equivalent, `pkill -f ms-playwright`, kills every Playwright-launched browser on the machine, the ones live sessions are driving included — use it only when no session is driving a browser, and say so before running it.
+
+**The test runner multiplies the same way, and on a measured laptop it was the bigger half.** One `playwright test` run starts `workers` browsers at once (by default half the CPU cores), each with its renderer, GPU and network processes, plus one `ffmpeg` per worker while `video` is on; one run on the measured machine held about 2 GB, with no MCP involved at all. Four sessions each running their suite is four times that. So the local worker count is capped from the config rather than left to the default — `workers: process.env.CI ? undefined : Number(process.env.PW_WORKERS ?? 2)` — and the cap is recorded in the technical plan's `## Testing` block beside the run mode. Lowering it costs wall-clock, never coverage: the recording stays on and every test still runs. Where several sessions on one machine must run browser suites, they take turns through the same "one executing verifier per environment" rule rather than all running at once.
+
+This is the machine-wide face of the fan-out rule's "at most ONE executing verifier per environment" (`references/assistant-config.md`, "Parallel fan-out"): the laptop's memory is an environment too, and a session count that does not fit it is a concurrency cap, not a reason to buy RAM.
 
 ## Filling forms for real
 
@@ -272,11 +476,17 @@ Recorded here so it is never rediscovered as a surprise mid-project:
 
 - The technical plan names one driver per surface the project has, states for each whether it runs without taking over the user's screen, and records the mitigation where it does not.
 - `scripts/keel-doctor` exists, is committed, is generated from the plan's environment requirements table, and passes `--check` before gate zero and at the first test point of every session.
+- Where the project has a browser surface driven through an MCP, the server is registered at project level only, headless and isolated (or attached to one shared browser through `--cdp-endpoint`), every driven check ends with `browser_close`, and the doctor's three browser-MCP rows are generated.
 - Every acceptance criterion with a user-visible surface has a driven test that fills the real fields and asserts what the interface shows — not an instruction for the user.
 - Console errors, failed requests, 5xx responses and platform logs are read back and fail the test.
 - The automated accessibility pass runs per screen and per state, inside the same driven tests.
 - Static analysis and sniffers run at every test point with recorded output and a tracked suppression count.
+- Every test point and every push ran the affected selection from `scripts/keel-affected-tests` (or the full suite on `Push test scope: full`), enforced by `.githooks/pre-push`, with its `scope:` line in the evidence; no empty selection passed for a diff that touched source; the entire suite ran on the release candidate at every release.
 - Every acceptance criterion carries its `AC-nn` ID, and every ID appears in `docs/05-test-points.md` with a `Coverage` value that is either `driven` or one of the eight tags — never free text, never blank.
 - Every delegation to the user carries its tag and its exact steps; a delegation without a tag is a defect, and `JUDGMENT` or `PRODUCTION-RISK` on a criterion with no driven test beside it is the same defect wearing a label.
 - Anything that could not be driven is `⚠ unverified` with its reason — never silently absent and never reported as passing.
 - Where the session's environment is protected (no network where the files are, no deletion, no `localhost`, execution and files on separate filesystems), the limitation was stated at Phase 1 §5a and the affected legs carry `NO-EXECUTION` naming the missing half — not the whole suite, and never the user's clicking.
+- The project card carries a `Test-first policy:` value, and where it is `none` that value has its `docs/decisions.md` entry.
+- Every test written under the policy was seen to fail first, for the absent behaviour and not for a setup error, with the failure line recorded and its row's `Red first` column set.
+- No test derived from an `AC-nn` or from a reproduced bug was modified to make it pass without a decision entry or a Design Request behind the change.
+- Every bug fixed in this project — slice, maintenance or hotfix — was reproduced by a failing test BEFORE the fix, on any policy value.

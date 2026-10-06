@@ -280,6 +280,699 @@ is not optional. `keel-verify` fails on a due row that is `missing` with no deci
 
 ---
 
+### 12c. The test edited until it passed
+
+**The trap.** A test derived from an acceptance criterion fails. The assertion is adjusted, the expected
+value is widened, the awkward case is removed — and the suite goes green. The commit reads like
+authorship, because the test was written by this same session, minutes ago, and feels like its own to
+change.
+
+**Why it happens.** It is the cheapest action available at the exact moment the pressure is highest: a
+gate is one red away from green, the fix is not obvious, and the test is right there and editable. It
+does not feel like loosening a standard; it feels like correcting a first draft. Test-first makes this
+trap MORE likely, not less, because the test is newest and least defended precisely when it is doing its
+most valuable work.
+
+**What it costs.** Everything the test was worth. The requirement now has a test that no longer tests
+it, and the mismatch is invisible: the suite is green, the coverage check passes, the criterion has a
+row. It is worse than having no test at all, because a missing test is a visible gap and a hollowed-out
+one is counted as evidence.
+
+**The rule.** A test derived from a recorded requirement — an `AC-nn`, or a reproduced bug — is never
+modified to make it pass. If the test is genuinely wrong, then the REQUIREMENT is wrong, and that is the
+user's call: a `docs/decisions.md` entry, or a Design Request where a design contract is involved. The
+boundary is precise and it is about the assertion: **if the set of behaviours that would pass the test
+changes, the rule applies**; renaming, moving, improving the failure message and fixing the test's own
+scaffolding do not. This is `references/phase-5-development.md` §2's "never 'fix' the failure by deleting,
+skipping, or loosening the test" stated for the one case where it looks like editing your own draft
+(`references/test-automation.md`, "When the test is written").
+
+---
+
+### 12d. The test that could never have failed
+
+**The trap.** A test written before the code, run once, seen to fail, and taken as red — when the
+failure was a broken import, a missing fixture, a typo in the module path. The setup is fixed, the code
+is written, the test goes green, and nobody ever asks which of the two produced the green.
+
+**Why it happens.** Step one of test-first is "see it fail", and a failure is easy to produce. Reading
+the failure message to confirm it names the ABSENT BEHAVIOUR — and not the scaffolding — is a separate
+step, it takes ten seconds, and it is the one that gets skipped when the red is expected anyway.
+
+**What it costs.** A test that asserts nothing, permanently, wearing the exact appearance of a test that
+asserts something. It never fails again, so it is never re-examined; it is counted in coverage, it
+satisfies the criterion's row, and it will still be green on the day the behaviour it names is deleted.
+The project has bought confidence with nothing underneath it — the most expensive purchase in this
+entire catalogue, because unlike every other trap here it produces no symptom at all.
+
+**The rule.** The red is observed, and the failure message is confirmed to be the absent behaviour before
+any production code is written. The failure line is recorded in the test point's evidence cell and the
+row's `Red first` column says `observed`. `keel-verify` fails a `Red first` cell that is empty or
+outside the five values, fails a row that claims `observed` with no failure output beside it — a claim
+without its evidence, which is the same defect as entry 7 — and reports every other row for a person to
+judge.
+
+---
+
+### 12e. The second session writing into a checkout somebody else is working in
+
+**The trap.** A repository is open in one session that is mid-slice, with uncommitted work in the
+tree. A second session — opened by hand, chained, scheduled, or running on another surface — starts
+writing into the same directory. Both are correct in isolation. Together they interleave commits on
+one branch, overwrite each other's `docs/PROGRESS.md`, and sweep each other's in-flight files into
+unrelated commits.
+
+**Why it happens.** Nothing about the directory announces that it is busy. The single-lane lock
+guards CHAINED launches, and it is keyed to the working directory precisely for this reason — but a
+session a person opens themselves, or one running on a different surface, never passes through the
+launcher and therefore never meets the lane. The second session sees an ordinary repository.
+
+**What it costs.** Measured: a session opened on another surface committed with `git add -A` into a
+repository whose live session was mid-slice, swept two of its in-flight files into a documentation
+commit under an unrelated message, and appended a decision entry with an ID that was already taken
+120 entries earlier. Nothing was destroyed, and the recovery still cost more than the work was worth.
+The damage is silent at the moment it happens: every command succeeds.
+
+**The rule.** **Before the first WRITE into a repository this session did not start work in, establish
+that nobody else is working in it** — mechanically, never by assumption. Two commands answer it:
+`git status --porcelain` (uncommitted work is the first signal) and, for anything it lists, the
+modification times of those paths. Files changed in the last few minutes, in an order that looks like
+authoring, mean a live session. `claude agents --json --cwd <path>` settles it where the CLI is
+available. If another session is working there, do not write: hand the change to that session as a
+ready-to-paste instruction, which is the same boundary rule the skill already applies to every other
+tool crossing. Reading is always safe; writing is what needs the check.
+
+### 12f. The copy in context read as if it were the repository
+
+**The trap.** A session holds a file in context — a reference, a state file, the skill itself — and
+reasons from it for the rest of the session. Meanwhile the repository on disk has moved: another
+session edited it, an update landed, the working tree advanced several versions.
+
+**Why it happens.** The skill's own context discipline says to read each static reference once per
+session and never re-read what is already in context, which is correct for cost and for cache
+behaviour, and which quietly becomes wrong the moment the file on disk is a moving target.
+
+**What it costs.** Measured: a session reasoned for an entire working block from a v5.11.0 copy of
+this skill while the repository it was working in held an uncommitted v5.14.0 — then proposed, in
+detail, a four-part change that the working tree already contained in full. The advice was coherent,
+well-argued and useless, and nothing in the session could have detected it.
+
+**The rule.** **The repository on disk is the authority; a copy in context is a cache with no
+invalidation.** Re-read from disk, without exception, in three cases: when the session is working ON
+the repository that a file in context came from; after any external process may have touched the tree
+(an update, another session, a merge); and before asserting anything about a version, a phase or a
+recorded decision. The cheap form is one command — read the frontmatter, the phase status, the
+current position — not the whole file.
+
+### 12g. The repair whose effect was never checked
+
+**The trap.** A command that fixes something returns exit 0, and the fix is reported as done. It did
+nothing. Restores, checkouts, file replacements and permission changes all have environments in which
+they fail without failing loudly.
+
+**Why it happens.** Exit codes report whether the command ran, not whether reality changed, and the
+gap between the two is invisible unless someone looks. On restricted filesystems the gap is routine:
+a mount that forbids `unlink` lets `git checkout <commit> -- <path>` return success while leaving the
+file exactly as it was.
+
+**What it costs.** Measured: two files were reported "restored verbatim" in a commit message, and the
+commit that claimed it changed nothing in them. The false claim then sat in the history, which is
+worse than the original error, because the next reader has no reason to check.
+
+**The rule.** **A repair is verified by its EFFECT, never by its exit code**, and the verification is
+the command that would have caught the failure: `git diff <ref> -- <paths>` after a restore, a
+re-read after a write, a re-run after a fix. This is "declared is not delivered" applied to the
+commands a session runs on its own behalf. A commit message may only claim what a check confirmed.
+
+### 12h. `git add -A` in a tree you did not author
+
+**The trap.** A session stages everything and commits, in a repository where some of the changes are
+not its own — another session's in-flight work, a half-finished slice, a generated file that was
+about to be reverted.
+
+**Why it happens.** `-A` is the reflex, and in a tree the session authored entirely it is correct and
+convenient.
+
+**What it costs.** Somebody else's incomplete work is now committed, under a message that describes
+something unrelated, at a moment they did not choose. The content survives, so nothing looks broken —
+but the history now says a slice was finished when it was not, and the ordering evidence a sprint
+close depends on is gone.
+
+**The rule.** **Stage explicit paths whenever the session did not author every change in the tree.**
+`git status --porcelain` before every commit, and anything on that list the session cannot account
+for stops the commit until it is explained. In a tree the session authored end to end, `-A` remains
+fine.
+
+### 12i. The identifier chosen from memory
+
+**The trap.** A new entry is appended to an append-only log — a decision, a lesson, a test point, an
+acceptance criterion — with the next ID inferred from what the session remembers seeing, rather than
+derived from the file.
+
+**Why it happens.** The session read the file earlier, or read a fragment of it, or created it and
+assumes it knows its size. Appending is a one-line operation that feels too small to warrant a read.
+
+**What it costs.** Measured: a decision was filed as `D-009` in a log that already ran to `D-105`,
+colliding with an unrelated entry. Two entries with one ID break every cross-reference pointing at
+either, and the log's whole value is that a reference resolves to exactly one entry.
+
+**The rule.** **Derive the next identifier from the file, in the same command that appends** — one
+`grep` for the ID pattern, take the highest, add one. Never from context, never from the last one the
+session happens to have seen. `scripts/keel-verify` gains a check that no ID appears twice in any
+append-only log the project keeps.
+
+### 12j. The network call inside an unconditional hook
+
+**The trap.** A `PreToolUse` hook matching every command of a class — every `Bash`, every edit — makes
+a network call to decide. Every command in the session now waits for the network.
+
+**Why it happens.** The hook's logic genuinely needs the remote answer for the handful of commands it
+exists to guard, and the broad matcher is what guarantees it never misses one. Breadth looks like
+safety.
+
+**What it costs.** Measured: a branch-protection hook calling `gh pr view` took 44 seconds to time out
+on every git command in the session, read-only ones included. And a hook that times out is a hook
+that has failed — so the second, larger cost is the one nobody sees: if it fails OPEN, the protection
+is absent exactly when the network is bad, while continuing to look installed.
+
+**The rule.** Three parts, and the third is the one that gets skipped. **Match only the commands the
+hook actually guards** — a read-only command cannot violate a rule about pushing. **Split the check by
+what it needs**: the local half (`git rev-parse --abbrev-ref HEAD`) is instant and usually decides,
+and only the remainder needs the remote. **Bound the remote call with a timeout and fail CLOSED on
+it** — denying an action because it could not be verified is cheap and recoverable; hanging and then
+allowing is the worst of both. A protection hook's failure mode is part of its specification and is
+stated in `docs/decisions.md` when the hook is adopted.
+
+### 12k. The matcher that only sees the start of the command
+
+**The trap.** A rule — a permission entry, a hook matcher, a guard — matches on the beginning of a
+command string. `git push` is matched; `git add -A && git push` is not, because it begins with
+`git add`.
+
+**Why it happens.** Prefix matching is what the tooling offers by default, and it reads as if it
+covers the command.
+
+**What it costs.** The guard is bypassed by the most ordinary thing a session does. Keel already
+documents the cost side of this for permissions — a composite command fails to match an `allow` rule
+and opens a dialog — and this is the same mechanism with the sign reversed: a composite command fails
+to match a DENY rule and sails through. The performance version is an annoyance; the security version
+is a hole.
+
+**The rule.** **A guard matches the command line, not its prefix.** Anything that denies, protects or
+gates searches for its target anywhere in the string, including after `&&`, `;` and a pipe. Narrowing
+a matcher for performance is only correct once this holds — otherwise the narrowing is a security
+regression wearing a performance argument.
+
+### 12l. The control that passes by answering a different question
+
+**The trap.** A check runs, passes, and is trusted — and the question it answers is not the question
+that matters. It is not broken, and no output ever suggests it might be.
+
+**Why it happens.** The check was written for a real question. The concern then shifted by one step —
+from "is the mechanism configured?" to "is this run leaving what the mechanism needs?", from "does
+the file exist?" to "does it say something true" — and nothing forces a check to re-state its own
+scope when the concern moves.
+
+**What it costs.** Measured twice in one project. A chain checker passed all twelve of its rows on two
+consecutive nights while the chain did not fire, because it verified that chaining was configured and
+nobody verified that the session was leaving a current hand-off. A test-identifier check reported zero
+findings for weeks because it was line-scoped and structurally incapable of ever seeing a real one.
+**A control in this state is worse than no control**, because its green result is actively spent as
+reassurance.
+
+**The rule.** **Every check states, in one line beside it, the question it answers** — and a check
+that has never failed is audited against a case that SHOULD fail it, rather than trusted for its
+record. When a green result is used to justify a conclusion, the conclusion is checked against the
+check's stated scope, not against its colour. A control whose scope is not written down cannot be
+audited, so writing it down is part of adding the control.
+
+### 12m. The guard keyed to the directory enforcing a duty that belongs to the session
+
+**The trap.** A guard reads the state of a working tree and acts on it — blocks, warns, refuses. The
+state is a fact about the DIRECTORY; the duty it enforces belongs to a SESSION. With one session in
+the checkout the two are the same thing and the guard is correct. With two, it punishes whichever
+session did not make the mess, and the one that did carries on untouched.
+
+**Why it happens.** `git status`, `HEAD`, a lock file, a log keyed by working directory: every cheap
+way to ask "what is going on here?" answers for the directory, because that is the only thing the
+filesystem knows about. Nothing in the answer says which session produced it, so the scope is
+inherited by accident rather than chosen — and it is invisible until a second session exists, which
+is usually long after the guard was written and trusted.
+
+**What it costs.** Measured, on this skill's own `scripts/keel-stop-hook` two days after it shipped.
+Session A was blocked naming two files session B had modified eight seconds earlier and was still
+editing. The remedy the block offered was "commit to `develop`" — that is, `git add -A` in a tree it
+did not author (12h). Worse, the anti-spin brake never engaged: its fingerprint covered the whole
+tree, so B's keystrokes renewed it every turn and A stayed blocked for eight turns until the hourly
+cap released it. **Not a block that expires — a block renewed by somebody else's work.** The same
+guard's block log was keyed by working directory too, with the sign reversed: two sessions shared one
+anti-spin history, so one session's block could satisfy the other's "nothing changed" test and
+RELEASE a stop that should have been blocked.
+
+**The rule.** **Every piece of state a guard writes or reads states its scope — repository or session
+— and that scope is checked against the duty being enforced, not against what was convenient to
+read.** Where the duty is the session's, the state is keyed by the session (`keel_session_pid`), and
+the guard establishes concurrency BEFORE acting: another live session, and a guard that cannot be
+satisfied by this session CEDES — allowing, saying it ceded and naming to whom — rather than blocking
+somebody for work they cannot commit. Ceding is not a hole: the duty moves to the session that
+authored the work and carries the same guard. Two boundaries hold it in place. **Concurrency is
+detected, authorship is never attributed** — git records that a path changed and never who changed
+it, so per-file attribution is a guess and a guess shipped as a check is worse than the gap it fills.
+And **a probe that cannot answer means "not established", which keeps the original behaviour**; a fix
+that turns an unanswered question into a licence has traded a loud failure for a quiet one. The tell
+is never "keyed by directory" on its own — a lock that serialises a TREE is correctly keyed by the
+tree — it is state keyed by directory while the duty belongs to one session.
+
+**And fixing the reported instance is not fixing the class.** Measured on this same hook: the release
+that wrote this entry fixed the rule that had been reported and left its sibling — three lines away
+in the same file, same defect, same file — untouched, so the next project met it again with the
+anti-pattern already written down. A generalisation does not travel to its siblings by itself.
+**The release that generalises a defect sweeps every instance of the class it can reach and names
+where it looked**, because "we understand the shape now" is a belief and the sweep is a list.
+
+### 12n. The assertion that something is ABSENT, satisfied by everything being absent
+
+**The trap.** A test asserts that a bad input was rejected — `assert!(result.is_empty())`,
+`expect(rows).not.toContain(x)`, `expect(list.len()).toBe(1)` — and it passes against an
+implementation that returns nothing for ANY input. It cannot distinguish "correctly excluded" from
+"nothing works at all", and it will keep passing after the function it names is gutted.
+
+**Why it happens.** It is the natural shape of the thought. The requirement is "a relative path must
+not be walked", so the test says "the result does not contain the relative path", and an empty result
+satisfies that sentence perfectly. Nothing about writing it feels wrong, and if the red was skipped —
+or observed against a stub that returns empty — the gap never shows.
+
+**What it costs.** Measured three times in one day, in two languages, in one project: three tests of
+`resolved_roots` asserting `is_empty()`; a union test asserting `len() == 1` that passed with the
+second source ignored entirely; and a `keel-verify` row asking only that a key appear "somewhere",
+which the planted defect walked straight through. **All three were caught by the planted-defect
+control and by nothing else** — every one of them was green in the suite, counted in the total, and
+attached to a real requirement.
+
+**The rule.** **An absence is asserted beside a SURVIVOR.** Put a valid value next to the invalid one
+and assert the exact remainder: `resolve([good, bad]) == [good]`, not `resolve([bad]).is_empty()`.
+The valid value is what makes the assertion discriminating, because now the only way to pass is to
+keep one and drop the other. Where the shape is a count, choose inputs that separate every outcome —
+1 means the source was ignored, 3 means it was duplicated, 2 is the answer — and say so in the test.
+And when a control is planted (entry 12l), **check WHICH assertions reddened, not how many**: a
+control that reddens four of six has just told you the other two are asserting nothing.
+
+---
+
+### 12o. The turn that ends on an intention instead of an action
+
+**The trap.** The work is going well, a natural pause arrives — a commit lands, a suite goes green —
+and the session writes *"now I'll do X"*, *"sigo con X"*, *"next I will…"* and stops there. Nothing
+runs. From outside, a session that announced its next step and a session that finished are the same
+thing.
+
+**Why it happens.** The sentence feels like progress: it names the next step correctly, it reads as
+continuity, and it is written at exactly the moment the work is going well enough to be worth
+reporting. Reporting and continuing feel like one act, and they are two.
+
+**What it costs.** Measured twice in one day on one project: **ten hours overnight**, and a second
+stall the same afternoon that ended only because the person asked *"have you stopped?"*. The whole
+close-out apparatus existed and was verified — the hand-off writer, the chain launcher, the lane, the
+freshness checks — and none of it fired, because none of it is reached by a turn that simply ends.
+The machinery was not missing; it was not run.
+
+**The rule.** **A turn ends when the work is done, or when something is genuinely blocked AND the
+close-out has run** — never on a sentence about what happens next. The tell is grammatical and it is
+worth watching for in one's own output: **a future-tense clause about this session's own next action,
+at the end of a turn, IS the stall.** Do the thing and report it in the past tense, or run the
+close-out so stopping costs nothing. A summary of what was accomplished is not a reason to stop
+writing tool calls, and it reads to the person coming back in the morning exactly like a session that
+finished.
+
+
+### 12p. The mechanism assumed portable because its trigger is, when its contract is not
+
+**The trap.** A generated script proves itself in one assistant, and the natural next step is to
+point every OTHER accepted assistant's equivalent hook setting at the same script, on the assumption
+that "it's a `Stop` hook" is enough — the trigger exists in both places, so the reasoning treats the
+interface as the same too.
+
+**Why it happens.** Some mechanisms genuinely ARE portable this way: `.githooks/pre-commit` is
+deliberately built as a classic git hook rather than an assistant-specific one, precisely so it fires
+identically in every environment — Claude Code, Codex, Copilot, Cursor, Gemini, Windsurf, a bare
+terminal — because GIT invokes it and git's contract is the only one it has to satisfy. A `Stop` hook
+looks like the same shape from outside — an event, a script, a JSON reply — but it is invoked by the
+ASSISTANT, not by git, so what it must satisfy is that assistant's OWN contract, and one assistant's
+contract is not evidence for another's.
+
+**What it costs.** Measured: `scripts/keel-stop-hook` emits Claude Code's own `Stop`-hook schema
+(`hookSpecificOutput`, `decision: "block"`) and was registered verbatim in `.codex/hooks.json` on a
+project running both tools on the same repository. Codex does not accept that schema, rejected it
+with "invalid stop hook JSON output," and ended the turn the hook exists to keep open — the one
+failure mode this class of mechanism is supposed to prevent, produced BY the mechanism itself, in the
+tool it was never verified against.
+
+**The rule.** A hook mechanism invoked by the ASSISTANT is never assumed portable across assistants
+merely because the trigger name matches; only a mechanism invoked by something OUTSIDE every
+assistant (git, the OS, the shell) earns that assumption, and even then only because the outside
+caller's contract is the only one being satisfied. Before registering a generated script as a native
+hook in a second tool, CONFIRM that tool's own current documentation for its output contract — never
+infer it from a different tool's, however similar the trigger looks. Where the contract is
+undocumented or unverified, that tool's cell is `—`: no committable mechanism, the duty stays with the
+session, exactly like an allow-list cell with nothing to write — never a guessed schema shipped as if
+it were confirmed.
+
+### 12q. The launcher that fires the neighbouring tool's action because it is the only one proven
+
+**The trap.** A launcher script detects which assistant is closing out and looks up that assistant's
+own row before firing — and then, for a tool whose row is unverified or absent, fires the ONE row
+that happens to be proven instead of printing, because "chaining should still do something."
+
+**Why it happens.** The verified row reads as the safe choice: it is the one the generator watched
+work, so reaching for it feels like caution rather than substitution. The contract already says an
+unmatched or unverified row prints rather than fires — the trap survives a correct reading of that
+rule anyway, because "print" looks like doing less than the verified row can, and doing less is easy
+to round down to "doing nothing useful."
+
+**What it costs.** Measured: a project accepting both Claude Code and Codex had its
+`scripts/keel-continue` open a Claude Code Terminal window at the close of a CODEX session — the CLI
+row's action fired under a different tool's detection. The closing session got neither a continuation
+in its own tool nor the printed prompt its own contract already promised for this exact case; it got
+an extra, unrequested chat window in a tool it was never running, and a launch receipt claimed for a
+session nobody asked to open.
+
+**The rule.** The action fired is ALWAYS the DETECTED tool's own row, never a different tool's
+substituted as a fallback or a default. Printing is not a lesser outcome to be routed around; for an
+unmatched or unverified row it IS the correct outcome, and it costs nothing a person cannot recover
+from by reading the prompt. A launcher — like a hook (12p) — that reaches for the one mechanism it has
+already proven, on behalf of a tool that mechanism was never proven for, is the same defect from the
+firing side.
+
+### 12r. The metered CI budget that fails by never running, not by failing
+
+**The trap.** A workflow triggered on every push looks harmless when the suite is fast and the account
+has never been near its limit — until the account's shared, metered minutes run out, and every
+subsequent run across every private repository in that account simply stops being scheduled.
+
+**Why it happens.** GitHub Actions' free-tier minutes are billed PER ACCOUNT (or per organisation),
+pooled across every private repository — never per repository — while a public repository runs
+unmetered on the same GitHub-hosted runners regardless of plan. A workflow tuned for one repository's
+convenience spends a budget every OTHER private repository in the account draws from too, and nothing
+about a single `git push` reveals that the pool is shared or how close to empty it is.
+
+**What it costs.** Measured on this skill's own repository: a completely ordinary, correctly-formed
+tag push — confirmed on the remote, confirmed pointing at the right commit — produced NO workflow run
+whatsoever. Not a failed run, not a queued one, nothing to inspect: the account's included minutes
+were exhausted, and GitHub did not schedule the run at all. The gap surfaced only because the expected
+GitHub Release never appeared, hours later, and took a genuine diagnostic pass (checking the tag on
+the remote, checking the workflow's enabled state, checking the raw Actions API) to distinguish from
+every OTHER thing that can make a tag push not produce a release.
+
+**The rule.** Where the forge is GitHub and the repository is private, the CI-triggers decision
+(`CI runs on:`) is argued with this as an explicit, named risk, not folded silently into "reduces
+noise" — the account-wide, shared, metered nature of the budget makes the conservative default
+(`main`) protection for every OTHER private repository sharing that account, not merely tidiness for
+this one. And when a CI-driven mechanism (a release workflow, a required check) appears to have
+silently done nothing, a metered-budget exhaustion belongs on the list of causes checked BEFORE
+assuming a configuration or a code defect — because from the outside, "no run happened," "the run
+failed instantly with no logs," and "the workflow file has a syntax error GitHub silently rejected"
+can look identical, and only checking the account's actual billing/usage tells them apart.
+
+
+### 12s. The negative result recorded without its scope
+
+**The trap.** An enquiry is made, it comes back empty, and the empty result is written down as a
+decision: *"there is no way to do X"*, *"the platform does not support Y"*, *"this cannot be done from
+here."* What was actually measured is narrower — two interfaces, one command's help output, one
+afternoon — and the sentence that gets recorded says nothing about which two. From the next session's
+side the entry reads as a property of the world.
+
+**Why it happens.** A measurement that says "no" feels like the end of an enquiry rather than a step
+in one. It was made honestly, it was written down responsibly, and citing it afterwards feels like
+rigour — the opposite of guessing. Nothing about the moment suggests that the scope is the part
+carrying all the weight, because at the moment of writing the scope is still in the writer's head.
+
+**What it costs.** The scope evaporates and the conclusion hardens into a fact. Nobody re-opens it —
+least of all when the person who knows the domain says the opposite, because they are no longer
+arguing with a colleague's recollection, they are arguing with a recorded measurement, and this skill
+correctly says decisions are not re-litigated. **Measured: two days of the wrong architecture.** A
+project recorded "there is no channel into an already-running session" after checking exactly two
+interfaces — a subcommand group and one flag. The product had an official feature doing exactly that,
+on by default. The owner said sessions could message each other THREE times; each time the recorded
+decision was cited back at them. The evidence was inside the project's own test output the whole time.
+
+**The rule, and it has two halves.**
+
+1. **Every negative finding carries a `Not checked:` line naming at least one avenue that was not
+   examined** — the interfaces not opened, the documentation not read, the version not tried, the
+   person not asked. A "no" without its scope is not a measurement; it is an impression with a
+   citation. Two interfaces checked and written as "the product does not" is the whole failure in one
+   sentence, and the line that would have prevented it costs eight words.
+2. **When the user contradicts a recorded negative, that is the trigger to RE-MEASURE, not to restate
+   the conclusion.** This is the one place where "a session never re-opens a recorded decision" does
+   not apply, and the distinction is exact: the rule protects decisions — things that were CHOSEN —
+   from being re-litigated by a session that dislikes them. A negative finding is not a choice, it is
+   a claim about the world, and the user's contradiction is fresh evidence about that world while the
+   record is evidence about one past enquiry with a scope nobody wrote down. Re-run the enquiry along
+   the avenue the record never covered, and append the result either way — a confirmed "no" with a
+   wider scope is worth more than the one it replaces.
+
+**The mechanical check.** A `docs/decisions.md` entry whose text asserts an impossibility — `cannot`,
+`there is no`, `not possible`, `impossible`, `does not support` — and carries no `Not checked:` line
+is INCOMPLETE, and `scripts/keel-verify` says so. It is a grep over one file with a two-pattern
+condition, it needs nothing but the log itself, and it fires at exactly the moment the scope is still
+recoverable: while the session that made the measurement is still in the room.
+
+---
+
+### 12t. The test that asserts an assumption instead of a requirement
+
+**The trap.** A test is written against how the session BELIEVES a thing works rather than against
+what the thing must DO: *"the prompt is last in the argv"*, *"the flag comes before the path"*, *"the
+handler is registered second"*. It goes green, it joins the suite, and it is counted as coverage for
+the requirement it was written for.
+
+**Why it happens.** The mechanism is what is in the writer's head at the moment of writing — it was
+just reasoned out, it feels like the precise, specific, testable version of the vague requirement, and
+naming it in the test name reads as rigour. A test called "the prompt reaches the tool" sounds woolly
+next to one called "the prompt is last in the argv."
+
+**What it costs.** It is a bug with a green tick, and the suite argues on its side. **Measured:** a
+test asserting "the prompt is LAST in the argv" passed for as long as it existed, while the flag
+immediately before it was variadic and had been swallowing the prompt the whole time. The test was
+certifying the defect as correct behaviour — and it was found by RUNNING the command, never by reading
+the vector, because reading the vector only ever confirms the assumption the vector encodes.
+
+**The rule.** **When a test's NAME states a mechanism rather than an outcome, it is asserting an
+assumption.** "X is last", "Y comes first", "the array has three elements" — all describe how the
+session thinks the thing is wired. Name the OUTCOME instead: the prompt arrives at the tool, the
+session starts in the right directory, the file is written. Then get the mechanism from RUNNING the
+thing — one real invocation tells you what the argument parser actually does, which no amount of
+staring at a constructed vector can. Where a mechanism genuinely IS the requirement (a wire format, a
+documented protocol order), say so in the test and cite what makes it a requirement; a mechanism with
+no source behind it is an assumption wearing a requirement's clothes. This is the assertion-side
+sibling of entry 12d: 12d is a test that could never have failed, and this is one that fails on the
+right day for the wrong reason — and passes every other day while the bug ships.
+
+### 12u. The probe whose parser drops every input, so it answers with the default that disables the guard
+
+**The trap.** A guard asks a question of the world, parses the answer, and acts. The parser is written
+against the shape the output usually has. On the shapes it does not have, it produces something that
+matches nothing — a path that does not exist, a field that is empty, a record that is skipped — and
+the loop simply moves on. Every input is discarded, no error is raised, and the probe returns its
+EMPTY answer: nothing was found, nothing was recent, nobody else is here. **That empty answer is not
+neutral.** It is one of the two verdicts the guard acts on, and it is invariably the one that means
+"go ahead and enforce".
+
+**Why it happens.** The parser is written from one example, and the example is the common case. `git
+status --porcelain` prints `M  path` far more often than `R  old -> new`, so slicing the line from
+the fourth character looks like reading the path — and it is, until it is not. Nothing signals the
+failure: `stat` on a string that is not a file is not an error condition, it is a `continue`. And the
+guard is usually tested in the state it is MEANT to fire in, where the empty answer is also the
+correct one, so the bug is invisible to exactly the test written to prove the guard works.
+
+**What it costs.** Measured on this skill's own `scripts/keel-stop-hook`, at v5.19.1. Its cede — the
+whole of 12m's fix — required two facts: another session live, AND something in the dirty tree
+touched recently. The second was computed by slicing `git status --porcelain`. On a tree whose only
+dirty entry was a staged RENAME, the slice produced `old -> new`, no such file existed, the single
+entry was skipped, and "nothing was touched recently" came back as a measurement. A session was then
+blocked on a rename it had not made, and offered as its remedy a commit in a checkout that was not
+its own. **12m's fix was present, correct and complete, and reached through a parser that made it
+unreachable.**
+
+**The rule.** **A probe distinguishes THREE outcomes, never two: found, not found, and could not
+tell — and "could not tell" must not be reported in the words of "not found".** Where a parser
+discards an input it does not recognise, that input is unanswered, not negative, and the guard says
+so and falls back to whatever else can answer. Parse the format rather than slicing the common case,
+and prove it against the shapes that are not common — for `git status --porcelain` that is a rename
+and a quoted path, four commands in a fixture. The tell is a probe with a `continue` in it: ask what
+the loop returns when EVERY iteration takes that branch, and whether the caller can distinguish that
+answer from a real one. This is the enforcement-side sibling of 12l — there, a green result answered a
+different question; here, an empty result answers no question at all and is read as an answer.
+
+---
+
+
+### 12v. The guard keyed to the artifact the system deliberately deletes
+
+**The trap.** A mechanism gets an anti-duplicate guard, and the guard is keyed to the thing the
+action is *about*: one launch per hand-off, one email per order, one retry per job file. It is the
+obvious key, it is the meaningful key, and it works — for as long as the artifact outlives the
+window in which a duplicate can occur. Elsewhere in the same system, a second rule deletes that
+artifact on purpose, for its own good reasons. The two rules never meet in one file, and both are
+correct where they are written. The guard now has nothing to recognise, and its answer to "have we
+already done this?" is not "yes" and not "no" — it is a fresh, empty, unclaimed key.
+
+**Why it happens.** The deletion is usually a fix, and a good one. Keel's own case: a hand-off that
+outlives its commit is worse than no hand-off, so `.githooks/post-commit` deletes it — which makes
+the stale-courier bug structurally impossible and is exactly the right shape of fix (a rule made
+unnecessary rather than enforced). Nothing in that change is wrong. What is invisible from inside it
+is that the deleted artifact was also carrying an identity somebody else's brake depended on. Second
+contributor: the guard's owner reasons about ONE caller. When a later version adds a second caller —
+here, a `Stop` hook firing the same launcher at a different moment — the new caller is told the
+guard is already handled downstream, and the sentence is even true, in the state the writer
+pictured.
+
+**What it costs.** Measured on two of this skill's own projects, at every single close: two chats.
+`scripts/keel-close` fired the launcher and claimed the receipt for hand-off H; the close-out's last
+commit deleted H; the stop hook fired the same launcher minutes later, found no hand-off, correctly
+took the DEGRADE row (fire on `docs/PROGRESS.md` — a Keel artifact in a bad state must never stop
+the work), and opened a second window against no receipt at all. Every component behaved to
+specification. The user got two windows per close on two repositories and no error anywhere,
+because **on the degraded path there was no identity to claim, so the brake was not bypassed — it
+was never reachable.**
+
+**The rule.** **A brake is keyed to something that outlives every path the braked action can take,
+and the ACTOR always outlives the artifact.** Key the guard to the session, the process, the run —
+and keep the artifact-keyed one as well, because the two answer different questions ("has this
+continuation already fired" and "has this session already fired"). Two tells, both cheap: for any
+guard, ask what deletes its key and whether the deleter knows the guard exists; and for any action
+with more than one caller, ask which of them claims the brake — **if the answer is "the other one
+does", the brake is a coincidence, not a mechanism.** And the fallback path is where to look first:
+a degraded, best-effort or error branch that skips the identity is a branch that skips every guard
+built on it, which is the reverse of what a fallback is for. Make the degraded path claim a degraded
+identity, defined in the contract rather than invented by whoever generates the script (entry 3).
+
+---
+
+
+### 12w. The plan that only exists for one entry point
+
+**The trap.** A project keeps a plan — sprints, slices, hours — and the plan is created and updated
+by ONE phase of the process: the development phase's kickoff and close. Every other way work enters
+the project (an audit, a forge issue, a hotfix, a maintenance touch, an adoption, a reconciliation)
+never passes through that phase, so it is done with no slice to mark, and the remaining time is
+recomputed only at a close that this work never reaches. The plan does not become wrong at any
+single moment. It simply stops describing the project, one unplanned task at a time.
+
+**Why it happens.** The plan was designed where planning is most visible — the start of a build —
+and every rule about it was written inside that phase's reference, where it reads as complete.
+Nobody decides that audits are exempt; audits are simply never told. And "what is left?" looks like
+a status question the plan obviously answers, so nobody writes down how it is answered — which lets
+a session read it as a nudge to carry on and answer it by starting the next task.
+
+**What it costs.** Measured on Keel projects: audits and fixes run with no sprint file, and the
+user's direct question "what is left and how long will it take?" was answered with "starting the
+audit". The one number the plan exists to provide — the remaining time — was unavailable exactly
+when it was asked for, and on a client project that number is a commercial commitment.
+
+**The rule.** **A plan is a ledger of ALL work or it is decoration.** Any unit of work, whatever
+entered it, becomes a slice with its hours before the first change; the commit that finishes it
+records `done` and its real hours and regenerates the derived view; the status question is answered
+from the derived file and never by acting; and only the user's explicit statement switches it off,
+on the record (SKILL.md, "Sprints are the ledger of all work"). The mechanical check is ancestry:
+the newest commit that touched anything other than the bookkeeping files must be contained in the
+newest commit that touched the plan — `scripts/keel-verify` fails otherwise, and the stop hook
+blocks the turn. The tell, for any tracking artifact: list every entry point by which work reaches
+the project, and ask which of them writes to it.
+
+### 12x. The hours nobody measured
+
+**The trap.** The plan carries estimated hours per slice, and the actual hours are written by the
+session that did the work, from its own impression of how long it took. A model has no sense of
+elapsed time — it does not know what time it is, and it cannot tell a ten-minute slice from a
+two-hour one — so the "actual" is a second estimate wearing the label of a measurement, and the
+deviation between two estimates is noise.
+
+**Why it happens.** Writing a number is one step and reading a clock at both ends of the work is
+three, the second of which happens at a moment nobody is thinking about time. And the number looks
+plausible: it is close to the estimate, because the estimate is the only figure in context.
+
+**What it costs.** The user asked for absolute control of time and got a plan whose actuals always
+land near its estimates, so no estimate ever looked wrong and none was ever corrected. On a client
+project the deviation is the figure that decides whether the next quote is honest.
+
+**The rule.** Time is READ, by a script, at every boundary — session start and end, slice start
+and end, every pause for the person — and `actual_hours` is computed from those intervals, never
+typed (SKILL.md, "Session time — measured, never remembered"). The session opens by stating what
+is left and what it plans, with hours, and closes with done against estimated and the deviation.
+Where no clock can be read, the figure says `estimated`. The mechanical check: a `measured` slice
+that no `docs/sessions.md` row lists, or a row whose deviation is not the difference of its own
+columns, fails `scripts/keel-verify`.
+
+### 12y. The whole suite as the price of every push
+
+**The trap.** Every push runs every test. It is correct on day one, when the suite takes seconds,
+and it is never revisited: the suite grows with every slice, and by the time a push costs many
+minutes the flow commits and pushes dozens of times a sprint, so testing becomes the bottleneck of
+all the work — or, worse, the pressure it creates makes someone skip it.
+
+**Why it happens.** "Run everything" is the only rule that needs no thought, and a rule that cannot
+be wrong in a small project is never examined in a large one.
+
+**What it costs.** Hours per sprint spent re-running tests that exercise code the change never
+reached, which can therefore not have been broken by it — and a push loop so slow that it starts
+being batched, which is the one outcome that genuinely lets defects through.
+
+**The rule.** Every test is written; not every test runs every time. Test points and pushes run the
+selection derived from the diff — the changed files' tests, their reverse dependencies, the changed
+tests, and a closed widening list for global changes — enforced by `.githooks/pre-push`; the entire
+suite runs at every release, on the candidate (`references/test-automation.md`, "Which tests run
+when"). The mechanical checks: an empty selection for a diff that touches source fails the script
+instead of passing, every test-point row carries its `scope:` line, and the Phase 7 record must show
+`scope: full` with the suite's total count.
+
+---
+
+
+### 12z. The shared script adapted to the tool the session happens to be running in
+
+**The trap.** One script serves every assistant on the project, and the facts that differ between
+assistants — the marker each is recognised by, the CLI name, the launch invocation and its flags,
+whether a model may be passed, whether a hook's schema is that tool's — are written into it as
+branches: `if [ "$TOOL" = "codex" ]`. A session working in one assistant finds its own close-out or
+its own launch broken, and fixes it in the file every other assistant also reads.
+
+**Why it happens.** The registry of what each tool may do was prose, and prose cannot be sourced, so
+the only way to act on it was to compile it into code by hand. And the edit looks local: the session
+is fixing its own tool, touching only its own branch, in a file it has every right to edit.
+
+**What it costs.** Measured, on a project running Claude Code and OpenAI Codex against one checkout:
+each assistant's repairs landed in the other's file, so changing assistant meant repairing the new
+one and breaking the last one — and the next Keel update regenerated the shared script from the
+template and took both sets of repairs with it. The failure is silent in the direction that matters:
+the tool the session is running in works, so nothing in that session ever reports the damage.
+
+**The sibling, and it is the one that bites hardest.** The same shape appears one step away: a
+generated script is REGISTERED as a native hook in an assistant whose output contract nobody
+confirmed — `.codex/hooks.json` pointed at `scripts/keel-stop-hook`, whose JSON is deliberately
+Claude Code's `Stop` schema. Codex rejects it (`invalid stop hook JSON output`) and ends the very
+turn the hook exists to keep open. The session then meets the error in ITS tool and reaches for the
+payload, which is the wrong half: **the repair is to remove the registration from the tool that
+rejects it, never to change the output and break the assistant where it already works** — an
+assistant that is not running, so nothing in this session will report the damage, and the session's
+own tool stops complaining, which reads exactly like success.
+
+**The rule.** The registry is DATA, one row file per assistant — `scripts/keel-tools/<tool>.sh` —
+and a session may create or edit only the row of the tool it is itself running in
+(`references/project-state.md`, "The registry is DATA"). Shared scripts resolve the detected tool's
+row, source it, and use the fields; adding an assistant is adding a file, and it cannot touch the
+assistants already there. The mechanical check is the one that catches the regression rather than
+the symptom: `scripts/keel-verify` fails when a shared `scripts/keel-*` matches a registry tool name
+outside a comment — because the prose rule forbidding per-tool branches already existed, was marked
+in the same file as the contract it governs, and was compiled into branches anyway. For the sibling
+the check is `KEEL_TOOL_HOOK_FILE` against `KEEL_TOOL_STOP_HOOK`: the hook is registered where the
+row says `yes` and nowhere else, and the check reads the container from the row rather than knowing
+any tool's path, since a check that hardcodes one is the same trap inside the detector.
+
+---
+
+
 ## WordPress and WooCommerce
 
 ### 13. The user-facing string that skipped i18n
@@ -458,6 +1151,44 @@ changes").
 
 ---
 
+### 24. The site that looks like the last one
+
+**The trap.** A website ships. It is complete, accessible, fast, faithful to its handoff, and it passes
+every gate. It also looks like the previous site the same process produced, and like the one before
+that, and like a large fraction of everything else built by an assistant that year.
+
+**Why it happens.** Three causes that compound, and none of them is a mistake anyone made. The brief
+asks for the aesthetic in adjectives, and an adjective points at the average of everything it has ever
+described. Nothing is forbidden, so the model reaches for the patterns most represented in its training
+data, which are exactly the patterns readers have learned to recognise as machine-made. And nothing in
+the process remembers the previous site: project memory and class memory both exist, cross-project
+memory does not, so two similar briefs MUST produce the same site because nothing knows the other one
+exists.
+
+**What it costs.** For a site whose job is to sell a person's work, the generic look is not neutral: it
+reads as low effort by the very audience the site is trying to convince, and it undoes the credibility
+the product earned. It is also the most expensive defect to find late, because nothing is broken — a
+rebuild is the only fix, and it lands after launch, when someone finally says out loud that they all
+look the same.
+
+**The rule.** `references/phase-8-art-direction.md` runs before the brief, and its gate is the same
+shape as every other Keel gate: a definition of done checked item by item, with no advance on an open
+✗. The Design Read is declared in a sentence, the four dials are set with reasons, the machine-local
+ledger at `~/.keel/art-ledger.md` blocks the last three sites' typeface, palette, hero paradigm, grid
+and signature elements, three directions from three named aesthetic families are produced for one
+section with at least one deliberate risk, one is chosen and recorded in `docs/decisions.md`, one or
+two signature elements are consolidated into `SPEC/art-direction.md`, and the ledger entry is written
+at the close. **Mechanical check:** the Phase 4 completeness gate fails a website handoff with no
+`SPEC/art-direction.md`, and fails any signature element named there that is absent from the delivered
+CSS. The blacklist's em-dash rule is binary and greppable across every string visible on the site.
+
+**What this trap is NOT.** It is not "the design was bad" — the design is usually competent. And the
+fix is not loosening the anti-drift discipline that makes Keel work: it is opening one bounded step
+where invention is mandatory, closing it with a recorded decision, and resuming the normal regime
+unchanged.
+
+---
+
 ## The self-audit
 
 Run this against any Keel project at a sprint close, at the Phase 7 gate, at adoption, and whenever a
@@ -478,13 +1209,32 @@ recollection** — an answer given from memory is not an answer, it is the trap 
 12. Is every document in `docs/` reachable from an index, and does every internal link resolve?
 13. Does every user-visible acceptance criterion have either a driven test with its evidence, or one of the eight delegation tags with its steps — and is there any criterion whose only evidence is a person's verdict without a tag?
 14. Does `scripts/keel-doctor --check` pass on this machine, so the suite's green result actually means the suite ran?
-15. Does every applicable row of `MANIFEST.md` Table 1 carry a state in `docs/keel-conformance.md`, with every `n/a` quoting the manifest's own condition and every `declined` citing a real decision entry?
-16. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
-17. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
-18. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?
-19. (MCP) Has every ability been called through a real client with its documented arguments this release?
-20. (Web) Is every protected surface refused on a direct server request, with JavaScript disabled?
-21. (Library) Is every dependency in the manifest backed by a decision entry?
+15. Was every test written under the project's `Test-first policy:` seen to fail first, for the absent behaviour rather than for a setup error, with its failure line recorded?
+16. Did every bug fixed since the last audit start from a failing reproduction test — and can any test derived from an `AC-nn` or a reproduced bug be shown to have been edited to make it pass, without a decision entry behind the change?
+17. Does every applicable row of `MANIFEST.md` Table 1 carry a state in `docs/keel-conformance.md`, with every `n/a` quoting the manifest's own condition and every `declined` citing a real decision entry?
+17a. Before this session's first WRITE into a repository it did not start, was another session ruled out with `git status --porcelain` plus the modification times of whatever it listed — rather than assumed absent?
+17b. Does every append-only log (`docs/decisions.md`, `docs/lessons-learned.md`, `docs/05-test-points.md`) have zero duplicate identifiers, checked by grep rather than by recollection?
+17c. Does every check the project relies on state the question it answers — and for any check that has never failed, has it been run against a case that should fail it?
+17d. Does every piece of state a guard reads or writes declare its scope — repository or session — and is that the scope the duty it enforces actually has?
+17e. For each defect generalised into a rule this release, was every reachable instance of that class swept and the places looked at named — rather than only the instance that was reported?
+17f. Before registering any generated script as a native hook in an assistant's settings, was THAT assistant's own documented output contract confirmed — never assumed from a different assistant's, however identical the trigger name?
+17g. Does every branch of a tool-detecting launcher fire ONLY the detected tool's own verified action — never a different tool's action substituted as a fallback when the detected tool's own row is absent or unverified?
+17h. Where the forge is GitHub and the repository is private, was the account-wide, shared nature of the Actions minutes budget named as its own reason for `CI runs on: main` — not folded silently into "less noise"?
+17i. Does every entry in `docs/decisions.md` that asserts an impossibility ("cannot", "there is no", "not possible", "does not support") carry a `Not checked:` line naming an avenue that was not examined — and has every such entry the user has contradicted since been RE-MEASURED rather than restated?
+17j. Does every test name state an OUTCOME rather than a mechanism — and for any name that does state a mechanism ("X is last", "Y comes first"), is there a cited source making that mechanism a requirement rather than an assumption?
+17k. For every probe a guard acts on, can the caller tell "found nothing" from "could not tell" — and has the parser been run against the input shapes that are not the common case (for `git status --porcelain`: a rename and a quoted path)?
+17l. For every at-most-once guard, what deletes the key it is claimed against, and does the deleter know the guard exists — and where the action has more than one caller, does EACH caller claim the brake itself rather than relying on another one having done it?
+17m. Unless the card says `Sprints: off` with a real D-entry: is the newest commit touching anything other than the bookkeeping files contained in the newest commit touching `docs/sprints/` — does every `done` slice carry `actual_hours` — and for every way work entered this project since the last audit (issue, audit, hotfix, maintenance, reconciliation), is there a slice that records it?
+17n. Unless the card says `Sprints: off`: did every session since the last audit open with `scripts/keel-time start` and close with `scripts/keel-time end` — does every `done` slice marked `measured` appear in a `docs/sessions.md` row, does every row's deviation equal its actual minus its estimate, and is `docs/.keel/clock.jsonl` gitignored?
+17o. Do `scripts/keel-affected-tests` and `.githooks/pre-push` exist with `core.hooksPath` set — does a diff touching an uncovered source file make the script widen or fail rather than select nothing and pass — does every test-point row carry its `scope:` line — and does the last release record show `scope: full` with the suite's total count?
+17p. Where the project generates `scripts/keel-tools/`: does every accepted tool have a row file with every field declared — does a grep of the shared `scripts/keel-*` for the registry's tool names return nothing outside comments — and does each tool's `KEEL_TOOL_HOOK_FILE` mention `scripts/keel-stop-hook` exactly when its `KEEL_TOOL_STOP_HOOK` is `yes`?
+18. (WordPress) Does `wp i18n make-pot` report zero untranslated or wrongly-domained user-facing strings?
+19. (WordPress) Does uninstall remove every option, table, meta key and scheduled event the plugin creates?
+20. (WordPress) Does every entry point — admin, AJAX, REST, bulk, CLI — check its capability and its nonce?
+21. (MCP) Has every ability been called through a real client with its documented arguments this release?
+22. (Web) Is every protected surface refused on a direct server request, with JavaScript disabled?
+23. (Library) Is every dependency in the manifest backed by a decision entry?
+24. (Website) Does `SPEC/art-direction.md` exist with its read, dials, chosen direction and signature elements — is every signature element actually present in the delivered CSS, does `~/.keel/art-ledger.md` carry this site's entry, and does a grep for `—` and `–` across every string visible on the built site return zero?
 
 ## Maintaining this file
 

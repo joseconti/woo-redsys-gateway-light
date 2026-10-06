@@ -13,7 +13,7 @@
 - i18n: multi — base English, shipped locale `es_ES`, mechanism `load_plugin_textdomain()` + `__()`/`_e()` family, text domain `woo-redsys-gateway-light`
 - Installed base: **in production with real users** — distributed on WordPress.org, current version 7.0.2, active changelog with real security fixes (signature/HMAC hardening in 7.0.1/7.0.2)
 - Design system: one-off / n/a — plain hand-written CSS, no design system (D-009)
-- Keel portability: lock + embedded v5.9.0
+- Keel portability: lock + embedded v6.5.0 (both trees replaced and verified file-for-file 2026-10-06, D-034; lock block restamped v6.5.0)
 - Assistant config: none beyond the lock + embedded skill (tools: claude) (D-008)
 - Models: n/a — no subagent role→model map configured
 - Keel baseline: v5.9.0
@@ -45,6 +45,7 @@
 
 ## Open items
 - Unresolved user questions: none.
+- **Reconciliation pending v5.9.0 → v6.5.0** (D-034): the embedded skill and the lock are at v6.5.0 but the PROJECT has not been reconciled — `Keel baseline:` stays v5.9.0 until the conformance sweep against `MANIFEST.md` (Tables 1 and 3) is walked and its batched plan is decided by the user. The refreshed lock already names artifacts this project does not have yet (`scripts/keel-time`, `scripts/keel-affected-tests`, `scripts/keel-close`, `.githooks/`, `docs/.keel/plan.json`, `docs/sessions.md`) — they are "not yet applicable", not present.
 - Open Design Requests: none — no design system in place
 - Unverified external steps/assets: none
 - Forge issues in progress: see `docs/issues.md` — E-001 (#93) fix landed, unreleased; awaiting a version bump + release before the reporter can test it. 7 stale issues commented on, left open (never closed by Keel on its own reading of the code, per protocol).
@@ -57,4 +58,4 @@
 - `package.json` carries a stale `wp-scripts ^0.0.1-security` dependency (looks like a squatted/placeholder package name, distinct from `@wordpress/scripts`) — severity medium, review trigger "next time package.json dependencies are touched"
 - `package.json` version (`4.0.0`) is out of sync with the plugin's real version (`7.0.2`) — severity low, review trigger "next release"
 
-Last updated: 2026-08-02 — Phase 5 sprint (D-033: fixed the "1 billion bug" — order IDs of 10+ digits lost their high-order digits in prepare_order_number()/clean_order_number(), independent of D-026's earlier fix, plus a refund path that never renewed the order-number transient — ported the fix from the premium plugin, added 5 new regression tests, mutation-tested for real, readme.txt updated — 51 tests total)
+Last updated: 2026-10-06 — Keel v6.5.0 installed in the repository (D-034): both embedded trees replaced from the installed skill and verified, lock block refreshed in CLAUDE.md + AGENTS.md; post-update reconciliation pending.

@@ -1,4 +1,4 @@
-<!-- KEEL:BEGIN — v5.9.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v6.5.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
@@ -51,6 +51,20 @@ This project is governed by the Keel workflow. Before reading code or changing A
    has only `main`/`master`, create `develop` first. If it has NO REMOTE, say so and
    offer to publish it — a local commit survives a bad edit, not a dead disk, and
    work that exists only on one machine is one accident from not existing at all.
+   EVERY unit of work — in any phase, audits, forge issues, hotfixes and maintenance
+   included — is a slice in `docs/sprints/` with its hours BEFORE its first change,
+   and the commit that finishes it sets `done`, writes `actual_hours` and regenerates
+   `docs/.keel/plan.json` (UNBREAKABLE). "What is left / how long" is a QUESTION:
+   answer it from `plan.json` — pending slices, hours left per sprint and in total,
+   labelled as AI time plus supervision — and never by starting work. Only the user
+   switches this off, explicitly (`Sprints: off` + a D-entry). EVERY session starts
+   with `scripts/keel-time start` — the system clock, what is left, and what this
+   session plans, with hours — BEFORE any work, and ends with `scripts/keel-time
+   end`, whose report (done vs estimated hours, the deviation, what is left) is
+   shown to the user. Never state a time you did not read from the clock.
+   Before EVERY push run only the tests the change reaches
+   (`scripts/keel-affected-tests --run`, enforced by `.githooks/pre-push`); the
+   ENTIRE suite runs only at a release, on the candidate (UNBREAKABLE).
 5. NEVER end a session mid-work — and NEVER close a sprint, even if you carry on
    working — leaving the user with nothing current to continue from
    (UNBREAKABLE). A sprint close is where a person walks away, so the hand-off
