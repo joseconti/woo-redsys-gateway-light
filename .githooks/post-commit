@@ -1,0 +1,19 @@
+#!/bin/sh
+#
+# .githooks/post-commit — Keel. Deletes docs/continuation-prompt.md if it
+# exists. That is the whole hook.
+#
+# A hand-off that exists is therefore, by construction, newer than the last
+# commit: its `Commit:` cannot disagree with HEAD, because a disagreeing one
+# cannot exist. An absent hand-off is ordinary — it means resume from
+# docs/PROGRESS.md. (Keel's references/project-state.md, "The post-commit
+# hook".) scripts/keel-close writes a fresh hand-off AFTER its last commit.
+#
+# Active only where `git config core.hooksPath .githooks` is set; that is
+# local configuration, so a fresh clone must set it again
+# (scripts/keel-chain-check row 10b reports it).
+
+root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+[ -n "$root" ] || exit 0
+rm -f "$root/docs/continuation-prompt.md"
+exit 0

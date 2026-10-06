@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# keel-handoff-verify — the five mechanical courier checks over
+# keel-handoff-verify — the mechanical courier checks over
 # docs/continuation-prompt.md, per Keel's references/project-state.md
 # ("The continuation file"). A session NEVER composes these checks inline —
 # it always runs this script, because inline `$(...)` nesting breaks the
@@ -12,13 +12,19 @@
 #      `git rev-parse --show-toplevel`.
 #   2. Repo — the header's `Repo:` short hash against this repo's root
 #      commit (`git rev-list --max-parents=0 HEAD | sort | head -1`).
-#   3. Commit — the header's `Commit:` against `git rev-parse HEAD`.
-#      Informational, not necessarily a hard fail if behind: a hand-off
-#      naming an ancestor of HEAD just means the repo moved on since it was
-#      written, which is normal after further commits in the same session.
+#   3. Commit — the header's `Commit:` against `git rev-parse HEAD`. A
+#      hand-off naming an ancestor of HEAD is STALE: the row FAILS and says
+#      how far behind it is. (With .githooks/post-commit active this state
+#      cannot be produced — committing deletes the hand-off — so the row
+#      failing also means the hook is not doing its job.)
 #   4. Generated — parses as a valid epoch/timestamp.
 #   5. Tree — the header's `Tree:` (clean / dirty (N files)) against the
 #      live `git status --porcelain`.
+#   6. Branch — the header's `Branch:` against the current branch, and any
+#      "pushed" claim against `git rev-list @{u}..HEAD`.
+# `Mode:` (the card's Autonomy/Chaining carried in the hand-off) is CARRIED,
+# not checked: it is printed beside the card's own values, and the card wins.
+# `Position:` is prose and is not a mechanical check.
 #
 # Prints one line per check, then VERDICT: CONTINUE or VERDICT: STOP.
 #
@@ -27,30 +33,32 @@
 # see "Single-lane lock" below. On any other Chaining value the lock is
 # never touched.
 #
-# --release: releases the single-lane lock, idempotently. Safe to call
-# even when nothing is held (prints "nothing to release" and exits 0).
+# Options:
+#   --release   releases the single-lane lock, idempotently, and only when
+#               THIS session is the recorded owner. Exits 0 either way.
+#   --no-lane   runs the checks and prints the verdict but never touches the
+#               lane. For callers that verify without ARRIVING: the launcher
+#               (scripts/keel-continue) and the stop hook, which must not
+#               re-take a lane their session has just handed back.
+#   --lane      prints the lane's state and changes nothing:
+#               `Lane: free` / `Lane: held by this session (...)` /
+#               `Lane: BUSY (...)` / `Lane: orphaned (...)`.
 #
 # A missing docs/continuation-prompt.md is NOT an error: it means resume
 # normally from docs/PROGRESS.md (the file is gitignored, so a fresh clone
 # never has one).
 #
 # --- Single-lane lock — who is "this session"? -----------------------------
-# This script runs as a SUBPROCESS of the long-lived Claude Code CLI
-# process (or another tool's equivalent) — its own PID, and its immediate
-# parent shell's PID, are both transient and change on every invocation.
-# The thing the lock actually needs to identify is the SESSION, i.e. the
-# long-lived `claude` process itself. We find it by walking up the process
-# tree from this script's parent, looking for a process whose command name
-# contains "claude" (case-insensitive), up to 12 hops. Measured on macOS
-# Claude Code CLI: the walk is exactly two hops (tool-shell -> claude).
-# If no such process is found within 12 hops (a different tool, a renamed
-# binary, a wrapped launcher), we fall back to the immediate parent PID —
-# this degrades gracefully: the lock still works, it just keys on a
-# narrower notion of "session" that may not survive as long as the real
-# one, which can only make the script OVER-cautious (treating a legitimate
-# same-session reclaim as a fresh orphan-recovery) — it can never mistake
-# an unrelated live process for the owner, which is the failure that
-# actually matters.
+# This script runs as a SUBPROCESS of the session's long-lived process; its
+# own PID and its parent shell's are transient. The identity the lock needs
+# is the SESSION's, and it comes from scripts/keel-session-pid.sh
+# (keel_session_pid) — sourced, never re-implemented here — as
+# "<pid>-<start>". Where no session process is found the helper falls back
+# to the immediate parent, which can only make this script OVER-cautious
+# (a same-session reclaim read as an orphan recovery); it can never mistake
+# an unrelated live process for the owner.
+#
+# State lives OUTSIDE the repository: ${KEEL_STATE_DIR:-${TMPDIR:-/tmp}}.
 
 set -u
 
@@ -62,8 +70,35 @@ fi
 cd "$REPO_ROOT" || exit 1
 
 HANDOFF="$REPO_ROOT/docs/continuation-prompt.md"
-STATE_DIR="${TMPDIR:-/tmp}/keel-locks"
+STATE_ROOT="${KEEL_STATE_DIR:-${TMPDIR:-/tmp}}"
+STATE_ROOT="${STATE_ROOT%/}"
+STATE_DIR="$STATE_ROOT/keel-locks"
 mkdir -p "$STATE_DIR" 2>/dev/null
+
+MODE="verify"
+case "${1:-}" in
+--release) MODE="release" ;;
+--no-lane) MODE="no-lane" ;;
+--lane) MODE="lane" ;;
+"") ;;
+*)
+	echo "Unknown option '$1' — usage: keel-handoff-verify [--release | --no-lane | --lane]"
+	exit 2
+	;;
+esac
+
+# The project's one answer to "who am I".
+if [ -f "$REPO_ROOT/scripts/keel-session-pid.sh" ]; then
+	# shellcheck source=scripts/keel-session-pid.sh
+	. "$REPO_ROOT/scripts/keel-session-pid.sh"
+else
+	keel_session_pid() {
+		printf '%s-%s\n' "$PPID" "$(LC_ALL=C ps -o lstart= -p "$PPID" 2>/dev/null | tr -cd 'A-Za-z0-9')"
+		return 1
+	}
+fi
+SELF_SESSION=$(keel_session_pid)
+SELF_PID="${SELF_SESSION%%-*}"
 
 # --- Portable epoch helpers (macOS/BSD date vs GNU date) -------------------
 iso_to_epoch() {
@@ -99,34 +134,38 @@ sha256_of() {
 }
 
 # --- Single-lane lock helpers -----------------------------------------------
-find_owning_session_pid() {
-	local p="$PPID"
-	local hops=0
-	while [ -n "$p" ] && [ "$p" != "1" ] && [ "$hops" -lt 12 ]; do
-		local comm
-		comm=$(ps -o comm= -p "$p" 2>/dev/null | tr -d ' ')
-		case "$comm" in
-		*[Cc]laude*)
-			echo "$p"
-			return 0
-			;;
-		esac
-		local parent
-		parent=$(ps -o ppid= -p "$p" 2>/dev/null | tr -d ' ')
-		[ -z "$parent" ] && break
-		p="$parent"
-		hops=$((hops + 1))
-	done
-	echo "$PPID"
-	return 1
-}
-
 pid_is_alive() {
 	kill -0 "$1" 2>/dev/null
 }
 
 pid_start_time() {
+	LC_ALL=C ps -o lstart= -p "$1" 2>/dev/null | tr -s ' '
+}
+
+# The same instant as this shell's own locale prints it — locks written before
+# the start time was pinned to the C locale recorded this form.
+pid_start_time_locale() {
 	ps -o lstart= -p "$1" 2>/dev/null | tr -s ' '
+}
+
+# Is the recorded holder still the same live process?
+holder_is_live() {
+	local pid="$1" recorded="$2" live
+	[ -n "$pid" ] || return 1
+	pid_is_alive "$pid" || return 1
+	live=$(pid_start_time "$pid")
+	[ "$live" = "$recorded" ] && return 0
+	live=$(pid_start_time_locale "$pid")
+	[ "$live" = "$recorded" ] && return 0
+	return 1
+}
+
+write_lock() {
+	{
+		echo "pid=$SELF_PID"
+		echo "start_time=$(pid_start_time "$SELF_PID")"
+		echo "session=$SELF_SESSION"
+	} >"$1"
 }
 
 lock_file_path() {
@@ -134,19 +173,36 @@ lock_file_path() {
 }
 
 # ---------------------------------------------------------------------------
-if [ "${1:-}" = "--release" ]; then
+if [ "$MODE" = "release" ]; then
 	LOCK_FILE=$(lock_file_path)
 	if [ ! -f "$LOCK_FILE" ]; then
 		echo "Nothing to release — no lane held for $REPO_ROOT."
 		exit 0
 	fi
 	RECORDED_PID=$(grep -m1 '^pid=' "$LOCK_FILE" 2>/dev/null | cut -d= -f2-)
-	CALLER_PID=$(find_owning_session_pid)
-	if [ "$RECORDED_PID" = "$CALLER_PID" ]; then
+	if [ "$RECORDED_PID" = "$SELF_PID" ]; then
 		rm -f "$LOCK_FILE"
 		echo "Lane released for $REPO_ROOT (was held by PID $RECORDED_PID, this session)."
 	else
-		echo "Lane for $REPO_ROOT is held by PID $RECORDED_PID, not this session (PID $CALLER_PID) — not releasing someone else's lane."
+		echo "Lane for $REPO_ROOT is held by PID $RECORDED_PID, not this session (PID $SELF_PID) — not releasing someone else's lane."
+	fi
+	exit 0
+fi
+
+if [ "$MODE" = "lane" ]; then
+	LOCK_FILE=$(lock_file_path)
+	if [ ! -f "$LOCK_FILE" ]; then
+		echo "Lane: free — no lane held for $REPO_ROOT"
+		exit 0
+	fi
+	RECORDED_PID=$(grep -m1 '^pid=' "$LOCK_FILE" 2>/dev/null | cut -d= -f2-)
+	RECORDED_START=$(grep -m1 '^start_time=' "$LOCK_FILE" 2>/dev/null | cut -d= -f2-)
+	if ! holder_is_live "$RECORDED_PID" "$RECORDED_START"; then
+		echo "Lane: orphaned (PID $RECORDED_PID is gone or was reused) — the next arriving session recovers it"
+	elif [ "$RECORDED_PID" = "$SELF_PID" ]; then
+		echo "Lane: held by this session (PID $SELF_PID)"
+	else
+		echo "Lane: BUSY (PID $RECORDED_PID, started $RECORDED_START) — close that window, or run 'scripts/keel-handoff-verify --release' inside it, to free the lane"
 	fi
 	exit 0
 fi
@@ -178,6 +234,8 @@ HDR_COMMIT=$(printf '%s\n' "$HEADER" | grep -m1 '^Commit:' | sed -E 's/^Commit:[
 HDR_GENERATED=$(printf '%s\n' "$HEADER" | grep -m1 '^Generated:' | sed -E 's/^Generated:[[:space:]]*//')
 HDR_TREE=$(printf '%s\n' "$HEADER" | grep -m1 '^Tree:' | sed -E 's/^Tree:[[:space:]]*//')
 HDR_HANDOVER=$(printf '%s\n' "$HEADER" | grep -m1 '^Handover:' | sed -E 's/^Handover:[[:space:]]*//')
+HDR_BRANCH=$(printf '%s\n' "$HEADER" | grep -m1 '^Branch:' | sed -E 's/^Branch:[[:space:]]*//')
+HDR_MODE=$(printf '%s\n' "$HEADER" | grep -m1 '^Mode:' | sed -E 's/^Mode:[[:space:]]*//')
 
 # --- 2. Repo -------------------------------------------------------------
 IS_SHALLOW=$(git rev-parse --is-shallow-repository 2>/dev/null)
@@ -208,7 +266,7 @@ else
 	fi
 fi
 
-# --- 3. Commit (informational — never a hard STOP by itself) -----------
+# --- 3. Commit — the hand-off must describe HEAD ------------------------
 CURRENT_HEAD=$(git rev-parse HEAD 2>/dev/null)
 if [ -z "$HDR_COMMIT" ]; then
 	echo "Commit: FAIL — no 'Commit:' line found in the hand-off header"
@@ -223,7 +281,8 @@ else
 			echo "Commit: OK — $HDR_COMMIT is the current HEAD"
 		elif git merge-base --is-ancestor "$RESOLVED" "$CURRENT_HEAD" 2>/dev/null; then
 			BEHIND=$(git rev-list --count "${RESOLVED}..${CURRENT_HEAD}" 2>/dev/null)
-			echo "Commit: OK (informational) — $HDR_COMMIT is $BEHIND commit(s) behind current HEAD ($CURRENT_HEAD); the repo moved on since the hand-off was written"
+			echo "Commit: FAIL — $HDR_COMMIT is $BEHIND commit(s) behind current HEAD ($CURRENT_HEAD); the repository moved on since the hand-off was written (stale — resume from docs/PROGRESS.md)"
+			STOP=1
 		else
 			echo "Commit: FAIL — $HDR_COMMIT is not an ancestor of current HEAD ($CURRENT_HEAD); histories have diverged"
 			STOP=1
@@ -274,6 +333,45 @@ else
 	fi
 fi
 
+# --- 6. Branch -----------------------------------------------------------
+CARD_FILE="$REPO_ROOT/docs/PROGRESS.md"
+if [ -z "$HDR_BRANCH" ]; then
+	echo "Branch: not checked — no 'Branch:' line in the hand-off header (a hand-off written before the field existed)"
+else
+	CLAIMED_BRANCH=$(printf '%s\n' "$HDR_BRANCH" | awk '{print $1}' | tr -d '`')
+	LIVE_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+	if [ "$CLAIMED_BRANCH" != "$LIVE_BRANCH" ]; then
+		echo "Branch: FAIL — hand-off says '$CLAIMED_BRANCH', this checkout is on '$LIVE_BRANCH'"
+		STOP=1
+	else
+		UPSTREAM=$(git rev-parse --abbrev-ref '@{u}' 2>/dev/null)
+		if [ -z "$UPSTREAM" ]; then
+			echo "Branch: OK — on '$LIVE_BRANCH' (no upstream configured, so the pushed claim cannot be checked)"
+		else
+			UNPUSHED=$(git rev-list --count '@{u}..HEAD' 2>/dev/null)
+			if [ "${UNPUSHED:-0}" -gt 0 ] && printf '%s\n' "$HDR_BRANCH" | grep -qi 'pushed'; then
+				echo "Branch: FAIL — hand-off says pushed, but $UNPUSHED commit(s) on '$LIVE_BRANCH' never left this machine ($UPSTREAM..HEAD)"
+				STOP=1
+			else
+				echo "Branch: OK — on '$LIVE_BRANCH', ${UNPUSHED:-0} commit(s) ahead of $UPSTREAM"
+			fi
+		fi
+	fi
+fi
+
+# --- Mode — carried, not checked -----------------------------------------
+if [ -n "$HDR_MODE" ]; then
+	CARD_AUTONOMY=""
+	CARD_CHAIN_FOR_MODE=""
+	if [ -f "$CARD_FILE" ]; then
+		CARD_AUTONOMY=$(grep -m1 -E '^- Autonomy:' "$CARD_FILE" | sed -E 's/^- Autonomy:[[:space:]]*//' | awk '{print $1}')
+		CARD_CHAIN_FOR_MODE=$(grep -m1 -E '^- Chaining:' "$CARD_FILE" | sed -E 's/^- Chaining:[[:space:]]*//' | awk '{print $1}')
+	fi
+	echo "Mode: $HDR_MODE (carried, not checked — the card says Autonomy: ${CARD_AUTONOMY:-unreadable} / Chaining: ${CARD_CHAIN_FOR_MODE:-unreadable}, and the card is the authority)"
+else
+	echo "Mode: not carried — no 'Mode:' line in the hand-off header; apply the card's Autonomy: and Chaining: values"
+fi
+
 echo
 
 if [ "$STOP" -ne 0 ]; then
@@ -283,8 +381,11 @@ fi
 
 echo "VERDICT: CONTINUE"
 
+if [ "$MODE" = "no-lane" ]; then
+	exit 0
+fi
+
 # --- Single-lane lock — claim it, but ONLY if the card says Chaining: start
-CARD_FILE="$REPO_ROOT/docs/PROGRESS.md"
 CARD_CHAINING=""
 if [ -f "$CARD_FILE" ]; then
 	CARD_CHAINING=$(grep -m1 -E '^- Chaining:' "$CARD_FILE" | sed -E 's/^- Chaining:[[:space:]]*//' | awk '{print $1}')
@@ -293,52 +394,39 @@ fi
 if [ "$CARD_CHAINING" = "start" ]; then
 	echo
 	LOCK_FILE=$(lock_file_path)
-	SELF_PID=$(find_owning_session_pid)
-	SELF_START=$(pid_start_time "$SELF_PID")
 
 	# Compute this hand-off's own launch-receipt identity, to check the
 	# baton case below (a live lock holder that IS this hand-off's own
 	# recorded launcher is not a conflict — the lane is handed over).
 	RECEIPT_KEY=$(sha256_of "${HDR_GENERATED}${HDR_COMMIT}")
-	RECEIPT_DIR="${TMPDIR:-/tmp}/keel-receipts/$RECEIPT_KEY"
-	LAUNCHER_PID=""
-	[ -f "$RECEIPT_DIR/launcher-pid" ] && LAUNCHER_PID=$(cat "$RECEIPT_DIR/launcher-pid" 2>/dev/null)
+	RECEIPT_DIR="$STATE_ROOT/keel-receipts/$RECEIPT_KEY"
+	LAUNCHER_ID=""
+	[ -f "$RECEIPT_DIR/launcher-pid" ] && LAUNCHER_ID=$(cat "$RECEIPT_DIR/launcher-pid" 2>/dev/null)
+	# The receipt carries the launcher's session identity ("<pid>-<start>");
+	# one written by an older launcher carries the bare PID. Either names it.
+	LAUNCHER_PID="${LAUNCHER_ID%%-*}"
 
 	if [ ! -f "$LOCK_FILE" ]; then
-		{
-			echo "pid=$SELF_PID"
-			echo "start_time=$SELF_START"
-		} >"$LOCK_FILE"
+		write_lock "$LOCK_FILE"
 		echo "Lane claimed for $REPO_ROOT (PID $SELF_PID)."
 	else
 		RECORDED_PID=$(grep -m1 '^pid=' "$LOCK_FILE" | cut -d= -f2-)
 		RECORDED_START=$(grep -m1 '^start_time=' "$LOCK_FILE" | cut -d= -f2-)
-		HOLDER_LIVE_MATCHING=0
-		if pid_is_alive "$RECORDED_PID"; then
-			LIVE_START=$(pid_start_time "$RECORDED_PID")
-			[ "$LIVE_START" = "$RECORDED_START" ] && HOLDER_LIVE_MATCHING=1
-		fi
 
-		if [ "$HOLDER_LIVE_MATCHING" -eq 0 ]; then
+		if ! holder_is_live "$RECORDED_PID" "$RECORDED_START"; then
 			# Orphan: dead PID, or a live PID whose start time doesn't match
 			# (the number was reused by an unrelated process).
-			{
-				echo "pid=$SELF_PID"
-				echo "start_time=$SELF_START"
-			} >"$LOCK_FILE"
+			write_lock "$LOCK_FILE"
 			echo "Recovered an orphaned lane (was PID $RECORDED_PID) for $REPO_ROOT (PID $SELF_PID)."
+		elif [ "$RECORDED_PID" = "$SELF_PID" ]; then
+			echo "Lane already held by this session ($SELF_PID) for $REPO_ROOT."
 		elif [ -n "$LAUNCHER_PID" ] && [ "$RECORDED_PID" = "$LAUNCHER_PID" ]; then
 			# Baton: the live holder is exactly this hand-off's own launcher,
 			# which has by definition already closed out.
-			{
-				echo "pid=$SELF_PID"
-				echo "start_time=$SELF_START"
-			} >"$LOCK_FILE"
+			write_lock "$LOCK_FILE"
 			echo "Baton: lane passed from launcher PID $RECORDED_PID for $REPO_ROOT (PID $SELF_PID)."
-		elif [ "$RECORDED_PID" = "$SELF_PID" ]; then
-			echo "Lane already held by this session ($SELF_PID) for $REPO_ROOT."
 		else
-			echo "Lane BUSY — $REPO_ROOT is held by a live session (PID $RECORDED_PID). Close that window, or run 'scripts/keel-handoff-verify --release' inside it, to free the lane."
+			echo "Lane BUSY — $REPO_ROOT is held by a live session (PID $RECORDED_PID, started $RECORDED_START). Close that window, or run 'scripts/keel-handoff-verify --release' inside it, to free the lane."
 			exit 1
 		fi
 	fi

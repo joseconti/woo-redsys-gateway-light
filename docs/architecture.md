@@ -31,9 +31,9 @@ Front-end: `resources/js/frontend/index.js` (source) → built by `@wordpress/sc
 1. Customer checks out, selects the gateway → order created `pending`.
 2. Gateway class builds the signed redirection payload (`RedsysLiteAPI`), filterable via `apply_filters('woocommerce_redsys_args', ...)`.
 3. Customer is redirected to Redsys's hosted payment page (outside this plugin's control).
-4. Redsys redirects back to `?wc-api=WC_Gateway_redsys` with a signed response.
+4. Redsys sends a signed server-to-server notification (an HTTP POST, not a browser redirect) to `?wc-api=WC_Gateway_redsys`.
 5. `check_ipn_response()` verifies the HMAC_SHA256_V1 signature against the configured secret — **fails closed** if no secret is configured.
-6. Order total is cross-checked against the notification total; mismatch → `on-hold`. Match → order marked paid/`completed`. Redsys-side cancellation → `cancelled`.
+6. Order total is cross-checked against the notification total; mismatch → `on-hold`. Match → `payment_complete()`; the order is moved to `completed` only when the gateway's `orderdo` setting says so. Redsys-side cancellation → `cancelled`.
 7. `do_action('valid_redsys_standard_ipn_request', $post_data)` fires for third-party extensibility once the notification is trusted.
 
 ## Data flow
@@ -48,4 +48,4 @@ No custom tables. All state lives in WooCommerce's own `wp_options` (gateway set
 See `docs/api/INDEX.md` for the full list of actions/filters this plugin exposes to third-party code (per-gateway `_standard_ipn_request` actions, `_args`/`_icon` filters, plus the internal upsell-widget filters).
 
 ## Known architectural gaps
-See `docs/04-adoption-audit.md` for the full gap audit; the headline ones: no automated test suite, no CSS minification pipeline, `## Environment requirements` / `scripts/keel-doctor` / `scripts/keel-verify` not yet built (all deferred to the first real Phase 5 sprint, per `docs/keel-conformance.md`).
+See `docs/04-adoption-audit.md` for the full gap audit; the one headline gap still open is the CSS minification pipeline, scheduled as slice S-027 (D-038). The automated suite (PHPUnit unit and integration, Playwright e2e), `## Environment requirements`, `scripts/keel-doctor` and `scripts/keel-verify` have since been built.

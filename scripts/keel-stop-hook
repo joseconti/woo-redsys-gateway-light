@@ -1,0 +1,617 @@
+#!/bin/bash
+#
+# keel-stop-hook — the turn that just stops. Registered as a `Stop` hook in
+# the settings of the tools whose row says KEEL_TOOL_STOP_HOOK="yes", and
+# nowhere else. Contract: Keel's references/project-state.md,
+# "scripts/keel-stop-hook".
+#
+# Input : the hook's JSON on stdin (it reads `stop_hook_active` and `cwd`).
+# Output: on a block, ONE JSON object on stdout —
+#           {"decision":"block","reason":"...","hookSpecificOutput":{"hookEventName":"Stop"}}
+#         on an allow that has something to say (a cede, a discharge, a
+#         stand-down, a hand-on), {"systemMessage":"..."}; otherwise nothing.
+#         A trace of every decision goes to stderr. The exit status is ALWAYS 0.
+#         This output schema is never changed to serve another tool.
+#
+# Rules:
+#   1. Block when the repository is UNBREAKABLE-broken:
+#        1a uncommitted work          (CEDES to another live session)
+#        1b unpushed commits
+#        1c a hand-off that no longer describes HEAD
+#        1d the plan is behind the work, unless the card says `Sprints: off`
+#                                      (CEDES to another live session)
+#   2. Otherwise block ONCE MORE when docs/PROGRESS.md's `## Open items`
+#      holds work this session can do. CEDES to another live session; is
+#      DISCHARGED by a completed close-out, read from recorded state.
+#   3. Never spin: a block whose own fingerprint is unchanged since this
+#      session's previous block of that kind is not repeated; hard caps per
+#      hour and per chain of hook-driven continuations.
+#   4. When allowing: hand the queue on through scripts/keel-continue — ONLY
+#      for a session that completed its close-out at HEAD, and ONLY when this
+#      session's fire-ledger entry does not already exist.
+#   5. Any internal error allows the stop. There is deliberately NO `set -e`
+#      and NO `ERR` trap: this runs on every turn, and a hook that can break
+#      a session is worse than no hook. A cede is a decision printed on the
+#      normal path, never an error exit.
+#
+# All state is the SESSION's, never the directory's: the block log is keyed
+# by repository AND session (keel_session_pid), and each kind of block has
+# its OWN fingerprint, made of the inputs that block named and nothing else.
+# (The single lane is keyed to the directory on purpose and is not touched
+# here.)
+#
+# Concurrency is detected; authorship is never attributed. Whether another
+# session is live is established by the row's KEEL_TOOL_LIVE_QUERY plus the
+# modification times of what `git status` lists. A probe that cannot answer
+# means "not established", and not-established BLOCKS.
+#
+# Tunables (environment): KEEL_STOP_RECENT_SECS (default 600) — how recently
+# a dirty path must have been touched to count as recent activity;
+# KEEL_STOP_HOURLY_CAP (default 8); KEEL_STOP_CHAIN_CAP (default 3).
+# Test seams, for fixtures only: KEEL_TEST_SESSION_ID, KEEL_TEST_LIVE_QUERY.
+
+set -u
+
+RECENT_SECS="${KEEL_STOP_RECENT_SECS:-600}"
+HOURLY_CAP="${KEEL_STOP_HOURLY_CAP:-8}"
+CHAIN_CAP="${KEEL_STOP_CHAIN_CAP:-3}"
+
+trace() {
+	printf 'keel-stop-hook: %s\n' "$*" >&2
+}
+
+sha256_of() {
+	printf '%s' "$1" | shasum -a 256 2>/dev/null | awk '{print $1}'
+}
+
+json_escape() {
+	printf '%s' "$1" | tr -d '\000-\010\013\014\016-\037' | awk '
+		BEGIN { ORS = "" }
+		{
+			gsub(/\\/, "\\\\")
+			gsub(/"/, "\\\"")
+			gsub(/\t/, "\\t")
+			gsub(/\r/, "\\r")
+			if (NR > 1) printf "\\n"
+			print
+		}'
+}
+
+MESSAGES=""
+say() {
+	trace "$*"
+	if [ -z "$MESSAGES" ]; then
+		MESSAGES="$*"
+	else
+		MESSAGES="$MESSAGES
+$*"
+	fi
+}
+
+card_line() {
+	[ -f "$PROGRESS" ] || return 0
+	grep -m1 -E "^- $1:" "$PROGRESS" | sed -E "s/^- $1:[[:space:]]*//"
+}
+
+card_word() {
+	card_line "$1" | awk '{print $1}' | tr -d '`*' | sed -E 's/[.,;]+$//'
+}
+
+# --- The session's block log --------------------------------------------------
+# One line per block: <epoch>|<kind>|<fingerprint>|<hook pid> (two kinds raised
+# by one invocation share epoch and pid, and count as ONE block). One line per
+# fresh turn:
+# <epoch>|turn|-  (a stop that was not itself caused by a hook block).
+last_fingerprint() {
+	[ -f "$BLOCK_LOG" ] || return 0
+	grep "|$1|" "$BLOCK_LOG" 2>/dev/null | tail -1 | cut -d'|' -f3
+}
+
+blocks_last_hour() {
+	[ -f "$BLOCK_LOG" ] || {
+		echo 0
+		return 0
+	}
+	awk -F'|' -v now="$NOW" '$2 != "turn" && (now - $1) < 3600 && !seen[$1 FS $4]++ { n++ } END { print n + 0 }' "$BLOCK_LOG"
+}
+
+blocks_this_chain() {
+	[ -f "$BLOCK_LOG" ] || {
+		echo 0
+		return 0
+	}
+	awk -F'|' '$2 == "turn" { n = 0; split("", seen); next } !seen[$1 FS $4]++ { n++ } END { print n + 0 }' "$BLOCK_LOG"
+}
+
+# Runs the live-session query (with a timeout) and reduces its JSON to one
+# line: "other <who>", "none" or "unknown". Kept in its own function so the
+# here-document is never nested inside a command substitution.
+live_query_run() {
+	python3 - "$1" "$2" "$3" <<'KEEL_PY'
+import json, os, shlex, subprocess, sys
+root, own, query = sys.argv[1], sys.argv[2], sys.argv[3]
+try:
+    proc = subprocess.run(shlex.split(query) + [root], stdout=subprocess.PIPE,
+                          stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL, timeout=10)
+    if proc.returncode != 0:
+        raise RuntimeError("query failed")
+    data = json.loads(proc.stdout.decode("utf-8", "replace"))
+    if isinstance(data, dict):
+        lists = [v for v in data.values() if isinstance(v, list)]
+        data = lists[0] if lists else []
+    if not isinstance(data, list):
+        raise RuntimeError("unexpected shape")
+except Exception:
+    print("unknown")
+    sys.exit(0)
+real_root = os.path.realpath(root)
+others = []
+for item in data:
+    if not isinstance(item, dict) or "pid" not in item:
+        continue
+    if str(item.get("pid")) == str(own):
+        continue
+    cwd = item.get("cwd") or ""
+    if cwd:
+        real = os.path.realpath(cwd)
+        if real != real_root and not real.startswith(real_root + os.sep):
+            continue
+    others.append("PID %s (session %s, %s)" % (item.get("pid"), item.get("sessionId") or item.get("name") or "unnamed", item.get("status") or "status unknown"))
+if others:
+    print("other " + "; ".join(others))
+else:
+    print("none")
+KEEL_PY
+}
+
+# --- Is another session live in this checkout? ---------------------------------
+# Sets LIVE_STATE to other | none | unknown, and LIVE_DESC to a sentence.
+LIVE_STATE=""
+LIVE_DESC=""
+probe_live_session() {
+	[ -n "$LIVE_STATE" ] && return 0
+	local query="${KEEL_TEST_LIVE_QUERY:-${KEEL_TOOL_LIVE_QUERY:-}}" out
+	if [ -z "$query" ]; then
+		LIVE_STATE="unknown"
+		LIVE_DESC="no live-session query exists for this tool, so whether another session is live is NOT ESTABLISHED"
+		return 0
+	fi
+	if [ "$SESSION_RC" -ne 0 ]; then
+		LIVE_STATE="unknown"
+		LIVE_DESC="this session's own identity could not be established, so it cannot be told apart from another: NOT ESTABLISHED"
+		return 0
+	fi
+	if ! command -v python3 >/dev/null 2>&1; then
+		LIVE_STATE="unknown"
+		LIVE_DESC="python3 is unavailable to read the live-session query: NOT ESTABLISHED"
+		return 0
+	fi
+	out=$(live_query_run "$REPO_ROOT" "$SESSION_PID" "$query" 2>/dev/null)
+	case "$out" in
+	other\ *)
+		LIVE_STATE="other"
+		LIVE_DESC="${out#other }"
+		;;
+	none)
+		LIVE_STATE="none"
+		LIVE_DESC="the live-session query lists no other session in this checkout"
+		;;
+	*)
+		LIVE_STATE="unknown"
+		LIVE_DESC="the live-session query could not answer: NOT ESTABLISHED"
+		;;
+	esac
+	return 0
+}
+
+# --- The mtime half of the probe ------------------------------------------------
+# `git status --porcelain -z` is PARSED, never sliced: with -z a path is never
+# quoted or escaped, and a rename is two records (destination first, then the
+# source, which is skipped) — so the destination is what gets stat-ed. A path
+# that cannot be stat-ed (a deletion) is NOT ESTABLISHED, never "not recent".
+# Sets MTIME_STATE to recent | quiet | unknown.
+MTIME_STATE=""
+MTIME_DESC=""
+probe_mtimes() {
+	local entry status path mtime statable=0 recent=0 unstatable=0 newest=""
+	while IFS= read -r -d '' entry; do
+		status="${entry:0:2}"
+		path="${entry:3}"
+		case "$status" in
+		R* | C* | ?R | ?C)
+			# The next record is the rename/copy SOURCE: consume and skip it.
+			IFS= read -r -d '' _source || true
+			;;
+		esac
+		if [ -e "$REPO_ROOT/$path" ] || [ -L "$REPO_ROOT/$path" ]; then
+			mtime=$(stat -f %m "$REPO_ROOT/$path" 2>/dev/null || stat -c %Y "$REPO_ROOT/$path" 2>/dev/null)
+		else
+			mtime=""
+		fi
+		if [ -z "$mtime" ]; then
+			unstatable=$((unstatable + 1))
+			continue
+		fi
+		statable=$((statable + 1))
+		if [ $((NOW - mtime)) -lt "$RECENT_SECS" ]; then
+			recent=$((recent + 1))
+			[ -z "$newest" ] && newest="$path"
+		fi
+	done < <(git status --porcelain -z --untracked-files=all 2>/dev/null)
+
+	if [ "$statable" -eq 0 ]; then
+		MTIME_STATE="unknown"
+		MTIME_DESC="none of the $unstatable dirty entries can be stat-ed (deletions), so the modification-time half ANSWERED NOTHING"
+	elif [ "$recent" -gt 0 ]; then
+		MTIME_STATE="recent"
+		MTIME_DESC="$recent of $statable dirty paths were modified in the last ${RECENT_SECS}s (e.g. $newest)"
+	else
+		MTIME_STATE="quiet"
+		MTIME_DESC="none of the $statable stat-able dirty paths was modified in the last ${RECENT_SECS}s"
+	fi
+}
+
+# --- The queue: `## Open items` in docs/PROGRESS.md, and nothing else -----------
+# One item per top-level bullet of that section, up to its first `###`
+# sub-heading (so "Deferred items" — consciously postponed work, each with its
+# own review trigger — is not the queue). Not counted: an empty or "none"/"n/a"
+# bullet, a ticked `[x]` bullet, and anything parked on a person.
+# Prints one identifier per line.
+queue_identifiers() {
+	[ -f "$PROGRESS" ] || return 0
+	awk '
+		/^## / { insec = ($0 ~ /^## Open items[[:space:]]*$/); next }
+		!insec { next }
+		/^### / { exit }
+		/^- / { print substr($0, 3) }
+	' "$PROGRESS" | while IFS= read -r item; do
+		clean=$(printf '%s' "$item" | tr -d '*`')
+		case "$clean" in
+		"[x]"* | "[X]"*) continue ;;
+		esac
+		clean="${clean#\[ \] }"
+		case "$clean" in
+		*:*)
+			label="${clean%%:*}"
+			value="${clean#*:}"
+			;;
+		*)
+			label="$clean"
+			value="$clean"
+			;;
+		esac
+		value=$(printf '%s' "$value" | sed -e 's/^[[:space:]]*//' | tr '[:upper:]' '[:lower:]')
+		case "$value" in
+		"" | none* | n/a* | "[list or"*) continue ;;
+		esac
+		if printf '%s' "$label" | grep -qi '^Unresolved user questions'; then
+			continue
+		fi
+		if printf '%s' "$clean" | grep -Eqi "parked|awaiting|waiting (on|for)|blocked on|needs the user|user'?s? (decision|answer|merge|call)"; then
+			continue
+		fi
+		printf '%s\n' "$label" | cut -c1-90
+	done
+}
+
+# --- Has this session completed a close-out that describes HEAD? ----------------
+# Three facts, all recorded state: (1) proof the close-out ran for THIS
+# session — a launch receipt for this hand-off carrying this session as its
+# launcher, or the close-out record scripts/keel-close step 8 writes at HEAD
+# (the form that exists when no chat could be opened); (2) the lane is not
+# held by this session; (3) the verifier returns CONTINUE on a hand-off whose
+# `Commit:` is HEAD. Sets DISCHARGED_BY.
+DISCHARGED_BY=""
+closeout_discharged() {
+	local header commit generated resolved key
+	[ -f "$HANDOFF" ] || return 1
+	[ -x "$SCRIPT_DIR/keel-handoff-verify" ] || return 1
+	header=$(awk '/^---$/{n++; next} n==1{print} n>=2{exit}' "$HANDOFF" 2>/dev/null)
+	commit=$(printf '%s\n' "$header" | grep -m1 '^Commit:' | sed -E 's/^Commit:[[:space:]]*//')
+	generated=$(printf '%s\n' "$header" | grep -m1 '^Generated:' | sed -E 's/^Generated:[[:space:]]*//')
+	[ -n "$commit" ] || return 1
+	resolved=$(git rev-parse --verify --quiet "$commit^{commit}" 2>/dev/null)
+	[ "$resolved" = "$HEAD_FULL" ] || return 1
+	"$SCRIPT_DIR/keel-handoff-verify" --no-lane 2>/dev/null | grep -q '^VERDICT: CONTINUE$' || return 1
+	if "$SCRIPT_DIR/keel-handoff-verify" --lane 2>/dev/null | grep -q '^Lane: held by this session'; then
+		return 1
+	fi
+	key=$(sha256_of "${generated}${commit}")
+	if [ -f "$STATE_ROOT/keel-receipts/$key/launcher-pid" ] && [ "$(cat "$STATE_ROOT/keel-receipts/$key/launcher-pid" 2>/dev/null)" = "$SESSION_ID" ]; then
+		DISCHARGED_BY="launch receipt $key (launcher-pid $SESSION_ID)"
+		return 0
+	fi
+	if [ -f "$CLOSEOUT_RECORD" ] && [ "$(cat "$CLOSEOUT_RECORD" 2>/dev/null)" = "$HEAD_FULL" ]; then
+		DISCHARGED_BY="close-out record $CLOSEOUT_RECORD at $HEAD_FULL (no chat was opened, so there is no launch receipt)"
+		return 0
+	fi
+	return 1
+}
+
+# --- Block bookkeeping -----------------------------------------------------------
+BLOCK_TEXT=""
+BLOCK_KINDS=""
+BLOCK_FPS=""
+add_block() { # kind, fingerprint, text
+	BLOCK_KINDS="$BLOCK_KINDS $1"
+	BLOCK_FPS="$BLOCK_FPS $2"
+	if [ -z "$BLOCK_TEXT" ]; then
+		BLOCK_TEXT="$3"
+	else
+		BLOCK_TEXT="$BLOCK_TEXT
+
+$3"
+	fi
+}
+
+# brake <kind> <fingerprint> — returns 0 when this block may be raised, 1 when
+# the session's previous block of this kind named exactly the same thing.
+brake() {
+	local previous
+	previous=$(last_fingerprint "$1")
+	if [ -n "$previous" ] && [ "$previous" = "$2" ]; then
+		say "Keel stop hook: not repeating the '$1' block — nothing it named has changed since it was last raised in this session (anti-spin)."
+		return 1
+	fi
+	return 0
+}
+
+emit_and_exit() {
+	if [ -n "$BLOCK_TEXT" ]; then
+		local i=1 kind fp recorded=1
+		mkdir -p "$STATE_DIR" 2>/dev/null
+		for kind in $BLOCK_KINDS; do
+			fp=$(printf '%s\n' $BLOCK_FPS | sed -n "${i}p")
+			printf '%s|%s|%s|%s\n' "$NOW" "$kind" "$fp" "$$" >>"$BLOCK_LOG" 2>/dev/null || recorded=0
+			i=$((i + 1))
+		done
+		if [ "$recorded" -eq 1 ]; then
+			trace "BLOCK:$BLOCK_KINDS"
+			printf '{"decision":"block","reason":"%s","hookSpecificOutput":{"hookEventName":"Stop"}}\n' "$(json_escape "$BLOCK_TEXT")"
+			exit 0
+		fi
+		# A block that cannot be recorded cannot be braked, so it could repeat
+		# on every turn. Rule 5 wins: allow, and say what was found.
+		say "Keel stop hook: found a reason to block ($BLOCK_KINDS ) but could not record it in $BLOCK_LOG, so the anti-spin brake would not hold — allowing the stop instead. What it found:
+$BLOCK_TEXT"
+	fi
+	trace "ALLOW"
+	if [ -n "$MESSAGES" ]; then
+		printf '{"systemMessage":"%s"}\n' "$(json_escape "$MESSAGES")"
+	fi
+	exit 0
+}
+
+main() {
+	local input cwd
+	input=$(cat 2>/dev/null)
+	STOP_HOOK_ACTIVE=0
+	if printf '%s' "$input" | grep -Eq '"stop_hook_active"[[:space:]]*:[[:space:]]*true'; then
+		STOP_HOOK_ACTIVE=1
+	fi
+	cwd=$(printf '%s' "$input" | sed -n 's/.*"cwd"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
+	if [ -n "$cwd" ] && [ -d "$cwd" ]; then
+		cd "$cwd" 2>/dev/null || true
+	fi
+
+	REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+	if [ -z "$REPO_ROOT" ]; then
+		trace "not inside a git repository — allowing"
+		exit 0
+	fi
+	cd "$REPO_ROOT" 2>/dev/null || exit 0
+
+	SCRIPT_DIR="$REPO_ROOT/scripts"
+	PROGRESS="$REPO_ROOT/docs/PROGRESS.md"
+	HANDOFF="$REPO_ROOT/docs/continuation-prompt.md"
+	STATE_ROOT="${KEEL_STATE_DIR:-${TMPDIR:-/tmp}}"
+	STATE_ROOT="${STATE_ROOT%/}"
+	STATE_DIR="$STATE_ROOT/keel-state"
+	NOW=$(date +%s)
+	HEAD_FULL=$(git rev-parse HEAD 2>/dev/null)
+	if [ -z "$HEAD_FULL" ]; then
+		trace "no commit yet — allowing"
+		exit 0
+	fi
+
+	if [ -f "$SCRIPT_DIR/keel-session-pid.sh" ]; then
+		# shellcheck source=scripts/keel-session-pid.sh
+		. "$SCRIPT_DIR/keel-session-pid.sh"
+		SESSION_ID=$(keel_session_pid)
+		SESSION_RC=$?
+	else
+		SESSION_ID="$PPID-unknown"
+		SESSION_RC=1
+	fi
+	SESSION_PID="${SESSION_ID%%-*}"
+	REPO_KEY=$(sha256_of "$REPO_ROOT")
+	BLOCK_LOG="$STATE_DIR/stop-blocks-$REPO_KEY-$SESSION_ID.log"
+	CLOSEOUT_RECORD="$STATE_DIR/closeouts/$REPO_KEY-$SESSION_ID"
+	LEDGER_ENTRY="$STATE_DIR/fired-$REPO_KEY-$SESSION_ID"
+	mkdir -p "$STATE_DIR" 2>/dev/null
+
+	# The detected tool's row, for its live-session query. No row -> the query
+	# half is unavailable, which is "not established", never "quiet".
+	KEEL_TOOL_LIVE_QUERY=""
+	KEEL_TOOL_NAME=""
+	local row name
+	for row in "$SCRIPT_DIR"/keel-tools/*.sh; do
+		[ -f "$row" ] || continue
+		name=$( (
+			. "$row" >/dev/null 2>&1
+			keel_tool_detect 2>/dev/null
+		) 2>/dev/null)
+		if [ -n "$name" ]; then
+			# shellcheck disable=SC1090
+			. "$row" >/dev/null 2>&1
+			break
+		fi
+	done
+
+	# A stop that no hook block caused starts a fresh chain of continuations.
+	if [ "$STOP_HOOK_ACTIVE" -eq 0 ]; then
+		printf '%s|turn|-\n' "$NOW" >>"$BLOCK_LOG" 2>/dev/null
+	fi
+
+	# ---------------------------------------------------------------- caps
+	local hour_count chain_count capped=0
+	hour_count=$(blocks_last_hour)
+	chain_count=$(blocks_this_chain)
+	if [ "$hour_count" -ge "$HOURLY_CAP" ]; then
+		capped=1
+		say "Keel stop hook: hourly cap reached ($hour_count blocks in the last hour for this session, cap $HOURLY_CAP) — allowing the stop without re-checking."
+	elif [ "$STOP_HOOK_ACTIVE" -eq 1 ] && [ "$chain_count" -ge "$CHAIN_CAP" ]; then
+		capped=1
+		say "Keel stop hook: this stop is already the result of $chain_count consecutive hook blocks (cap $CHAIN_CAP) — allowing the stop."
+	fi
+
+	if [ "$capped" -eq 0 ]; then
+		# ------------------------------------------------------------ rule 1a
+		local porcelain fp ceded_any=0
+		porcelain=$(git status --porcelain 2>/dev/null)
+		if [ -n "$porcelain" ]; then
+			fp=$(sha256_of "$porcelain")
+			probe_live_session
+			probe_mtimes
+			if [ "$LIVE_STATE" = "other" ] && [ "$MTIME_STATE" != "quiet" ]; then
+				ceded_any=1
+				say "Keel stop hook CEDED (this is not a clean pass): the tree has uncommitted work, and another session is live in this checkout — $LIVE_DESC. $MTIME_DESC. Those paths are not this session's to commit; that session carries this same hook and will be held by it on its own turn."
+			elif brake "uncommitted" "$fp"; then
+				add_block "uncommitted" "$fp" "UNBREAKABLE-broken: uncommitted work ($(printf '%s\n' "$porcelain" | grep -c .) entries).
+$(printf '%s\n' "$porcelain" | head -20)
+Why this did not cede: $LIVE_DESC; $MTIME_DESC.
+To clear: check the staged files for confidential data, then commit to the integration branch or to a work branch bound for it (stage explicit paths, never a blanket add in a tree you did not author)."
+			fi
+		fi
+
+		# ------------------------------------------------------------ rule 1b
+		local autonomy upstream unpushed branch
+		autonomy=$(card_word "Autonomy")
+		branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+		upstream=$(git rev-parse --abbrev-ref '@{u}' 2>/dev/null)
+		if [ "$autonomy" != "automatic" ]; then
+			trace "rule 1b not applied: the card's Autonomy is '${autonomy:-unreadable}', so pushing is not this session's to do unasked"
+		elif [ -n "$upstream" ]; then
+			unpushed=$(git rev-list --count '@{u}..HEAD' 2>/dev/null)
+			if [ "${unpushed:-0}" -gt 0 ]; then
+				fp=$(sha256_of "$unpushed:$upstream")
+				if brake "unpushed" "$fp"; then
+					add_block "unpushed" "$fp" "UNBREAKABLE-broken: $unpushed unpushed commit(s) on '$branch' ($upstream..HEAD).
+$(git log --oneline '@{u}..HEAD' 2>/dev/null | head -10)
+To clear: git push (the card says Autonomy: automatic — work never lives only on this machine)."
+				fi
+			fi
+		elif [ -n "$(git remote 2>/dev/null)" ] && [ "$branch" != "HEAD" ]; then
+			fp=$(sha256_of "no-upstream:$branch")
+			if brake "unpushed" "$fp"; then
+				add_block "unpushed" "$fp" "UNBREAKABLE-broken: branch '$branch' has no upstream, so none of its commits has left this machine.
+To clear: git push -u $(git remote 2>/dev/null | head -1) $branch."
+			fi
+		else
+			trace "rule 1b not applicable: no remote is configured (or HEAD is detached), so there is nowhere to push"
+		fi
+
+		# ------------------------------------------------------------ rule 1c
+		if [ -f "$HANDOFF" ]; then
+			local hcommit hresolved
+			hcommit=$(awk '/^---$/{n++; next} n==1{print} n>=2{exit}' "$HANDOFF" 2>/dev/null | grep -m1 '^Commit:' | sed -E 's/^Commit:[[:space:]]*//')
+			hresolved=""
+			[ -n "$hcommit" ] && hresolved=$(git rev-parse --verify --quiet "$hcommit^{commit}" 2>/dev/null)
+			if [ "$hresolved" != "$HEAD_FULL" ]; then
+				fp=$(sha256_of "${hcommit}:${HEAD_FULL}")
+				if brake "stale-handoff" "$fp"; then
+					add_block "stale-handoff" "$fp" "UNBREAKABLE-broken: docs/continuation-prompt.md no longer describes HEAD (its Commit: is '${hcommit:-missing}', HEAD is $HEAD_FULL). A hand-off that is not current is worse than none.
+To clear: run scripts/keel-close (it rewrites the hand-off after its last commit), or delete docs/continuation-prompt.md. If .githooks/post-commit were active this state could not exist — check 'git config core.hooksPath'."
+				fi
+			fi
+		fi
+
+		# ------------------------------------------------------------ rule 1d
+		local sprints work_commit plan_commit
+		sprints=$(card_word "Sprints")
+		if [ -f "$PROGRESS" ] && [ "$sprints" != "off" ]; then
+			work_commit=$(git log -1 --format=%H -- . ':(exclude)docs/sprints' ':(exclude)docs/.keel' ':(exclude)docs/PROGRESS.md' ':(exclude)docs/sessions.md' ':(exclude)docs/token-ledger.md' 2>/dev/null)
+			plan_commit=$(git log -1 --format=%H -- docs/sprints 2>/dev/null)
+			if [ -n "$work_commit" ]; then
+				local behind=0 plan_desc="none exists"
+				[ -n "$plan_commit" ] && plan_desc=$(git log -1 --format='%h %s' "$plan_commit" 2>/dev/null)
+				if [ -z "$plan_commit" ]; then
+					behind=1
+				elif [ "$work_commit" != "$plan_commit" ] && ! git merge-base --is-ancestor "$work_commit" "$plan_commit" 2>/dev/null; then
+					behind=1
+				fi
+				if [ "$behind" -eq 1 ]; then
+					fp=$(sha256_of "${work_commit}:${plan_commit}")
+					probe_live_session
+					if [ "$LIVE_STATE" = "other" ]; then
+						ceded_any=1
+						say "Keel stop hook CEDED (this is not a clean pass): the plan is behind the work, and another session is live in this checkout — $LIVE_DESC. The unrecorded commits may be that session's, and recording its slices is its duty."
+					elif brake "plan-behind" "$fp"; then
+						add_block "plan-behind" "$fp" "UNBREAKABLE-broken: the plan is behind the work. The newest commit touching a non-bookkeeping path ($(git log -1 --format='%h %s' "$work_commit" 2>/dev/null)) is not contained in the newest commit touching docs/sprints/ ($plan_desc).
+Why this did not cede: $LIVE_DESC.
+To clear: mark the slices these commits finished as done with actual_hours, or add the slices they were, and regenerate docs/.keel/plan.json."
+					fi
+				fi
+			fi
+		fi
+
+		# ------------------------------------------------------------ rule 2
+		if [ -z "$BLOCK_TEXT" ]; then
+			local queue count
+			queue=$(queue_identifiers)
+			if [ -n "$queue" ]; then
+				count=$(printf '%s\n' "$queue" | grep -c .)
+				fp=$(sha256_of "$(printf '%s\n' "$queue" | sort)")
+				probe_live_session
+				if [ "$LIVE_STATE" = "other" ]; then
+					say "Keel stop hook CEDED (this is not a clean pass): the queue holds $count open item(s), and another session is live in this checkout — $LIVE_DESC. Work left in a checkout somebody else owns is not this session's to do."
+				elif closeout_discharged; then
+					say "Keel stop hook: the queue holds $count open item(s), and the remedy is already DISCHARGED — this session completed its close-out at HEAD: $DISCHARGED_BY; the lane is released; the hand-off verifies CONTINUE."
+				elif brake "queue" "$fp"; then
+					add_block "queue" "$fp" "The queue is not empty: docs/PROGRESS.md '## Open items' holds $count item(s) this session can work:
+$(printf '%s\n' "$queue" | sed 's/^/  - /')
+Carry on with what does not depend on something unfinished or on a decision that is genuinely the user's. If this session is finished instead, run scripts/keel-close — a completed close-out discharges this block. (An item waiting on a person is not counted: mark it parked in the list.)
+Why this did not cede: $LIVE_DESC."
+				fi
+			fi
+		fi
+	fi
+
+	if [ -n "$BLOCK_TEXT" ]; then
+		BLOCK_TEXT="Keel stop hook — this turn may not end here yet.
+
+$BLOCK_TEXT"
+		emit_and_exit
+	fi
+
+	# ---------------------------------------------------------------- rule 4
+	# An ordinary turn end is not a hand-off: only a session that completed
+	# its close-out AT HEAD hands the queue on, and only if it has not already.
+	local chaining out
+	if [ -f "$CLOSEOUT_RECORD" ] && [ "$(cat "$CLOSEOUT_RECORD" 2>/dev/null)" = "$HEAD_FULL" ]; then
+		chaining=$(card_word "Chaining")
+		case "$chaining" in
+		prefill | start)
+			if [ -d "$LEDGER_ENTRY" ]; then
+				say "Keel stop hook stood down: this session already handed the queue on — fire-ledger entry $LEDGER_ENTRY. Nothing was invoked."
+			elif [ -x "$SCRIPT_DIR/keel-continue" ]; then
+				out=$("$SCRIPT_DIR/keel-continue" 2>&1)
+				say "Keel stop hook: this session closed out at HEAD and had not handed the queue on, so scripts/keel-continue was run. It said:
+$out"
+			else
+				say "Keel stop hook: this session closed out at HEAD, but scripts/keel-continue is absent or not executable, so nothing was opened. Paste: Read $PROGRESS and continue."
+			fi
+			;;
+		*)
+			trace "rule 4: the card says Chaining: ${chaining:-unreadable} — nothing here opens a chat"
+			;;
+		esac
+	else
+		trace "rule 4: no close-out record for this session at HEAD — an ordinary turn end, nothing invoked"
+	fi
+
+	emit_and_exit
+}
+
+main "$@"
+exit 0

@@ -5,7 +5,7 @@
 ## Features / flows
 
 ### F1 — Card payment via Redsys redirection (gateway `redsys`)
-- Customer selects "Redsys" at checkout (classic or Blocks) → order created as `pending` → customer redirected to Redsys's hosted payment page with a signed request → Redsys redirects back to the store's notification URL (`?wc-api=WC_Gateway_redsys`) with a signed response.
+- Customer selects "Redsys" at checkout (classic or Blocks) → order created as `pending` → customer redirected to Redsys's hosted payment page with a signed request → Redsys sends a signed server-to-server notification (HTTP POST) to the store's notification URL (`?wc-api=WC_Gateway_redsys`), and separately returns the customer's browser to the order-received page.
 - `RedsysLiteAPI::create_merchant_signature_notif()` (`includes/class-redsysliteapi.php`) verifies the HMAC_SHA256_V1 signature against the merchant's configured SHA-256 secret (`classes/class-wc-gateway-redsys.php`: `check_ipn_request_is_valid()` line 833, `check_ipn_response()` line 898, and again inside `successful_request()` line 914).
 - **Fails closed**: if no SHA-256 secret is configured in the gateway settings, the notification is rejected rather than trusted (hardened in 7.0.1/7.0.2 per the readme.txt changelog; proven by `AC-07` below).
 - Order status transitions (`class-wc-gateway-redsys.php`): amount mismatch between order total and notification total → `on-hold` (line 1028); successful confirmation → `payment_complete()` (line 1056), then `completed` only when the `orderdo` setting is `completed` (line 1058); Redsys-side denial (`Ds_Response` above 99) → `cancelled` (line 1070).
@@ -13,7 +13,7 @@
 
 ### F2 — Bizum payment (gateway `bizumredsys`)
 - Same redirection + signature-verification shape as F1, dedicated gateway class `class-wc-gateway-bizum-redsys.php`, own icon (`bizum.png`), own hook names (`valid_bizumredsys_standard_ipn_request`, `woocommerce_bizumredsys_icon`).
-- **Known gap** (GitHub issue #10, "Falta carga de opción orderdo en Bizum" — untriaged in depth yet): a reported missing settings-load behavior. See `docs/issues.md`.
+- **Reported gap, not present in the current code** (GitHub issue #10, "Falta carga de opción orderdo en Bizum"): the `orderdo` field is defined (`classes/class-wc-gateway-bizum-redsys.php:477`) and loaded (`:315`) today. The issue itself is tracked in `docs/issues.md`; closing it is the reporter's or the maintainer's act.
 
 ### F3 — Apple Pay / Google Pay via redirection (gateway `googlepayredirecredsys`)
 - Redirection-based, not the native Payment Request API — `class-wc-gateway-googlepay-redirection-redsys.php`. Adds `do_action($this->id . '_post_payment_complete', $order_id)` and `_post_payment_error` hooks beyond the F1 shape (lines 1214, 1264).

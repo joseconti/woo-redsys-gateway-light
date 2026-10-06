@@ -1,0 +1,644 @@
+#!/bin/bash
+#
+# keel-chain-check — the chaining contract made executable. Contract: Keel's
+# references/project-state.md, "scripts/keel-chain-check". It answers, before
+# anything depends on it, whether this project can chain unattended right now.
+#
+# It asks nothing and changes nothing in the repository (the one exception is
+# `--smoke`, which on SUCCESS writes the card's `Chain verified:` line). It
+# never vetoes a fire: it is a diagnostic.
+#
+# Usage:
+#   scripts/keel-chain-check           one line per row, then VERDICT: READY |
+#                                      NOT READY | N/A (Chaining: off|supervised)
+#   scripts/keel-chain-check --json    the same, structured
+#   scripts/keel-chain-check --smoke   PERFORMS the launch with a marker payload
+#                                      and reads the new window back; opens (and
+#                                      closes) a real window. Run at the
+#                                      scaffold, whenever scripts/keel-continue
+#                                      or the fired tool row changes, and
+#                                      whenever `Chaining:` is raised a tier —
+#                                      never at every close.
+# Exit: 0 on READY or N/A, 1 on NOT READY. --smoke: 0 passed, 1 failed,
+# 3 INCONCLUSIVE (no read-back available — a third state, never the good one).
+#
+# Fifteen rows:
+#   Section A (every mode):  1 card  2 launcher  3 verifier  4 allow-list
+#                            5 permission mode  6 env.PATH  7 hand-off ignored
+#                            7a fire ledger  7b both invokers on one brake
+#   Section B (`start`):     8 command resolves under the DECLARED PATH
+#                            9 lane reachable  10 the four launch bugs
+#                            10a model passed  10b post-commit hook  11 proof
+#
+# No per-tool fact lives here: where a row needs one (the permission
+# container, the command name, the launch itself) it asks the tool's row
+# (scripts/keel-tools/<tool>.sh) and reports "not applicable" when the row
+# does not define it.
+
+set -u
+
+MODE="check"
+case "${1:-}" in
+--json) MODE="json" ;;
+--smoke) MODE="smoke" ;;
+"") ;;
+-h | --help)
+	sed -n '2,36p' "$0" | sed 's/^# \{0,1\}//'
+	exit 0
+	;;
+*)
+	echo "Unknown option '$1' — usage: keel-chain-check [--json | --smoke]"
+	exit 2
+	;;
+esac
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+if [ -z "$REPO_ROOT" ]; then
+	echo "Not inside a git repository — cannot check the chain."
+	exit 1
+fi
+cd "$REPO_ROOT" || exit 1
+
+SCRIPT_DIR="$REPO_ROOT/scripts"
+PROGRESS="$REPO_ROOT/docs/PROGRESS.md"
+HANDOFF="$REPO_ROOT/docs/continuation-prompt.md"
+LAUNCHER="$SCRIPT_DIR/keel-continue"
+STATE_ROOT="${KEEL_STATE_DIR:-${TMPDIR:-/tmp}}"
+STATE_ROOT="${STATE_ROOT%/}"
+STATE_DIR="$STATE_ROOT/keel-state"
+LOCK_DIR="$STATE_ROOT/keel-locks"
+
+sha256_of() {
+	printf '%s' "$1" | shasum -a 256 2>/dev/null | awk '{print $1}'
+}
+
+file_checksum() {
+	shasum -a 256 "$1" 2>/dev/null | awk '{print $1}'
+}
+
+card_line() {
+	[ -f "$PROGRESS" ] || return 0
+	grep -m1 -E "^- $1:" "$PROGRESS" | sed -E "s/^- $1:[[:space:]]*//"
+}
+
+card_word() {
+	card_line "$1" | awk '{print $1}' | tr -d '`*' | sed -E 's/[.,;]+$//'
+}
+
+# Non-comment lines of a script, with their line numbers ("N:code").
+code_lines() {
+	grep -n -v -E '^[[:space:]]*#' "$1" 2>/dev/null
+}
+
+ROWS_FILE=$(mktemp "${STATE_ROOT}/keel-chain-check.XXXXXX" 2>/dev/null) || ROWS_FILE="/dev/null"
+trap 'rm -f "$ROWS_FILE"' EXIT
+FAILED=0
+
+row() { # id, status (OK|FAIL|N/A), title, detail
+	local detail
+	detail=$(printf '%s' "$4" | tr '\n\t' '  ')
+	printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$detail" >>"$ROWS_FILE"
+	[ "$2" = "FAIL" ] && FAILED=1
+	if [ "$MODE" = "check" ]; then
+		printf 'ROW %-3s %-4s %s — %s\n' "$1" "$2" "$3" "$detail"
+	fi
+}
+
+finish() { # verdict text, exit status
+	if [ "$MODE" = "json" ]; then
+		python3 - "$ROWS_FILE" "$1" <<'KEEL_PY'
+import json, sys
+rows = []
+with open(sys.argv[1]) as handle:
+    for line in handle:
+        parts = line.rstrip("\n").split("\t")
+        if len(parts) >= 4:
+            rows.append({"row": parts[0], "status": parts[1], "title": parts[2], "detail": parts[3]})
+print(json.dumps({"verdict": sys.argv[2], "rows": rows}, indent=2))
+KEEL_PY
+	else
+		echo "VERDICT: $1"
+	fi
+	exit "$2"
+}
+
+# --- The tool row this check speaks for ---------------------------------------
+# The DETECTED tool's row; run outside any session (a plain terminal), the
+# first row whose evidence is VERIFIED — the one that would fire.
+ACTIVE_ROW=""
+ACTIVE_HOW=""
+for _row in "$SCRIPT_DIR"/keel-tools/*.sh; do
+	[ -f "$_row" ] || continue
+	_name=$( (
+		. "$_row" >/dev/null 2>&1
+		keel_tool_detect 2>/dev/null
+	) 2>/dev/null)
+	if [ -n "$_name" ]; then
+		ACTIVE_ROW="$_row"
+		ACTIVE_HOW="detected"
+		break
+	fi
+done
+if [ -z "$ACTIVE_ROW" ]; then
+	for _row in "$SCRIPT_DIR"/keel-tools/*.sh; do
+		[ -f "$_row" ] || continue
+		_ev=$( (
+			. "$_row" >/dev/null 2>&1
+			printf '%s' "${KEEL_TOOL_EVIDENCE:-}"
+		) 2>/dev/null)
+		if [ "$_ev" = "VERIFIED" ]; then
+			ACTIVE_ROW="$_row"
+			ACTIVE_HOW="not detected in this shell; first VERIFIED row"
+			break
+		fi
+	done
+fi
+KEEL_TOOL_NAME="" KEEL_TOOL_CLI="" KEEL_TOOL_EVIDENCE="" KEEL_TOOL_TIER="" KEEL_TOOL_PERMISSION_FILES=""
+if [ -n "$ACTIVE_ROW" ]; then
+	# shellcheck disable=SC1090
+	. "$ACTIVE_ROW"
+fi
+ROW_REL="${ACTIVE_ROW#"$REPO_ROOT"/}"
+has_fn() {
+	type "$1" >/dev/null 2>&1
+}
+
+if [ -f "$SCRIPT_DIR/keel-session-pid.sh" ]; then
+	# shellcheck source=scripts/keel-session-pid.sh
+	. "$SCRIPT_DIR/keel-session-pid.sh"
+	SESSION_ID=$(keel_session_pid)
+else
+	SESSION_ID="$PPID-unknown"
+fi
+REPO_KEY=$(sha256_of "$REPO_ROOT")
+
+CHAINING=$(card_word "Chaining")
+AUTONOMY=$(card_word "Autonomy")
+
+# =============================================================================
+# --smoke — the launch actually performed and read back
+# =============================================================================
+if [ "$MODE" = "smoke" ]; then
+	echo "keel-chain-check --smoke — performing the launch with a marker payload."
+	case "$CHAINING" in
+	prefill | start) ;;
+	*)
+		echo "SMOKE: N/A — the card says Chaining: ${CHAINING:-unreadable}; there is no chain to prove."
+		exit 0
+		;;
+	esac
+	if [ ! -x "$LAUNCHER" ] || [ -z "$ACTIVE_ROW" ]; then
+		echo "SMOKE: FAILED — scripts/keel-continue is not executable, or no tool row exists to fire."
+		exit 1
+	fi
+	if ! has_fn keel_tool_smoke_readback || ! has_fn keel_tool_smoke_windows; then
+		echo "SMOKE: INCONCLUSIVE — the $KEEL_TOOL_NAME row offers no way to read a new window back, so the launch cannot be observed. Nothing was fired and nothing is written to the card."
+		exit 3
+	fi
+	NONCE="keel-smoke-$(date +%s)-$$"
+	SMOKE_DIR="$STATE_DIR/smoke/$NONCE"
+	# Removes exactly what a smoke run creates, by name — never a recursive delete.
+	smoke_cleanup() {
+		rm -f "$SMOKE_DIR/tty" "$SMOKE_DIR/runs" "$SMOKE_DIR/receipt/launcher-pid"
+		rmdir "$SMOKE_DIR/receipt" "$SMOKE_DIR"/fired-* "$SMOKE_DIR" 2>/dev/null
+		return 0
+	}
+	W_BEFORE=$(keel_tool_smoke_windows)
+	echo "--- first fire ---"
+	OUT1=$("$LAUNCHER" --smoke "$NONCE" 2>&1)
+	RC1=$?
+	printf '%s\n' "$OUT1" | sed 's/^/    | /'
+	if [ "$RC1" -ne 0 ] || ! printf '%s\n' "$OUT1" | grep -q '^RESULT: FIRED (smoke)$'; then
+		echo "SMOKE: FAILED — the launcher did not fire (exit $RC1). Nothing is written to the card."
+		smoke_cleanup
+		exit 1
+	fi
+	# Wait for the new shell to report its tty (the launch script writes it).
+	_i=0
+	while [ ! -f "$SMOKE_DIR/tty" ] && [ "$_i" -lt 20 ]; do
+		sleep 1
+		_i=$((_i + 1))
+	done
+	TTY_NAME=""
+	[ -f "$SMOKE_DIR/tty" ] && TTY_NAME=$(head -1 "$SMOKE_DIR/tty")
+	sleep 1
+	HISTORY=$(keel_tool_smoke_readback "$TTY_NAME")
+	W_AFTER1=$(keel_tool_smoke_windows)
+	if [ -z "$HISTORY" ]; then
+		echo "SMOKE: INCONCLUSIVE — the new window (tty: ${TTY_NAME:-never reported}) could not be read back. Unreadable is a third state, not a pass. Nothing is written to the card."
+		[ -n "$TTY_NAME" ] && has_fn keel_tool_smoke_close && keel_tool_smoke_close "$TTY_NAME" >/dev/null 2>&1
+		smoke_cleanup
+		exit 3
+	fi
+	if ! printf '%s\n' "$HISTORY" | grep -q "KEEL-SMOKE-OK:$NONCE"; then
+		echo "SMOKE: FAILED — the new window does not show the marker. What came back instead:"
+		printf '%s\n' "$HISTORY" | tail -15 | sed 's/^/    | /'
+		[ -n "$TTY_NAME" ] && has_fn keel_tool_smoke_close && keel_tool_smoke_close "$TTY_NAME" >/dev/null 2>&1
+		smoke_cleanup
+		exit 1
+	fi
+	MARKER_LINE=$(printf '%s\n' "$HISTORY" | grep "KEEL-SMOKE-OK:$NONCE" | tail -1)
+	echo "read back from ${TTY_NAME:-the new window}: $MARKER_LINE"
+	SMOKE_FAIL=""
+	case "$MARKER_LINE" in
+	*"cwd=$REPO_ROOT "*) ;;
+	*) SMOKE_FAIL="the new shell was not in $REPO_ROOT" ;;
+	esac
+	case "$MARKER_LINE" in
+	*"cli=MISSING"*) SMOKE_FAIL="'$KEEL_TOOL_CLI' does not resolve inside the NEW shell — it would have failed there with nobody to read the error" ;;
+	esac
+
+	echo "--- second fire, same session (must open nothing) ---"
+	OUT2=$("$LAUNCHER" --smoke "$NONCE" 2>&1)
+	RC2=$?
+	printf '%s\n' "$OUT2" | sed 's/^/    | /'
+	sleep 2
+	W_AFTER2=$(keel_tool_smoke_windows)
+	RUNS=$(grep -c . "$SMOKE_DIR/runs" 2>/dev/null)
+	if [ "$RC2" -ne 0 ] || ! printf '%s\n' "$OUT2" | grep -q 'already fired' || ! printf '%s\n' "$OUT2" | grep -q 'fire ledger'; then
+		SMOKE_FAIL="${SMOKE_FAIL:+$SMOKE_FAIL; }the second call did not stand down naming the session fire ledger (exit $RC2)"
+	fi
+	if [ "${RUNS:-0}" != "1" ] || [ "$W_AFTER2" != "$W_AFTER1" ]; then
+		SMOKE_FAIL="${SMOKE_FAIL:+$SMOKE_FAIL; }the second call opened something (launch script ran ${RUNS:-0} time(s); windows $W_BEFORE -> $W_AFTER1 -> $W_AFTER2)"
+	fi
+
+	if [ -n "$TTY_NAME" ] && has_fn keel_tool_smoke_close; then
+		echo "closing the smoke window: $(keel_tool_smoke_close "$TTY_NAME")"
+	fi
+	smoke_cleanup
+
+	if [ -n "$SMOKE_FAIL" ]; then
+		echo "SMOKE: FAILED — $SMOKE_FAIL. Nothing is written to the card."
+		exit 1
+	fi
+
+	KEEL_VERSION=$(card_line "Keel portability" | grep -o 'v[0-9][0-9.]*[0-9]' | head -1 | sed 's/^v//')
+	[ -z "$KEEL_VERSION" ] && KEEL_VERSION="unknown"
+	SUM_L=$(file_checksum "$LAUNCHER" | cut -c1-16)
+	SUM_R=$(file_checksum "$ACTIVE_ROW" | cut -c1-16)
+	NEW_LINE="- Chain verified: $(date +%Y-%m-%d), tier $KEEL_TOOL_TIER, Keel $KEEL_VERSION, keel-continue $SUM_L, row $KEEL_TOOL_NAME:$SUM_R"
+	TMP_CARD=$(mktemp "${STATE_ROOT}/keel-chain-card.XXXXXX") || {
+		echo "SMOKE: PASSED, but the card could not be rewritten. Add this line by running --smoke again: $NEW_LINE"
+		exit 1
+	}
+	awk -v new="$NEW_LINE" '
+		/^- Chain verified:/ { if (!done) { print new; done = 1 } next }
+		{ print }
+		/^- Chaining model:/ && !done && !pending { pending = 1 }
+		pending && !done { print new; done = 1; pending = 0 }
+	' "$PROGRESS" >"$TMP_CARD"
+	if ! grep -q '^- Chain verified:' "$TMP_CARD"; then
+		awk -v new="$NEW_LINE" '{ print } /^- Chaining:/ && !done { print new; done = 1 }' "$PROGRESS" >"$TMP_CARD"
+	fi
+	if grep -q '^- Chain verified:' "$TMP_CARD"; then
+		cat "$TMP_CARD" >"$PROGRESS"
+		rm -f "$TMP_CARD"
+		echo "SMOKE: PASSED — the launch ran in a new window, in the right directory, and a second fire in the same session opened nothing."
+		echo "card updated: $NEW_LINE"
+		exit 0
+	fi
+	rm -f "$TMP_CARD"
+	echo "SMOKE: PASSED, but docs/PROGRESS.md has no 'Chaining:' line to write the proof under. The line would be: $NEW_LINE"
+	exit 1
+fi
+
+# =============================================================================
+# Section A — structural rows, every mode
+# =============================================================================
+
+# --- 1. The card parses -------------------------------------------------------
+if [ ! -f "$PROGRESS" ]; then
+	row 1 FAIL "the card parses" "docs/PROGRESS.md is absent. Fix: restore it — a chain on a card nobody can read is the failure this check exists to prevent."
+	finish "NOT READY" 1
+fi
+case "$CHAINING" in
+off | supervised)
+	row 1 OK "the card parses" "Chaining: $CHAINING — there is no chain to check, and that is a success."
+	finish "N/A (Chaining: $CHAINING)" 0
+	;;
+prefill | start)
+	if [ -z "$AUTONOMY" ]; then
+		row 1 FAIL "the card parses" "Chaining: $CHAINING reads, but the 'Autonomy:' line is missing or unparsable. Fix: restore the card line."
+	else
+		row 1 OK "the card parses" "Chaining: $CHAINING / Autonomy: $AUTONOMY"
+	fi
+	;;
+*)
+	row 1 FAIL "the card parses" "the 'Chaining:' line is missing or unparsable (read: '${CHAINING}'). Fix: write '- Chaining: off | supervised — <who> | prefill | start' on the card."
+	finish "NOT READY" 1
+	;;
+esac
+
+# --- 2 / 3. Launcher and verifier ---------------------------------------------
+if [ -x "$LAUNCHER" ]; then
+	row 2 OK "scripts/keel-continue exists and is executable" "$(file_checksum "$LAUNCHER" | cut -c1-16)"
+else
+	row 2 FAIL "scripts/keel-continue exists and is executable" "it is absent or not executable: the close-out will print instead of chaining. Fix: regenerate it / chmod +x scripts/keel-continue."
+fi
+if [ -x "$SCRIPT_DIR/keel-handoff-verify" ]; then
+	row 3 OK "scripts/keel-handoff-verify exists and is executable" "present"
+else
+	row 3 FAIL "scripts/keel-handoff-verify exists and is executable" "it is absent or not executable: the launcher cannot verify, so it cannot fire. Fix: regenerate it / chmod +x scripts/keel-handoff-verify."
+fi
+
+# --- 4. Both allow-list entries, in every capable tool's container -------------
+R4_STATUS="OK"
+R4_DETAIL=""
+R4_ANY=0
+for _row in "$SCRIPT_DIR"/keel-tools/*.sh; do
+	[ -f "$_row" ] || continue
+	_res=$( (
+		. "$_row" >/dev/null 2>&1
+		[ "${KEEL_TOOL_EVIDENCE:-}" = "VERIFIED" ] || exit 9
+		type keel_tool_allow_listed >/dev/null 2>&1 || {
+			echo "$KEEL_TOOL_NAME: the row defines no permission-container lookup"
+			exit 8
+		}
+		_bad=0
+		for _s in keel-handoff-verify keel-continue; do
+			keel_tool_allow_listed "$REPO_ROOT" "$_s" || _bad=1
+		done
+		_extra=""
+		for _s in keel-close keel-chain-check keel-stop-hook; do
+			keel_tool_allow_listed "$REPO_ROOT" "$_s" >/dev/null 2>&1 || _extra="$_extra $_s"
+		done
+		[ -n "$_extra" ] && echo "(note — each has its own one-entry contract and is also missing:$_extra)"
+		exit "$_bad"
+	) 2>/dev/null)
+	_rc=$?
+	[ "$_rc" -eq 9 ] && continue
+	R4_ANY=1
+	R4_DETAIL="$R4_DETAIL $_res;"
+	[ "$_rc" -ne 0 ] && R4_STATUS="FAIL"
+done
+if [ "$R4_ANY" -eq 0 ]; then
+	row 4 FAIL "both allow-list entries are present" "no VERIFIED tool row exists in scripts/keel-tools/, so no permission container can be checked. Fix: generate the row for the tool this project chains with."
+elif [ "$R4_STATUS" = "OK" ]; then
+	row 4 OK "both allow-list entries are present" "$R4_DETAIL"
+else
+	row 4 FAIL "both allow-list entries are present" "$R4_DETAIL Fix: add the missing entry — a missing one opens a permission dialog at the one moment nobody is there to answer it."
+fi
+
+# --- 5. Permission mode --------------------------------------------------------
+if [ "$AUTONOMY" != "automatic" ]; then
+	row 5 OK "permission mode is auto" "not applicable — the card's Autonomy is '$AUTONOMY', not automatic."
+elif ! has_fn keel_tool_permission_mode; then
+	row 5 FAIL "permission mode is auto" "no tool row can report the machine-local permission mode. Fix: generate the tool row."
+else
+	PMODE=$(keel_tool_permission_mode "$REPO_ROOT" 2>/dev/null)
+	if [ "$PMODE" = "auto" ]; then
+		row 5 OK "permission mode is auto" "defaultMode: auto ($KEEL_TOOL_PERMISSION_FILES)"
+	else
+		row 5 FAIL "permission mode is auto" "the card says Autonomy: automatic, but the machine-local mode is '${PMODE:-unset}'. Fix: set permissions.defaultMode to \"auto\" in the machine-local settings ($KEEL_TOOL_PERMISSION_FILES) — otherwise the next chat opens and stops on its first composite command."
+	fi
+fi
+
+# --- 6. env.PATH ---------------------------------------------------------------
+DECLARED_PATH=""
+if ! has_fn keel_tool_declared_path; then
+	row 6 FAIL "env.PATH is sane" "no tool row can report the declared env.PATH. Fix: generate the tool row."
+else
+	DECLARED_PATH=$(keel_tool_declared_path "$REPO_ROOT" 2>/dev/null)
+	P_PROBLEMS=""
+	if [ -z "$DECLARED_PATH" ]; then
+		P_PROBLEMS="env.PATH is not declared"
+	else
+		case "$DECLARED_PATH" in
+		*'$'*) P_PROBLEMS="$P_PROBLEMS contains a variable (the value is consumed literally, nothing is expanded);" ;;
+		esac
+		_old_ifs="$IFS"
+		IFS=":"
+		for _d in $DECLARED_PATH; do
+			case "$_d" in
+			/*) ;;
+			*) P_PROBLEMS="$P_PROBLEMS '$_d' is not absolute;" ;;
+			esac
+		done
+		IFS="$_old_ifs"
+		for _need in /usr/bin /bin /usr/sbin /sbin "$HOME/.local/bin"; do
+			case ":$DECLARED_PATH:" in
+			*":$_need:"*) ;;
+			*) P_PROBLEMS="$P_PROBLEMS missing $_need;" ;;
+			esac
+		done
+	fi
+	if [ -z "$P_PROBLEMS" ]; then
+		row 6 OK "env.PATH is sane" "$DECLARED_PATH"
+	else
+		row 6 FAIL "env.PATH is sane" "declared: '${DECLARED_PATH}' —$P_PROBLEMS Fix: write env.PATH expanded and absolute in the machine-local settings, including /usr/bin, /bin, /usr/sbin, /sbin and the per-user installer directory $HOME/.local/bin."
+	fi
+fi
+
+# --- 7. The hand-off is gitignored ---------------------------------------------
+if git ls-files --error-unmatch docs/continuation-prompt.md >/dev/null 2>&1; then
+	row 7 FAIL "docs/continuation-prompt.md is gitignored" "it is TRACKED. Fix: git rm --cached docs/continuation-prompt.md and add it to .gitignore."
+elif git check-ignore -q docs/continuation-prompt.md 2>/dev/null; then
+	row 7 OK "docs/continuation-prompt.md is gitignored" "ignored by $(git check-ignore -v docs/continuation-prompt.md 2>/dev/null | awk '{print $1}')"
+else
+	row 7 FAIL "docs/continuation-prompt.md is gitignored" "it is not ignored. Fix: add 'docs/continuation-prompt.md' to .gitignore — a committed hand-off outlives its own truth."
+fi
+
+# --- 7a. The fire ledger --------------------------------------------------------
+mkdir -p "$STATE_DIR" 2>/dev/null
+if [ ! -d "$STATE_DIR" ] || [ ! -w "$STATE_DIR" ]; then
+	row 7a FAIL "the fire ledger is reachable and clean" "$STATE_DIR does not exist or is not writable: a ledger that cannot be written guards nothing. Fix: make the state directory writable (or set KEEL_STATE_DIR)."
+else
+	case "$STATE_DIR/" in
+	"$REPO_ROOT"/*)
+		row 7a FAIL "the fire ledger is reachable and clean" "$STATE_DIR is INSIDE the repository — a brake the chain can erase. Fix: point KEEL_STATE_DIR outside the tree."
+		;;
+	*)
+		DEBRIS=0
+		LIVE_ENTRIES=0
+		for _e in "$STATE_DIR"/fired-*; do
+			[ -d "$_e" ] || continue
+			_sid="${_e##*/fired-}"
+			_sid="${_sid#*-}"
+			_pid="${_sid%%-*}"
+			_start="${_sid#*-}"
+			_alive=0
+			case "$_pid" in
+			"" | *[!0-9]*) ;;
+			*)
+				if kill -0 "$_pid" 2>/dev/null; then
+					_now_start=$(LC_ALL=C ps -o lstart= -p "$_pid" 2>/dev/null | tr -cd 'A-Za-z0-9')
+					[ "$_now_start" = "$_start" ] && _alive=1
+				fi
+				;;
+			esac
+			if [ "$_alive" -eq 1 ]; then
+				LIVE_ENTRIES=$((LIVE_ENTRIES + 1))
+			else
+				rm -f "$_e/info"
+				rmdir "$_e" 2>/dev/null
+				DEBRIS=$((DEBRIS + 1))
+			fi
+		done
+		row 7a OK "the fire ledger is reachable and clean" "$STATE_DIR is writable; $LIVE_ENTRIES live session entr(ies); $DEBRIS dead session entr(ies) found and cleaned"
+		;;
+	esac
+fi
+
+# --- 7b. Both invokers wired to the same brake ----------------------------------
+R7B=""
+_claim=$(code_lines "$LAUNCHER" | grep -E 'mkdir "\$LEDGER_ENTRY"' | head -1 | cut -d: -f1)
+_fire=$(code_lines "$LAUNCHER" | grep -E 'keel_tool_launch "\$REPO_ROOT" "\$PROMPT_TEXT"' | head -1 | cut -d: -f1)
+if [ -z "$_claim" ] || [ -z "$_fire" ] || [ "$_claim" -ge "$_fire" ]; then
+	R7B="$R7B scripts/keel-continue does not claim the session's fire-ledger entry before firing;"
+fi
+if ! code_lines "$SCRIPT_DIR/keel-stop-hook" | grep -q 'fired-\$REPO_KEY-\$SESSION_ID' || ! code_lines "$SCRIPT_DIR/keel-stop-hook" | grep -q 'stood down'; then
+	R7B="$R7B scripts/keel-stop-hook does not read the fire ledger and stand down in its rule 4;"
+fi
+if ! code_lines "$SCRIPT_DIR/keel-stop-hook" | grep -q 'closeouts/\$REPO_KEY-\$SESSION_ID'; then
+	R7B="$R7B scripts/keel-stop-hook does not gate its rule 4 on this session's close-out record;"
+fi
+if ! code_lines "$SCRIPT_DIR/keel-close" | grep -q 'closeouts/\$REPO_KEY-\$SESSION_ID'; then
+	R7B="$R7B scripts/keel-close does not write the close-out record (step 8);"
+fi
+if [ -z "$R7B" ]; then
+	row 7b OK "both invokers of keel-continue share one brake" "the launcher claims the ledger entry before the fire (line $_claim < $_fire); the stop hook reads it and stands down; rule 4 fires only on the close-out record keel-close step 8 writes"
+else
+	row 7b FAIL "both invokers of keel-continue share one brake" "$R7B Fix: regenerate the named script from the contract — a brake only one of two callers consults is a coincidence."
+fi
+
+# =============================================================================
+# Section B — `start`-only rows
+# =============================================================================
+if [ "$CHAINING" != "start" ]; then
+	for _id in 8 9 10 10a 10b 11; do
+		row "$_id" "N/A" "start-only row" "the card says Chaining: $CHAINING"
+	done
+	if [ "$FAILED" -eq 0 ]; then finish "READY" 0; else finish "NOT READY" 1; fi
+fi
+
+# --- 8. The command resolves under the DECLARED env.PATH -------------------------
+if [ -z "$ACTIVE_ROW" ] || [ -z "$KEEL_TOOL_CLI" ]; then
+	row 8 FAIL "the tool's command resolves under the declared env.PATH" "no tool row names a command. Fix: generate scripts/keel-tools/<tool>.sh."
+else
+	HERE=$(command -v "$KEEL_TOOL_CLI" 2>/dev/null)
+	DECL=""
+	if [ -n "$DECLARED_PATH" ]; then
+		DECL=$( (
+			PATH="$DECLARED_PATH"
+			command -v "$KEEL_TOOL_CLI"
+		) 2>/dev/null)
+	fi
+	if [ -n "$DECL" ]; then
+		row 8 OK "the tool's command resolves under the declared env.PATH" "'$KEEL_TOOL_CLI' ($ACTIVE_HOW) -> $DECL under the declared PATH; ${HERE:-NOT FOUND} in this shell"
+	else
+		row 8 FAIL "the tool's command resolves under the declared env.PATH" "'$KEEL_TOOL_CLI' does not resolve under the declared env.PATH ('${DECLARED_PATH:-not declared}'); in this shell: ${HERE:-not found either}. Fix: add the directory that holds it to env.PATH in the machine-local settings, written literally."
+	fi
+fi
+
+# --- 9. The single-lane lock is reachable ----------------------------------------
+mkdir -p "$LOCK_DIR" 2>/dev/null
+case "$LOCK_DIR/" in
+"$REPO_ROOT"/*)
+	row 9 FAIL "the single-lane lock is reachable" "$LOCK_DIR is inside the repository. Fix: point KEEL_STATE_DIR outside the tree."
+	;;
+*)
+	if [ -d "$LOCK_DIR" ] && [ -w "$LOCK_DIR" ]; then
+		row 9 OK "the single-lane lock is reachable" "$LOCK_DIR is outside the repository and writable; $("$SCRIPT_DIR/keel-handoff-verify" --lane 2>/dev/null | head -1)"
+	else
+		row 9 FAIL "the single-lane lock is reachable" "$LOCK_DIR does not exist or is not writable. Fix: make it writable — a lane that cannot be taken blocks the arriving session, not the launcher."
+	fi
+	;;
+esac
+
+# --- 10. The four measured launch bugs --------------------------------------------
+R10=""
+LAUNCH_SOURCES="$LAUNCHER"
+[ -n "$ACTIVE_ROW" ] && LAUNCH_SOURCES="$LAUNCHER $ACTIVE_ROW"
+for _f in $LAUNCH_SOURCES; do
+	_rel="${_f#"$REPO_ROOT"/}"
+	if code_lines "$_f" | grep -E 'do script "' | grep -q -E '(cd |&&|\$)'; then
+		R10="$R10 $_rel builds the Terminal command as an interpolated string;"
+	fi
+	if code_lines "$_f" | grep -q -E 'mktemp[^#]*XXX[A-Za-z0-9._-]*[A-WYZa-z0-9._-]["'"'"' )]'; then
+		R10="$R10 $_rel has a mktemp template with a literal suffix after its X run;"
+	fi
+	if code_lines "$_f" | grep -q -E '(\$\(|`)[[:space:]]*cat[^)`]*(HANDOFF|continuation-prompt)'; then
+		R10="$R10 $_rel hands the hand-off's raw content to the tool's command;"
+	fi
+done
+if ! cat $LAUNCH_SOURCES 2>/dev/null | grep -v -E '^[[:space:]]*#' | grep -q 'chmod +x'; then
+	R10="$R10 no launch script file is made executable (the command must be a script run by path);"
+fi
+_verify=$(code_lines "$LAUNCHER" | grep 'keel-handoff-verify" --no-lane' | head -1 | cut -d: -f1)
+_release=$(code_lines "$LAUNCHER" | grep 'keel-handoff-verify" --release' | head -1 | cut -d: -f1)
+if [ -z "$_verify" ] || [ -z "$_release" ] || [ -z "${_fire:-}" ] || [ "$_verify" -ge "$_fire" ] || [ "$_release" -ge "$_fire" ] || [ $((_fire - _release)) -gt 3 ]; then
+	R10="$R10 scripts/keel-continue does not verify before the fire and release the lane immediately before it (verify line ${_verify:-none}, release line ${_release:-none}, fire line ${_fire:-none});"
+fi
+if [ -z "$R10" ]; then
+	row 10 OK "the launcher carries none of the four measured launch bugs" "script file run by path; mktemp template ends in its X run; the hand-off's content is never an argument; verify (line $_verify) -> release (line $_release) -> fire (line $_fire). Checked: scripts/keel-continue${ROW_REL:+, $ROW_REL}"
+else
+	row 10 FAIL "the launcher carries none of the four measured launch bugs" "$R10 Fix: regenerate the launcher/row from contract points 2, 6a, 6b and 7 — each of these exits 0 while doing the wrong thing."
+fi
+
+# --- 10a. The launcher passes the model, and the card says which -------------------
+R10A=""
+if ! code_lines "$LAUNCHER" | grep -q -E 'keel_tool_launch "\$REPO_ROOT" "\$PROMPT_TEXT" "\$MODEL"'; then
+	R10A="$R10A scripts/keel-continue does not hand the card's model to the row's launch;"
+fi
+if [ -z "$ACTIVE_ROW" ] || ! code_lines "$ACTIVE_ROW" | grep -q -e '--model'; then
+	R10A="$R10A the fired row builds no invocation with an explicit --model;"
+fi
+CARD_MODEL=$(card_word "Chaining model")
+case "$CARD_MODEL" in
+"" | n/a | N/A | "[the")
+	R10A="$R10A the card has no usable 'Chaining model:' line;"
+	;;
+esac
+if [ -z "$R10A" ]; then
+	row 10a OK "the launcher passes --model, and the card says which" "Chaining model: $CARD_MODEL"
+else
+	row 10a FAIL "the launcher passes --model, and the card says which" "$R10A Fix: add '- Chaining model: <model>' to the card / regenerate the launcher — a bare launch runs on a model nobody chose and reports nothing."
+fi
+
+# --- 10b. The post-commit hook ------------------------------------------------------
+R10B=""
+[ -x "$REPO_ROOT/.githooks/post-commit" ] || R10B="$R10B .githooks/post-commit is absent or not executable;"
+HOOKS_PATH=$(git config --get core.hooksPath 2>/dev/null)
+case "$HOOKS_PATH" in
+.githooks | .githooks/ | "$REPO_ROOT/.githooks" | "$REPO_ROOT/.githooks/") ;;
+*) R10B="$R10B core.hooksPath is '${HOOKS_PATH:-unset}', not .githooks (local config — a fresh clone never has it);" ;;
+esac
+HANDOFF_NOTE="no hand-off on disk"
+if [ -f "$HANDOFF" ]; then
+	_hc=$(awk '/^---$/{n++; next} n==1{print} n>=2{exit}' "$HANDOFF" 2>/dev/null | grep -m1 '^Commit:' | sed -E 's/^Commit:[[:space:]]*//')
+	_hr=""
+	[ -n "$_hc" ] && _hr=$(git rev-parse --verify --quiet "$_hc^{commit}" 2>/dev/null)
+	if [ "$_hr" = "$(git rev-parse HEAD 2>/dev/null)" ]; then
+		HANDOFF_NOTE="the hand-off on disk matches HEAD ($_hc)"
+	else
+		R10B="$R10B the hand-off on disk says Commit: '${_hc:-missing}' but HEAD is $(git rev-parse --short HEAD 2>/dev/null) — the hook is not doing its job;"
+	fi
+fi
+if [ -z "$R10B" ]; then
+	row 10b OK "the post-commit hook is installed and active" ".githooks/post-commit is executable; core.hooksPath=$HOOKS_PATH; $HANDOFF_NOTE"
+else
+	row 10b FAIL "the post-commit hook is installed and active" "$R10B Fix: git config core.hooksPath .githooks (and delete a hand-off that no longer matches HEAD)."
+fi
+
+# --- 11. The proof has not gone stale -------------------------------------------------
+VERIFIED_LINE=$(card_line "Chain verified")
+SUM_L=$(file_checksum "$LAUNCHER")
+SUM_R=""
+[ -n "$ACTIVE_ROW" ] && SUM_R=$(file_checksum "$ACTIVE_ROW")
+CARD_SUM_L=$(printf '%s\n' "$VERIFIED_LINE" | sed -n 's/.*keel-continue \([0-9a-f]\{12,64\}\).*/\1/p')
+CARD_SUM_R=$(printf '%s\n' "$VERIFIED_LINE" | sed -n "s/.*row ${KEEL_TOOL_NAME:-none}:\([0-9a-f]\{12,64\}\).*/\1/p")
+R11=""
+if [ -z "$VERIFIED_LINE" ]; then
+	R11="the card has no 'Chain verified:' line — this launcher has never been OBSERVED to work"
+elif [ -z "$CARD_SUM_L" ] || [ -z "$SUM_L" ] || [ "${SUM_L#"$CARD_SUM_L"}" = "$SUM_L" ]; then
+	R11="scripts/keel-continue changed since it was last proven (card: ${CARD_SUM_L:-no checksum}, disk: $(printf '%s' "$SUM_L" | cut -c1-16))"
+elif [ -z "$CARD_SUM_R" ] || [ -z "$SUM_R" ] || [ "${SUM_R#"$CARD_SUM_R"}" = "$SUM_R" ]; then
+	R11="the fired tool row ${ROW_REL:-(none)} changed since it was last proven (card: ${CARD_SUM_R:-no checksum}, disk: $(printf '%s' "$SUM_R" | cut -c1-16))"
+fi
+if [ -z "$R11" ]; then
+	row 11 OK "the proof has not gone stale" "Chain verified: $VERIFIED_LINE"
+else
+	row 11 FAIL "the proof has not gone stale" "$R11. Fix: run scripts/keel-chain-check --smoke — a launcher that changed since it was last proven is an unproven launcher."
+fi
+
+if [ "$FAILED" -eq 0 ]; then finish "READY" 0; else finish "NOT READY" 1; fi

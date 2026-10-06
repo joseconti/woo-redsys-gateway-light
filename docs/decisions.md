@@ -231,6 +231,7 @@
 - Mutation-tested by corrupting the stub's own response shape (renamed the `singlePayinLink` key so `process_payment()`'s `empty($body['singlePayinLink'])` check fails closed) — confirmed the test failed (timed out waiting for the redirect, since Inespay correctly refuses to redirect on a malformed API response), reverted, restarted the `wordpress` container per L-005, confirmed green again.
 - Why: user chose to close the "the other three gateways' checkout flows" gap recorded in `docs/PROGRESS.md`; Inespay needed a materially different technique than the other two (D-027), documented here rather than forced into the same `page.route()` shape.
 - Alternatives rejected: mocking at the Playwright/browser level only — impossible, since the request never reaches the browser; skipping Inespay's checkout flow entirely — rejected, since the assistant-drives-every-test-it-can-drive rule (Keel `SKILL.md`) means a real, if unconventional, technique should be tried before delegating this to the user.
+- Not checked: whether wp-env can route the container's outbound traffic through a recording proxy (which would intercept the server-side request without a mu-plugin), and whether Inespay offers a sandbox endpoint that accepts test credentials — neither was examined; the claim is only that browser-level interception cannot see a request the browser never makes.
 - Supersedes: none.
 
 ## D-030 — `disable_inespay()` fractional-total coverage, and a first draft that couldn't have caught its own bug

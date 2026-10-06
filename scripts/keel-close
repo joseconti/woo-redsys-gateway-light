@@ -1,0 +1,481 @@
+#!/bin/bash
+#
+# keel-close — the close-out, executed rather than recited. Contract: Keel's
+# references/project-state.md, "scripts/keel-close".
+#
+# The session writes what only a mind can write FIRST (docs/PROGRESS.md, the
+# sprint file, lessons, the issue sweep, the self-audit), then runs this ONE
+# command for the mechanical tail. The order is fixed, and it is the point:
+# every commit happens BEFORE the hand-off is written, never after.
+#
+#   0. scripts/keel-time end
+#   1. confidential-data scan, then commit everything outstanding
+#   2. scripts/keel-verify                 (non-zero -> the close stops here)
+#   3. merge to the integration branch and push (automatic mode only)
+#   4. write docs/continuation-prompt.md   (Commit:/Tree: read from git NOW)
+#   5. scripts/keel-chain-check            (diagnostic, never a veto)
+#   6. scripts/keel-continue               (card prefill/start; relayed verbatim)
+#   7. scripts/keel-handoff-verify --release
+#   8. record the completed close-out for THIS session at THIS commit
+#
+# It prints what it did, step by step, with each step's evidence; a step that
+# did not run has no evidence line and says why. It decides nothing: it stops
+# on keel-verify failing (step 2) and on a confidential-data finding (step 1,
+# where committing would be the harm), and on nothing else. It does not judge
+# `Handover:`, weigh whether to chain, or interpret keel-chain-check.
+#
+# Usage:
+#   scripts/keel-close [--dry-run] [--message <text> | --message-file <path>]
+#                      [--handover <clean | "blocked: reason">]
+#                      [--position <text>]
+#     --dry-run       change nothing: no clock entry, no commit, no merge, no
+#                     push, no hand-off written, no launch, no release, no
+#                     record. Read-only steps (2 and 5) still run for real, and
+#                     the hand-off that WOULD be written is printed.
+#     --message       the commit message for step 1 (default: a generic one)
+#     --message-file  the same, from a file (for a message with trailers)
+#     --handover      the hand-off's `Handover:` value (default: clean)
+#     --position      the hand-off's `Position:` line (default: derived from
+#                     docs/PROGRESS.md "## Current position")
+#
+# This script carries no per-tool fact; it calls the shared scripts, which
+# resolve the detected tool's row themselves.
+
+set -u
+
+DRY=0
+COMMIT_MESSAGE=""
+COMMIT_MESSAGE_FILE=""
+HANDOVER="clean"
+POSITION=""
+while [ $# -gt 0 ]; do
+	case "$1" in
+	--dry-run) DRY=1 ;;
+	--message)
+		COMMIT_MESSAGE="${2:-}"
+		shift
+		;;
+	--message-file)
+		COMMIT_MESSAGE_FILE="${2:-}"
+		shift
+		;;
+	--handover)
+		HANDOVER="${2:-clean}"
+		shift
+		;;
+	--position)
+		POSITION="${2:-}"
+		shift
+		;;
+	-h | --help)
+		sed -n '2,45p' "$0" | sed 's/^# \{0,1\}//'
+		exit 0
+		;;
+	*)
+		echo "Unknown option '$1' — see scripts/keel-close --help"
+		exit 2
+		;;
+	esac
+	shift
+done
+
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+if [ -z "$REPO_ROOT" ]; then
+	echo "Not inside a git repository — cannot close out."
+	exit 1
+fi
+cd "$REPO_ROOT" || exit 1
+
+SCRIPT_DIR="$REPO_ROOT/scripts"
+PROGRESS="$REPO_ROOT/docs/PROGRESS.md"
+HANDOFF="$REPO_ROOT/docs/continuation-prompt.md"
+STATE_ROOT="${KEEL_STATE_DIR:-${TMPDIR:-/tmp}}"
+STATE_ROOT="${STATE_ROOT%/}"
+STATE_DIR="$STATE_ROOT/keel-state"
+
+sha256_of() {
+	printf '%s' "$1" | shasum -a 256 2>/dev/null | awk '{print $1}'
+}
+
+card_line() {
+	[ -f "$PROGRESS" ] || return 0
+	grep -m1 -E "^- $1:" "$PROGRESS" | sed -E "s/^- $1:[[:space:]]*//"
+}
+
+card_word() {
+	card_line "$1" | awk '{print $1}' | tr -d '`*' | sed -E 's/[.,;]+$//'
+}
+
+if [ -f "$SCRIPT_DIR/keel-session-pid.sh" ]; then
+	# shellcheck source=scripts/keel-session-pid.sh
+	. "$SCRIPT_DIR/keel-session-pid.sh"
+	SESSION_ID=$(keel_session_pid)
+else
+	SESSION_ID="$PPID-unknown"
+fi
+REPO_KEY=$(sha256_of "$REPO_ROOT")
+
+SUMMARY=""
+note() { # step, result
+	SUMMARY="$SUMMARY
+  $1  $2"
+}
+
+step() {
+	echo
+	echo "=== Step $1 — $2 ==="
+}
+
+indent() {
+	sed 's/^/    | /'
+}
+
+finish() { # exit status
+	echo
+	echo "=== Close-out record — what ran, in order ==="
+	printf '%s\n' "$SUMMARY" | sed '/^$/d'
+	if [ "$DRY" -eq 1 ]; then
+		echo
+		echo "DRY RUN: nothing was changed."
+	fi
+	exit "$1"
+}
+
+[ "$DRY" -eq 1 ] && echo "keel-close — DRY RUN (nothing is changed; read-only steps run for real)"
+
+AUTONOMY=$(card_word "Autonomy")
+CHAINING=$(card_word "Chaining")
+INTEGRATION=$(card_line "Branches" | sed -n 's/.*integration branch `\([^`]*\)`.*/\1/p')
+[ -z "$INTEGRATION" ] && INTEGRATION="develop"
+
+# ------------------------------------------------------------------ step 0
+step 0 "scripts/keel-time end"
+if [ ! -x "$SCRIPT_DIR/keel-time" ]; then
+	echo "    skipped: scripts/keel-time is absent or not executable — no clock entry and no session report."
+	note 0 "keel-time end — SKIPPED (scripts/keel-time absent or not executable)"
+elif [ "$DRY" -eq 1 ]; then
+	echo "    would run: scripts/keel-time end"
+	note 0 "keel-time end — would run"
+else
+	OUT=$("$SCRIPT_DIR/keel-time" end 2>&1)
+	RC=$?
+	printf '%s\n' "$OUT" | indent
+	note 0 "keel-time end — exit $RC"
+fi
+
+# ------------------------------------------------------------------ step 1
+step 1 "confidential-data scan, then commit everything outstanding"
+PORCELAIN=$(git status --porcelain 2>/dev/null)
+if [ -z "$PORCELAIN" ]; then
+	echo "    nothing outstanding: the working tree is clean."
+	note 1 "commit — nothing outstanding (tree clean at $(git rev-parse --short HEAD 2>/dev/null))"
+else
+	echo "    outstanding:"
+	printf '%s\n' "$PORCELAIN" | indent
+
+	# The scan reads what WOULD be committed: every changed or untracked path
+	# (deletions have nothing to read). Patterns are assembled from pieces so
+	# this file never contains a secret-shaped literal itself.
+	FINDINGS=""
+	P_KEY="-----BEGIN [A-Z ]*PRIV""ATE KEY"
+	P_AWS="AKIA[0-9A-Z]{16}"
+	P_GH="gh[pousr]_[A-Za-z0-9]{30,}"
+	P_SLACK="xox[baprs]-[A-Za-z0-9-]{10,}"
+	P_SK="sk-[A-Za-z0-9_-]{24,}"
+	P_ASSIGN="(password|passwd|secret|api[_-]?key|access[_-]?token|private[_-]?key)[\"' ]*[:=][ ]*[\"'][^\"' ]{12,}[\"']"
+	while IFS= read -r -d '' ENTRY; do
+		STATUS="${ENTRY:0:2}"
+		FILE="${ENTRY:3}"
+		case "$STATUS" in
+		R* | C* | ?R | ?C) IFS= read -r -d '' _SRC || true ;;
+		esac
+		[ -f "$REPO_ROOT/$FILE" ] || continue
+		case "$FILE" in
+		*.pem | *.p12 | *.pfx | *.key | *id_rsa | *id_ed25519 | .env | */.env | .env.* | */.env.*)
+			FINDINGS="$FINDINGS
+$FILE: a file of a kind that normally holds credentials"
+			continue
+			;;
+		esac
+		HIT=$(grep -I -n -E -i -e "$P_ASSIGN" "$REPO_ROOT/$FILE" 2>/dev/null | head -3 | cut -c1-80)
+		HIT2=$(grep -I -n -E -e "$P_KEY" -e "$P_AWS" -e "$P_GH" -e "$P_SLACK" -e "$P_SK" "$REPO_ROOT/$FILE" 2>/dev/null | head -3 | cut -c1-60)
+		if [ -n "$HIT$HIT2" ]; then
+			FINDINGS="$FINDINGS
+$FILE: secret-shaped content at line(s) $(printf '%s\n%s\n' "$HIT" "$HIT2" | sed '/^$/d' | cut -d: -f1 | tr '\n' ' ')"
+		fi
+	done < <(git status --porcelain -z --untracked-files=all 2>/dev/null)
+
+	if [ -n "$FINDINGS" ]; then
+		echo "    CONFIDENTIAL-DATA FINDING — the commit is STOPPED. Pushing any of these is a serious security risk:"
+		printf '%s\n' "$FINDINGS" | sed '/^$/d' | indent
+		echo "    For each file: exclude it via .gitignore (already tracked: untrack it too; ever pushed: purge history AND rotate the credential), or confirm it is a false positive and commit it by hand; then run scripts/keel-close again."
+		note 1 "commit — STOPPED by the confidential-data scan (nothing committed)"
+		finish 3
+	fi
+	echo "    confidential-data scan: no secret-shaped content in the outstanding paths."
+
+	if [ "$DRY" -eq 1 ]; then
+		MSG_DESC="the default close-out message"
+		[ -n "$COMMIT_MESSAGE" ] && MSG_DESC="$COMMIT_MESSAGE"
+		[ -n "$COMMIT_MESSAGE_FILE" ] && MSG_DESC="from $COMMIT_MESSAGE_FILE"
+		echo "    would run: git add -A && git commit (message: $MSG_DESC)"
+		note 1 "commit — would commit $(printf '%s\n' "$PORCELAIN" | grep -c .) outstanding entries"
+	else
+		git add -A 2>&1 | indent
+		if [ -n "$COMMIT_MESSAGE_FILE" ] && [ -f "$COMMIT_MESSAGE_FILE" ]; then
+			OUT=$(git commit -F "$COMMIT_MESSAGE_FILE" 2>&1)
+			RC=$?
+		else
+			OUT=$(git commit -m "${COMMIT_MESSAGE:-Close-out: commit outstanding work (scripts/keel-close)}" 2>&1)
+			RC=$?
+		fi
+		printf '%s\n' "$OUT" | tail -15 | indent
+		if [ "$RC" -ne 0 ]; then
+			echo "    the commit did not succeed (exit $RC) — a hook may have refused it. The close continues; the hand-off will say the tree is dirty."
+			note 1 "commit — FAILED (exit $RC); tree left dirty"
+		else
+			note 1 "commit — $(git log -1 --format='%h %s' 2>/dev/null)"
+		fi
+	fi
+fi
+
+# ------------------------------------------------------------------ step 2
+step 2 "scripts/keel-verify"
+if [ ! -x "$SCRIPT_DIR/keel-verify" ]; then
+	echo "    skipped: scripts/keel-verify is absent or not executable — the close is NOT verified."
+	note 2 "keel-verify — SKIPPED (absent or not executable)"
+else
+	OUT=$("$SCRIPT_DIR/keel-verify" 2>&1)
+	RC=$?
+	printf '%s\n' "$OUT" | indent
+	if [ "$RC" -ne 0 ]; then
+		note 2 "keel-verify — FAILED (exit $RC): the close stops here"
+		if [ "$DRY" -eq 1 ]; then
+			echo "    keel-verify exited $RC. A real run stops here; the dry run goes on to show the remaining steps."
+		else
+			echo "    keel-verify exited $RC — a sprint does not close broken. Stopping here: no merge, no push, no hand-off, no launch."
+			finish 1
+		fi
+	else
+		note 2 "keel-verify — passed (exit 0)"
+	fi
+fi
+
+# ------------------------------------------------------------------ step 3
+step 3 "merge to the integration branch ($INTEGRATION) and push"
+BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+REMOTE=$(git remote 2>/dev/null | head -1)
+BRANCH_NOTE=""
+if [ "$AUTONOMY" != "automatic" ]; then
+	echo "    the card's Autonomy is '${AUTONOMY:-unreadable}', not automatic: nothing is merged or pushed unasked. What stays unpushed:"
+	if git rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1; then
+		git log --oneline '@{u}..HEAD' 2>/dev/null | indent
+	else
+		echo "    | branch '$BRANCH' has no upstream — every commit on it is local only"
+	fi
+	note 3 "merge + push — not performed (Autonomy: ${AUTONOMY:-unreadable}); unpushed commits listed"
+	BRANCH_NOTE="$BRANCH (NOT pushed — the card is not automatic)"
+elif [ -z "$REMOTE" ]; then
+	echo "    this repository has NO REMOTE: nothing can be pushed. A local commit survives a bad edit, not a dead disk — publish it."
+	note 3 "merge + push — NOT POSSIBLE (no remote configured)"
+	BRANCH_NOTE="$BRANCH (NOT pushed — no remote)"
+elif [ "$DRY" -eq 1 ]; then
+	if [ "$BRANCH" = "$INTEGRATION" ]; then
+		echo "    would run: git push $REMOTE $INTEGRATION"
+	else
+		echo "    would run: git checkout $INTEGRATION && git merge $BRANCH && git push $REMOTE $INTEGRATION && git checkout $BRANCH"
+	fi
+	if git rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1; then
+		echo "    currently unpushed on '$BRANCH': $(git rev-list --count '@{u}..HEAD' 2>/dev/null) commit(s)"
+		git log --oneline '@{u}..HEAD' 2>/dev/null | head -10 | indent
+	else
+		echo "    '$BRANCH' has no upstream yet"
+	fi
+	note 3 "merge + push — would push $INTEGRATION to $REMOTE"
+	BRANCH_NOTE="$BRANCH (dry run — nothing pushed)"
+else
+	MERGED_OK=1
+	if [ "$BRANCH" != "$INTEGRATION" ]; then
+		if ! git show-ref --verify --quiet "refs/heads/$INTEGRATION"; then
+			echo "    integration branch '$INTEGRATION' does not exist locally — creating it from '$BRANCH'."
+			git branch "$INTEGRATION" 2>&1 | indent
+		fi
+		OUT=$(git checkout "$INTEGRATION" 2>&1)
+		RC=$?
+		printf '%s\n' "$OUT" | indent
+		if [ "$RC" -eq 0 ]; then
+			OUT=$(git merge --no-edit "$BRANCH" 2>&1)
+			RC=$?
+			printf '%s\n' "$OUT" | tail -8 | indent
+			if [ "$RC" -ne 0 ]; then
+				git merge --abort 2>&1 | indent
+				MERGED_OK=0
+				echo "    the merge of '$BRANCH' into '$INTEGRATION' did not apply cleanly and was aborted — it is left for the session."
+			fi
+		else
+			MERGED_OK=0
+		fi
+	fi
+	if [ "$MERGED_OK" -eq 1 ]; then
+		OUT=$(git push -u "$REMOTE" "$INTEGRATION" 2>&1)
+		RC=$?
+		printf '%s\n' "$OUT" | tail -8 | indent
+		if [ "$RC" -eq 0 ]; then
+			note 3 "merge + push — pushed $INTEGRATION to $REMOTE ($(git rev-parse --short "$INTEGRATION" 2>/dev/null))"
+			if [ "$BRANCH" = "$INTEGRATION" ]; then
+				BRANCH_NOTE="$BRANCH (pushed to $REMOTE)"
+			else
+				BRANCH_NOTE="$BRANCH (merged into $INTEGRATION, which is pushed to $REMOTE)"
+			fi
+		else
+			note 3 "merge + push — PUSH FAILED (exit $RC)"
+			BRANCH_NOTE="$BRANCH (NOT pushed — the push failed)"
+		fi
+	else
+		note 3 "merge + push — MERGE into $INTEGRATION FAILED; nothing pushed"
+		BRANCH_NOTE="$BRANCH (NOT merged into $INTEGRATION — the merge failed)"
+	fi
+	if [ "$BRANCH" != "$INTEGRATION" ]; then
+		git checkout "$BRANCH" 2>&1 | indent
+	fi
+fi
+
+# ------------------------------------------------------------------ step 4
+step 4 "write docs/continuation-prompt.md (Commit: and Tree: read from git at this instant)"
+PROJECT_NAME=$(sed -n 's/^# PROGRESS — //p' "$PROGRESS" 2>/dev/null | head -1)
+[ -z "$PROJECT_NAME" ] && PROJECT_NAME=$(basename "$REPO_ROOT")
+CUR_PHASE=$(awk '/^## Current position/{f=1; next} /^## /{f=0} f && /^- Phase:/{sub(/^- Phase:[[:space:]]*/, ""); print; exit}' "$PROGRESS" 2>/dev/null)
+CUR_NEXT=$(awk '/^## Current position/{f=1; next} /^## /{f=0} f && /^- Next action:/{sub(/^- Next action:[[:space:]]*/, ""); print; exit}' "$PROGRESS" 2>/dev/null)
+if [ -z "$POSITION" ]; then
+	POSITION="${CUR_PHASE:-see docs/PROGRESS.md, Current position}"
+	[ -n "$CUR_NEXT" ] && POSITION="$POSITION; next action: $CUR_NEXT"
+fi
+POSITION=$(printf '%s' "$POSITION" | tr '\n' ' ')
+KEEL_VERSION=$(card_line "Keel portability" | grep -o 'v[0-9][0-9.]*[0-9]' | head -1 | sed 's/^v//')
+[ -z "$KEEL_VERSION" ] && KEEL_VERSION=$(card_line "Keel baseline" | grep -o 'v[0-9][0-9.]*[0-9]' | head -1 | sed 's/^v//')
+[ -z "$KEEL_VERSION" ] && KEEL_VERSION="unknown"
+
+# Every value below is read from git NOW — never carried from earlier.
+if [ "$(git rev-parse --is-shallow-repository 2>/dev/null)" = "true" ]; then
+	H_REPO="unavailable (shallow)"
+else
+	H_REPO=$(git rev-list --max-parents=0 HEAD 2>/dev/null | sort | head -1 | cut -c1-7)
+fi
+H_GENERATED=$(date +%Y-%m-%dT%H:%M:%S%z)
+H_COMMIT=$(git rev-parse --short HEAD 2>/dev/null)
+H_PORCELAIN=$(git status --porcelain 2>/dev/null)
+if [ -z "$H_PORCELAIN" ]; then
+	H_TREE="clean"
+else
+	H_TREE="dirty ($(printf '%s\n' "$H_PORCELAIN" | grep -c .) files)"
+fi
+
+HANDOFF_TEXT="---
+Repo: $H_REPO
+Generated: $H_GENERATED
+Keel: $KEEL_VERSION
+Commit: $H_COMMIT
+Tree: $H_TREE
+Position: $POSITION
+Branch: $BRANCH_NOTE
+Mode: ${AUTONOMY:-unreadable} — chaining ${CHAINING:-unreadable}
+Handover: $HANDOVER
+---
+
+Load the \`keel\` skill and resume $PROJECT_NAME at ${CUR_PHASE:-the position docs/PROGRESS.md names}.
+1. Before anything else, apply the recorded session setup — from this hand-off's own \`Mode:\` field, then confirmed against the project card's \`Autonomy:\` and \`Notify:\` lines (the card is the authority; where they disagree, say so in one line and follow the card). Do not re-ask what is already recorded. If the card says automatic and this session is in \`manual\`, resolve it (the machine-local settings file's permission mode set to auto, or a restart in that mode): in \`manual\` every composite command opens a dialog and the work cannot run unattended. Re-probe the notification channel for THIS session and say so if nothing delivers.
+2. Read the \`Branches:\` card line: which branch the work is on, what still has to be merged into the integration branch, and whether anything is waiting on the user's merge to main. Merge your work to $INTEGRATION and push it as you go (automatic mode); never merge to main, never tag, never release — say it is ready and stop there. Re-verify the \`Durability:\` line mechanically — do not re-ask the question, but say so in one line if what was recorded is no longer true. Nothing this session produces is left uncommitted.
+3. Keep going while the queue holds work that does not depend on what is unfinished. Do not stop to ask whether to continue, and do not hand back a menu of remaining items: stop only when the next step depends on something not yet done, or when a decision is genuinely the user's. If context runs out, that is a hand-off, not a decision — run scripts/keel-close and continue there under this same rule.
+4. Run scripts/keel-handoff-verify and obey its verdict. Read docs/PROGRESS.md — the project card, phase status, current position, open items. Then run scripts/keel-time start and show its block before any work; end the session with scripts/keel-close.
+5. Read docs/decisions.md and docs/lessons-learned.md — do not re-litigate decisions; do not repeat recorded mistakes.
+6. Read the current phase's reference and the inputs docs/PROGRESS.md names for the current position.
+7. Continue EXACTLY from \"Next action\"${CUR_NEXT:+: $CUR_NEXT}. Do not restart the phase, do not reinterpret or \"improve\" earlier decisions, do not redesign. Gaps go to the user or to a Design Request, per the skill."
+
+if [ "$DRY" -eq 1 ]; then
+	echo "    would write $HANDOFF (a real run commits at step 1 first, so Commit: and Tree: would be read after that commit):"
+	printf '%s\n' "$HANDOFF_TEXT" | indent
+	note 4 "hand-off — would write (Commit: $H_COMMIT, Tree: $H_TREE)"
+else
+	mkdir -p "$REPO_ROOT/docs" 2>/dev/null
+	printf '%s\n' "$HANDOFF_TEXT" >"$HANDOFF"
+	echo "    wrote $HANDOFF — header as written:"
+	awk '/^---$/{n++; print; next} n==1{print} n>=2{exit}' "$HANDOFF" | indent
+	echo "    git rev-parse HEAD now: $(git rev-parse HEAD 2>/dev/null)"
+	if ! git check-ignore -q docs/continuation-prompt.md 2>/dev/null; then
+		echo "    WARNING: docs/continuation-prompt.md is NOT gitignored — it now dirties the tree it describes. Add it to .gitignore."
+	fi
+	note 4 "hand-off — written (Commit: $H_COMMIT, Tree: $H_TREE, Handover: $HANDOVER)"
+fi
+
+# ------------------------------------------------------------------ step 5
+step 5 "scripts/keel-chain-check (diagnostic, never a veto)"
+if [ ! -x "$SCRIPT_DIR/keel-chain-check" ]; then
+	echo "    skipped: scripts/keel-chain-check is absent or not executable."
+	note 5 "keel-chain-check — SKIPPED (absent or not executable)"
+else
+	OUT=$("$SCRIPT_DIR/keel-chain-check" 2>&1)
+	RC=$?
+	printf '%s\n' "$OUT" | indent
+	note 5 "keel-chain-check — $(printf '%s\n' "$OUT" | grep '^VERDICT:' | tail -1) (exit $RC; not a veto)"
+fi
+
+# ------------------------------------------------------------------ step 6
+step 6 "scripts/keel-continue (the card says Chaining: ${CHAINING:-unreadable})"
+case "$CHAINING" in
+prefill | start)
+	if [ ! -x "$SCRIPT_DIR/keel-continue" ]; then
+		echo "    scripts/keel-continue is absent or not executable — nothing is launched, and nothing is hand-composed in its place. Paste this into a new chat:"
+		echo "    | Read $HANDOFF and continue."
+		note 6 "keel-continue — NOT RUN (absent or not executable); prompt printed"
+	elif [ "$DRY" -eq 1 ]; then
+		echo "    would run: scripts/keel-continue (and relay what it prints, verbatim)"
+		note 6 "keel-continue — would run"
+	else
+		OUT=$("$SCRIPT_DIR/keel-continue" 2>&1)
+		RC=$?
+		echo "    scripts/keel-continue said, verbatim:"
+		printf '%s\n' "$OUT" | indent
+		note 6 "keel-continue — $(printf '%s\n' "$OUT" | grep '^RESULT:' | tail -1) (exit $RC)"
+	fi
+	;;
+*)
+	echo "    not run: on this card nothing opens a chat. The hand-off is on disk; to continue, paste this into a new chat:"
+	echo "    | Read $HANDOFF and continue."
+	note 6 "keel-continue — not run (Chaining: ${CHAINING:-unreadable}); prompt printed"
+	;;
+esac
+
+# ------------------------------------------------------------------ step 7
+step 7 "scripts/keel-handoff-verify --release"
+if [ ! -x "$SCRIPT_DIR/keel-handoff-verify" ]; then
+	echo "    skipped: scripts/keel-handoff-verify is absent or not executable."
+	note 7 "lane release — SKIPPED (verifier absent)"
+elif [ "$DRY" -eq 1 ]; then
+	echo "    would run: scripts/keel-handoff-verify --release — current state: $("$SCRIPT_DIR/keel-handoff-verify" --lane 2>&1)"
+	note 7 "lane release — would run"
+else
+	OUT=$("$SCRIPT_DIR/keel-handoff-verify" --release 2>&1)
+	printf '%s\n' "$OUT" | indent
+	note 7 "lane release — $OUT"
+fi
+
+# ------------------------------------------------------------------ step 8
+step 8 "record the completed close-out for this session at this commit"
+RECORD="$STATE_DIR/closeouts/$REPO_KEY-$SESSION_ID"
+HEAD_FULL=$(git rev-parse HEAD 2>/dev/null)
+if [ "$DRY" -eq 1 ]; then
+	echo "    would write $RECORD containing $HEAD_FULL"
+	note 8 "close-out record — would write ($HEAD_FULL)"
+else
+	mkdir -p "$STATE_DIR/closeouts" 2>/dev/null
+	if printf '%s\n' "$HEAD_FULL" >"$RECORD" 2>/dev/null; then
+		echo "    wrote $RECORD"
+		echo "    | $(cat "$RECORD")"
+		note 8 "close-out record — $RECORD = $HEAD_FULL"
+	else
+		echo "    could not write $RECORD — the stop hook will treat this session as not closed out."
+		note 8 "close-out record — FAILED to write $RECORD"
+	fi
+fi
+
+finish 0
