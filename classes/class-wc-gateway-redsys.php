@@ -1033,7 +1033,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'redsys', 'Response 900 (refund)' );
 				}
-				set_transient( $order->get_id() . '_redsys_refund', 'yes' );
+				$this->set_refund_confirmed( $order->get_id() );
 
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'redsys', 'WCRedL()->update_order_meta to "refund yes"' );
@@ -1283,6 +1283,20 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		return true;
 	}
 	/**
+	 * Record that Redsys confirmed a refund of this order.
+	 *
+	 * Called by the notification handler. process_refund() is waiting for it
+	 * and uses it once. It expires on its own: a confirmation nobody was
+	 * waiting for (it came late, or the refund was made in the Redsys back
+	 * office) must not be there to answer for a later refund.
+	 *
+	 * @param int $order_id Order ID.
+	 * @return void
+	 */
+	public function set_refund_confirmed( $order_id ) {
+		set_transient( $order_id . '_redsys_refund', 'yes', 10 * MINUTE_IN_SECONDS );
+	}
+	/**
 	 * Check for Redsys Refund
 	 *
 	 * @param int $order_id order id.
@@ -1348,6 +1362,10 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			// order_id is known for certain right here.
 			set_transient( 'redys_order_temp_' . $transaction_id, $order_id, DAY_IN_SECONDS );
 
+			// A confirmation left over from an earlier refund of this order must not
+			// answer for this one: only what arrives from here on counts.
+			delete_transient( $order_id . '_redsys_refund' );
+
 			$refund_asked = $this->ask_for_refund( $order_id, $transaction_id, $order_total_sign );
 
 			if ( is_wp_error( $refund_asked ) ) {
@@ -1356,12 +1374,20 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				}
 				return new WP_Error( 'error', $refund_asked->get_error_message() );
 			}
-			$x = 0;
+			/**
+			 * Filters how many more times, five seconds apart, the gateway looks for
+			 * Redsys's confirmation of a refund after the first look.
+			 *
+			 * @param int $attempts Further looks after the first. Default 20 (about 105 seconds in all).
+			 * @param int $order_id Order being refunded.
+			 */
+			$attempts = (int) apply_filters( 'woocommerce_' . $this->id . '_refund_confirmation_attempts', 20, $order_id );
+			$x        = 0;
 			do {
 				sleep( 5 );
 				$result = $this->check_redsys_refund( $order_id );
 				++$x;
-			} while ( $x <= 20 && false === $result );
+			} while ( $x <= $attempts && false === $result );
 			if ( 'yes' === $this->debug && $result ) {
 				$this->log->add( 'redsys', __( 'check_redsys_refund = true ', 'woo-redsys-gateway-light' ) . $result );
 				$this->log->add( 'redsys', ' ' );

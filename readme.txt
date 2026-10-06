@@ -101,6 +101,8 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == Unreleased ==
 
+* Fix: A refund through the Redsys, Bizum or Google Pay gateways could be reported as done when Redsys had not confirmed it, if a confirmation of an earlier refund of the same order had been left behind. Each refund now waits for its own confirmation.
+* Dev: New filters woocommerce_redsys_refund_confirmation_attempts, woocommerce_bizumredsys_refund_confirmation_attempts and woocommerce_googlepayredirecredsys_refund_confirmation_attempts, to change how long a refund waits for Redsys's confirmation.
 * Security Fix: The plugin's two admin notices are now shown to, and can be dismissed by, users who manage WooCommerce only. Any user able to open an admin screen could dismiss them for everyone.
 * Fix: The one-time redirect to the About page after an update now happens only for an administrator on an admin screen. It could be triggered by any request to an admin entry point, including from a visitor who was not logged in, and it could interrupt that request.
 * Security Fix: A return to the order-received page is now checked (gateway, order status and Redsys signature) before the plugin waits for the payment notification. A request without a valid signature no longer holds the page for five seconds.

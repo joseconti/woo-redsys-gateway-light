@@ -43,7 +43,8 @@
 | `successful_request` | `( array\|null $params = null )` | `void` | Re-verifies and updates the order; with `null` it reads `$_POST`. Some branches end the request with `exit`. |
 | `ask_for_refund` | `( int $order_id, string $transaction_id, string $amount )` | `true\|WP_Error` | Sends the refund request; `$amount` is in minor units. |
 | `check_redsys_refund` | `( int $order_id )` | `bool` | True when the refund-confirmed transient exists. |
-| `process_refund` | `( int $order_id, float\|null $amount = null, string $reason = '' )` | `bool\|WP_Error` | WooCommerce's refund entry point. Blocks for up to about 105 seconds. |
+| `set_refund_confirmed` | `( int $order_id )` | `void` | Records Redsys's confirmation of a refund of the order: the transient `<order id>_redsys_refund`, for 10 minutes. Called by the notification handler; `process_refund()` clears it before asking and uses it once. |
+| `process_refund` | `( int $order_id, float\|null $amount = null, string $reason = '' )` | `bool\|WP_Error` | WooCommerce's refund entry point. Clears any earlier confirmation, sends the request, then blocks for up to about 105 seconds waiting for Redsys's confirmation (the number of looks is filterable). |
 
 Class-specific public methods:
 

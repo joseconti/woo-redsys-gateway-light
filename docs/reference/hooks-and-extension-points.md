@@ -33,6 +33,7 @@ Every example is ordinary WordPress code. Put it in a small plugin of your own o
 | 18 | `redsys_lite_apps_plugins_skills` | filter | `includes/class-redsys-lite-apps-plugins.php:634` |
 | 19 | `redsys_lite_apps_plugins_profiles` | filter | `includes/class-redsys-lite-apps-plugins.php:674` |
 | 20 | `woocommerce_ajax_loader_url` (WooCommerce's own) | filter | `classes/class-wc-gateway-redsys.php:721`, `:760`; `classes/class-wc-gateway-bizum-redsys.php:893`; `classes/class-wc-gateway-googlepay-redirection-redsys.php:746` |
+| 21 | `woocommerce_redsys_refund_confirmation_attempts`, `woocommerce_bizumredsys_refund_confirmation_attempts`, `woocommerce_googlepayredirecredsys_refund_confirmation_attempts` | filter | `classes/class-wc-gateway-redsys.php:1384`; `classes/class-wc-gateway-bizum-redsys.php:1733`; `classes/class-wc-gateway-googlepay-redirection-redsys.php:1561` |
 
 Five of these names are built at run time from the gateway ID (`'valid_' . $this->id . '_standard_ipn_request'`, `'woocommerce_' . $this->id . '_icon'`, `'woocommerce_' . $this->id . '_args'`, `$this->id . '_post_payment_complete'`, `$this->id . '_post_payment_error'`). The names above are the resolved ones; searching the code for the full string does not find those call sites.
 
@@ -276,6 +277,30 @@ add_filter(
 	function ( $url ) {
 		return content_url( 'uploads/branding/spinner.gif' );
 	}
+);
+```
+
+### 21. `woocommerce_<gateway id>_refund_confirmation_attempts`
+
+`woocommerce_redsys_refund_confirmation_attempts`, `woocommerce_bizumredsys_refund_confirmation_attempts`, `woocommerce_googlepayredirecredsys_refund_confirmation_attempts`
+
+- **Kind:** filter. Added by S-049 (unreleased).
+- **Applied from:** each gateway's `process_refund()`, after the refund request has been sent — file and line in the summary table.
+- **Parameters:**
+  - `$attempts` (`int`) — how many more times, five seconds apart, the gateway looks for Redsys's confirmation after its first look. Default `20`, about 105 seconds in all.
+  - `$order_id` (`int`) — the order being refunded.
+- **Returns:** the number to use. It is cast to an integer; zero, a negative number or anything that is not a number means one look only.
+- **When:** once per refund. The request to Redsys has already left: a lower number shortens how long the order screen waits, it does not cancel the refund, and a refund Redsys confirms after the wait is still reported as failed.
+
+```php
+// Wait up to about three minutes on a host where Redsys's notification is slow to arrive.
+add_filter(
+	'woocommerce_redsys_refund_confirmation_attempts',
+	function ( $attempts, $order_id ) {
+		return 35;
+	},
+	10,
+	2
 );
 ```
 

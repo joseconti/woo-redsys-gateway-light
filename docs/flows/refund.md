@@ -25,13 +25,14 @@ Two different shapes exist: a synchronous wait for a notification (A), and a sin
 1. **Shop manager → Store:** submits the refund.
 2. **Store:** `process_refund()` removes the PHP time limit and reads `_payment_order_number_redsys`. If it is empty, returns `WP_Error` "Refund Failed: No transaction ID" (`AC-52`).
 3. **Store (amount):** when `$amount` is empty, uses the full order total; otherwise formats `$amount` in minor units.
-4. **Store (mapping):** saves the transient `redys_order_temp_<Redsys order number>` → order ID again, for 24 hours, so the refund notification resolves to this order (`AC-51`).
+4. **Store (clean slate):** deletes any confirmation transient `<order id>_redsys_refund` left from an earlier refund of this order, so that only a confirmation arriving from here on counts (`AC-69`). Done in the same step as the mapping below, before the request leaves.
+4b. **Store (mapping):** saves the transient `redys_order_temp_<Redsys order number>` → order ID again, for 24 hours, so the refund notification resolves to this order (`AC-51`).
 5. **Store → Redsys:** `ask_for_refund()` builds a request with `DS_MERCHANT_TRANSACTIONTYPE` `3`, the same Redsys order number, the amount, merchant code, currency, terminal and the notification URL, signs it, and sends it with `wp_remote_post()` (45-second timeout):
    - `redsys` posts to the Redsys REST endpoint (`get_redsys_url_gateway_rest()`), signed with the settings secret for the active mode;
    - `bizumredsys` and `googlepayredirecredsys` post to the URL returned by `get_redsys_url_gateway()` — the same redirection URL the checkout form uses — signed with the order meta `_redsys_secretsha256` when present, otherwise `get_redsys_sha256()`. They take the terminal from the order meta `_payment_terminal_redsys`.
    A `WP_Error` from the request is returned to WooCommerce as `WP_Error` (`AC-52`). The HTTP status and body of the answer are not inspected.
-6. **Redsys → Store:** posts a notification with `Ds_TransactionType` `3` to the notification URL. It goes through the full validation in `docs/flows/notification-handling.md`; with `Ds_Response` `900` the handler sets the transient `<order id>_redsys_refund` to `yes` and adds the note "Order Payment refunded" ("Order Payment refunded by Redsys" for Google Pay).
-7. **Store (wait):** meanwhile `process_refund()` sleeps 5 seconds and calls `check_redsys_refund()`, which reads that transient; it repeats up to 21 times, about 105 seconds in total (`AC-50`).
+6. **Redsys → Store:** posts a notification with `Ds_TransactionType` `3` to the notification URL. It goes through the full validation in `docs/flows/notification-handling.md`; with `Ds_Response` `900` the handler calls `set_refund_confirmed()`, which sets the transient `<order id>_redsys_refund` to `yes` for 10 minutes, and adds the note "Order Payment refunded" ("Order Payment refunded by Redsys" for Google Pay).
+7. **Store (wait):** meanwhile `process_refund()` sleeps 5 seconds and calls `check_redsys_refund()`, which reads that transient; it repeats up to 21 times, about 105 seconds in total (`AC-50`). The 20 further looks after the first can be changed with the filter `woocommerce_<gateway id>_refund_confirmation_attempts`.
 8. **Store → Shop manager:** when the transient appears, deletes it and returns `true`; WooCommerce records the refund. When it never appears, returns `false` and WooCommerce reports the refund as failed (`AC-52`).
 
 ### States
