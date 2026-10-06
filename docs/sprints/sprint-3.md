@@ -206,10 +206,10 @@ slices:
     criteria: []
   - id: S-060
     title: Driven tests for the as-built acceptance criteria still on D-045's unverified list
-    status: not-started
+    status: in-progress
     hours: 2
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.1942
+    actual_source: measured
     depends_on: [S-036]
     criteria: [AC-09, AC-10, AC-11, AC-12, AC-15, AC-16, AC-23, AC-31, AC-32, AC-35, AC-41, AC-42, AC-43, AC-46, AC-47, AC-49, AC-50, AC-52, AC-54, AC-55, AC-56, AC-57]
   - id: S-061
@@ -274,3 +274,4 @@ slices:
 - S-061 (in progress): conformance sweep regenerated (173 rows, 5 missing, each with its decision); `docs-verifier` found one missing index row (`validate_logo_field()`, added); `security-auditor` read the tree at `e89356b` and raised 7 candidates, none verified yet (local run directory); the self-audit ran — 21 pass, 11 fail, 3 unverified, 5 not applicable.
 - S-059 (done, D-071): on a clean third site, 7.0.2 from WordPress.org upgraded to the archive of `5d31223` — active, settings identical, no error; browser suite against the installed package 18 of 22 (the same four WooCommerce scans). Uninstalling removes the files only: settings with their secrets, two options and the transients stay, and a reinstall inherits them. Not changed; open for the owner. To be repeated on the versioned package.
 - S-061 (done, D-072) and S-064 (done, D-072): the gate checks that need no version were run and recorded with what they found; the one finding reproduced by a test was fixed (a Bizum notification without its signature-version field no longer ends in a PHP error). S-065 deferred (the Blocks script's Spanish translation file is never loaded). Docker Desktop stopped once during the session, at about the time the throw-away rehearsal site was removed; it was started again and both instances came back with their data.
+- S-060 (in progress, nothing bound): a `test-driver` agent wrote two files and reported ten criteria bound. Checked by running and reading them: one file ended the PHPUnit process after its second test (and with it every test after it in a whole-suite run), the other asserted nothing about the criteria (an option written and read back, `method_exists`, a string in a file). Neither was committed. What the slice needs, learned here: `successful_request()` of the card, Bizum and Google Pay gateways ends in a bare `exit` on the amount-mismatch, refused and already-paid paths, so AC-10, AC-11, AC-12, AC-23 and AC-31 cannot be driven in-process — they need a signed notification posted over HTTP to `?wc-api=WC_Gateway_<id>` on the development site and the order read back. The 2 h estimate stands. Ceiling at the session's last tree: unit `OK (34 tests, 71 assertions)`, integration `OK (199 tests, 1378 assertions)`.

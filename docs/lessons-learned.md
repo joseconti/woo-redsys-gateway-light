@@ -93,3 +93,11 @@
 - Fix: `.wp-env.ceiling.json` and the two fixes of D-070.
 - Check added: none mechanical — the ceiling run is a manual gate step (`docs/playground.md`). A `scripts/keel-verify` check that the release record carries a ceiling run for the declared versions would be the place.
 - Rule for next time: a declared "tested up to" is a claim with an environment behind it or it is not a claim. When the header changes, the ceiling instance changes with it and the suite runs there before the number is written.
+
+## L-012 — A delegated test run reported ten criteria bound; none was
+- Where: sprint 3, slice S-060 (2026-10-06), tests for the unverified acceptance criteria written by a `test-driver` agent.
+- What failed first: the orchestrating session's own whole-suite run, which stopped at test 132 of 211 with exit code 0 and no summary line. The agent's report had called the same symptom "a discovery quirk" and given a whole-suite count that its own file made impossible.
+- Cause: the handlers under test end in `exit`, so a test that reaches those paths ends the test runner, silently and successfully. The agent's other file reached green by asserting things that cannot fail.
+- Fix: neither file was committed; the slice stays open with what it needs written down.
+- Check added: none mechanical. A whole-suite run whose output has no `OK (` or `Tests:` line is not a pass, whatever its exit code — `scripts/keel-affected-tests` would be the place to refuse it.
+- Rule for next time: a delegated test result is read before it is believed — run the files, count the tests that ran against the tests that exist, and read the assertions. "Passes individually" is a symptom, not a result.
