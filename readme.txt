@@ -101,6 +101,8 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == Unreleased ==
 
+* Fix: With WooCommerce removed or deactivated while this plugin was still active, every front-end page ended in a fatal error. The plugin now does nothing in that case.
+* Fix: The transaction limit of the Bizum and Inespay gateways now also applies when an order is paid from the order-pay page or through the Blocks checkout, and an order above the limit is refused when the payment is started.
 * Fix: A refund through the Redsys, Bizum or Google Pay gateways could be reported as done when Redsys had not confirmed it, if a confirmation of an earlier refund of the same order had been left behind. Each refund now waits for its own confirmation.
 * Dev: New filters woocommerce_redsys_refund_confirmation_attempts, woocommerce_bizumredsys_refund_confirmation_attempts and woocommerce_googlepayredirecredsys_refund_confirmation_attempts, to change how long a refund waits for Redsys's confirmation.
 * Security Fix: The plugin's two admin notices are now shown to, and can be dismissed by, users who manage WooCommerce only. Any user able to open an admin screen could dismiss them for everyone.

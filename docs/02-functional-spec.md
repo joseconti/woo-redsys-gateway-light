@@ -151,6 +151,7 @@ Reading the tables:
 | AC-41 | An order in a currency other than EUR is set `on-hold` instead of completed. | uncovered |
 | AC-42 | A signed callback with any other status adds a note with that status and stores the Inespay fields in order meta, without changing the order status. | uncovered |
 | AC-43 | Inespay is offered only when the customer's shipping country — or billing country, or the store base country when neither is known — is `ES`, `PT` or `IT`. | uncovered |
+| AC-70 | For Bizum and Inespay, the transaction limit holds wherever an order can be paid: the gateway is not offered on the order-pay page for an order above the limit nor outside the checkout page for a cart above it, and `process_payment()` refuses an order above the limit with an error notice and sends nothing to the processor; an amount equal to the limit, or no limit, is accepted. | `Integration/TransactionLimitTest.php::test_an_order_above_the_limit_is_not_sent_to_the_processor`, `::test_an_order_at_the_limit_or_with_no_limit_starts_its_payment`, `::test_the_limit_applies_on_the_order_pay_page_where_the_cart_is_empty`, `::test_the_limit_applies_outside_the_checkout_page` |
 | AC-44 | With a `transactionlimit` set, Inespay is removed from the checkout when the cart total is above the limit, compared as decimals, and stays available when it is not. | `e2e/inespay-transaction-limit.spec.js::"Inespay is hidden when the cart total exceeds the transaction limit (fractional total)"`, `::"Inespay is still offered when the cart total is under the transaction limit"` |
 
 ### F5 — WooCommerce Blocks checkout
@@ -192,11 +193,12 @@ Reading the tables:
 | AC-55 | The admin order screen shows the payment gateway, Redsys order number, date, hour and authorisation code for orders paid with `redsys`, `bizumredsys` or `googlepayredirecredsys`. | uncovered |
 | AC-56 | For a paid order of those three gateways, the order-received text lists the site, merchant code, authorisation number, store name, date and hour. | uncovered |
 | AC-57 | The plugin declares compatibility with WooCommerce High-Performance Order Storage. | uncovered |
+| AC-71 | With WooCommerce not loaded, the plugin's main file loads and a front-end page renders without a fatal error. | `Unit/PluginWithoutWooCommerceTest.php::test_the_front_end_does_not_fatal_when_woocommerce_is_absent` |
 | AC-67 | The "updated to version" and Telegram admin notices are printed only for a user with `manage_woocommerce`, and only such a user, with the notice's nonce, can dismiss them. | `Integration/AdminNoticesCapabilityTest.php::test_a_user_who_does_not_manage_the_store_cannot_dismiss_a_notice_for_everyone`, `::test_a_user_who_does_not_manage_the_store_is_not_shown_the_notice`, `::test_a_shop_manager_sees_the_notice_and_can_dismiss_it`, `::test_a_dismissal_without_its_nonce_writes_nothing` |
 | AC-68 | After an update, the one-time redirect to the About page happens once, for a user with `manage_options`, on a screen request: never for a visitor who is not logged in, a user without that capability, an AJAX request or a submitted form, none of which use up the welcome. | `Integration/AdminNoticesCapabilityTest.php::test_a_visitor_who_is_not_logged_in_does_not_trigger_the_welcome_redirect`, `::test_a_user_who_cannot_open_the_about_page_is_not_redirected_to_it`, `::test_an_ajax_request_is_never_answered_with_the_welcome_redirect`, `::test_a_form_submission_is_not_swallowed_by_the_welcome_redirect`, `::test_an_administrator_is_welcomed_once` |
 
 ### Coverage summary
-69 criteria, `AC-01` to `AC-69`. 46 are proven by a named automated test; 23 are `uncovered`:
+71 criteria, `AC-01` to `AC-71`. 48 are proven by a named automated test; 23 are `uncovered`:
 `AC-09`, `AC-10`, `AC-11`, `AC-12`, `AC-15`, `AC-16`, `AC-23`, `AC-31`, `AC-32`, `AC-35`, `AC-41`, `AC-42`, `AC-43`, `AC-46`, `AC-47`, `AC-48`, `AC-49`, `AC-50`, `AC-52`, `AC-54`, `AC-55`, `AC-56`, `AC-57`.
 
 The largest gap is the order-status half of the three Redsys-protocol gateways: signature validation is proven for all of them, but what the card gateway does with an accepted notification (`AC-09` to `AC-12`) has no test at all, and the mismatch and denial branches of Bizum and Google Pay (`AC-23`, `AC-31`) have none either.

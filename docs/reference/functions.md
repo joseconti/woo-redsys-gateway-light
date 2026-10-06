@@ -75,7 +75,7 @@ redsyslite_mark_order_as_paid( $order_id );
 
 ### `redsyslite_force_mark_order_as_paid_on_thankyou_page()`
 - **Signature:** `(): void` (`woocommerce-redsys.php:565`), attached to `wp_head`.
-- **What it does:** on the order-received page, when the query string has `key` and `Ds_MerchantParameters`, resolves the order from the key and calls `redsyslite_mark_order_as_paid()`.
+- **What it does:** does nothing when WooCommerce is not loaded (it is hooked at file scope; S-051). On the order-received page, when the query string has `key` and `Ds_MerchantParameters`, resolves the order from the key and calls `redsyslite_mark_order_as_paid()`.
 
 ### `redsyslite_allow_cancel_return_for_cancelled_order( $statuses, $order )`
 - **Signature:** `redsyslite_allow_cancel_return_for_cancelled_order( array $statuses, WC_Order|null $order = null ): array` (`woocommerce-redsys.php`), attached to WooCommerce's filter `woocommerce_valid_order_statuses_for_cancel`, priority 10.

@@ -563,3 +563,21 @@
 - **For the user, when a Redsys test terminal is at hand:** one refund with debug on, to read what the refund notification and the answer to the refund request contain. With that, the amount comparison (or reading the answer) can be built and the "Not defended" row closed.
 - Review: an independent security read. Applied: a test that drives the notification handler's refund branch in the three gateways.
 - Not checked: a real refund against Redsys; a persistent object cache (transients live there instead of the options table; an eviction can only produce a false failure).
+
+## D-063 — The Bizum and Inespay transaction limit holds wherever an order can be paid (S-050, audit finding SA-16)
+- Date / phase: 2026-10-06 / sprint 3, slice S-050
+- Reproduced before any change (D-036): the limit was only a filter on the list of offered gateways, applied only on the checkout page and against the cart total. On the order-pay page (empty cart), in a request that is not the checkout page (the Blocks checkout), and when the payment was actually started, nothing applied it.
+- Fixed: one rule, `is_over_transaction_limit()`, in both classes. The filter uses the order total on the order-pay page and the cart total elsewhere, and no longer depends on being on the checkout page. `process_payment()` of both gateways refuses an order above the limit with an error notice and sends nothing to the processor.
+- Found by the independent review and reproduced by a failing test before being fixed: Bizum's payment form page is rendered by WooCommerce directly for a pending order whose method is already Bizum, without `process_payment()`. It now shows the same message and no form. Inespay has no such page.
+- One new translatable string, used in three places, added to the `es_ES` files.
+- Unchanged: an amount equal to the limit is allowed (D-052); empty or zero means no limit.
+- Known and left as it is: the limit is read with PHP's number conversion, so `200,50` is read as 200 and `1.000` as 1. It was already so. The setting gives no format hint; a hint or a stricter reading changes how existing values are understood and is the user's call.
+- Not checked: a real Blocks checkout request above the limit (the route is reasoned from WooCommerce's code: the Store API takes the gateway's `failure` result and its notice); PHP 8.x.
+
+## D-064 — The plugin does not take the front end down when WooCommerce is absent (S-051, audit finding SA-19)
+- Date / phase: 2026-10-06 / sprint 3, slice S-051
+- Reproduced before the change (D-036) by loading the main file in its own PHP process with no WooCommerce function defined: the callback hooked on `wp_head` at file scope called a WooCommerce function and ended in a fatal error, on every front-end page. WordPress enforces the plugin's dependency on WooCommerce from 6.5 and only in the admin screens, so WooCommerce can go missing under an active copy of this plugin.
+- Fixed: the callback returns at once when WooCommerce's function or the plugin's own helper is not there. Also, from D-061's note: the welcome redirect does nothing when WooCommerce is not loaded, because the About page it leads to is not registered then.
+- Sweep of the class: everything else the main file hooks at file scope was read — it is either a WooCommerce hook (never fired without WooCommerce) or uses only WordPress functions.
+- Driven in the playground with WooCommerce deactivated through WP-CLI: the front end answers normally. WooCommerce was reactivated and the site checked afterwards.
+- Not checked: a WordPress older than 6.5; the class-name collision with the premium plugin when both are active (hardening notes, S-053).

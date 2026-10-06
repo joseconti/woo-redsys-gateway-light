@@ -126,6 +126,12 @@ function redsys_welcome_splash() {
 		return;
 	}
 
+	// The About page is registered only when WooCommerce is loaded: without it
+	// the redirect would lead to a permission error and use up the welcome.
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		return;
+	}
+
 	$seur_parent = redsys_get_parent_page();
 
 	if ( get_option( 'woocommerce-redsys-version' ) === REDSYS_WOOCOMMERCE_VERSION ) {
@@ -568,7 +574,9 @@ add_action( 'wp_head', 'redsyslite_force_mark_order_as_paid_on_thankyou_page' );
  * @return void
  */
 function redsyslite_force_mark_order_as_paid_on_thankyou_page() {
-	if ( ! is_order_received_page() ) {
+	// Hooked at file scope, so it also runs when WooCommerce is not loaded:
+	// without it there is no order-received page, and nothing to do.
+	if ( ! function_exists( 'is_order_received_page' ) || ! function_exists( 'WCRedL' ) || ! is_order_received_page() ) {
 		return;
 	}
 
