@@ -19,7 +19,7 @@
     "projected_remaining_hours": 1.1637,
     "percent_done": 90.22,
     "unit": "hours of AI working time plus supervision",
-    "spent_unfinished_hours": 0.2328,
+    "spent_unfinished_hours": 0.5336,
     "slices_total": 48,
     "slices_done": 44,
     "slices_pending": 4,
@@ -308,7 +308,7 @@
       "projected_remaining_hours": 1.1637,
       "percent_done": 79.25,
       "unit": "hours of AI working time plus supervision",
-      "spent_unfinished_hours": 0.2328,
+      "spent_unfinished_hours": 0.5336,
       "slices_total": 30,
       "slices_done": 26,
       "slices_pending": 4,
@@ -638,7 +638,7 @@
           "title": "Driven tests for the as-built acceptance criteria still on D-045's unverified list",
           "status": "in-progress",
           "hours": 2,
-          "actual_hours": 0.1942,
+          "actual_hours": 0.495,
           "actual_source": "measured",
           "depends_on": [
             "S-036"
