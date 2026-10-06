@@ -193,12 +193,15 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		/**
 		 * Filter the icon for the Google Pay Redirection Redsys gateway.
 		 *
+		 * The value returned is escaped as a URL: WooCommerce prints the icon
+		 * inside an image tag without escaping it.
+		 *
 		 * @param string $icon The URL of the icon.
 		 * @return string The filtered URL of the icon.
 		 *
 		 * @since 6.0.0
 		 */
-		$this->icon                 = apply_filters( 'woocommerce_' . $this->id . '_icon', REDSYS_PLUGIN_URL . 'assets/images/GPay-peque.svg' );
+		$this->icon                 = esc_url( apply_filters( 'woocommerce_' . $this->id . '_icon', REDSYS_PLUGIN_URL . 'assets/images/GPay-peque.svg' ) );
 		$this->has_fields           = false;
 		$this->liveurl              = 'https://sis.redsys.es/sis/realizarPago';
 		$this->testurl              = 'https://sis-t.redsys.es:25443/sis/realizarPago';

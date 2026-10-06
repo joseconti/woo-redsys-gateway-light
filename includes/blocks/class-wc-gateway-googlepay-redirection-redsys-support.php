@@ -88,7 +88,7 @@ final class WC_Gateway_GooglePay_Redirection_Redsys_Support extends AbstractPaym
 		return array(
 			'title'       => WCRedL()->get_redsys_option( 'title', 'googlepayredirecredsys' ),
 			'description' => WCRedL()->get_redsys_option( 'description', 'googlepayredirecredsys' ),
-			'icon'        => $icon,
+			'icon'        => esc_url_raw( $icon ),
 			'supports'    => array(
 				'products',
 				'refunds',

@@ -32,6 +32,7 @@
 | `is_valid_for_use` | `()` | `bool` | True when the store currency is in `WCRedL()->allowed_currencies()`. |
 | `admin_options` | `()` | `void` | Prints the settings screen. Not read in full for this document. |
 | `init_form_fields` | `()` | `void` | Fills `$this->form_fields`. |
+| `validate_logo_field` | `( string $key, string $value )` | `string` | Called by WooCommerce when the settings are saved. Returns the posted Logo value as a clean URL (`esc_url_raw()`), or an empty string. Card, Bizum and Inespay; Google Pay has no Logo setting. |
 | `get_redsys_args` | `( WC_Order $order )` | `array` | The three signed form fields; applies the `_args` filter. Side effects: creates the order-number mapping transient; Bizum and Google Pay also store the signing secret in a transient. |
 | `generate_redsys_form` | `( int $order_id )` | `string` | HTML of the auto-submitting form; attaches an inline script to the `woocommerce` handle. `receipt_page()` passes it the order it received. |
 | `process_payment` | `( int $order_id )` | `array` | `result` `success` and `redirect` to the order-pay URL. |
@@ -80,6 +81,7 @@ Extends `WC_Payment_Gateway`. All public methods are documented here.
 | `disable_inespay` | `( array $available_gateways )` | `array` | Listener on `woocommerce_available_payment_gateways`; applies the transaction limit. |
 | `admin_options` | `()` | `void` | Prints the settings screen. |
 | `init_form_fields` | `()` | `void` | Fills `$this->form_fields`. |
+| `validate_logo_field` | `( string $key, string $value )` | `string` | Called by WooCommerce when the settings are saved. Returns the posted Logo value as a clean URL (`esc_url_raw()`), or an empty string. Card, Bizum and Inespay; Google Pay has no Logo setting. |
 | `process_payment` | `( int $order_id )` | `array` | Creates the pay-in; `result` `success` with the pay-in link, or `failure` with the checkout URL and an error notice. |
 | `handle_callback` | `()` | `void` | The `wc-api` handler; always ends with `wp_die()` (`OK` 200 or `KO` 401). |
 | `process_refund` | `( int $order_id, float\|null $amount = null, string $reason = '' )` | `true\|WP_Error` | Error codes `inespay_refund_missing_payin`, `inespay_refund_failed`, or the HTTP error. |
@@ -173,7 +175,7 @@ Four `final` classes extending WooCommerce's `AbstractPaymentMethodType`, regist
 | `initialize()` | `void` | Loads the option `woocommerce_<gateway id>_settings`. Read in the Inespay class; the other three were not read at this method. |
 | `is_active()` | `bool` | Inespay: enabled and the customer's country is `ES`, `PT` or `IT`. The other three were not read at this method. |
 | `get_payment_method_script_handles()` | `string[]` | Registers the script built from `resources/js/frontend/index.js` (`assets/js/frontend/blocks.js`). Read in the Inespay class, where the handle is `wc-inespayredsys-payments-blocks`. |
-| `get_payment_method_data()` | `array` | `title`, `description`, `icon` (through the gateway's `_icon` filter) and `supports`. Read in all four. |
+| `get_payment_method_data()` | `array` | `title`, `description`, `icon` (through the gateway's `_icon` filter, then `esc_url_raw()`) and `supports`. Read in all four. |
 
 ## `Redsys_Lite_Apps_Plugins`
 

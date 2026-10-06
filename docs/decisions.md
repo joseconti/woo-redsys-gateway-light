@@ -508,3 +508,20 @@
 - For the release notes: a store that has had Google Pay debug logging on holds its signing secret in existing log files (`wp-content/uploads/wc-logs/`, name starting with the gateway id). The fix stops new lines; it does not clean old files. Whether to tell merchants to delete those logs, or to rotate the key, is the user's wording to decide when the version is proposed.
 - Left as it is: the secret kept in the `redsys_signature_<order>` transient (the D-025 family, hardening notes, S-053); the inbound signature and raw notification data in the log (S-040).
 - Supersedes: the `TO BUILD` state D-056 gave the debug-log row of `docs/threat-model.md`.
+
+## D-059 — The Logo setting is a URL: validated on save and escaped where the icon is used (S-045, audit finding SA-17)
+- Date / phase: 2026-10-06 / sprint 3, slice S-045
+- Reproduced before any change (D-036): a Logo value with a double quote in it was stored as typed and became the gateway icon; WooCommerce prints the icon inside an image tag without escaping, so the value added attributes to the image on the classic checkout. Entering it takes a user who may change the gateway settings (shop manager or administrator). 13 cases failed, over the card, Bizum and Inespay gateways.
+- Fixed at both ends, because a value saved earlier is still in the database: `validate_logo_field()` in the three gateways stores the posted value through `esc_url_raw()`; the icon is escaped at each of its seven use sites — `esc_url()` in the four gateway constructors (Google Pay included: its icon is a constant, but it goes through a filter), `esc_url_raw()` in the four Blocks integrations.
+- Visible changes, for the release notes:
+  1. A Logo URL with a query string is now stored as entered. WooCommerce's default text filter had been storing `&` as `&amp;`.
+  2. A value with a scheme WordPress does not allow (`data:`, `javascript:`) is stored empty, so the bundled icon is shown. A merchant who had pasted a `data:` image as the logo loses it.
+  3. A path with no leading slash (`wp-content/uploads/logo.png`) is read as a host name. It was never reliable: it resolved against the URL of whatever page showed it. A path from the site root (`/wp-content/…`) and a protocol-relative URL are kept.
+  4. The value a `woocommerce_<gateway>_icon` listener returns is escaped as a URL. A listener that returns a URL sees no difference.
+- Not migrated: stored values are not rewritten. They are cleaned each time they are read, and replaced the next time the settings are saved.
+- The validator is three identical one-line methods. WooCommerce calls it by name on the gateway object, so each class needs its own; a shared helper would add a fourth method to save nothing.
+- No `@since` tag on the new methods, as in D-057: the version number is not decided yet. `.claude/rules/code-style.md` asks for the tag, so the release slice (S-032) adds it to the methods of S-043 and S-045 once the number is approved.
+- Review: an independent security read and an independent code read. Applied: Google Pay and filtered-value cases for the four gateways, scheme and relative-path cases, comment placement, the documentation rows.
+- Found on the way, added as S-054: the file and line references in `docs/reference/` drift whenever a class gains lines (this slice moved everything below the new method in three classes), and nothing checks them.
+- Not checked: PHP 8.x; WooCommerce newer than 7.4, whose payment-settings screen may read the icon differently.
+- Supersedes: the `TO BUILD` state D-056 gave the output-escaping row of `docs/threat-model.md`.

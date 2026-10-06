@@ -93,7 +93,7 @@ final class WC_Gateway_Bizum_Lite_Support extends AbstractPaymentMethodType {
 		return array(
 			'title'       => WCRedL()->get_redsys_option( 'title', 'bizumredsys' ),
 			'description' => WCRedL()->get_redsys_option( 'description', 'bizumredsys' ),
-			'icon'        => $icon,
+			'icon'        => esc_url_raw( $icon ),
 			'supports'    => array(
 				'products',
 				'refunds',

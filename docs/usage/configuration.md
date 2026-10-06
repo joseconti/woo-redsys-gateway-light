@@ -34,7 +34,7 @@ Present in `redsys`, `bizumredsys` and `googlepayredirecredsys` unless a note sa
 | `enabled` | Enable/Disable | checkbox | `no` | Offers the gateway at checkout. The gateway is also switched off at run time when the store currency is not an allowed one. |
 | `title` | Title | text | "Servired/RedSys", "Bizum", "Google Pay" | Name shown to the customer at checkout. |
 | `description` | Description | textarea | a default sentence per gateway | Text shown under the name at checkout. |
-| `logo` | Logo | text (URL) | empty | Card and Bizum only. URL of an image that replaces the bundled icon. Google Pay has no such field. |
+| `logo` | Logo | text (URL) | empty | Card and Bizum only. URL of an image that replaces the bundled icon. Saved as a URL: characters that cannot be part of one are removed when the settings are saved. Google Pay has no such field. |
 | `customer` | Commerce number (FUC) | text | empty | The merchant code your bank assigned. Sent as `DS_MERCHANT_MERCHANTCODE`. |
 | `commercename` | Commerce Name | text | empty | Sent as `DS_MERCHANT_MERCHANTNAME`. |
 | `terminal` | Terminal number | text | empty | Sent as `DS_MERCHANT_TERMINAL`. |
@@ -75,7 +75,7 @@ Inespay shares none of the Redsys merchant settings.
 | `enabled` | Enable/Disable | checkbox | `no` | Offers the gateway at checkout, to customers in `ES`, `PT` or `IT` only. |
 | `title` | Title | text | "Inespay Bank Transfer" | Name shown at checkout. |
 | `description` | Description | textarea | "Pay securely via your online banking with Inespay." | Text shown at checkout. |
-| `logo` | Logo | text (URL) | empty | Replaces the bundled icon. |
+| `logo` | Logo | text (URL) | empty | Replaces the bundled icon. Saved as a URL, as for the card gateway. |
 | `api_key` | API Key | text | empty | The API key of your Inespay project. Sent as the `X-Api-Key` header, and used as the key that verifies callback signatures. |
 | `api_token` | API Token | password | empty | The API token of your Inespay project. Sent as the `Authorization` header. |
 | `creditor_account` | Creditor IBAN (optional) | text | empty | Sent as `creditorAccount` on pay-ins and as `collectingIBAN` on refunds. |

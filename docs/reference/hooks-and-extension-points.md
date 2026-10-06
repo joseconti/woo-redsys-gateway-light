@@ -23,7 +23,7 @@ Every example is ordinary WordPress code. Put it in a small plugin of your own o
 | 8 | `woocommerce_googlepayredirecredsys_args` | filter | `classes/class-wc-gateway-googlepay-redirection-redsys.php:713` |
 | 9 | `woocommerce_redsys_icon` | filter | `classes/class-wc-gateway-redsys.php:243`, `:245`; `includes/blocks/class-wc-gateway-redsys-lite-support.php:89`, `:91` |
 | 10 | `woocommerce_bizumredsys_icon` | filter | `classes/class-wc-gateway-bizum-redsys.php:272`, `:281`; `includes/blocks/class-wc-gateway-bizum-lite-support.php:89`, `:91` |
-| 11 | `woocommerce_googlepayredirecredsys_icon` | filter | `classes/class-wc-gateway-googlepay-redirection-redsys.php:195`; `includes/blocks/class-wc-gateway-googlepay-redirection-redsys-support.php:87` |
+| 11 | `woocommerce_googlepayredirecredsys_icon` | filter | `classes/class-wc-gateway-googlepay-redirection-redsys.php:204`; `includes/blocks/class-wc-gateway-googlepay-redirection-redsys-support.php:87` |
 | 12 | `woocommerce_inespayredsys_icon` | filter | `classes/class-wc-gateway-inespay-redsys.php:123`, `:125`; `includes/blocks/class-wc-gateway-inespay-lite-support.php:105`, `:107` |
 | 13 | `redsys_status_pending` | filter | `classes/class-wc-gateway-redsys-global-lite.php:871` |
 | 14 | `redsys_lite_apps_plugins_mac_app` | filter | `includes/class-redsys-lite-apps-plugins.php:369` |
@@ -195,8 +195,8 @@ add_filter(
 - **Kind:** filter. **Since:** 1.0.0 (Bizum docblock), 6.0.0 (Google Pay docblock).
 - **Applied from:** each gateway's constructor (classic checkout and admin) and each Blocks integration's `get_payment_method_data()` (Blocks checkout) — file and line in the summary table.
 - **Parameters:**
-  - `$icon_url` (`string`) — the URL of the gateway's icon. For card, Bizum and Inespay it is the `logo` setting when that is filled in, otherwise the bundled image (`assets/images/redsys.png`, `assets/images/bizum.png`, `assets/images/inespay.svg`). Google Pay has no `logo` setting and always passes `assets/images/GPay-peque.svg`.
-- **Returns:** the URL to use.
+  - `$icon_url` (`string`) — the URL of the gateway's icon. For card, Bizum and Inespay it is the `logo` setting (stored as a URL: validated when the settings are saved) when that is filled in, otherwise the bundled image (`assets/images/redsys.png`, `assets/images/bizum.png`, `assets/images/inespay.svg`). Google Pay has no `logo` setting and always passes `assets/images/GPay-peque.svg`.
+- **Returns:** the URL to use. It must be a URL: the value returned is passed through `esc_url()` before it becomes the gateway icon (WooCommerce prints the icon inside an image tag without escaping it) and through `esc_url_raw()` before it is handed to the Blocks checkout script. Anything that is not part of a URL is dropped, and a scheme WordPress does not allow yields an empty string.
 - **When:** every time the gateway object is constructed, and every time the Blocks checkout collects payment-method data. Both places must be considered: the same filter name covers both, so one listener changes the icon everywhere.
 
 ```php

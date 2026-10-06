@@ -102,10 +102,10 @@ slices:
     criteria: []
   - id: S-045
     title: Security fix SA-17 from the 2026-10-06 audit
-    status: not-started
+    status: done
     hours: 0.5
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.0781
+    actual_source: measured
     depends_on: [S-036]
     criteria: []
   - id: S-046
@@ -156,6 +156,14 @@ slices:
     actual_source: estimated
     depends_on: [S-036]
     criteria: []
+  - id: S-054
+    title: File and line references in docs/reference re-resolved against the code, with a keel-verify check that fails when one no longer points at its symbol
+    status: not-started
+    hours: 0.5
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-043, S-044, S-045, S-046, S-047, S-048, S-049, S-050, S-051]
+    criteria: []
   - id: S-052
     title: Scoped security re-audit of the fixes (each verifier re-run against the candidate; diff since e50ab39)
     status: not-started
@@ -170,7 +178,7 @@ slices:
     hours: 2
     actual_hours: null
     actual_source: estimated
-    depends_on: [S-036, S-027, S-028, S-029, S-031, S-035, S-039, S-052]
+    depends_on: [S-036, S-027, S-028, S-029, S-031, S-035, S-039, S-052, S-054]
     criteria: []
 ---
 

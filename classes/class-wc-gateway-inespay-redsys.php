@@ -124,6 +124,8 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 			} else {
 				$this->icon = apply_filters( 'woocommerce_' . $this->id . '_icon', REDSYS_PLUGIN_URL . 'assets/images/inespay.svg' );
 			}
+			// WooCommerce prints the icon inside an image tag without escaping it.
+			$this->icon = esc_url( $this->icon );
 
 			$this->supports = array(
 				'products',
@@ -255,6 +257,21 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 				<?php $this->generate_settings_html(); ?>
 			</table>
 			<?php
+		}
+
+		/**
+		 * Validate the Logo setting: it is the URL of an image and nothing else.
+		 *
+		 * The value becomes the gateway icon, which WooCommerce prints inside an
+		 * image tag on the checkout, so anything that is not part of a URL is
+		 * dropped when the settings are saved.
+		 *
+		 * @param string $key   Field key.
+		 * @param string $value Posted value.
+		 * @return string A clean URL, or an empty string for the default icon.
+		 */
+		public function validate_logo_field( $key, $value ) {
+			return esc_url_raw( trim( (string) wp_unslash( $value ) ) );
 		}
 
 		/**

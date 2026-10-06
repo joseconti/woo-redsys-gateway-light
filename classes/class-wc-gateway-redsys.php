@@ -244,6 +244,9 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		} else {
 			$this->icon = apply_filters( 'woocommerce_' . $this->id . '_icon', REDSYS_PLUGIN_URL . 'assets/images/redsys.png' );
 		}
+		// WooCommerce prints the icon inside an image tag without escaping it.
+		$this->icon = esc_url( $this->icon );
+
 		$this->has_fields           = false;
 		$this->liveurl              = 'https://sis.redsys.es/sis/realizarPago';
 		$this->testurl              = 'https://sis-t.redsys.es:25443/sis/realizarPago';
@@ -394,6 +397,20 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				<div class="inline error"><p><strong><?php esc_html_e( 'Gateway Disabled', 'woo-redsys-gateway-light' ); ?></strong>: <?php esc_html_e( 'Servired/RedSys only support EUROS &euro; and BRL currency.', 'woo-redsys-gateway-light' ); ?></p></div>
 				<?php
 			endif;
+	}
+	/**
+	 * Validate the Logo setting: it is the URL of an image and nothing else.
+	 *
+	 * The value becomes the gateway icon, which WooCommerce prints inside an
+	 * image tag on the checkout, so anything that is not part of a URL is
+	 * dropped when the settings are saved.
+	 *
+	 * @param string $key   Field key.
+	 * @param string $value Posted value.
+	 * @return string A clean URL, or an empty string for the default icon.
+	 */
+	public function validate_logo_field( $key, $value ) {
+		return esc_url_raw( trim( (string) wp_unslash( $value ) ) );
 	}
 	/**
 	 * Initialise Gateway Settings Form Fields
