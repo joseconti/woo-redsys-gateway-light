@@ -56,6 +56,8 @@
 #   25. Test selection is wired and honest.
 #   26. The tool registry is data, complete, and nowhere else.
 #   27. Suppression count (reported, compared with the last sprint close).
+#   28. Every `file:line` reference in docs/reference/ sits on a line that
+#       names the symbol the document names beside it (S-054).
 #
 # Exits 0 when no check FAILED, 1 otherwise. Every failure is printed with
 # the file and line, never just "something's wrong".
@@ -252,14 +254,14 @@ rm -f /tmp/keel-verify-links.$$
 end_check
 
 # ---------------------------------------------------------------------------
-# Checks 6-27 — python3, standard library only. The program reads the
+# Checks 6-28 — python3, standard library only. The program reads the
 # repository and prints; it writes nothing inside it. Temporary files (the
 # i18n dry run, the selector's synthetic repository) live under $TMPDIR and
 # are removed before it returns.
 # ---------------------------------------------------------------------------
 if ! command -v python3 >/dev/null 2>&1; then
 	echo
-	fail "python3 is not on PATH — checks 6-27 did not run"
+	fail "python3 is not on PATH — checks 6-28 did not run"
 else
 	python3 - "$PWD" "$SUMMARY" <<'KEEL_PY'
 import glob
@@ -1798,6 +1800,98 @@ elif count > previous[0]:
 else:
     info("suppression count: %d now, %d recorded in %s — did not grow" % (count, previous[0], previous[1]))
 ok("suppression count reported (%d); growth is a number to justify, never an automatic failure" % count)
+
+# === 28. Line references in docs/reference/ ==================================
+# S-054: a `file:line` reference drifts whenever a class gains lines above it,
+# and nothing noticed. Every reference must still sit on a line that names a
+# symbol the document names beside it: its definition, a call, a quoted name,
+# or the do_action()/apply_filters() call that builds the name.
+section("Line references in docs/reference/ point at their symbol")
+LINE_REF = re.compile(r"`((?:[A-Za-z0-9_./-]+\.(?:php|js))?):(\d+)`")
+REF_TICK = re.compile(r"`([^`]+)`")
+REF_WORD = re.compile(r"[A-Za-z_][A-Za-z0-9_]{4,}")
+REF_HOOK = re.compile(r"(?:do_action|apply_filters)\s*\(\s*([^,]+),")
+REF_STOP = {"string", "array", "float", "false", "mixed", "object", "order", "filter", "action"}
+
+
+def ref_names(text):
+    out = []
+    for token in REF_TICK.findall(text):
+        if LINE_REF.fullmatch("`" + token + "`"):
+            continue
+        out += [w for w in REF_WORD.findall(token) if w.lower() not in REF_STOP]
+    return out
+
+
+def ref_hook_pattern(src):
+    found = REF_HOOK.search(src)
+    if not found:
+        return None
+    arg = found.group(1).strip()
+    literals = [a or b for a, b in re.findall(r"'([^']*)'|\"([^\"]*)\"", arg)]
+    if not literals:
+        return None
+    pattern = ".+".join(re.escape(x) for x in literals)
+    if not arg.startswith(("'", '"')):
+        pattern = ".+" + pattern
+    if not arg.endswith(("'", '"')):
+        pattern += ".+"
+    return re.compile(pattern)
+
+
+def ref_points_at(src, names):
+    pattern = ref_hook_pattern(src)
+    prefixes = [] if pattern else re.findall(r"['\"]([A-Za-z_]{6,})['\"]\s*\.", src)
+    for name in names:
+        esc = re.escape(name)
+        if (re.search(r"(?:function\s+|class\s+|->|::)" + esc + r"\b", src)
+                or re.search(r"\b" + esc + r"\s*\(", src)
+                or re.search(r"['\"]" + esc + r"['\"]", src)
+                or (pattern and pattern.fullmatch(name))
+                or (name.startswith("_") and re.search(esc + r"['\"]", src))
+                or any(name.startswith(prefix) for prefix in prefixes)):
+            return True
+    return False
+
+
+ref_docs = sorted(p for p in TRACKED if p.startswith("docs/reference/") and p.endswith(".md"))
+ref_total = 0
+ref_bad = []
+for doc in ref_docs:
+    heading = ""
+    for number, line in enumerate(read(doc).split("\n"), 1):
+        if line.startswith("#"):
+            heading = line
+            continue
+        current = None
+        for found in LINE_REF.finditer(line):
+            ref_total += 1
+            if found.group(1):
+                current = found.group(1)
+            if not current:
+                ref_bad.append("%s:%d — %s names no file, and no reference before it on the line does"
+                               % (doc, number, found.group(0)))
+                continue
+            if current not in TRACKED:
+                ref_bad.append("%s:%d — %s is not a tracked file" % (doc, number, current))
+                continue
+            source = read(current).split("\n")
+            target = int(found.group(2))
+            following = LINE_REF.search(line, found.end())
+            label = line[found.end():following.start() if following else found.end() + 40]
+            names = ref_names(label) + ref_names(line[:found.start()])[::-1] + ref_names(heading)
+            if not names:
+                ref_bad.append("%s:%d — %s:%d has no symbol named beside it or in its heading"
+                               % (doc, number, current, target))
+            elif target > len(source) or not ref_points_at(source[target - 1], names):
+                ref_bad.append("%s:%d — %s:%d is not a line that names %s"
+                               % (doc, number, current, target, ", ".join(names[:3])))
+for item in ref_bad:
+    fail(item)
+if not ref_docs or not ref_total:
+    na("no `file:line` reference in docs/reference/ — nothing to check")
+elif not ref_bad:
+    ok("%d line references in %d documents each sit on a line that names their symbol" % (ref_total, len(ref_docs)))
 
 flush()
 sys.exit(1 if STATE["failed"] else 0)

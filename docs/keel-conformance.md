@@ -54,7 +54,7 @@ The manifest's Table 1 carries no row ids; `T1-nn` is the row's position in the 
 | T1-35 | `docs/api/INDEX.md` | present | Linter checks 2 and 7 OK |
 | T1-36 | `docs/keel-conformance.md` | present | This file |
 | T1-37 | `docs/playground.md` | present | Access, try-it, seed and reset instructions, stamp "last verified: 2026-08-01". The playground does not build today (D-044, L-007); restoring it is S-036 |
-| T1-38 | `scripts/keel-verify` | present | Executable, 27 checks, ran to completion in this sweep |
+| T1-38 | `scripts/keel-verify` | present | Executable, 28 checks, ran to completion in this sweep |
 | T1-39 | `scripts/keel-affected-tests` | present | Executable; base, head, run and full options; prints one scope line; linter check 25 OK |
 | T1-40 | `.githooks/pre-push` + `core.hooksPath` set | present | Hook executable; hooks path reads .githooks; skips tags and deletions |
 | T1-41 | `scripts/keel-doctor` | present | Executable; ran in check mode in this sweep; compiled from the plan's environment-requirements section |

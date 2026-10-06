@@ -46,7 +46,7 @@ items:
     status: not-started
     hours: 2
     target: null
-    reason: D-056 — none has an affected principal; triage with the user after the confirmed findings are fixed
+    reason: D-056 — none has an affected principal; triage with the user after the confirmed findings are fixed. D-065 — the scoped re-audit added 18 notes (local report of the `476d52e` run); one of them, an uncaught error on PHP 8 for a Bizum notification posted without its signature-version field, is the first to look at
     depends_on: []
     criteria: []
   - id: S-055

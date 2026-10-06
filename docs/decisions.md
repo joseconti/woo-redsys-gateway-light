@@ -581,3 +581,25 @@
 - Sweep of the class: everything else the main file hooks at file scope was read — it is either a WooCommerce hook (never fired without WooCommerce) or uses only WordPress functions.
 - Driven in the playground with WooCommerce deactivated through WP-CLI: the front end answers normally. WooCommerce was reactivated and the site checked afterwards.
 - Not checked: a WordPress older than 6.5; the class-name collision with the premium plugin when both are active (hardening notes, S-053).
+
+## D-065 — Scoped security re-audit of the candidate (S-052): the nine findings are refuted, the diff raised nothing, one item needs the owner
+- Date / phase: 2026-10-06 / sprint 3, slice S-052
+- Run: scoped at `476d52e`, per `references/security-audit.md`: the nine findings confirmed at `e50ab39`, and the shipped-code diff since that commit (9 PHP files, `readme.txt`, `.gitignore`). A partial pass by construction; everything else rests on the full run (D-056).
+- How the nine were re-verified: one fresh verifier per finding, given the original candidate card, the recon and the profile, and told not to read this file, the sprint files or the earlier run. Each was asked to refute the claim against the code on disk and to attack whatever control it found (the sibling classes, the other path to the same sink, the sad inputs). Result: nine `rejected`, each naming the control on every path of the claim.
+- The diff: three hunters over the changed files, then a coverage check by a reader given only the recon, the coverage table and the patch. It found one stretch nobody had read (the refund branch of Google Pay's `successful_request()`); a fourth hunter took it and also settled that each class's `is_valid_return()` selects the secret the way that class's own `successful_request()` does. No candidate from any of the four.
+- One new item, SA-20, `needs_validation`: raised from a verifier's side note and decided by a different verifier. It depends on one fact about Redsys that the source cannot show. It is not a finding and carries no severity. Its details stay in the local run, as D-056 set for anything open.
+- For the user, as one batch with the two already waiting (SA-06, SA-13): each needs one observation on a Redsys test terminal or in the Inespay sandbox, then investigate, accept or dismiss. The release gate needs the three resolved or acknowledged.
+- Hardening notes: 18, in the local report, added to S-053's triage. One is worth reading first: on PHP 8, a Bizum notification posted without its signature-version field may end in an uncaught error instead of a refusal. No bypass; unchanged code; read, not executed.
+- What is committed: the second row of `docs/security-audit.md` (counts only) and this entry. The raw run is in `docs/security-audit/2026-10-06-476d52e/`, gitignored.
+- Gate state (`Security audit: required`): a run covers the candidate (full at `e50ab39` plus this scoped one) as long as nothing outside `docs/` and `scripts/` changes before the release; no confirmed finding is open; the log row exists. Still missing: the owner's word on the three `needs_validation` items.
+- Not checked: nothing was executed in this run — every verdict is a reading of the source; the fixes' regression tests were last run at their own slices. PHP 8.x, multisite, HPOS and WordPress older than 6.5, as in the full run.
+- Supersedes: the "scoped re-audit pending" state of D-056.
+
+## D-066 — Line references in `docs/reference/` are checked against the symbol they sit beside (S-054)
+- Date / phase: 2026-10-06 / sprint 3, slice S-054
+- Found: 64 of the 96 `file:line` references in the four documents of `docs/reference/` pointed at a line that no longer held their symbol. The security fixes had added lines to every gateway class and to the main file.
+- Fixed: every reference re-resolved to the current line of the definition, the call, or the `do_action()` / `apply_filters()` call it documents. The functions table used a line-only shorthand explained by a sentence under the table; those 15 references now name their file, so each reference can be read alone.
+- Check added, `scripts/keel-verify` check 28: for each reference, the names written in code spans beside it (the label after it, then the ones before it on the line, then the section heading) are collected, and the referenced line must name one of them — as a definition, a call, a quoted name, or a hook call whose literal parts fit the name (`'woocommerce_' . $this->id . '_icon'` fits `woocommerce_redsys_icon`). A line-only reference needs a full one before it on the same line.
+- Limit of the check, stated: it proves the line names the symbol, not that it is the intended occurrence. A reference that drifts onto another line naming the same symbol passes.
+- Not checked: references outside `docs/reference/` (the flows, the threat model and the decisions cite lines too; decisions are history and are not re-resolved).
+- Supersedes: none.

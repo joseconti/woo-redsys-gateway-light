@@ -4,7 +4,8 @@
 
 | Date | Audited commit | Scope | Profiles | Verification | Confirmed (by severity) | Needs validation | Rejected | Confirmed still open |
 |---|---|---|---|---|---|---|---|---|
-| 2026-10-06 | `e50ab39` | full — 25 units (16 with candidates, 8 covered with none, 1 n/a) | `references/security/wordpress.md` | subagent — every candidate decided by a verifier that did not hunt it; one reproduced by its verifier in the playground | 9 — critical 0, high 0, medium 3, low 6 | 2 | 8 | 0 open; 9 fixed on `develop`, unreleased (S-043 to S-051); scoped re-audit pending (S-052) |
+| 2026-10-06 | `e50ab39` | full — 25 units (16 with candidates, 8 covered with none, 1 n/a) | `references/security/wordpress.md` | subagent — every candidate decided by a verifier that did not hunt it; one reproduced by its verifier in the playground | 9 — critical 0, high 0, medium 3, low 6 | 2 | 8 | 0 open; 9 fixed on `develop`, unreleased (S-043 to S-051); each refuted by its verifier at `476d52e` (scoped re-audit below) |
+| 2026-10-06 | `476d52e` | scoped, a partial pass — the 9 findings confirmed at `e50ab39` re-verified, plus the shipped-code diff `e50ab39..476d52e`: 15 units (13 covered, 1 with a candidate, 1 n/a) | `references/security/wordpress.md` | subagent — each of the 9 cards decided by a verifier that had not hunted it and was given neither the fix's records nor the earlier verdict; the 1 new candidate decided by a verifier other than the one that noticed it; nothing executed (source readings) | 0 | 1 new (3 with the 2 still open from the full run) | 9 — the re-verified findings, refuted because fixed | 0 |
 
 ## Findings disclosed after their fix shipped
 

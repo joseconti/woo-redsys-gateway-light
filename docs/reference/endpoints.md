@@ -24,7 +24,7 @@ The `wc-api` value is matched by WooCommerce, which fires the action `woocommerc
 
 ### 1–3. Redsys notification — `?wc-api=WC_Gateway_<gateway id>`
 
-- **URL:** `<site home URL>/?wc-api=WC_Gateway_redsys`, `…=WC_Gateway_bizumredsys`, `…=WC_Gateway_googlepayredirecredsys`. Built in each constructor (`classes/class-wc-gateway-redsys.php:258`, `classes/class-wc-gateway-bizum-redsys.php:293`, `classes/class-wc-gateway-googlepay-redirection-redsys.php:206`). When the gateway's `not_use_https` setting is `yes`, the plugin gives Redsys the same URL with `http:` instead of `https:`.
+- **URL:** `<site home URL>/?wc-api=WC_Gateway_redsys`, `…=WC_Gateway_bizumredsys`, `…=WC_Gateway_googlepayredirecredsys`. Built in each constructor (`classes/class-wc-gateway-redsys.php:261`, `classes/class-wc-gateway-bizum-redsys.php:296`, `classes/class-wc-gateway-googlepay-redirection-redsys.php:215`). When the gateway's `not_use_https` setting is `yes`, the plugin gives Redsys the same URL with `http:` instead of `https:`.
 - **Caller:** Redsys, server to server, after a payment attempt or a refund.
 - **Parameters** (form-encoded body):
 
@@ -55,7 +55,7 @@ The `wc-api` value is matched by WooCommerce, which fires the action `woocommerc
 
 ### 4. Inespay callback — `?wc-api=wc_gateway_inespayredsys`
 
-- **URL:** `<site home URL>/?wc-api=wc_gateway_inespayredsys` (`classes/class-wc-gateway-inespay-redsys.php:133`). The plugin sends it to Inespay as `notifUrl` at checkout and as `okNotifUrl` / `errorNotifUrl` on refunds.
+- **URL:** `<site home URL>/?wc-api=wc_gateway_inespayredsys` (`classes/class-wc-gateway-inespay-redsys.php:135`). The plugin sends it to Inespay as `notifUrl` at checkout and as `okNotifUrl` / `errorNotifUrl` on refunds.
 - **Caller:** Inespay, server to server.
 - **Body:** JSON (the content type the plugin asks for). A form-encoded body and plain `POST` fields are accepted as fallbacks.
 - **Parameters:**
@@ -88,7 +88,7 @@ The `wc-api` value is matched by WooCommerce, which fires the action `woocommerc
 ### 5. Return to the order-received page
 
 - **URL:** WooCommerce's order-received URL, which the plugin gives Redsys as `DS_MERCHANT_URLOK` with `utm_nooverride=1` added. Redsys appends its own result parameters when it sends the customer back.
-- **Handler:** `redsyslite_force_mark_order_as_paid_on_thankyou_page()` on `wp_head` (`woocommerce-redsys.php:565`), which calls `redsyslite_mark_order_as_paid()` (`:452`).
+- **Handler:** `redsyslite_force_mark_order_as_paid_on_thankyou_page()` on `wp_head` (`woocommerce-redsys.php:576`), which calls `redsyslite_mark_order_as_paid()` (`:463`).
 - **Parameters** (query string):
 
   | Name | Type | Required | Description |
@@ -105,7 +105,7 @@ The `wc-api` value is matched by WooCommerce, which fires the action `woocommerc
 ### 6–7. Admin notice dismissal
 
 - **URL:** any WordPress admin page with `redsys-hide-new-version=hide-new-version-redsys&_redsys_hide_new_version_nonce=<nonce>`, or with `redsys-telegram=telegram-redsys&_redsys_telegram_nonce=<nonce>`. The links are printed inside the notices themselves.
-- **Handlers:** `redsys_lite_add_notice_new_version()` (`woocommerce-redsys.php:217`) and `redsys_lite_ask_for_telegram()` (`:266`), both on `admin_notices`.
+- **Handlers:** `redsys_lite_add_notice_new_version()` (`woocommerce-redsys.php:228`) and `redsys_lite_ask_for_telegram()` (`:277`), both on `admin_notices`.
 - **Effect:** with a valid nonce (actions `redsys_hide_new_version_nonce` and `redsys_telegram_nonce`), stores the option `hide-new-version-redsys-notice` (the current plugin version) or `telegram-redsys-notice` (`yes`), which hides the notice. With an invalid nonce nothing is stored.
 - **Permissions:** the capability `manage_woocommerce` and the nonce. A user without the capability is neither shown the notices nor able to dismiss them (S-047, D-061).
 
@@ -119,10 +119,10 @@ Requests the plugin makes or sends the customer to. Hosts are fixed in the code.
 |---------|-------------|-----|------|
 | Payment form, live | `https://sis.redsys.es/sis/realizarPago` | browser form `POST` | `liveurl` in the three Redsys-protocol classes |
 | Payment form, test | `https://sis-t.redsys.es:25443/sis/realizarPago` | browser form `POST` | `testurl` in the same classes |
-| Card refund | `https://sis.redsys.es/sis/rest/trataPeticionREST` (live) or the same path on the test host | `wp_remote_post()`, 45 s timeout | `classes/class-wc-gateway-redsys.php:1210` |
-| Bizum / Google Pay refund | the payment-form URL above for the active mode | `wp_remote_post()`, 45 s timeout | `classes/class-wc-gateway-bizum-redsys.php:1555`, `classes/class-wc-gateway-googlepay-redirection-redsys.php:1386` |
-| Inespay pay-in | `https://apiflow.inespay.com/pro/v22/payins/single/init` (live) or `…/san/…` (test) | `wp_remote_post()`, 30 s timeout, headers `X-Api-Key` and `Authorization` | `classes/class-wc-gateway-inespay-redsys.php:398` |
-| Inespay refund | `https://apiflow.inespay.com/pro/v22/refunds/init` (live) or `…/san/…` (test) | `wp_remote_post()`, 30 s timeout, same headers | `classes/class-wc-gateway-inespay-redsys.php:703` |
+| Card refund | `https://sis.redsys.es/sis/rest/trataPeticionREST` (live) or the same path on the test host | `wp_remote_post()`, 45 s timeout | `classes/class-wc-gateway-redsys.php:1256` |
+| Bizum / Google Pay refund | the payment-form URL above for the active mode | `wp_remote_post()`, 45 s timeout | `classes/class-wc-gateway-bizum-redsys.php:1657`, `classes/class-wc-gateway-googlepay-redirection-redsys.php:1438` |
+| Inespay pay-in | `https://apiflow.inespay.com/pro/v22/payins/single/init` (live) or `…/san/…` (test) | `wp_remote_post()`, 30 s timeout, headers `X-Api-Key` and `Authorization` | `classes/class-wc-gateway-inespay-redsys.php:457` |
+| Inespay refund | `https://apiflow.inespay.com/pro/v22/refunds/init` (live) or `…/san/…` (test) | `wp_remote_post()`, 30 s timeout, same headers | `classes/class-wc-gateway-inespay-redsys.php:762` |
 
 The classes also hold two SOAP web-service URLs (`liveurlws`, `testurlws`); `get_redsys_url_gateway()` returns them only when called with a type other than `rd`, which no code in this plugin does.
 
