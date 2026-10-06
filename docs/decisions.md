@@ -408,3 +408,15 @@
 - Not verified: the PHPUnit and Playwright suites (playground down, D-044). Dependabot reads the default branch, so the alert count on GitHub does not move until this reaches `master`.
 - Not pushed: the pre-push selection for a lockfile change is the whole suite, which cannot run before S-036. D-047's bypass covered sprint 2 only and is not reused.
 - Supersedes: none. Closes the three `package.json`/Dependabot deferred items in `docs/PROGRESS.md`.
+
+## D-051 — The playground is restored on the pinned PHP 7.4 by moving `@wordpress/env` to 11; the PHP-version question is withdrawn
+- Date / phase: 2026-10-06 / sprint 3, slice S-036
+- Decision: `@wordpress/env` goes from `^10.0.0` to `^11.16.0`. With it `npx wp-env start` builds and runs on `phpVersion: 7.4` unchanged, so the pin recorded in D-014 stands and the question parked in D-044 (which PHP version to move to) no longer needs an answer. It was never answered by the user; it is withdrawn, not decided.
+- `.wp-env.json` changes in one respect only: `AUTOMATIC_UPDATER_DISABLED` and `WP_AUTO_UPDATE_CORE: false` are added. This enforces the existing WordPress 7.0 pin (the development site had updated itself to 7.1.2, L-008); it does not change what the playground is meant to be.
+- New: `scripts/playground-setup`, the scripted form of the one-time setup that `docs/playground.md` described in prose (L-008). It is not in the committed allow-list; adding it there is the user's to confirm (D-043).
+- Verified: environment destroyed and rebuilt from nothing, then `scripts/keel-affected-tests --run` — 8 unit, 36 integration and 7 e2e tests, 49 of 49, green; PHP 7.4.33, WordPress 7.0, WooCommerce 7.4.0 read from the running containers; the debug log holds no PHP error beyond two known notices (WooCommerce's early translation loading on WordPress 7.0, and L-004).
+- Correction to D-050: the upgrade does not clear the critical audit findings. `@wordpress/env` 11.16.0 still depends on the flagged `simple-git`; `npm audit` reports 115 findings, 3 critical, all three in that chain. They are in a development tool and nothing from it ships. Left as is until upstream releases a fix.
+- wp-env 11 prints deprecation warnings for `clean` (now `reset`) and for the combined development-and-tests configuration this project uses. Both still work; not changed here.
+- Not checked: PHP 8.x. The suite has only ever run on 7.4, so nothing here says the plugin works on the PHP versions most stores run. Whether to add a second playground on a current PHP is a separate question for the user.
+- Supersedes: the "why not fix it now" and "not checked" lines of D-044. Unblocks S-027, S-029, S-035, S-037, S-038, S-039.
+

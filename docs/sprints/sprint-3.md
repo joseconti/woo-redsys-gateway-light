@@ -6,10 +6,10 @@ status: in-progress
 slices:
   - id: S-036
     title: Restore the playground on this machine (PHP 7.4 base image no longer builds; plugin activation order under the current wp-env)
-    status: not-started
+    status: done
     hours: 1.5
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.1892
+    actual_source: measured
     depends_on: []
     criteria: []
   - id: S-027
@@ -101,3 +101,4 @@ slices:
 - Candidate defects (S-035), read from code during S-025 and NOT yet reproduced — each starts from a failing test per D-036: (1) the order-received fallback passes no `Ds_SignatureVersion`, and the Google Pay gateway calls `wp_die()` without it; (2) Google Pay `successful_request()` has no already-paid guard; (3) a refund amount of `0` refunds the full total in the Redsys, Bizum and Google Pay gateways (fixed for Inespay only in D-026); (4) the Bizum transaction limit still truncates with integer casts (fixed for Inespay in D-026/D-030); (5) debug logging in Bizum and Google Pay writes the signing secret in clear — not covered by D-025, to be added to `docs/threat-model.md`; (6) Google Pay is hidden for everyone in test mode because `testshowgateway` has no settings field. The full list with file:line is in the S-025 hand-back recorded in `docs/decisions.md` D-041.
 - Close-out:
 - S-031 (done 2026-10-06, D-050): the two unused `dependencies` removed, `package.json` version synced to 7.0.2 and now checked by `scripts/keel-verify`, non-breaking audit fixes applied. `npm audit` 147 → 115; everything left hangs on two major upgrades — `@wordpress/scripts` 36 (new slice S-039) and `@wordpress/env` 11 (belongs to S-036, it is the playground tool). Not pushed: the pre-push selection for a lockfile change is the entire suite, which needs S-036.
+- S-036 (done 2026-10-06, D-051, L-008): playground rebuilt from nothing on `@wordpress/env` 11 with PHP 7.4 unchanged; setup scripted in `scripts/playground-setup`; automatic updater off; whole suite green, 49 of 49. The S-031 commit was pushed with it, through the pre-push hook.

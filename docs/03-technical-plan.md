@@ -185,7 +185,7 @@ One machine plays all three roles here — the user's Mac holds the repository a
 | npm, npx | any (ship with Node.js) | blocking | with Node.js |
 | Docker CLI | any | blocking | Docker Desktop (macOS/Windows) or Docker Engine (Linux). **Licence:** Docker Desktop needs a paid subscription for organisations with 250+ employees or over $10M revenue — Colima (MIT) on macOS/Linux is the drop-in alternative. **Privilege:** adding a user to the `docker` group on Linux is effectively granting root |
 | Docker daemon | running — "installed but stopped" is `NOT OPERATIONAL`, not `MISSING` | blocking | start Docker Desktop, `colima start`, or `systemctl start docker` |
-| `@wordpress/env` (wp-env) | `^10.0.0`, project-local | optional (npx fetches it on first run) | `npm install` |
+| `@wordpress/env` (wp-env) | `^11.16.0` (D-051), project-local | optional (npx fetches it on first run) | `npm install` |
 | wp-env playground of THIS repository | running, for any test run — a state, not an install; another project's wp-env is not it | optional | `npx wp-env start` |
 | PHPUnit + `yoast/phpunit-polyfills` | `^9.6` / `^2.0`, in `vendor/` | blocking | with the playground running: `npx wp-env run cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && composer install"` |
 | `@playwright/test` | `^1.62.1`, project-local | blocking | `npm install` |

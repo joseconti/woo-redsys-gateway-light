@@ -60,3 +60,12 @@
 - Fix: none yet — scheduled as slice S-036. Changing the pinned PHP version reverses a recorded decision (the pin in `docs/playground.md`, D-014) and is the user's call.
 - Check added: `scripts/keel-doctor` now reports the playground's real state as its own row (`NOT OPERATIONAL` today) instead of only checking that Docker answers.
 - Rule for next time: a playground pinned to an end-of-life runtime is a dependency with an expiry date. An environment that worked on the last machine proves nothing about a fresh one — after any machine change, run `scripts/keel-doctor --check` and start the playground BEFORE planning work that needs it.
+
+## L-008 — A fresh playground was not the pinned one, and its setup existed only as prose
+- Where: sprint 3, slice S-036 (2026-10-06), rebuilding the playground from nothing.
+- What failed first: the e2e suite, three different ways. (1) All seven specs: the one-time setup in `docs/playground.md` had never been scripted, so a fresh instance had no gateways, no product and no Blocks page. (2) The setup's own instruction created the Blocks checkout page with the self-closing block comment, which renders nothing on WooCommerce 7.4 (Blocks 9.4.3) — the document said WooCommerce expands it. (3) The development site had updated itself from WordPress 7.0 to 7.1.2 minutes after starting, while the tests site stayed on 7.0.
+- Cause: the August environment was long-lived and hand-built; what was written down afterwards described it from memory, and nothing ever rebuilt it from zero to check.
+- Fix: `scripts/playground-setup` (idempotent; fails loudly when the test product is not post 10); the Blocks page is created with its wrapper element; `.wp-env.json` disables the automatic updater.
+- Check added: the script itself is the check for the setup — it is the only supported way to prepare an instance. No mechanical check exists yet that the running WordPress equals the pinned one; `scripts/keel-doctor` would be the place.
+- Rule for next time: an environment recipe is verified by destroying the environment and following the recipe, not by the environment still working. Do it whenever the recipe or the tool under it changes.
+

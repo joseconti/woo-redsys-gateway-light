@@ -10,6 +10,8 @@
 		"wp-content/mu-plugins": "./.wp-env-mu-plugins"
 	},
 	"config": {
+		"AUTOMATIC_UPDATER_DISABLED": true,
+		"WP_AUTO_UPDATE_CORE": false,
 		"WP_DEBUG": true,
 		"WP_DEBUG_LOG": true,
 		"WP_DEBUG_DISPLAY": false,

@@ -1,26 +1,14 @@
 # Playground — local WordPress + WooCommerce environment
 
-> last verified: 2026-08-01 — `npx wp-env start` run for real (WordPress 7.0 +
-> WooCommerce 7.4.0 up in ~40s). WooCommerce came up active; this plugin did
-> NOT auto-activate on first start despite being in `.wp-env.json`'s `plugins`
-> list — `wp plugin activate woo-redsys-gateway-light` was needed manually
-> (worth a closer look if it recurs — noted in `docs/lessons-learned.md`).
-> Once active, all four gateways (`redsys`, `bizumredsys`,
-> `googlepayredirecredsys`, `inespayredsys`) registered with WooCommerce with
-> no fatal error. Step 6 below (fail-closed notification check) was driven
-> for real: a test order was created via `wp eval-file`, then two fabricated
-> POSTs were sent to `?wc-api=WC_Gateway_redsys` (one with a malformed
-> `Ds_MerchantParameters`, one with well-formed-but-fake JSON + a bogus
-> signature, gateway configured with `enabled=yes` and an EMPTY secret). Both
-> were rejected — HTTP 500 via the plugin's own `wp_die( 'Do not access this
-> page directly ...' )` guard in `check_ipn_request_is_valid()` /
-> `successful_request()` (`classes/class-wc-gateway-redsys.php` lines
-> ~880–903) — and the order's status stayed `wc-pending` throughout, never
-> flipped to paid. This is a real, driven confirmation of the `IN PLACE`
-> fail-closed control recorded in `docs/threat-model.md`, not an inference
-> from reading code. Step 7 (a real Redsys sandbox round trip) remains
-> `⚠ unverified — CREDENTIAL` as documented below — no Redsys test merchant
-> credentials exist for this project.
+> last verified: 2026-10-06 — rebuilt from nothing (`npx wp-env destroy`,
+> `npx wp-env start`, `scripts/playground-setup`) on `@wordpress/env` 11.16.0:
+> PHP 7.4.33, WordPress 7.0, WooCommerce 7.4.0, and the whole suite green
+> (8 unit, 36 integration, 7 e2e). See D-051 and L-008.
+>
+> Earlier, 2026-08-01: step 6 below (fail-closed notification check) was
+> driven for real — two fabricated POSTs to `?wc-api=WC_Gateway_redsys` were
+> rejected with HTTP 500 and the order stayed `wc-pending`. Step 7 (a real
+> Redsys sandbox round trip) remains `⚠ unverified — CREDENTIAL`.
 
 This project uses [`@wordpress/env`](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-env/) (`wp-env`), configured at the repo root
 in `.wp-env.json`. It runs WordPress + WooCommerce + this plugin inside Docker
@@ -38,12 +26,18 @@ itself.
 
 ```
 npx wp-env start
+scripts/playground-setup
 ```
+
+`scripts/playground-setup` is needed once per fresh instance (after the
+first start, `npx wp-env clean all` or `npx wp-env destroy`) and is safe to
+re-run: it activates this plugin in both environments (wp-env does not do it
+reliably, L-002), installs PHPUnit into `vendor/`, and applies everything
+under "One-time environment setup" below.
 
 First run downloads the pinned WordPress core (7.0) and WooCommerce (7.4.0,
 the plugin's declared `WC requires at least` version) into local Docker
-volumes, then activates this plugin and WooCommerce automatically (per
-`.wp-env.json`'s `plugins` list). Subsequent starts are fast — everything is
+volumes. Subsequent starts are fast — everything is
 cached in Docker volumes.
 
 WordPress 7.0 and WooCommerce 7.4.0 are pinned deliberately: they are what
@@ -54,6 +48,10 @@ promises to work on. PHP is pinned to 7.4 in `.wp-env.json` — one step above
 the plugin's stated `Requires PHP: 7.0` floor — because WooCommerce 7.4 itself
 requires PHP >= 7.4; PHP 7.0 is declared plugin-side but is not realistically
 testable against a current WooCommerce.
+
+`.wp-env.json` also switches WordPress's automatic updater off. Without it
+the development site updated itself from 7.0 to 7.1.2 within minutes of
+starting, so the "pinned" environment was not the one being tested (L-008).
 
 ## What you get
 
@@ -174,7 +172,10 @@ real: temporarily corrupted the merchant code sent in the form (`DS_MERCHANT_MER
 confirmed the test failed on the expected assertion, reverted, confirmed it
 passed again.
 
-### One-time environment setup (not scripted — do these once per fresh `wp-env` instance)
+### One-time environment setup (done by `scripts/playground-setup`)
+
+The commands below are what the script runs; they are kept here as the
+explanation of each step, not as something to type.
 
 This project's `wp-env` starts with plain (`?p=123`) permalinks and no
 payment gateway configured, neither of which the classic WooCommerce
@@ -218,10 +219,11 @@ All three gateways are enabled simultaneously in this playground, so none of
 them is WooCommerce's auto-selected/hidden "only one gateway" case — every
 e2e spec explicitly selects its own gateway's radio button.
 
-The tests also expect the product from `docs/05-test-points.md`'s earlier
-runs (post ID 10, "Test Product") to exist; create one via Products → Add
-New if starting from a genuinely fresh install (`npx wp-env clean all`
-removes it).
+The checkout specs add post ID 10 ("Test Product") to the cart. On a fresh
+install IDs 1 to 9 are taken by the defaults, so the script creates that
+product first and stops with an error if it did not get ID 10 — which
+happens when something else was created before it; reset with
+`npx wp-env clean all` and run the script again.
 
 #### WooCommerce Blocks checkout page (for `checkout-blocks-redsys.spec.js`)
 
@@ -233,13 +235,13 @@ needed for the Blocks-checkout e2e test:
 npx wp-env run cli wp post create --post_type=page \
   --post_title="Checkout Blocks" --post_name="checkout-blocks" \
   --post_status=publish \
-  --post_content='<!-- wp:woocommerce/checkout /-->'
+  --post_content='<!-- wp:woocommerce/checkout --><div class="wp-block-woocommerce-checkout"></div><!-- /wp:woocommerce/checkout -->'
 ```
 
-(The real content inserted by the block editor is more verbose — inner
-blocks for contact information, payment, totals, etc. — but WooCommerce
-expands the bare `<!-- wp:woocommerce/checkout /-->` shortcut into the full
-block tree at render time, so this minimal form is enough for the e2e test.)
+The block needs its wrapper element. The self-closing form
+(`<!-- wp:woocommerce/checkout /-->`) renders an empty page on the pinned
+WooCommerce 7.4 (Blocks 9.4.3) — measured on 2026-10-06 (L-008); an earlier
+version of this file claimed the opposite.
 
 #### Inespay checkout page (for `checkout-inespay.spec.js`)
 
