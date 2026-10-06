@@ -73,6 +73,14 @@ items:
     reason: D-072 — found by the gate's self-audit and confirmed on the ceiling instance; today it only affects the fallback label "Inespay Bank Transfer" when the merchant set no title; older than this release
     depends_on: []
     criteria: []
+  - id: S-066
+    title: On WooCommerce 7.4 the Blocks checkout draws the Inespay option for customers outside ES, PT and IT (fallback label, no description, no icon); reproduce, check the ceiling instance, decide
+    status: not-started
+    hours: 1
+    target: null
+    reason: D-074 — found while driving AC-46 (S-060); the classic checkout hides it for the same customer; not checked on a current WooCommerce nor whether such an order can be placed; older than this release
+    depends_on: []
+    criteria: []
 ---
 
 # Deferred — wanted, not in the current plan
