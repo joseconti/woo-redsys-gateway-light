@@ -1,6 +1,7 @@
 <?php
 /**
- * Fixture for tests/e2e/notification-outcomes.spec.js, run with
+ * Fixture for tests/e2e/notification-outcomes.spec.js and
+ * tests/e2e/as-built-screens.spec.js, run with
  * `wp eval-file` inside the wp-env `cli` container.
  *
  * The notification handlers of the card, Bizum and Google Pay gateways end
@@ -14,6 +15,7 @@
  *   wp eval-file <this file> make <gateway id> <order status> <Ds_Response> <Ds_Amount|match>
  *   wp eval-file <this file> read <order id>
  *   wp eval-file <this file> orderdo <gateway id> <processing|completed>
+ *   wp eval-file <this file> urls <order id>
  *
  * Every answer is one line: `E2E-JSON:` followed by a JSON object.
  *
@@ -155,6 +157,17 @@ if ( 'make' === $redsyslite_e2e_action ) {
 	$redsyslite_e2e_settings['orderdo'] = $args[2];
 	update_option( $redsyslite_e2e_option, $redsyslite_e2e_settings );
 	redsyslite_e2e_fixture_answer( array( 'previous' => $redsyslite_e2e_previous ) );
+} elseif ( 'urls' === $redsyslite_e2e_action ) {
+	// Where a person finds this order: the admin screen and the order-received page.
+	$redsyslite_e2e_order = wc_get_order( (int) $args[1] );
+	redsyslite_e2e_fixture_answer(
+		array(
+			'edit'     => $redsyslite_e2e_order->get_edit_order_url(),
+			'received' => $redsyslite_e2e_order->get_checkout_order_received_url(),
+			'site'     => get_site_url(),
+			'name'     => get_bloginfo( 'name' ),
+		)
+	);
 } else {
 	WP_CLI::error( 'Unknown action: ' . $redsyslite_e2e_action );
 }

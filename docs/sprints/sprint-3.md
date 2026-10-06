@@ -206,9 +206,9 @@ slices:
     criteria: []
   - id: S-060
     title: Driven tests for the as-built acceptance criteria still on D-045's unverified list
-    status: in-progress
+    status: done
     hours: 2
-    actual_hours: 0.495
+    actual_hours: 0.8333
     actual_source: measured
     depends_on: [S-036]
     criteria: [AC-09, AC-10, AC-11, AC-12, AC-15, AC-16, AC-23, AC-31, AC-32, AC-35, AC-41, AC-42, AC-43, AC-46, AC-47, AC-49, AC-50, AC-52, AC-54, AC-55, AC-56, AC-57]
@@ -243,6 +243,14 @@ slices:
     actual_hours: 0.1022
     actual_source: measured
     depends_on: [S-058]
+    criteria: []
+  - id: S-067
+    title: Two drifts found while driving the last criteria (S-060) — the configuration reference says the refund confirmation flag never expires, and the test map has no row for PluginWithoutWooCommerceTest
+    status: not-started
+    hours: 0.15
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-060]
     criteria: []
 ---
 
@@ -279,3 +287,4 @@ slices:
 - S-060 (in progress, thirteen of 22 bound — D-074): AC-32, AC-35, AC-41, AC-42, AC-43, AC-46 and AC-54 bound to three new integration classes (44 tests) and one browser spec (3 tests); whole integration suite `OK (243 tests, 1506 assertions)`. Docker Desktop stopped during the first push of this session and was started again; the pinned instance came back as it was, the ceiling instance was left stopped. One finding deferred as S-066 (Inespay drawn in the Blocks checkout outside its countries on WooCommerce 7.4). Left: AC-15, AC-16, AC-47, AC-49, AC-50, AC-52, AC-55, AC-56, AC-57.
 - S-060, timing: the slice's clock was closed at the first commit of this session and not re-opened for the second part, so the measured 0.49 h covers the first part only; the second part's time (about 40 minutes by the session's wall clock) is in the session row, not in the slice's `actual_hours`.
 - S-037 (open), one more observation made without its clock: `.githooks/pre-push` refused a real push (`pre-push: REFUSED — the selection for refs/heads/develop is RED`) when Docker Desktop had stopped under the suite, and let the same commit through once the playground was back (`131 of 131`, GREEN). Lesson L-013 recorded (the refused mutation run).
+- S-060 (done 2026-10-06, D-075): the last nine criteria bound — AC-15 and AC-16 (test-mode warning, currency rule), AC-47 (settings fields of the four gateways against `docs/usage/configuration.md`), AC-49 (About page, who may open it, its six filters), AC-50 and AC-52 (refund request, wait and failures), AC-55, AC-56 and AC-57 (admin order details, order-received text, High-Performance Order Storage declaration). Five integration classes (66 tests) and one browser spec (11 tests); whole integration suite `OK (309 tests, 1977 assertions)`. The session read the gateway classes without being refused. No shipped code changed. Only AC-48 is left on D-045's list, and it is S-030's. Two drifts found on the way are S-067. Not run on the ceiling instance, which is still stopped.
