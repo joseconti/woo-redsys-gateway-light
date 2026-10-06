@@ -752,3 +752,13 @@
 - Found on the way: `docs/estimate.md` had fallen behind the plan when this session added its slices (check 22); corrected in the same commit. The mutation of check 2 showed it is a grep for the name anywhere in the source, so a surface renamed while its old name survives as a substring passes; not changed.
 - Not checked: the linter's checks 22 to 29 were not mutated again (D-048, D-066, D-068 and D-077 record their failing cases).
 - Supersedes: none.
+
+## D-081 — The six documented hooks no test named are driven (S-075)
+- Date / phase: 2026-10-06 / sprint 3, slice S-075
+- Decision: `tests/Integration/DocumentedHooksFireTest.php` drives `redsys_status_pending` (an order in a status the filter adds counts as not paid; the filter receives the default list), `woocommerce_redsys_args` for the card and the Bizum gateways and `woocommerce_googlepayredirecredsys_args` (the filter runs once per form, receives exactly the three form fields, and what it returns is the form), and the three `valid_<gateway id>_standard_ipn_request` actions (a notification that verifies fires the action with the posted fields; one that does not verify fires nothing). Every hook of `docs/api/INDEX.md` is now named by a test; self-audit answer 5 is closed.
+- How the actions are reached without ending the test runner: the listener is attached before the gateway's own handler and throws, so `successful_request()` — which may end in `exit` (L-012) — never runs. `check_ipn_response()` answers with `header()` first; on the command line that raises a "headers already sent" warning a web request never sees, and the test sets aside that one warning and no other.
+- No red first: these tests describe behaviour that already existed (test-first policy: not a pure-logic change, not a bug fix). Their proof that they can fail is in the file: the counterpart case with a signature that does not verify, and the status test's own first assertion without the filter.
+- Suppression count: 145 (four more, in this test file: three payload encodings and the error handler).
+- No shipped code changed.
+- Not checked: the hooks over HTTP (the browser suite drives the endpoints but attaches no listener); the order in which several listeners of one action run; the two `googlepayredirecredsys_post_payment_*` actions and the Inespay one beyond the tests that already named them.
+- Supersedes: none.

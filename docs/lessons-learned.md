@@ -109,3 +109,11 @@
 - Fix: none to the code. The tests' ability to fail was argued from their counterpart cases instead (D-073, D-074), and the nine criteria that needed the refused files stayed in the slice.
 - Check added: none mechanical.
 - Rule for next time: build the proof that a test can fail into the test file — a counterpart case that takes the other branch with the same harness — rather than into a temporary edit of shipped code. When a mutation run of a payment or signature path is still wanted, ask the owner first and do it on a copy the web server does not serve; never retry a refused command another way.
+
+## L-014 — Two playground instances at once made the browser suite fail for the machine's reasons
+- Where: sprint 3, slices S-071 and S-072 (2026-10-06), the ceiling instance running beside the pinned one.
+- What failed first: the browser suite, on whichever instance was being driven — log-in steps timing out at 30 seconds, different tests each time (three on the ceiling in one run, two on the pinned instance in the push selection, which the pre-push hook refused as RED). Each passed alone. With the ceiling stopped the same selection took 2.5 minutes instead of 6.7 and was green. Docker Desktop restarted by itself some minutes later.
+- Cause: both instances share the machine; nothing in the recipe said to run one at a time. Separately, the recipe for the ceiling's browser run named one of the two variables it needs, which produced eighteen failures that were nobody's defect.
+- Fix: `docs/playground.md` gives the full command; the ceiling is stopped when its run ends.
+- Check added: none mechanical.
+- Rule for next time: one instance up while a browser suite runs. A browser failure that is a time-out at the log-in step is re-run alone before it is read as a result; a failure that moves between runs is the environment until one run alone says otherwise. After any long run, check `docker ps` before trusting the next command's silence.

@@ -46,7 +46,7 @@ Run 2026-10-06 on the tree at `e89356b` (S-061), every answer from a command or 
 | Failing answer | State after this session |
 |---|---|
 | 1 — declared tools run: PHPCS and JS lint are `TO BUILD`, PHPStan and Plugin Check absent | open — no slice yet; for the owner to schedule or accept |
-| 5 — documented hooks in no test | open, smaller — six hooks of the index are named by no test; S-075 |
+| 5 — documented hooks in no test | closed (S-075, D-081): every hook of the index is named by a test |
 | 6 — the Blocks script's Spanish translation file is never loaded (wrong file name) | confirmed on the ceiling instance; deferred as S-065 (D-072) |
 | 7 — one test-point row without a command or output | closed (S-070, D-080) |
 | 8 — suppression count grew, not justified | closed (S-070, D-080): 141 against 98; shipped code 57 against 56, the rest is how tests build a Redsys payload |

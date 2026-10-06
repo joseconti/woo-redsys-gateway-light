@@ -294,10 +294,10 @@ slices:
     criteria: []
   - id: S-075
     title: Tests for the six documented hooks no test names (redsys_status_pending, the three valid_*_standard_ipn_request actions, woocommerce_redsys_args, woocommerce_googlepayredirecredsys_args) — self-audit answer 5
-    status: not-started
+    status: done
     hours: 0.5
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.0331
+    actual_source: measured
     depends_on: [S-070]
     criteria: []
 ---
@@ -346,3 +346,5 @@ slices:
 - S-070 (done 2026-10-06, D-080): self-audit answers 7, 8, 16 and 17c closed; 5 is S-075; 1 and 18 stay with the owner.
 - Suppression count: 141 (justified in D-080; 98 at the close of sprint 2).
 - Clock, this session: S-069, S-070, S-071 and S-072 were worked interleaved while agents and suites ran, and the clock holds one slice at a time — most of the four slices' time is on S-071's line. Their sum is measured; the split between them is not.
+- S-075 (done 2026-10-06, D-081): the six documented hooks no test named are driven — `OK (10 tests, 45 assertions)`; self-audit answer 5 closed. Lesson L-014 recorded (two instances at once; Docker Desktop restarted again).
+- Suppression count: 145 (D-081; four more, all in the new test file).
