@@ -60,7 +60,7 @@ Present in `redsys`, `bizumredsys` and `googlepayredirecredsys` unless a note sa
 | Key | Label | Type | Default | Effect |
 |-----|-------|------|---------|--------|
 | `orderdo` | What to do after payment? | select | `processing` | As for the card gateway. |
-| `transactionlimit` | Transaction Limit | text | empty | A number. Bizum is removed from the checkout when the cart total reaches it. Both values are truncated to whole numbers before comparing. Empty or zero means no limit. |
+| `transactionlimit` | Transaction Limit | text | empty | A number. Bizum is not offered, and refuses to start a payment, when the amount to pay is greater than it: the cart total at the checkout, the order total on the order-pay page. Compared as decimals; an amount equal to the limit is allowed. Empty or zero means no limit. |
 
 ### Google Pay redirection
 
@@ -81,7 +81,7 @@ Inespay shares none of the Redsys merchant settings.
 | `creditor_account` | Creditor IBAN (optional) | text | empty | Sent as `creditorAccount` on pay-ins and as `collectingIBAN` on refunds. |
 | `expiration` | Link expiration (minutes) | number, minimum 1 | empty | Sent as `expiration` on pay-ins when filled in. |
 | `orderdo` | What to do after payment? | select | `processing` | As for the card gateway. |
-| `transactionlimit` | Transaction Limit | text | empty | Inespay is removed from the checkout when the cart total is greater than this number, compared as decimals. |
+| `transactionlimit` | Transaction Limit | text | empty | Inespay is not offered, and refuses to start a payment, when the amount to pay is greater than this number (cart total at the checkout, order total on the order-pay page), compared as decimals. |
 | `testmode` | Running in test mode | checkbox | `yes` | Uses the Inespay sandbox environment instead of production. |
 | `debug` | Debug Log | checkbox | `no` | Writes a detailed log. |
 

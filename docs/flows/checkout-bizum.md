@@ -12,7 +12,7 @@ A customer chooses the payment method with ID `bizumredsys` on the WooCommerce c
 
 ## Preconditions
 - The gateway is enabled and the store currency is in the allowed list (`is_valid_for_use()`).
-- When `transactionlimit` is set, the cart total is below it (`disable_bizum()`, `AC-24`).
+- When `transactionlimit` is set, the amount to pay is not above it: the cart total, or the order total on the order-pay page (`disable_bizum()`, `AC-24`). `process_payment()` checks the order total again and refuses an order above the limit with an error notice (`AC-70`).
 - A SHA-256 secret is configured for the active mode; without one every notification is rejected (`AC-19`).
 
 ## Steps
@@ -43,7 +43,7 @@ A customer chooses the payment method with ID `bizumredsys` on the WooCommerce c
 ## Branches and conditions
 - **Signing secret (`get_redsys_sha256()`):** in test mode, `customtestsha256` when filled in, otherwise a generic Redsys test secret that is built into the class; in live mode, `secretsha256`. The value is converted from UTF-8 to ISO-8859-1 before use.
 - **Per-user test mode:** the class reads two stored settings, `testforuser` and `testforuserid`, and, when the first is `yes`, sends the listed user IDs to the test host with the test secret even in live mode. The Lite settings screen has no field for either, so this branch is reachable only if those keys are written to the stored settings some other way *(unverified)*.
-- **Transaction limit (`disable_bizum()`):** on the front-end checkout, with a limit above zero, Bizum is removed when the cart total is above the limit. Both values are compared as decimals, and a total equal to the limit is allowed (`AC-24`; corrected in S-035, D-052 — the integer casts used before cut the cents off both values).
+- **Transaction limit (`disable_bizum()`):** outside the admin, with a limit above zero, Bizum is removed when the amount to pay (order total on the order-pay page, cart total otherwise) is above the limit, and `process_payment()` refuses such an order (S-050, D-063). Both values are compared as decimals, and a total equal to the limit is allowed (`AC-24`; corrected in S-035, D-052 — the integer casts used before cut the cents off both values).
 - **Language:** with WPML active, `WCRedL()->get_lang_code( ICL_LANGUAGE_CODE )`; otherwise `redsyslanguage`, falling back to `001`.
 - **Blocks checkout:** registered by `WC_Gateway_Bizum_Lite_Support` (`AC-46`, *unverified*).
 - **Test-mode banner:** `warning_checkout_test_mode_bizum()` on `woocommerce_before_checkout_form`.

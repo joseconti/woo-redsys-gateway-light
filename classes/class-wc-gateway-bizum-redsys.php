@@ -642,6 +642,41 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		}
 	}
 	/**
+	 * Tell whether an amount is above this gateway's transaction limit.
+	 *
+	 * @param float|string $total Amount to pay.
+	 * @return bool False when no limit is set.
+	 */
+	public function is_over_transaction_limit( $total ) {
+		$limit = (float) $this->transactionlimit;
+		return $limit > 0 && (float) $total > $limit;
+	}
+
+	/**
+	 * The amount the customer is about to pay with the gateway being offered.
+	 *
+	 * On the order-pay page it is the total of that order: the cart is usually
+	 * empty there. Anywhere else it is the cart total, including in a Store API
+	 * request from the Blocks checkout, which is not "the checkout page".
+	 *
+	 * @return float|null Null when there is neither an order to pay nor a cart.
+	 */
+	private function get_amount_to_pay() {
+		global $wp;
+
+		if ( isset( $wp->query_vars['order-pay'] ) ) {
+			$order = wc_get_order( absint( $wp->query_vars['order-pay'] ) );
+			if ( $order ) {
+				return (float) $order->get_total();
+			}
+		}
+		if ( function_exists( 'WC' ) && WC()->cart ) {
+			return (float) WC()->cart->total;
+		}
+		return null;
+	}
+
+	/**
 	 * Disable bizum
 	 *
 	 * @param array $available_gateways Available gateways.
@@ -650,27 +685,21 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	 */
 	public function disable_bizum( $available_gateways ) {
 
-		if ( ! is_admin() && is_checkout() ) {
-			// Compare as floats: integer casts cut the cents off both values,
-			// which shrank a limit like 200.50 to 200.
-			$total = (float) WC()->cart->total;
-			$limit = (float) $this->transactionlimit;
-			if ( ! empty( $limit ) && $limit > 0 ) {
-				$result = $limit - $total;
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', ' ' );
-					$this->log->add( 'bizumredsys', '$total: ' . $total );
-					$this->log->add( 'bizumredsys', '$limit: ' . $limit );
-					$this->log->add( 'bizumredsys', '$result: ' . $result );
-					$this->log->add( 'bizumredsys', ' ' );
-				}
-				// A total equal to the limit is still within it.
-				if ( $result >= 0 ) {
-					return $available_gateways;
-				} else {
-					unset( $available_gateways['bizumredsys'] );
-				}
-			}
+		if ( is_admin() ) {
+			return $available_gateways;
+		}
+		// Amounts are compared as floats: integer casts cut the cents off both
+		// values, which shrank a limit like 200.50 to 200. A total equal to
+		// the limit is still within it.
+		$total = $this->get_amount_to_pay();
+		if ( 'yes' === $this->debug ) {
+			$this->log->add( 'bizumredsys', ' ' );
+			$this->log->add( 'bizumredsys', '$total: ' . $total );
+			$this->log->add( 'bizumredsys', '$limit: ' . (float) $this->transactionlimit );
+			$this->log->add( 'bizumredsys', ' ' );
+		}
+		if ( null !== $total && $this->is_over_transaction_limit( $total ) ) {
+			unset( $available_gateways['bizumredsys'] );
 		}
 		return $available_gateways;
 	}
@@ -942,6 +971,17 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	 */
 	public function process_payment( $order_id ) {
 		$order = WCRedL()->get_order( $order_id );
+
+		// The limit is checked here too: the list of offered gateways is not the
+		// only way to reach this method (order-pay page, Blocks checkout).
+		if ( $this->is_over_transaction_limit( $order->get_total() ) ) {
+			wc_add_notice( __( 'The order total is above the maximum amount this payment method accepts. Please choose another payment method.', 'woo-redsys-gateway-light' ), 'error' );
+			return array(
+				'result'   => 'failure',
+				'redirect' => wc_get_checkout_url(),
+			);
+		}
+
 		return array(
 			'result'   => 'success',
 			'redirect' => $order->get_checkout_payment_url( true ),
@@ -975,6 +1015,13 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				'href'  => array(),
 			),
 		);
+		// This page can be opened without process_payment(): the order-pay address
+		// of a pending Bizum order renders it directly. The limit holds here too.
+		$order_to_pay = wc_get_order( $order );
+		if ( $order_to_pay && $this->is_over_transaction_limit( $order_to_pay->get_total() ) ) {
+			echo '<p>' . esc_html__( 'The order total is above the maximum amount this payment method accepts. Please choose another payment method.', 'woo-redsys-gateway-light' ) . '</p>';
+			return;
+		}
 		echo '<p>' . esc_html__( 'Thank you for your order, please click the button below to pay with Bizum.', 'woo-redsys-gateway-light' ) . '</p>';
 		echo wp_kses( $this->generate_redsys_form( $order ), $allowed_html );
 	}

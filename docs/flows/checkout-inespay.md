@@ -12,7 +12,7 @@ A customer chooses the payment method with ID `inespayredsys` on the WooCommerce
 
 ## Preconditions
 - The gateway is enabled and the customer's country is `ES`, `PT` or `IT` (`is_available()` → `is_allowed_country()`, `AC-43`).
-- When `transactionlimit` is set, the cart total is not above it (`disable_inespay()`, `AC-44`).
+- When `transactionlimit` is set, the amount to pay is not above it: the cart total, or the order total on the order-pay page (`disable_inespay()`, `AC-44`). `process_payment()` checks the order total again and refuses an order above the limit with an error notice (`AC-70`).
 - `api_key` and `api_token` are configured.
 
 ## Steps

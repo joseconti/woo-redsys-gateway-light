@@ -58,7 +58,8 @@ Class-specific public methods:
 | Bizum, Google Pay | `get_redsys_url_gateway` | `( int $user_id, string $type = 'rd' )` | `string` | Test or live URL; `rd` is the redirection URL. |
 | Bizum, Google Pay | `get_redsys_sha256` | `( int $user_id )` | `string` | The signing secret for the active mode. |
 | Bizum, Google Pay | `warning_checkout_test_mode_bizum` | `()` | `void` | Prints the test-mode banner (same method name in both classes). |
-| `WC_Gateway_Bizum_Redsys` | `disable_bizum` | `( array $available_gateways )` | `array` | Listener on `woocommerce_available_payment_gateways`; applies the transaction limit. |
+| `WC_Gateway_Bizum_Redsys` | `disable_bizum` | `( array $available_gateways )` | `array` | Listener on `woocommerce_available_payment_gateways`; removes the gateway when the amount to pay (order total on the order-pay page, cart total otherwise) is over the transaction limit. Not only on the checkout page. |
+| `WC_Gateway_Bizum_Redsys`, `WC_Gateway_Inespay_Redsys` | `is_over_transaction_limit` | `( float\|string $total )` | `bool` | True when a limit is set and `$total` is greater than it. `process_payment()` of both gateways refuses such an order with a checkout error notice and `result` `failure`. |
 | `WC_Gateway_GooglePay_Redirection_Redsys` | `check_user_show_payment_method` | `( int\|false $userid = false )` | `bool` | Test-mode visibility rule. |
 | `WC_Gateway_GooglePay_Redirection_Redsys` | `show_payment_method` | `( array $available_gateways )` | `array` | Listener on `woocommerce_available_payment_gateways`. |
 
@@ -80,7 +81,7 @@ Extends `WC_Payment_Gateway`. All public methods are documented here.
 | Method | Signature | Returns | Notes |
 |--------|-----------|---------|-------|
 | `is_available` | `()` | `bool` | Enabled and the customer's country is `ES`, `PT` or `IT`. |
-| `disable_inespay` | `( array $available_gateways )` | `array` | Listener on `woocommerce_available_payment_gateways`; applies the transaction limit. |
+| `disable_inespay` | `( array $available_gateways )` | `array` | Listener on `woocommerce_available_payment_gateways`; removes the gateway when the amount to pay (order total on the order-pay page, cart total otherwise) is over the transaction limit. Not only on the checkout page. |
 | `admin_options` | `()` | `void` | Prints the settings screen. |
 | `init_form_fields` | `()` | `void` | Fills `$this->form_fields`. |
 | `validate_logo_field` | `( string $key, string $value )` | `string` | Called by WooCommerce when the settings are saved. Returns the posted Logo value as a clean URL (`esc_url_raw()`), or an empty string. Card, Bizum and Inespay; Google Pay has no Logo setting. |

@@ -193,23 +193,55 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 		}
 
 		/**
+		 * Tell whether an amount is above this gateway's transaction limit.
+		 *
+		 * @param float|string $total Amount to pay.
+		 * @return bool False when no limit is set.
+		 */
+		public function is_over_transaction_limit( $total ) {
+			$limit = (float) $this->transactionlimit;
+			return $limit > 0 && (float) $total > $limit;
+		}
+
+		/**
+		 * The amount the customer is about to pay with the gateway being offered.
+		 *
+		 * On the order-pay page it is the total of that order: the cart is usually
+		 * empty there. Anywhere else it is the cart total, including in a Store API
+		 * request from the Blocks checkout, which is not "the checkout page".
+		 *
+		 * @return float|null Null when there is neither an order to pay nor a cart.
+		 */
+		private function get_amount_to_pay() {
+			global $wp;
+
+			if ( isset( $wp->query_vars['order-pay'] ) ) {
+				$order = wc_get_order( absint( $wp->query_vars['order-pay'] ) );
+				if ( $order ) {
+					return (float) $order->get_total();
+				}
+			}
+			if ( function_exists( 'WC' ) && WC()->cart ) {
+				return (float) WC()->cart->total;
+			}
+			return null;
+		}
+
+		/**
 		 * Disable gateway based on transaction limit.
 		 *
 		 * @param array $available_gateways Available gateways.
 		 * @return array
 		 */
 		public function disable_inespay( $available_gateways ) {
-			if ( ! is_admin() && is_checkout() ) {
-				// Compare as floats: an (int) cast here truncated a cart total
-				// like 200.50 down to 200, letting it incorrectly pass a 200
-				// transaction limit.
-				$total = (float) WC()->cart->total;
-				$limit = (float) $this->transactionlimit;
-				if ( ! empty( $limit ) && $limit > 0 ) {
-					if ( $total > $limit ) {
-						unset( $available_gateways['inespayredsys'] );
-					}
-				}
+			if ( is_admin() ) {
+				return $available_gateways;
+			}
+			// Amounts are compared as floats: an (int) cast truncated a total
+			// like 200.50 down to 200, letting it pass a limit of 200.
+			$total = $this->get_amount_to_pay();
+			if ( null !== $total && $this->is_over_transaction_limit( $total ) ) {
+				unset( $available_gateways['inespayredsys'] );
 			}
 			return $available_gateways;
 		}
@@ -370,6 +402,16 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 		 */
 		public function process_payment( $order_id ) {
 			$order = wc_get_order( $order_id );
+
+			// The limit is checked here too: the list of offered gateways is not the
+			// only way to reach this method (order-pay page, Blocks checkout).
+			if ( $this->is_over_transaction_limit( $order->get_total() ) ) {
+				wc_add_notice( __( 'The order total is above the maximum amount this payment method accepts. Please choose another payment method.', 'woo-redsys-gateway-light' ), 'error' );
+				return array(
+					'result'   => 'failure',
+					'redirect' => wc_get_checkout_url(),
+				);
+			}
 
 			if ( ! $this->api_key || ! $this->api_token ) {
 				wc_add_notice( __( 'Payment error: Inespay credentials are missing.', 'woo-redsys-gateway-light' ), 'error' );
