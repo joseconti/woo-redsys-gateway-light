@@ -276,3 +276,10 @@
 - Consequence: `Keel baseline:` deliberately stays v5.9.0. A skill update never advances it; only a completed post-update reconciliation does. It is recorded as pending in `docs/PROGRESS.md` open items.
 - Alternatives rejected: advancing the baseline together with the copy — rejected because it would hide exactly the gap the reconciliation exists to close.
 - Supersedes: none.
+
+## D-035 — Competitive scan declined for the v5.9.0 → v6.5.0 reconciliation
+- Date / phase: 2026-10-06 / post-update reconciliation
+- Decision: the user declined, explicitly, every reconciliation row that concerns the competition — the competitive scan, `docs/00-competitive-landscape.md`, and the confrontation of the product's scope against competitor functionality. None of them is produced.
+- Why: the user's call ("no hace falta mirar competencia"). The plugin is already released and in production as the Lite edition of the user's own commercial plugin; its scope is set by that relationship, not by a market scan.
+- Consequence: those rows are `declined` (this entry) in `docs/keel-conformance.md`, never `missing`. Re-offered only if the user asks.
+- Supersedes: none.
