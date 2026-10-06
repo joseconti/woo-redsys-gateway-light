@@ -54,10 +54,10 @@ slices:
     criteria: []
   - id: S-026
     title: keel-verify regenerated, one-time verifications, card lines, decisions, conformance closed, baseline advanced
-    status: not-started
+    status: in-progress
     hours: 1.5
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 1.7822
+    actual_source: measured
     depends_on: [S-021, S-022, S-023, S-024, S-025]
     criteria: []
 ---

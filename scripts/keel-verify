@@ -406,8 +406,11 @@ def code_part(line):
     return line
 
 
+IGNORED = set(p for p in git("ls-files", "--others", "--ignored", "--exclude-standard")[1].split("\n") if p)
+
+
 def ignored(path):
-    return git("check-ignore", "-q", path)[0] == 0
+    return path in IGNORED
 
 
 # --- shared inputs -----------------------------------------------------------
