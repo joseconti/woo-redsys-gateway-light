@@ -77,3 +77,11 @@
 - Check added: none mechanical yet. The regression tests of the two fix slices assert the claim on every path, which is what makes the row true.
 - Rule for next time: a row may say `IN PLACE` only for the paths its evidence names. When a control is a class ("never logs X", "no blocking call before verification"), list every site of the class with a grep before writing the row, and write the test over that list — not over the sites the slice happened to change.
 
+
+## L-010 — The archive shipped development files, and nothing had ever built it to look
+- Where: sprint 3, slice S-032 (2026-10-06), the first step of the release gate.
+- What failed first: nothing automated. `git archive HEAD` was extracted and listed: `tests/`, the playground's HTTP stub directory, three tool-configuration directories and five configuration files were in it.
+- Cause: `.gitattributes` was written before those paths existed; each slice that added a development path (the test suites, the stub, the hooks) excluded nothing, and no check compared the archive with what is meant to ship.
+- Fix: the ten paths are `export-ignore` (D-068).
+- Check added: `scripts/keel-verify` check 29 — the archive's top level is a closed list.
+- Rule for next time: a new top-level path is a packaging decision at the moment it is created. The check now forces it; do not answer its failure by adding the path to the runtime list without reading what the path is.
