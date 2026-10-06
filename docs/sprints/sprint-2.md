@@ -22,9 +22,9 @@ slices:
     criteria: []
   - id: S-022
     title: Chaining family (keel-continue regenerated, keel-close, keel-chain-check, keel-stop-hook, keel-session-pid, keel-tools, post-commit hook)
-    status: in-progress
+    status: done
     hours: 2.5
-    actual_hours: null
+    actual_hours: 0.6
     actual_source: estimated
     depends_on: [S-020]
     criteria: []
@@ -38,9 +38,9 @@ slices:
     criteria: []
   - id: S-024
     title: Native Claude Code config package (rules, agents, confidential-data pre-commit gate, shared allow-list)
-    status: in-progress
+    status: done
     hours: 1
-    actual_hours: null
+    actual_hours: 0.35
     actual_source: estimated
     depends_on: [S-020]
     criteria: []

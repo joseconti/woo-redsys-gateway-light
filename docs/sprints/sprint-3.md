@@ -4,13 +4,21 @@ sprint: 3
 goal: Release preparation for the unreleased security and correctness fixes
 status: not-started
 slices:
+  - id: S-036
+    title: Restore the playground on this machine (PHP 7.4 base image no longer builds; plugin activation order under the current wp-env)
+    status: not-started
+    hours: 1.5
+    actual_hours: null
+    actual_source: estimated
+    depends_on: []
+    criteria: []
   - id: S-027
     title: CSS/JS source plus minified pairs, build script, SCRIPT_DEBUG-aware enqueue
     status: not-started
     hours: 1.5
     actual_hours: null
     actual_source: estimated
-    depends_on: []
+    depends_on: [S-036]
     criteria: []
   - id: S-028
     title: Active security audit of the release candidate (Security audit is required)
@@ -26,7 +34,7 @@ slices:
     hours: 1
     actual_hours: null
     actual_source: estimated
-    depends_on: []
+    depends_on: [S-036]
     criteria: []
   - id: S-030
     title: Guided assistive-technology pass with the user
@@ -50,7 +58,7 @@ slices:
     hours: 2.5
     actual_hours: null
     actual_source: estimated
-    depends_on: []
+    depends_on: [S-036]
     criteria: []
   - id: S-032
     title: Phase 7 release gate on the candidate (full suite, version proposed to the user, package hygiene)
@@ -58,7 +66,7 @@ slices:
     hours: 2
     actual_hours: null
     actual_source: estimated
-    depends_on: [S-027, S-028, S-029, S-031, S-035]
+    depends_on: [S-036, S-027, S-028, S-029, S-031, S-035]
     criteria: []
 ---
 

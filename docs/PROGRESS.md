@@ -14,8 +14,8 @@
 - Installed base: **in production with real users** — distributed on WordPress.org, current version 7.0.2, active changelog with real security fixes (signature/HMAC hardening in 7.0.1/7.0.2)
 - Design system: one-off / n/a — plain hand-written CSS, no design system (D-009)
 - Keel portability: lock + embedded v6.5.0 (both trees replaced and verified file-for-file 2026-10-06, D-034; lock block restamped v6.5.0)
-- Assistant config: none beyond the lock + embedded skill (tools: claude) (D-008)
-- Models: n/a — no subagent role→model map configured
+- Assistant config: full (tools: claude) — rules (`.claude/rules/`) + agents (`.claude/agents/`) + confidential-data pre-commit gate (`.githooks/pre-commit`, active via `core.hooksPath`) + committed allow-list and Stop hook (`.claude/settings.json`, confirmed by the user); MCP n/a (the plan defines no development MCP servers); CI not accepted (D-039, D-043)
+- Models: orchestrator=session model (chained chats launch with opus, D-037) / reviewer=sonnet / mechanical=haiku (tools: claude) (D-043)
 - Keel baseline: v5.9.0
 - Website intent: no (D-005)
 - Client budget: no (D-010)
@@ -27,6 +27,7 @@
 - Notify: `PushNotification` tool (desktop + phone via Remote Control) — delivers (D-011)
 - Chaining: start (D-015) — a clean close-out opens and submits a fresh Claude Code CLI session automatically via `osascript`/Terminal.app; verified end-to-end on macOS with `claude` on PATH at `~/.local/bin/claude`
 - Chaining model: opus (D-037) — every chained chat launches with `claude --model opus`
+- Chain verified: 2026-10-06, tier start, Keel 6.5.0, keel-continue b8796f66873c0ff2, row claude:0a2731fe91ba319a
 - Test-first policy: pure-logic (D-036)
 - Push test scope: affected — the default, never asked
 - Sprints: on — the default, never asked

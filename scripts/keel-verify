@@ -2,31 +2,95 @@
 #
 # keel-verify — mechanical checks that this project's docs match reality.
 #
-# Checks (see docs/PROGRESS.md / docs/03-technical-plan.md for why each
-# exists):
-#   1. Version touchpoints agree: woocommerce-redsys.php header `Version:`,
-#      the REDSYS_WOOCOMMERCE_VERSION constant, readme.txt `Stable tag:`,
-#      and readme.txt's top changelog entry. package.json is DELIBERATELY
-#      excluded — it is a recorded, accepted drift (docs/PROGRESS.md
-#      "Deferred items"), not a bug this check should re-discover every run.
-#   2. Every docs/api/INDEX.md row's surface name actually exists in the
-#      source tree (grep-check, not a claim).
-#   3. docs/keel-conformance.md exists.
-#   4. No unclosed markdown fenced code blocks (``` ... ```) anywhere in docs/.
-#   5. Internal doc links (relative markdown links to other files in docs/,
-#      or elsewhere in the repo) resolve to real files.
+# Contract: Keel v6.5.0, references/phase-5-development.md §1a (the canonical
+# list), references/project-state.md ("The sprint plan", "Session time", "The
+# registry is DATA") and MANIFEST.md Table 3. Read-only: it changes nothing in
+# the repository and runs no state-changing git command. Plain bash 3.2 for
+# checks 1-5, python3 (stdlib only) for the rest.
 #
-# Exits 0 if everything passes, 1 otherwise. Every failure is printed with
+# Every line it prints is one of:
+#   OK:    the check ran and passed
+#   FAIL:  the check ran and failed — file and line named; exit code 1
+#   N/A:   the check could NOT run because its inputs do not exist yet; the
+#          missing input is named. Never counted as a pass (§1b).
+#   INFO:  a number or a list the contract says is REPORTED, never failed
+#
+# Checks:
+#    1. Version touchpoints agree: woocommerce-redsys.php header `Version:`,
+#       the REDSYS_WOOCOMMERCE_VERSION constant, readme.txt `Stable tag:`,
+#       and readme.txt's top changelog entry. package.json is DELIBERATELY
+#       excluded — it is a recorded, accepted drift (docs/PROGRESS.md
+#       "Deferred items"), not a bug this check should re-discover every run.
+#    2. Every docs/api/INDEX.md row's surface name actually exists in the
+#       source tree (grep-check, not a claim).
+#    3. docs/keel-conformance.md exists.
+#    4. No unclosed markdown fenced code blocks (``` ... ```) anywhere in docs/.
+#    5. Internal doc links (relative markdown links to other files in docs/,
+#       or elsewhere in the repo) resolve to real files.
+#    6. Changelog order in readme.txt (newest first, the order the version
+#       touchpoint "changelog top entry" records for this project).
+#    7. docs/api/INDEX.md parity: every row's Doc exists; every document in
+#       docs/api/ and docs/reference/ has a row.
+#    8. Extension points documented in docs/reference/ exist in the source.
+#    9. No placeholder copy in distributable surfaces (readme.txt, UI strings).
+#   10. i18n dry run (`wp i18n make-pot` into a temp dir): no user-facing
+#       string outside the project's text domain.
+#   11. Minified-asset sync — N/A until minification is adopted (D-038, S-027).
+#   12. Cited commands exist (scripts, hooks, npm and composer scripts named in
+#       the root *.md files and docs/).
+#   13. No orphan document under docs/.
+#   14. Code-map `[E]` markers in docs/03-technical-plan.md match the disk.
+#   15. docs/keel-conformance.md is complete (states, decisions, paths, rows).
+#   16. Every acceptance criterion is covered by ID; `Coverage` is in its enum.
+#   17. `Red first` column: enum, evidence for `observed`, judgment list.
+#   18. Interactive elements carry their test identifiers.
+#   19. Nothing is stranded on this machine (remote, upstream, branch).
+#   20. The working tree is clean.
+#   21. Every recorded negative in docs/decisions.md carries `Not checked:`.
+#   22. The sprint plan is well-formed (enums, ids, depends_on, plan.json
+#       drift, estimate, removed slices).
+#   23. The plan is not behind the work (card line, plan exists, ancestry,
+#       actuals, current position).
+#   24. Session time is measured, not typed (actual_source, sessions.md
+#       arithmetic, projection, plan.json eligibility, .gitignore).
+#   25. Test selection is wired and honest.
+#   26. The tool registry is data, complete, and nowhere else.
+#   27. Suppression count (reported, compared with the last sprint close).
+#
+# Exits 0 when no check FAILED, 1 otherwise. Every failure is printed with
 # the file and line, never just "something's wrong".
 
 set -u
 cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
 
-FAIL=0
-fail() { echo "FAIL: $*"; FAIL=1; }
-ok() { echo "OK:   $*"; }
+SUMMARY=$(mktemp "${TMPDIR:-/tmp}/keel-verify-summary.XXXXXX") || exit 1
+trap 'rm -f "$SUMMARY"' EXIT
 
-echo "== 1. Version touchpoints =="
+FAIL=0
+CUR_N=""
+CUR_T=""
+CUR_FAIL=0
+fail() { echo "FAIL: $*"; FAIL=1; CUR_FAIL=1; }
+ok() { echo "OK:   $*"; }
+end_check() {
+	if [ -n "$CUR_N" ]; then
+		if [ "$CUR_FAIL" -eq 1 ]; then
+			echo "$CUR_N|$CUR_T|FAIL" >> "$SUMMARY"
+		else
+			echo "$CUR_N|$CUR_T|OK" >> "$SUMMARY"
+		fi
+	fi
+	CUR_N=""
+}
+begin() {
+	end_check
+	CUR_N=$1
+	CUR_T=$2
+	CUR_FAIL=0
+	echo "== $1. $2 =="
+}
+
+begin 1 "Version touchpoints"
 
 MAIN_FILE="woocommerce-redsys.php"
 README_FILE="readme.txt"
@@ -51,7 +115,7 @@ fi
 echo "(package.json version is intentionally NOT checked here — recorded gap, docs/PROGRESS.md 'Deferred items')"
 
 echo
-echo "== 2. docs/api/INDEX.md rows point at real surfaces =="
+begin 2 "docs/api/INDEX.md rows point at real surfaces"
 
 INDEX="docs/api/INDEX.md"
 if [ ! -f "$INDEX" ]; then
@@ -69,6 +133,7 @@ else
 	# match first, and if that fails, try each known gateway id as the
 	# dynamic segment and fuzzy-match the two static halves around it.
 	GATEWAY_IDS="redsys bizumredsys googlepayredirecredsys inespayredsys"
+	SEARCH_PATHS="classes/ includes/ woocommerce-redsys.php"
 
 	ROW_N=0
 	while IFS= read -r line; do
@@ -92,15 +157,22 @@ else
 			case "$tok" in
 				*"<"*">"*) continue ;;
 			esac
-			if grep -rqF -- "$tok" classes/ includes/ 2>/dev/null; then
+			# The name as the source spells it: without the call parentheses
+			# of a documented function and without the `?param=` prefix of a
+			# documented query-string endpoint. Searched in the gateway
+			# classes, includes/ and the plugin bootstrap file, which is
+			# where the INDEX's own "Code file" column places surfaces.
+			needle=${tok%"()"}
+			needle=${needle#\?*=}
+			if grep -rqF -- "$needle" $SEARCH_PATHS 2>/dev/null; then
 				FOUND_ANY=1
 			else
 				# fuzzy: try each known gateway id as the dynamic segment
 				for gid in $GATEWAY_IDS; do
 					case "$tok" in
 						*"$gid"*)
-							fuzzy=$(printf '%s' "$tok" | sed "s/$gid/.*/")
-							if grep -rqE -- "$fuzzy" classes/ includes/ 2>/dev/null; then
+							fuzzy=$(printf '%s' "$needle" | sed "s/$gid/.*/")
+							if grep -rqE -- "$fuzzy" $SEARCH_PATHS 2>/dev/null; then
 								FOUND_ANY=1
 							fi
 							;;
@@ -111,13 +183,13 @@ else
 		if [ "$FOUND_ANY" -eq 1 ]; then
 			ok "INDEX row found in source: $(echo "$TOKENS" | tr '\n' ' ')"
 		else
-			fail "$INDEX row's surface not found in classes/ or includes/: $(echo "$TOKENS" | tr '\n' ' ')"
+			fail "$INDEX:$ROW_N row's surface not found in $SEARCH_PATHS: $(echo "$TOKENS" | tr '\n' ' ')"
 		fi
 	done < "$INDEX"
 fi
 
 echo
-echo "== 3. docs/keel-conformance.md exists =="
+begin 3 "docs/keel-conformance.md exists"
 if [ -f "docs/keel-conformance.md" ]; then
 	ok "docs/keel-conformance.md exists"
 else
@@ -125,7 +197,7 @@ else
 fi
 
 echo
-echo "== 4. No unclosed markdown code fences in docs/ =="
+begin 4 "No unclosed markdown code fences in docs/"
 FENCE_FAIL=0
 while IFS= read -r -d '' f; do
 	COUNT=$(grep -cE '^[[:space:]]*```' "$f" 2>/dev/null)
@@ -138,7 +210,7 @@ done < <(find docs -type f -name '*.md' -print0)
 [ "$FENCE_FAIL" -eq 0 ] && ok "all markdown files in docs/ have balanced code fences"
 
 echo
-echo "== 5. Internal doc links resolve =="
+begin 5 "Internal doc links resolve"
 LINK_FAIL=0
 while IFS= read -r -d '' f; do
 	DIR=$(dirname "$f")
@@ -163,17 +235,1520 @@ done < <(find docs -type f -name '*.md' -print0) > /tmp/keel-verify-links.$$ 2>&
 if [ -s /tmp/keel-verify-links.$$ ]; then
 	cat /tmp/keel-verify-links.$$
 	LINK_FAIL=1
+	CUR_FAIL=1
 	FAIL=1
 else
 	ok "all internal doc links resolve"
 fi
 rm -f /tmp/keel-verify-links.$$
 
+end_check
+
+# ---------------------------------------------------------------------------
+# Checks 6-27 — python3, standard library only. The program reads the
+# repository and prints; it writes nothing inside it. Temporary files (the
+# i18n dry run, the selector's synthetic repository) live under $TMPDIR and
+# are removed before it returns.
+# ---------------------------------------------------------------------------
+if ! command -v python3 >/dev/null 2>&1; then
+	echo
+	fail "python3 is not on PATH — checks 6-27 did not run"
+else
+	python3 - "$PWD" "$SUMMARY" <<'KEEL_PY'
+import glob
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+from datetime import datetime
+
+ROOT, SUMMARY = sys.argv[1], sys.argv[2]
+os.chdir(ROOT)
+DASH = "\u2014"
+STATE = {"n": 5, "title": "", "ok": 0, "fail": 0, "na": 0, "failed": False}
+
+
+def flush():
+    if not STATE["title"]:
+        return
+    if STATE["fail"]:
+        verdict = "FAIL"
+    elif STATE["na"] and not STATE["ok"]:
+        verdict = "N/A"
+    elif STATE["na"]:
+        verdict = "OK, part N/A"
+    else:
+        verdict = "OK"
+    with open(SUMMARY, "a") as handle:
+        handle.write("%d|%s|%s\n" % (STATE["n"], STATE["title"], verdict))
+
+
+def section(title):
+    flush()
+    STATE.update(n=STATE["n"] + 1, title=title, ok=0, fail=0, na=0)
+    print("")
+    print("== %d. %s ==" % (STATE["n"], title))
+
+
+def ok(text):
+    STATE["ok"] += 1
+    print("OK:   " + text)
+
+
+def fail(text):
+    STATE["fail"] += 1
+    STATE["failed"] = True
+    print("FAIL: " + text)
+
+
+def na(text):
+    STATE["na"] += 1
+    print("N/A:  " + text)
+
+
+def info(text):
+    print("INFO: " + text)
+
+
+def read(path):
+    try:
+        with open(path, encoding="utf-8", errors="replace") as handle:
+            return handle.read()
+    except (IOError, OSError):
+        return None
+
+
+def run(cmd, cwd=None, env=None):
+    try:
+        proc = subprocess.Popen(cmd, cwd=cwd, env=env, stdin=subprocess.DEVNULL,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = proc.communicate()
+        return proc.returncode, out.decode("utf-8", "replace"), err.decode("utf-8", "replace")
+    except OSError as exc:
+        return 127, "", str(exc)
+
+
+def git(*args):
+    return run(["git"] + list(args))
+
+
+def split_row(line):
+    text = line.strip()
+    cells = re.split(r"(?<!\\)\|", text)
+    cells = cells[1:-1] if text.endswith("|") else cells[1:]
+    return [c.strip() for c in cells]
+
+
+def tables(path):
+    """Markdown tables outside code fences, plus the table-shaped lines that
+    belong to no table (no header + separator above them)."""
+    found, orphans = [], []
+    lines = (read(path) or "").split("\n")
+    fenced = False
+    i = 0
+    while i < len(lines):
+        if re.match(r"^\s*```", lines[i]):
+            fenced = not fenced
+            i += 1
+            continue
+        if not fenced and lines[i].lstrip().startswith("|"):
+            j = i
+            while j < len(lines) and lines[j].lstrip().startswith("|"):
+                j += 1
+            block = [(k + 1, lines[k]) for k in range(i, j)]
+            if len(block) >= 2 and re.match(r"^\s*\|[\s:|-]*-[\s:|-]*$", block[1][1]):
+                found.append({"line": block[0][0], "header": split_row(block[0][1]),
+                              "rows": [(n, split_row(t)) for n, t in block[2:]]})
+            else:
+                orphans.extend(block)
+            i = j
+        else:
+            i += 1
+    return found, orphans
+
+
+def column(header, prefix):
+    for index, name in enumerate(header):
+        if name.strip("`* ").lower().startswith(prefix.lower()):
+            return index
+    return None
+
+
+def number(cell):
+    text = cell.replace("\u2212", "-").replace("`", "").strip()
+    text = re.sub(r"\s*h$", "", text)
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+def code_part(line):
+    """The part of a shell/python line that is not a comment."""
+    quote = None
+    i = 0
+    while i < len(line):
+        ch = line[i]
+        if quote:
+            if ch == "\\" and quote == '"':
+                i += 2
+                continue
+            if ch == quote:
+                quote = None
+        elif ch in "\"'":
+            quote = ch
+        elif ch == "#" and (i == 0 or line[i - 1] in " \t"):
+            return line[:i]
+        i += 1
+    return line
+
+
+def ignored(path):
+    return git("check-ignore", "-q", path)[0] == 0
+
+
+# --- shared inputs -----------------------------------------------------------
+PROGRESS = "docs/PROGRESS.md"
+DECISIONS = "docs/decisions.md"
+PLAN = "docs/03-technical-plan.md"
+TESTPOINTS = "docs/05-test-points.md"
+progress_text = read(PROGRESS) or ""
+decisions_text = read(DECISIONS) or ""
+DECISION_IDS = set(re.findall(r"^## (D-\d+)\b", decisions_text, re.M))
+card_match = re.search(r"^## Project card\s*\n(.*?)(?=^## )", progress_text, re.M | re.S)
+CARD = card_match.group(1) if card_match else ""
+
+
+def card(key):
+    match = re.search(r"^- %s:[ \t]*(.*)$" % re.escape(key), CARD, re.M)
+    return match.group(1).strip() if match else None
+
+
+def real_decisions(text):
+    return [d for d in re.findall(r"\bD-\d+\b", text or "") if d in DECISION_IDS]
+
+
+TRACKED = [p for p in git("ls-files")[1].split("\n") if p]
+
+
+def source_files():
+    out = []
+    for path in TRACKED:
+        if not path.endswith(".php"):
+            continue
+        if path.startswith(("tests/", "vendor/", "node_modules/", "docs/", ".")):
+            continue
+        out.append(path)
+    return out
+
+
+# === 6. Changelog order ======================================================
+section("Changelog order (readme.txt, newest first)")
+readme = read("readme.txt")
+if readme is None:
+    na("readme.txt does not exist — no changelog to order")
+else:
+    entries, inside = [], False
+    for lineno, line in enumerate(readme.split("\n"), 1):
+        if re.match(r"^==\s*Changelog\s*==\s*$", line, re.I):
+            inside = True
+            continue
+        if not inside:
+            continue
+        head = re.match(r"^=+\s*(.+?)\s*=+\s*$", line)
+        if not head:
+            continue
+        name = head.group(1)
+        if re.match(r"^\d+(\.\d+)*$", name):
+            entries.append((lineno, name, tuple(int(x) for x in name.split("."))))
+        elif name.lower() == "unreleased":
+            entries.append((lineno, name, None))
+        elif line.startswith("== "):
+            break
+    versions = [e for e in entries if e[2] is not None]
+    bad = 0
+    for index, entry in enumerate(entries):
+        if entry[2] is None and index != 0:
+            fail("readme.txt:%d '%s' is not the first changelog entry" % (entry[0], entry[1]))
+            bad += 1
+    for prev, cur in zip(versions, versions[1:]):
+        if not cur[2] < prev[2]:
+            fail("readme.txt:%d changelog entry %s follows %s (line %d) — entries must run "
+                 "newest to oldest" % (cur[0], cur[1], prev[1], prev[0]))
+            bad += 1
+    if not versions:
+        fail("readme.txt: no version entry found under '== Changelog =='")
+    elif not bad:
+        ok("readme.txt changelog: %d entries, strictly newest to oldest (%s ... %s)"
+           % (len(versions), versions[0][1], versions[-1][1]))
+
+# === 7. INDEX parity =========================================================
+section("docs/api/INDEX.md parity")
+INDEX = "docs/api/INDEX.md"
+if read(INDEX) is None:
+    na("%s does not exist" % INDEX)
+else:
+    found, _ = tables(INDEX)
+    table = next((t for t in found if column(t["header"], "Doc") is not None), None)
+    if table is None:
+        fail("%s: no table with a 'Doc' column" % INDEX)
+    else:
+        doc_col = column(table["header"], "Doc")
+        listed, bad = set(), 0
+        for lineno, cells in table["rows"]:
+            if len(cells) != len(table["header"]):
+                fail("%s:%d row has %d cells, the header has %d" % (INDEX, lineno, len(cells), len(table["header"])))
+                bad += 1
+                continue
+            paths = re.findall(r"[\w./\-]+\.md", cells[doc_col])
+            if not paths:
+                fail("%s:%d row names no document in its Doc column" % (INDEX, lineno))
+                bad += 1
+            for path in paths:
+                listed.add(os.path.normpath(path))
+                if not os.path.isfile(path):
+                    fail("%s:%d Doc '%s' does not exist" % (INDEX, lineno, path))
+                    bad += 1
+        docs = sorted(glob.glob("docs/api/**/*.md", recursive=True) + glob.glob("docs/reference/**/*.md", recursive=True))
+        for doc in docs:
+            if os.path.basename(doc) in ("INDEX.md", "README.md"):
+                continue
+            if os.path.normpath(doc) not in listed:
+                fail("%s has no row in %s" % (doc, INDEX))
+                bad += 1
+        if not bad:
+            ok("%d rows name existing documents; every document in docs/api/ and docs/reference/ has a row "
+               "(INDEX.md and README.md are navigation, not surface documents)" % len(table["rows"]))
+
+# === 8. Documented extension points exist ====================================
+section("Extension points documented in docs/reference/ exist in the source")
+GATEWAY_IDS = ["redsys", "bizumredsys", "googlepayredirecredsys", "inespayredsys"]
+HOOKS_DOC = "docs/reference/hooks-and-extension-points.md"
+hooks_text = read(HOOKS_DOC)
+if hooks_text is None:
+    na("%s does not exist — no documented extension point to look for" % HOOKS_DOC)
+else:
+    source = "\n".join(read(p) or "" for p in source_files())
+    checked = bad = 0
+    for lineno, line in enumerate(hooks_text.split("\n"), 1):
+        if not re.match(r"^###\s", line):
+            continue
+        tokens = re.findall(r"`([^`]+)`", line)
+        first = None
+        for token in tokens:
+            name = token
+            if name.startswith("_") and first:
+                name = first.rsplit("_", 1)[0] + name
+            elif first is None:
+                first = name
+            candidates = [name]
+            if "<" in name and ">" in name:
+                stem = re.sub(r"<[^>]+>", "\0", name)
+                candidates = [stem.replace("\0", gid) for gid in GATEWAY_IDS]
+
+            def in_source(cand):
+                # literal, or (as in check 2) the two static halves of a name
+                # the source builds around a gateway id on one line
+                if cand in source:
+                    return True
+                for gid in GATEWAY_IDS:
+                    if gid in cand:
+                        left, right = cand.split(gid, 1)
+                        if re.search(re.escape(left) + ".*" + re.escape(right), source):
+                            return True
+                return False
+
+            # a `<gateway id>` pattern heading holds when EVERY gateway id resolves
+            hit = all(in_source(c) for c in candidates)
+            checked += 1
+            if not hit:
+                fail("%s:%d documents `%s`, which is not found in the source tree" % (HOOKS_DOC, lineno, name))
+                bad += 1
+    if not checked:
+        fail("%s: no `name` found in any '###' heading — nothing was checked" % HOOKS_DOC)
+    elif not bad:
+        ok("%d documented hook names found in the source (literal, or built around a gateway id)" % checked)
+
+# === 9. Placeholder copy =====================================================
+section("No placeholder copy in distributable surfaces")
+MARKER = re.compile(r"\bTODO\b|\bFIXME\b|\bTBD\b|\bXXX\b|PLACEHOLDER|[Ll]orem ipsum")
+bad = scanned = 0
+if readme is not None:
+    scanned += 1
+    for lineno, line in enumerate(readme.split("\n"), 1):
+        if MARKER.search(line):
+            fail("readme.txt:%d placeholder marker: %s" % (lineno, line.strip()[:100]))
+            bad += 1
+GETTEXT = re.compile(r"\b(?:__|_e|_x|_ex|_n|_nx|esc_html__|esc_html_e|esc_html_x|esc_attr__|esc_attr_e|esc_attr_x)"
+                     r"\(\s*(['\"])((?:\\.|(?!\1).)*)\1")
+ui_files = source_files() + [p for p in TRACKED if p.startswith("resources/") and p.endswith((".js", ".jsx"))]
+strings = 0
+for path in ui_files:
+    for lineno, line in enumerate((read(path) or "").split("\n"), 1):
+        for match in GETTEXT.finditer(line):
+            strings += 1
+            if MARKER.search(match.group(2)):
+                fail("%s:%d placeholder marker in a UI string: %s" % (path, lineno, match.group(2)[:100]))
+                bad += 1
+if not scanned and not strings:
+    na("no readme.txt and no translatable string found — nothing distributable to scan")
+elif not bad:
+    ok("no TODO/FIXME/TBD/XXX/PLACEHOLDER/lorem marker in readme.txt or in %d UI strings (%d files)"
+       % (strings, len(ui_files)))
+
+# === 10. i18n dry run ========================================================
+section("i18n dry run (wp i18n make-pot): text domain")
+domain_match = re.search(r"text domain `([^`]+)`", card("i18n") or "")
+if not domain_match:
+    na("the project card's `i18n:` line names no text domain — nothing to check against")
+elif not shutil.which("wp"):
+    na("`wp` (WP-CLI) is not on PATH — the make-pot dry run cannot run on this machine")
+else:
+    domain = domain_match.group(1)
+    tmp = tempfile.mkdtemp(prefix="keel-verify-pot.")
+    try:
+        exclude = ["node_modules", "vendor", "languages", "assets", "tests", "docs", "scripts"]
+        exclude += [e for e in os.listdir(".") if e.startswith(".") and os.path.isdir(e)]
+        base = ["wp", "i18n", "make-pot", ".", None, "--exclude=" + ",".join(exclude)]
+
+        def pot(name, extra):
+            target = os.path.join(tmp, name)
+            cmd = list(base)
+            cmd[4] = target
+            rc, out, err = run(cmd + extra)
+            if rc != 0 or not os.path.isfile(target):
+                return None, (err or out).strip().split("\n")[-1]
+            entries = {}
+            for chunk in (read(target) or "").split("\n\n"):
+                msgid = re.search(r'^msgid ((?:".*"\n?)+)', chunk, re.M)
+                if not msgid:
+                    continue
+                text = "".join(re.findall(r'"(.*)"', msgid.group(1)))
+                context = re.search(r'^msgctxt "(.*)"', chunk, re.M)
+                ref = re.search(r"^#: (\S+)", chunk, re.M)
+                if text:
+                    entries[(context.group(1) if context else "", text)] = ref.group(1) if ref else "?"
+            return entries, ""
+
+        own, err_own = pot("domain.pot", ["--domain=" + domain])
+        everything, err_all = pot("all.pot", ["--ignore-domain"])
+        if own is None or everything is None:
+            fail("`wp i18n make-pot` failed: %s" % (err_own or err_all))
+        else:
+            stray = sorted((ref, key[1]) for key, ref in everything.items() if key not in own)
+            for ref, text in stray:
+                fail("%s string outside the text domain '%s': %s" % (ref, domain, text[:80]))
+            if not stray:
+                ok("make-pot dry run: %d strings, all in the text domain '%s'" % (len(own), domain))
+            info("make-pot cannot see a user-facing string that is not wrapped in a translation call at all; "
+                 "that half of the rule stays with the PHPCS i18n sniffs (not installed — technical plan)")
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+# === 11. Minified-asset sync =================================================
+section("Minified-asset sync")
+minified = [p for p in TRACKED if re.search(r"\.min\.(css|js)$", p)]
+if minified:
+    fail("%d minified file(s) are tracked (%s ...) but this check has no minify command to compare them "
+         "against — extend check 11 with the build command the minification slice introduced"
+         % (len(minified), minified[0]))
+elif "D-038" in DECISION_IDS:
+    na("minification is not adopted yet: D-038 schedules it as slice S-027, and no `name.min.css` / "
+       "`name.min.js` exists in the tree — nothing to compare")
+else:
+    fail("the plugin ships front-end CSS/JS with no minified pair and docs/decisions.md records no decision "
+         "about it (D-038 not found)")
+
+# === 12. Cited commands exist ================================================
+section("Cited commands exist")
+doc_files = sorted(glob.glob("*.md")) + sorted(glob.glob("docs/**/*.md", recursive=True))
+doc_files = [p for p in doc_files if not ignored(p)]
+try:
+    npm_scripts = set((json.loads(read("package.json") or "{}").get("scripts") or {}).keys())
+except ValueError:
+    npm_scripts = set()
+try:
+    composer_scripts = set((json.loads(read("composer.json") or "{}").get("scripts") or {}).keys())
+except ValueError:
+    composer_scripts = set()
+COMPOSER_BUILTIN = set("install update require remove dump-autoload dumpautoload validate exec global show outdated "
+                       "audit create-project self-update config init check-platform-reqs diagnose licenses status "
+                       "why depends prohibits archive clear-cache search browse home fund bump reinstall run "
+                       "run-script".split())
+PATH_CITE = re.compile(r"(?<![\w/.\-])(?:\./)?((?:scripts|bin|\.githooks)/[A-Za-z0-9_.\-/]*[A-Za-z0-9_/])")
+cited = bad = 0
+for path in doc_files:
+    fenced = False
+    for lineno, line in enumerate((read(path) or "").split("\n"), 1):
+        if re.match(r"^\s*```", line):
+            fenced = not fenced
+            continue
+        if path == "docs/keel-conformance.md" and re.search(r"\|\s*(missing|declined|n/a)\s*\|", line):
+            # a row in one of these states names an artifact to say it is absent
+            continue
+        for match in PATH_CITE.finditer(line):
+            rest = line[match.end():match.end() + 1]
+            target = match.group(1)
+            if rest and rest in "<*{[$\u2026-":
+                continue
+            if rest == "." and line[match.end() + 1:match.end() + 2].isalnum():
+                continue
+            cited += 1
+            if not os.path.exists(target):
+                fail("%s:%d cites '%s', which does not exist" % (path, lineno, target))
+                bad += 1
+        spans = [line] if fenced else re.findall(r"`([^`]+)`", line)
+        for span in spans:
+            for match in re.finditer(r"\bnpm run(?:-script)? ([\w:.\-]+)", span):
+                cited += 1
+                if match.group(1) not in npm_scripts:
+                    fail("%s:%d cites 'npm run %s', which is not a script in package.json"
+                         % (path, lineno, match.group(1)))
+                    bad += 1
+            for match in re.finditer(r"(?:^|[\s;&(])composer (?:run-script |run )?([a-z][\w:\-]*)", span):
+                name = match.group(1)
+                if name in COMPOSER_BUILTIN:
+                    continue
+                cited += 1
+                if name not in composer_scripts:
+                    fail("%s:%d cites 'composer %s', which is neither a Composer command nor a script in "
+                         "composer.json" % (path, lineno, name))
+                    bad += 1
+if not bad:
+    ok("%d citations of scripts/, bin/, .githooks/, npm and composer scripts in %d documents all resolve"
+       % (cited, len(doc_files)))
+
+# === 13. No orphan documents =================================================
+section("No orphan document under docs/")
+docs_all = sorted(p for p in glob.glob("docs/**/*.md", recursive=True) if not ignored(p))
+LINK = re.compile(r"\]\(([^)\s]+)\)")
+MENTION = re.compile(r"(?<![\w/.\-])((?:docs|guide)/[\w.\-/]+\.md)")
+
+
+def references(path):
+    out = set()
+    text = read(path) or ""
+    for target in LINK.findall(text):
+        target = target.split("#")[0]
+        if not target or re.match(r"^[a-z]+:", target):
+            continue
+        out.add(os.path.normpath(os.path.join(os.path.dirname(path), target)))
+    for target in MENTION.findall(text):
+        out.add(os.path.normpath(target))
+    return out
+
+
+roots = [p for p in (PROGRESS, INDEX) if os.path.isfile(p)]
+if not roots:
+    na("neither %s nor %s exists — no root to reach documents from" % (PROGRESS, INDEX))
+else:
+    reached, queue = set(roots), list(roots)
+    while queue:
+        for target in references(queue.pop()):
+            if target in docs_all and target not in reached:
+                reached.add(target)
+                queue.append(target)
+    orphans = [p for p in docs_all if p not in reached]
+    for path in orphans:
+        fail("%s is reachable from neither %s nor %s (no link and no path mention leads to it)"
+             % (path, PROGRESS, INDEX))
+    if not orphans:
+        ok("all %d documents under docs/ are reachable from %s" % (len(docs_all), " or ".join(roots)))
+
+# === 14. Code-map markers ====================================================
+section("Code-map [E] markers match the disk")
+plan_text = read(PLAN)
+if plan_text is None:
+    na("%s does not exist" % PLAN)
+else:
+    lines = plan_text.split("\n")
+    start = next((i for i, l in enumerate(lines) if re.match(r"^#+ .*Code map", l)), None)
+    block, opened = [], False
+    if start is not None:
+        for i in range(start + 1, len(lines)):
+            if re.match(r"^\s*```", lines[i]):
+                if opened:
+                    break
+                opened = True
+                continue
+            if opened:
+                block.append((i + 1, lines[i]))
+            elif lines[i].startswith("#"):
+                break
+    if not block:
+        fail("%s: no fenced code map found under a 'Code map' heading" % PLAN)
+    else:
+        stack, checked, bad = [], 0, 0
+        for lineno, line in block:
+            if not line.strip():
+                continue
+            indent = len(line) - len(line.lstrip(" "))
+            marker = re.search(r"\[([EAG])\]", line)
+            spec = (line[:marker.start()] if marker else line).strip()
+            while stack and stack[-1][0] >= indent:
+                stack.pop()
+            parent = stack[-1][1] if stack else ""
+            items = [x.strip() for x in re.split(r",\s+|\s+\+\s+", spec) if x.strip()]
+            if not items:
+                continue
+            first = parent + items[0]
+            paths = [first]
+            sibling_dir = os.path.dirname(first.rstrip("/"))
+            for item in items[1:]:
+                paths.append((sibling_dir + "/" if sibling_dir else "") + item)
+            if len(items) == 1 and items[0].endswith("/"):
+                stack.append((indent, first))
+            if marker and marker.group(1) == "E":
+                for path in paths:
+                    checked += 1
+                    if not os.path.exists(path.rstrip("/")):
+                        fail("%s:%d marks '%s' as [E] but it does not exist on disk" % (PLAN, lineno, path))
+                        bad += 1
+        if not checked:
+            fail("%s: the code map carries no [E] marker — nothing was checked" % PLAN)
+        elif not bad:
+            ok("%d paths marked [E] in the code map exist on disk" % checked)
+
+# === 15. Keel conformance ====================================================
+section("Keel conformance is complete")
+CONF = "docs/keel-conformance.md"
+if read(CONF) is None:
+    fail("%s is missing" % CONF)
+else:
+    found, _ = tables(CONF)
+    state_tables = [t for t in found if "State" in t["header"]]
+    counts = {"present": 0, "missing": 0, "declined": 0, "n/a": 0}
+    bad, seen, t1_rows = 0, {}, 0
+    for table in state_tables:
+        col = table["header"].index("State")
+        for lineno, cells in table["rows"]:
+            if len(cells) != len(table["header"]):
+                fail("%s:%d row has %d cells, its header has %d" % (CONF, lineno, len(cells), len(table["header"])))
+                bad += 1
+                continue
+            rid, state, text = cells[0], cells[col], " ".join(cells)
+            if rid in seen:
+                fail("%s:%d row id %s is also on line %d" % (CONF, lineno, rid, seen[rid]))
+                bad += 1
+            seen[rid] = lineno
+            if re.match(r"^T1-\d+$", rid):
+                t1_rows += 1
+            if state not in counts:
+                fail("%s:%d %s has state '%s' — not one of present / missing / declined / n/a"
+                     % (CONF, lineno, rid, state))
+                bad += 1
+                continue
+            counts[state] += 1
+            if state == "missing" and not real_decisions(text):
+                fail("%s:%d %s is `missing` and cites no decision recorded in %s" % (CONF, lineno, rid, DECISIONS))
+                bad += 1
+            elif state == "declined" and not real_decisions(text):
+                fail("%s:%d %s is `declined` and cites no decision recorded in %s" % (CONF, lineno, rid, DECISIONS))
+                bad += 1
+            elif state == "n/a" and not cells[-1].strip(DASH + "- "):
+                fail("%s:%d %s is `n/a` with no excluding condition" % (CONF, lineno, rid))
+                bad += 1
+            elif state == "present" and rid.startswith("T1-"):
+                for token in re.findall(r"`([^`]+)`", cells[1]):
+                    if token.endswith(":"):
+                        if rid.startswith("T1-C") and not re.search(r"\b%s" % re.escape(token), CARD):
+                            fail("%s:%d %s is `present` but the project card has no `%s` line"
+                                 % (CONF, lineno, rid, token))
+                            bad += 1
+                    elif re.match(r"^[\w.\-/]+$", token) and (
+                            "/" in token or re.search(r"\.(md|json|jsonl|sh|txt|xml|yml|yaml|php|js|css)$", token)):
+                        if not os.path.exists(token.rstrip("/")):
+                            fail("%s:%d %s is `present` but '%s' does not exist" % (CONF, lineno, rid, token))
+                            bad += 1
+    if not state_tables:
+        fail("%s: no table with a 'State' column" % CONF)
+    else:
+        manifests = sorted(glob.glob(".*/skills/keel/MANIFEST.md"))
+        if manifests:
+            body = re.search(r"^## Table 1.*?(?=^## Table 2)", read(manifests[0]) or "", re.M | re.S)
+            want = len([l for l in (body.group(0) if body else "").split("\n") if l.startswith("|")]) - 2
+            if want != t1_rows:
+                fail("%s carries %d Table 1 path rows (T1-nn); %s Table 1 has %d requirements"
+                     % (CONF, t1_rows, manifests[0], want))
+                bad += 1
+        else:
+            na("no embedded Keel MANIFEST.md found — the Table 1 row count cannot be compared")
+        info("%d rows: %d present, %d missing, %d declined, %d n/a" % (
+            sum(counts.values()), counts["present"], counts["missing"], counts["declined"], counts["n/a"]))
+        if not bad:
+            ok("every row has one of the four states; every `missing` and `declined` row cites a recorded "
+               "decision; every `present` Table 1 path and card line exists")
+
+# === 16. Acceptance criteria covered =========================================
+section("Acceptance criteria covered by ID; Coverage in its enum")
+SPEC = "docs/02-functional-spec.md"
+TAGS = ["CREDENTIAL", "HARDWARE", "ASSISTIVE-TECH", "JUDGMENT", "EXTERNAL-APPROVAL", "PLATFORM-IMPOSSIBLE",
+        "PRODUCTION-RISK", "NO-EXECUTION"]
+tp_table = None
+if read(TESTPOINTS) is None:
+    na("%s does not exist" % TESTPOINTS)
+else:
+    found, orphan_rows = tables(TESTPOINTS)
+    tp_table = next((t for t in found if column(t["header"], "Coverage") is not None
+                     and column(t["header"], "Criterion") is not None), None)
+    if tp_table is None:
+        fail("%s: no table with `Criterion` and `Coverage` columns" % TESTPOINTS)
+    else:
+        bad = 0
+        for lineno, _ in orphan_rows:
+            fail("%s:%d table row outside any table (a blank line or a missing header splits the table)"
+                 % (TESTPOINTS, lineno))
+            bad += 1
+        crit, cov = column(tp_table["header"], "Criterion"), column(tp_table["header"], "Coverage")
+        steps = column(tp_table["header"], "Delegation steps")
+        covered = set()
+        good_rows = []
+        for lineno, cells in tp_table["rows"]:
+            if len(cells) != len(tp_table["header"]):
+                fail("%s:%d row has %d cells, the header has %d" % (TESTPOINTS, lineno, len(cells),
+                                                                    len(tp_table["header"])))
+                bad += 1
+                continue
+            good_rows.append((lineno, cells))
+            covered.update(re.findall(r"\bAC-\d+\b", cells[crit]))
+            value = cells[cov].strip("` ")
+            if value != "driven" and value not in TAGS:
+                fail("%s:%d Coverage is '%s' — not `driven` and not one of the eight delegation tags"
+                     % (TESTPOINTS, lineno, value))
+                bad += 1
+            elif value in TAGS:
+                text = cells[steps].strip(DASH + "-` ") if steps is not None else ""
+                if not text or text.lower() == "n/a":
+                    fail("%s:%d Coverage is the delegation tag %s but the row carries no delegation steps"
+                         % (TESTPOINTS, lineno, value))
+                    bad += 1
+        tp_table["good"] = good_rows
+        spec_text = read(SPEC)
+        section_ac = re.search(r"^## [^\n]*Acceptance criteria.*?(?=^## |\Z)", spec_text or "", re.M | re.S)
+        ids = []
+        if section_ac:
+            for line in section_ac.group(0).split("\n"):
+                match = re.match(r"^\|\s*(AC-\d+)\s*\|", line)
+                if match and "withdrawn" not in line.lower():
+                    ids.append(match.group(1))
+        if spec_text is None or not ids:
+            na("%s defines no `AC-nn` criterion — nothing to match rows against" % SPEC)
+        else:
+            lacking = [i for i in ids if i not in covered]
+            if lacking:
+                fail("%s: %d of %d acceptance criteria from %s have no row naming them in the Criterion column: %s"
+                     % (TESTPOINTS, len(lacking), len(ids), SPEC, ", ".join(lacking)))
+                bad += 1
+            unknown = sorted(covered - set(ids))
+            for name in unknown:
+                fail("%s names %s, which %s does not define" % (TESTPOINTS, name, SPEC))
+                bad += 1
+        if not bad:
+            ok("%d rows: every Coverage cell is in the enum, tagged rows carry steps, every AC-nn has a row"
+               % len(good_rows))
+
+# === 17. Red first ===========================================================
+section("Red first column")
+RED = ["observed", "n/a %s policy" % DASH, "n/a %s out of scope" % DASH, "n/a %s predates" % DASH,
+       "n/a %s delegated" % DASH]
+policy = card("Test-first policy")
+if tp_table is None:
+    na("%s has no test-point table to read" % TESTPOINTS)
+elif column(tp_table["header"], "Red first") is None:
+    fail("%s:%d the test-point table has no `Red first` column" % (TESTPOINTS, tp_table["line"]))
+else:
+    red = column(tp_table["header"], "Red first")
+    evidence = column(tp_table["header"], "Evidence")
+    FAILURE = re.compile(r"\b(red|fail\w*|error\w*|assert\w*|expected|exception|timed? ?out|not ok)\b", re.I)
+    bad, judge = 0, {}
+    for lineno, cells in tp_table.get("good", []):
+        value = cells[red].strip("` ")
+        if value not in RED:
+            fail("%s:%d Red first is '%s' — not one of the five values" % (TESTPOINTS, lineno, value))
+            bad += 1
+            continue
+        if value == "observed":
+            cell = cells[evidence] if evidence is not None else ""
+            if not FAILURE.search(cell):
+                fail("%s:%d Red first is `observed` but the Evidence cell carries no failure output"
+                     % (TESTPOINTS, lineno))
+                bad += 1
+        elif value != RED[4]:
+            judge.setdefault(value, []).append(lineno)
+    if not bad:
+        ok("%d rows: every Red first cell holds one of the five values; every `observed` row has its failure output"
+           % len(tp_table.get("good", [])))
+    if policy and policy.split()[0].strip("`") == "none":
+        info("Test-first policy is `none` (%s) — no row list" % (", ".join(real_decisions(policy)) or "no decision cited"))
+    else:
+        for value in sorted(judge):
+            info("for a person to judge — `%s`: %d row(s), %s lines %s" % (
+                value, len(judge[value]), TESTPOINTS, ", ".join(str(n) for n in judge[value])))
+        if not judge:
+            info("no `policy` / `out of scope` / `predates` row to judge")
+
+# === 18. Interactive elements ================================================
+section("Interactive elements carry their test identifiers")
+addr = re.search(r"^### Element addressability\s*\n(.*?)(?=^#)", plan_text or "", re.M | re.S)
+patterns = re.search(r"(?im)^.*interactive element patterns?\s*:\s*(.+)$", addr.group(1) if addr else "")
+if not patterns:
+    na("%s 'Element addressability' records the attribute convention but no fixed list of interactive-element "
+       "patterns to grep for — the pattern set this check needs does not exist yet" % PLAN)
+else:
+    attr = re.search(r"data-[a-z\-]+", addr.group(1))
+    wanted = [p.strip("` ") for p in patterns.group(1).split(",") if p.strip("` ")]
+    bad = hits = 0
+    for path in source_files():
+        for lineno, line in enumerate((read(path) or "").split("\n"), 1):
+            for pattern in wanted:
+                if re.search(pattern, line):
+                    hits += 1
+                    if not attr or attr.group(0) not in line:
+                        fail("%s:%d interactive element (%s) without %s"
+                             % (path, lineno, pattern, attr.group(0) if attr else "its addressability attribute"))
+                        bad += 1
+    if not bad:
+        ok("%d interactive elements matched, all addressable" % hits)
+
+# === 19. Nothing stranded ====================================================
+section("Nothing is stranded on this machine")
+autonomy = (card("Autonomy") or "").lower()
+automatic = autonomy.startswith("auto")
+report = fail if automatic else info
+remotes = [r for r in git("remote")[1].split("\n") if r]
+branch = git("rev-parse", "--abbrev-ref", "HEAD")[1].strip()
+if not remotes:
+    durability = card("Durability") or ""
+    if re.search(r"synced|replicat", durability, re.I) or (
+            "accepted risk" in durability.lower() and real_decisions(durability)):
+        ok("no git remote; the card's `Durability:` line records the cover: %s" % durability[:120])
+    else:
+        fail("this repository has NO remote and the project card's `Durability:` line records neither "
+             "off-machine replication nor an accepted risk with its decision — the work exists on one machine")
+else:
+    rc, upstream, _ = git("rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
+    upstream = upstream.strip()
+    if rc != 0:
+        ahead = [l for l in git("log", "--format=%h %s", "HEAD", "--not", "--remotes")[1].split("\n") if l]
+        report("branch '%s' has no upstream; %d commit(s) are on no remote-tracking branch%s"
+               % (branch, len(ahead), (": " + "; ".join(ahead[:5])) if ahead else ""))
+    else:
+        ahead = [l for l in git("log", "--format=%h %s", "@{u}..HEAD")[1].split("\n") if l]
+        if ahead:
+            report("%d commit(s) on '%s' have not reached %s: %s"
+                   % (len(ahead), branch, upstream, "; ".join(ahead[:5])))
+        else:
+            ok("every commit on '%s' is on %s (as of the last fetch/push; no network call is made)"
+               % (branch, upstream))
+if branch in ("main", "master"):
+    report("the current branch is the release branch '%s' — work goes to the integration branch" % branch)
+elif branch == "HEAD":
+    report("HEAD is detached — commits made here belong to no branch")
+else:
+    ok("current branch '%s' is not the release branch" % branch)
+if not automatic:
+    info("the card's `Autonomy:` is not automatic, so unpushed work is reported, not failed")
+
+# === 20. Clean working tree ==================================================
+section("The working tree is clean")
+rc, porcelain, err = git("status", "--porcelain")
+dirty = [l for l in porcelain.split("\n") if l.strip()]
+if rc != 0:
+    fail("`git status --porcelain` failed: %s" % err.strip())
+elif dirty:
+    for line in dirty:
+        fail("uncommitted: %s" % line)
+    info("the fix is a commit on the integration branch (after the confidential-data check), never a "
+         ".gitignore entry chosen to make this check green")
+else:
+    ok("`git status --porcelain` is empty")
+
+# === 21. Recorded negatives ==================================================
+section("Every recorded negative carries its scope")
+NEGATIVE = re.compile(r"\bcannot\b|there is no\b|not possible|\bimpossible\b|does not support", re.I)
+if not decisions_text:
+    na("%s does not exist" % DECISIONS)
+else:
+    entries, current = [], None
+    for lineno, line in enumerate(decisions_text.split("\n"), 1):
+        head = re.match(r"^## (D-\d+)\b", line)
+        if head:
+            current = {"id": head.group(1), "line": lineno, "hits": [], "scoped": False}
+            entries.append(current)
+        elif current is not None:
+            if re.match(r"^\s*[-*]?\s*\**Not checked:\**\s*\S", line):
+                current["scoped"] = True
+            elif NEGATIVE.search(line):
+                current["hits"].append((lineno, NEGATIVE.search(line).group(0)))
+        if head and NEGATIVE.search(line):
+            current["hits"].append((lineno, NEGATIVE.search(line).group(0)))
+    negatives = [e for e in entries if e["hits"]]
+    bad = 0
+    for entry in negatives:
+        if not entry["scoped"]:
+            fail("%s:%d %s asserts an impossibility ('%s', line %d) and carries no `Not checked:` line"
+                 % (DECISIONS, entry["line"], entry["id"], entry["hits"][0][1], entry["hits"][0][0]))
+            bad += 1
+    if not bad:
+        ok("%d entries; %d assert an impossibility and each carries a `Not checked:` line"
+           % (len(entries), len(negatives)))
+
+# === 22-24. The sprint plan ==================================================
+STATUS = ["not-started", "in-progress", "done", "dropped"]
+SOURCES = ["measured", "estimated"]
+
+
+def scalar(value):
+    value = value.strip()
+    if value.startswith("[") and value.endswith("]"):
+        return [x.strip().strip("'\"") for x in value[1:-1].split(",") if x.strip()]
+    if value in ("null", "~", ""):
+        return None
+    if (value[:1] == value[-1:]) and value[:1] in "'\"" and len(value) > 1:
+        return value[1:-1]
+    try:
+        return float(value)
+    except ValueError:
+        return value
+
+
+def frontmatter(path):
+    lines = (read(path) or "").split("\n")
+    if not lines or lines[0].strip() != "---":
+        return None
+    try:
+        end = lines.index("---", 1)
+    except ValueError:
+        return None
+    top, items, current = {}, [], None
+    for index in range(1, end):
+        raw = lines[index]
+        text = re.sub(r"\s+#.*$", "", raw)
+        match = re.match(r"^(\s*)(- )?([A-Za-z_]+):\s*(.*)$", text)
+        if not match:
+            continue
+        indent, dash, key, value = match.groups()
+        if dash:
+            current = {"_line": index + 1, "_raw": raw}
+            items.append(current)
+        elif not indent:
+            top[key] = (scalar(value), index + 1)
+            current = None
+            continue
+        if current is not None:
+            current[key] = scalar(value)
+            current["_l_" + key] = index + 1
+            current["_raw"] += "\n" + raw
+    return {"top": top, "items": items, "body": "\n".join(lines[end + 1:])}
+
+
+sprints_line = card("Sprints")
+sprints_mode = (sprints_line or "").split()[0].strip("`") if sprints_line else None
+sprint_files = sorted(glob.glob("docs/sprints/sprint-*.md"),
+                      key=lambda p: int(re.search(r"sprint-(\d+)", p).group(1)) if re.search(r"sprint-(\d+)", p) else 0)
+DEFERRED = "docs/sprints/deferred.md"
+PLANJSON = "docs/.keel/plan.json"
+plan_off = sprints_mode == "off" and bool(real_decisions(sprints_line))
+slices, deferred_items, sprint_meta = [], [], []
+for path in sprint_files:
+    data = frontmatter(path)
+    number_match = re.search(r"sprint-(\d+)", path)
+    order = int(number_match.group(1))
+    sprint_meta.append((path, order, data))
+    if data:
+        for item in data["items"]:
+            item["_file"], item["_sprint"], item["_body"] = path, order, data["body"]
+            slices.append(item)
+deferred_data = frontmatter(DEFERRED) if os.path.isfile(DEFERRED) else None
+if deferred_data:
+    for item in deferred_data["items"]:
+        item["_file"], item["_sprint"] = DEFERRED, None
+        deferred_items.append(item)
+
+
+def where(item, key=None):
+    return "%s:%d" % (item["_file"], item.get("_l_" + key, item["_line"]) if key else item["_line"])
+
+
+def is_num(value):
+    return isinstance(value, float)
+
+
+section("The sprint plan is well-formed")
+if plan_off:
+    na("the card says `Sprints: off` (%s) — the plan checks are skipped" % ", ".join(real_decisions(sprints_line)))
+elif not sprint_files:
+    na("no docs/sprints/sprint-<N>.md exists — nothing to parse (check 23 fails on the missing plan)")
+else:
+    bad = 0
+    for path, order, data in sprint_meta:
+        if data is None:
+            fail("%s:1 has no frontmatter block" % path)
+            bad += 1
+            continue
+        schema = data["top"].get("schema", (None, 1))
+        if schema[0] != "keel.sprint/1":
+            fail("%s:%d schema is '%s', expected keel.sprint/1" % (path, schema[1], schema[0]))
+            bad += 1
+        status = data["top"].get("status", (None, 1))
+        if status[0] not in STATUS:
+            fail("%s:%d sprint status '%s' is outside the enum (%s)" % (path, status[1], status[0], " | ".join(STATUS)))
+            bad += 1
+    if os.path.isfile(DEFERRED) and deferred_data is None:
+        fail("%s:1 has no frontmatter block" % DEFERRED)
+        bad += 1
+    seen = {}
+    for item in slices + deferred_items:
+        ident = item.get("id")
+        if not ident:
+            fail("%s item has no id" % where(item))
+            bad += 1
+            continue
+        if item.get("status") not in STATUS:
+            fail("%s %s status '%s' is outside the enum (%s)" % (where(item, "status"), ident, item.get("status"),
+                                                                 " | ".join(STATUS)))
+            bad += 1
+        if not is_num(item.get("hours")):
+            fail("%s %s hours '%s' is not a number" % (where(item, "hours"), ident, item.get("hours")))
+            bad += 1
+        if ident in seen:
+            fail("%s id %s is already used at %s" % (where(item, "id"), ident, seen[ident]))
+            bad += 1
+        else:
+            seen[ident] = where(item, "id")
+    home = {}
+    for item in slices:
+        home.setdefault(item.get("id"), item["_sprint"])
+    deferred_ids = set(i.get("id") for i in deferred_items)
+    for item in slices + deferred_items:
+        deps = item.get("depends_on") or []
+        if not isinstance(deps, list):
+            fail("%s %s depends_on is not a list of ids" % (where(item, "depends_on"), item.get("id")))
+            bad += 1
+            continue
+        for dep in deps:
+            if dep in deferred_ids and item["_sprint"] is not None:
+                fail("%s %s depends on %s, which is still in %s" % (where(item, "depends_on"), item.get("id"), dep,
+                                                                    DEFERRED))
+                bad += 1
+            elif dep not in home and dep not in deferred_ids:
+                fail("%s %s depends on %s, which does not exist" % (where(item, "depends_on"), item.get("id"), dep))
+                bad += 1
+            elif item["_sprint"] is not None and dep in home and home[dep] > item["_sprint"]:
+                fail("%s %s (sprint %d) depends on %s, which is in the LATER sprint %d"
+                     % (where(item, "depends_on"), item.get("id"), item["_sprint"], dep, home[dep]))
+                bad += 1
+    for item in slices:
+        if item.get("status") == "dropped":
+            cited = real_decisions(item["_raw"]) or real_decisions(
+                "\n".join(l for l in item["_body"].split("\n") if item.get("id") and item["id"] in l))
+            if not cited:
+                fail("%s %s is `dropped` and neither its entry nor the sprint body cites a recorded decision"
+                     % (where(item, "status"), item.get("id")))
+                bad += 1
+    rc, history, _ = git("log", "--format=", "-p", "--unified=0", "--", "docs/sprints")
+    ever = set(re.findall(r"^[+-]\s+- id:\s*([A-Za-z]+-\d+)", history, re.M))
+    for ident in sorted(ever - set(seen)):
+        fail("docs/sprints/: %s was in the plan in git history and is now in no sprint file and not in %s — "
+             "a slice leaves a sprint by moving to deferred.md or by `status: dropped` with its decision"
+             % (ident, DEFERRED))
+        bad += 1
+    if not os.path.isfile("scripts/keel-plan"):
+        fail("scripts/keel-plan does not exist — docs/.keel/plan.json cannot be compared with its sources")
+        bad += 1
+    else:
+        rc, out, err = run(["/bin/bash", "scripts/keel-plan", "check"])
+        if rc != 0:
+            for line in (out + err).strip().split("\n")[:12]:
+                fail("scripts/keel-plan check (exit %d): %s" % (rc, line))
+            bad += 1
+    estimate = read("docs/estimate.md")
+    total = sum(i["hours"] for i in slices if is_num(i.get("hours")) and i.get("status") != "dropped")
+    if estimate is None:
+        na("docs/estimate.md does not exist — no Phase 5 line to compare with the plan's %g h" % total)
+    else:
+        match = re.search(r"^[-*]?\s*\**Phase 5 hours:\**\s*([0-9.]+)\s*h", estimate, re.M)
+        lineno = estimate[:match.start()].count("\n") + 1 if match else 1
+        if not match:
+            fail("docs/estimate.md: no `Phase 5 hours: <n> h` line")
+            bad += 1
+        elif abs(float(match.group(1)) - total) > 0.005:
+            fail("docs/estimate.md:%d Phase 5 hours is %s h; the plan's slice hours sum to %g h"
+                 % (lineno, match.group(1), total))
+            bad += 1
+    if not bad:
+        ok("%d sprint files, %d slices, %d deferred items: statuses in the enum, ids unique, every depends_on "
+           "resolves to the same or an earlier sprint, plan.json matches its sources, the estimate's Phase 5 "
+           "hours equal the plan's (%g h), no slice left without a trace"
+           % (len(sprint_files), len(slices), len(deferred_items), total))
+
+section("The plan is not behind the work")
+BOOKKEEPING = ["docs/sprints", "docs/.keel", "docs/PROGRESS.md", "docs/sessions.md", "docs/token-ledger.md"]
+if sprints_line is None:
+    fail("%s: the project card has no `Sprints:` line" % PROGRESS)
+elif sprints_mode == "off" and not plan_off:
+    fail("%s: the card says `Sprints: off` but cites no decision recorded in %s" % (PROGRESS, DECISIONS))
+elif plan_off:
+    na("the card says `Sprints: off` (%s)" % ", ".join(real_decisions(sprints_line)))
+else:
+    ok("the card carries `Sprints: %s`" % sprints_mode)
+    if not sprint_files:
+        fail("docs/sprints/ holds no sprint-<N>.md — work with no plan")
+    else:
+        ok("%d sprint file(s) exist" % len(sprint_files))
+        work = ["."] + [":(exclude)" + p for p in BOOKKEEPING]
+        newest_work = git("log", "-1", "--format=%H", "HEAD", "--", *work)[1].strip()
+        newest_plan = git("log", "-1", "--format=%H", "HEAD", "--", "docs/sprints")[1].strip()
+        if not newest_plan:
+            fail("docs/sprints/ has never been committed — the plan accounts for none of the history")
+        elif not newest_work:
+            ok("no commit touches a non-bookkeeping path")
+        elif git("merge-base", "--is-ancestor", newest_work, newest_plan)[0] == 0:
+            ok("ancestry: the newest work commit %s is an ancestor of (or is) the newest plan commit %s"
+               % (newest_work[:7], newest_plan[:7]))
+        else:
+            behind = [l for l in git("log", "--format=%h %s", newest_plan + "..HEAD", "--", *work)[1].split("\n") if l]
+            fail("the plan is behind the work: docs/sprints/ last changed in %s, and %d later commit(s) touch "
+                 "non-bookkeeping paths: %s" % (newest_plan[:7], len(behind), "; ".join(behind[:8])))
+        bad = 0
+        for item in slices:
+            if item.get("status") == "done" and not is_num(item.get("actual_hours")):
+                fail("%s %s is `done` with actual_hours '%s' — not a number"
+                     % (where(item, "actual_hours"), item.get("id"), item.get("actual_hours")))
+                bad += 1
+        if not bad:
+            ok("every `done` slice carries a numeric actual_hours (%d slices)"
+               % len([i for i in slices if i.get("status") == "done"]))
+        open_ids = set(i.get("id") for i in slices if i.get("status") not in ("done", "dropped"))
+        all_ids = set(i.get("id") for i in slices) | set(i.get("id") for i in deferred_items)
+        position = re.search(r"^## Current position[^\n]*\n(.*?)(?=^## |\Z)", progress_text, re.M | re.S)
+        pos_line = progress_text[:position.start()].count("\n") + 1 if position else 1
+        named = re.findall(r"\bS-\d+\b", position.group(1)) if position else []
+        if not position:
+            fail("%s has no '## Current position' section" % PROGRESS)
+        elif not open_ids:
+            ok("every slice in the plan is closed — the position needs no open slice")
+        else:
+            unknown = sorted(set(n for n in named if n not in all_ids))
+            for name in unknown:
+                fail("%s:%d 'Current position' names %s, which is in no sprint file" % (PROGRESS, pos_line, name))
+            if not [n for n in named if n in open_ids]:
+                fail("%s:%d 'Current position' names no open slice (%d slices are open: %s)"
+                     % (PROGRESS, pos_line, len(open_ids), ", ".join(sorted(open_ids))))
+            elif not unknown:
+                ok("'Current position' names the open slice %s" % next(n for n in named if n in open_ids))
+
+section("Session time is measured, not typed")
+SESSIONS = "docs/sessions.md"
+COLUMNS = ["Start", "End", "Wall-clock h", "Paused h", "Planned (slices, est. h)", "Done", "Est. h", "Actual h",
+           "Deviation h", "Not finished (h spent)", "Left after h", "Active h", "Pace factor", "Projected left h",
+           "Notes"]
+if plan_off:
+    na("the card says `Sprints: off` (%s)" % ", ".join(real_decisions(sprints_line)))
+else:
+    bad = 0
+    for item in slices + deferred_items:
+        if "actual_source" in item and item.get("actual_source") not in SOURCES:
+            fail("%s %s actual_source '%s' is neither measured nor estimated"
+                 % (where(item, "actual_source"), item.get("id"), item.get("actual_source")))
+            bad += 1
+        elif item["_sprint"] is not None and "actual_source" not in item:
+            fail("%s %s has no actual_source" % (where(item), item.get("id")))
+            bad += 1
+    if not bad:
+        ok("every actual_source is `measured` or `estimated` (%d slices)" % len(slices))
+    rows, sessions_table = [], None
+    if read(SESSIONS) is None:
+        fail("%s does not exist" % SESSIONS)
+    else:
+        found, orphan_rows = tables(SESSIONS)
+        sessions_table = next((t for t in found if "Start" in t["header"] and "End" in t["header"]), None)
+        for lineno, _ in orphan_rows:
+            fail("%s:%d table row outside the sessions table" % (SESSIONS, lineno))
+        if sessions_table is None:
+            fail("%s has no sessions table (header starting `| Start | End |`)" % SESSIONS)
+        elif sessions_table["header"] != COLUMNS:
+            lacking = [c for c in COLUMNS if c not in sessions_table["header"]]
+            fail("%s:%d the header is not the contract's fifteen columns%s"
+                 % (SESSIONS, sessions_table["line"], (" — missing: " + ", ".join(lacking)) if lacking else
+                    " (order or extra columns differ)"))
+            sessions_table = None
+        else:
+            rows = sessions_table["rows"]
+    if sessions_table is not None:
+        done_listed = set()
+        bad = 0
+        for lineno, cells in rows:
+            if len(cells) != len(COLUMNS):
+                fail("%s:%d row has %d cells, the header has %d" % (SESSIONS, lineno, len(cells), len(COLUMNS)))
+                bad += 1
+                continue
+            row = dict(zip(COLUMNS, cells))
+            done_listed.update(re.findall(r"[A-Za-z]+-\d+", row["Done"]))
+            notes = row["Notes"]
+            legacy = "legacy" in notes.lower()
+            try:
+                begin, finish = datetime.fromisoformat(row["Start"]), datetime.fromisoformat(row["End"])
+                if finish < begin:
+                    fail("%s:%d End (%s) is before Start (%s)" % (SESSIONS, lineno, row["End"], row["Start"]))
+                    bad += 1
+            except (ValueError, TypeError):
+                fail("%s:%d Start/End are not ISO timestamps comparable to each other ('%s', '%s')"
+                     % (SESSIONS, lineno, row["Start"], row["End"]))
+                bad += 1
+            est, act, dev = number(row["Est. h"]), number(row["Actual h"]), number(row["Deviation h"])
+            if None in (est, act, dev):
+                fail("%s:%d Est. h / Actual h / Deviation h must be numbers ('%s', '%s', '%s')"
+                     % (SESSIONS, lineno, row["Est. h"], row["Actual h"], row["Deviation h"]))
+                bad += 1
+            elif abs(dev - (act - est)) > 0.05:
+                fail("%s:%d Deviation h is %g; Actual h %g minus Est. h %g is %g"
+                     % (SESSIONS, lineno, dev, act, est, act - est))
+                bad += 1
+            if legacy:
+                continue
+            wall, paused, active = number(row["Wall-clock h"]), number(row["Paused h"]), number(row["Active h"])
+            if None in (wall, paused, active):
+                fail("%s:%d Wall-clock h / Paused h / Active h must be numbers on a non-legacy row ('%s', '%s', '%s')"
+                     % (SESSIONS, lineno, row["Wall-clock h"], row["Paused h"], row["Active h"]))
+                bad += 1
+            elif abs(active - (wall - paused)) > 0.05:
+                fail("%s:%d Active h is %g; Wall-clock h %g minus Paused h %g is %g"
+                     % (SESSIONS, lineno, active, wall, paused, wall - paused))
+                bad += 1
+            left, factor, projected = number(row["Left after h"]), number(row["Pace factor"]), number(row["Projected left h"])
+            reasoned = re.search(r"unavailable|no time plan|no work remains", notes, re.I)
+            if left is None:
+                fail("%s:%d Left after h must be a number on a non-legacy row ('%s')" % (SESSIONS, lineno, row["Left after h"]))
+                bad += 1
+            if (factor is None or projected is None) and not reasoned:
+                fail("%s:%d Pace factor / Projected left h is unavailable ('%s', '%s') and Notes gives no reason"
+                     % (SESSIONS, lineno, row["Pace factor"], row["Projected left h"]))
+                bad += 1
+            if projected is not None and left is not None:
+                if factor is not None and abs(projected - left * factor) > 0.05:
+                    fail("%s:%d Projected left h is %g; Left after h %g x Pace factor %g is %g"
+                         % (SESSIONS, lineno, projected, left, factor, left * factor))
+                    bad += 1
+                elif factor is None and (projected != 0 or left != 0):
+                    fail("%s:%d Projected left h is %g with no Pace factor — only 0 with nothing left is computable"
+                         % (SESSIONS, lineno, projected))
+                    bad += 1
+        if not bad:
+            if rows:
+                ok("%s: %d row(s) — End not before Start, Deviation = Actual - Est., Active = Wall-clock - Paused, "
+                   "projection = Left after x Pace factor (all within 0.05 h)" % (SESSIONS, len(rows)))
+            else:
+                ok("%s: the fifteen-column header is in place and the table has 0 rows, so there is no row "
+                   "arithmetic to check yet (the first row is appended by `scripts/keel-time end`)" % SESSIONS)
+        bad = 0
+        for item in slices:
+            if item.get("status") == "done" and item.get("actual_source") == "measured" and item.get("id") not in done_listed:
+                fail("%s %s is `done` and `measured` but no %s row lists it in its Done column"
+                     % (where(item, "actual_source"), item.get("id"), SESSIONS))
+                bad += 1
+        if not bad:
+            ok("every `done` + `measured` slice is listed in a sessions row's Done column (%d such slices)"
+               % len([i for i in slices if i.get("status") == "done" and i.get("actual_source") == "measured"]))
+    # plan.json: factor and projection from the eligible sample
+    plan_json = read(PLANJSON)
+    if plan_json is None:
+        fail("%s does not exist" % PLANJSON)
+    else:
+        try:
+            plan_data = json.loads(plan_json)
+        except ValueError:
+            plan_data = None
+            fail("%s is not valid JSON" % PLANJSON)
+        if plan_data is not None:
+            eligible = [i for i in slices if i.get("status") == "done" and i.get("actual_source") == "measured"
+                        and is_num(i.get("hours")) and i["hours"] > 0
+                        and is_num(i.get("actual_hours")) and i["actual_hours"] >= 0]
+            factor = (sum(i["actual_hours"] for i in eligible) / sum(i["hours"] for i in eligible)) if eligible else None
+
+            def expected(remaining):
+                if remaining == 0:
+                    return 0.0
+                return None if factor is None else remaining * factor
+
+            def same(got, want, tolerance):
+                if got is None or want is None:
+                    return got is None and want is None
+                return isinstance(got, (int, float)) and abs(got - want) <= tolerance
+
+            bad = 0
+            totals = plan_data.get("totals") or {}
+            remaining = sum(i["hours"] for i in slices if is_num(i.get("hours")) and i.get("status") not in ("done", "dropped"))
+            if "pace_factor" not in totals or "projected_remaining_hours" not in totals:
+                fail("%s totals carry no pace_factor / projected_remaining_hours" % PLANJSON)
+                bad += 1
+            else:
+                if not same(totals["pace_factor"], factor, 1e-5):
+                    fail("%s totals.pace_factor is %s; the %d eligible slices (done, measured, hours > 0) give %s"
+                         % (PLANJSON, totals["pace_factor"], len(eligible), factor))
+                    bad += 1
+                if not same(totals["projected_remaining_hours"], expected(remaining), 1e-3):
+                    fail("%s totals.projected_remaining_hours is %s; remaining %g h x factor %s gives %s"
+                         % (PLANJSON, totals["projected_remaining_hours"], remaining, factor, expected(remaining)))
+                    bad += 1
+                sample = (totals.get("pace_sample") or {}).get("slices")
+                if sample is not None and sample != len(eligible):
+                    fail("%s totals.pace_sample.slices is %s; %d slices are eligible" % (PLANJSON, sample, len(eligible)))
+                    bad += 1
+            for sprint in plan_data.get("sprints") or []:
+                own = [i for i in slices if i["_sprint"] == sprint.get("sprint")]
+                left = sum(i["hours"] for i in own if is_num(i.get("hours")) and i.get("status") not in ("done", "dropped"))
+                if "projected_remaining_hours" in sprint and not same(sprint["projected_remaining_hours"], expected(left), 1e-3):
+                    fail("%s sprint %s projected_remaining_hours is %s; remaining %g h x plan-wide factor %s gives %s"
+                         % (PLANJSON, sprint.get("sprint"), sprint["projected_remaining_hours"], left, factor, expected(left)))
+                    bad += 1
+            if not bad:
+                ok("%s: pace factor %s from %d eligible slice(s), projections %s"
+                   % (PLANJSON, "null" if factor is None else "%.6g" % factor, len(eligible),
+                      "null where work remains (no measured completed work) and 0 where none does" if factor is None
+                      else "equal remaining x factor"))
+    ignore_lines = [l.strip() for l in (read(".gitignore") or "").split("\n")]
+    if "docs/.keel/clock.jsonl" not in ignore_lines and "/docs/.keel/clock.jsonl" not in ignore_lines:
+        fail(".gitignore does not carry docs/.keel/clock.jsonl")
+    elif "docs/.keel/clock.jsonl" in TRACKED:
+        fail("docs/.keel/clock.jsonl is tracked by git although .gitignore lists it — untrack it")
+    else:
+        ok(".gitignore carries docs/.keel/clock.jsonl and the file is not tracked")
+
+# === 25. Test selection ======================================================
+section("Test selection is wired and honest")
+SELECTOR = "scripts/keel-affected-tests"
+selector_text = read(SELECTOR)
+for path in (SELECTOR, ".githooks/pre-push"):
+    if not os.path.isfile(path):
+        fail("%s does not exist" % path)
+    elif not os.access(path, os.X_OK):
+        fail("%s is not executable" % path)
+    else:
+        ok("%s exists and is executable" % path)
+hooks_path = git("config", "--get", "core.hooksPath")[1].strip()
+if hooks_path.rstrip("/") in (".githooks", os.path.join(ROOT, ".githooks")):
+    ok("core.hooksPath is '%s'" % hooks_path)
+else:
+    fail("core.hooksPath is '%s', not .githooks — the pre-push hook never runs (fix: git config core.hooksPath .githooks)"
+         % (hooks_path or "unset"))
+widen_plan = re.search(r"^- \*\*Widening list.*$", plan_text or "", re.M)
+widen_code = re.search(r"WIDEN_FULL=\$\(cat <<'EOF'\n(.*?)\nEOF", selector_text or "", re.S)
+if selector_text is None:
+    pass
+elif not widen_plan:
+    fail("%s: the 'Test selection' section has no 'Widening list' line" % PLAN)
+elif not widen_code:
+    fail("%s: no WIDEN_FULL table found" % SELECTOR)
+else:
+    plan_line = (plan_text or "")[:widen_plan.start()].count("\n") + 1
+    declared = set(re.findall(r"`([^`]+)`", widen_plan.group(0)))
+    coded = set(l.split("|")[0].strip() for l in widen_code.group(1).split("\n") if l.strip())
+    code_lines = "\n".join(code_part(l) for l in selector_text.split("\n"))
+    bad = 0
+    for path in sorted(coded - declared):
+        fail("%s widens on '%s', which %s:%d does not list" % (SELECTOR, path, PLAN, plan_line))
+        bad += 1
+    for path in sorted(declared - coded):
+        if path.endswith("/") and (path + "*)") in code_lines:
+            continue
+        fail("%s:%d lists '%s' in the widening list, which %s does not widen on" % (PLAN, plan_line, path, SELECTOR))
+        bad += 1
+    if not bad:
+        ok("the selector's widening list matches the technical plan's (%d paths)" % len(declared))
+if tp_table is None or column(tp_table["header"], "Evidence") is None:
+    na("%s has no test-point table with an Evidence column — no `scope:` line to look for" % TESTPOINTS)
+else:
+    evidence = column(tp_table["header"], "Evidence")
+    red = column(tp_table["header"], "Red first")
+    bad, legacy = 0, []
+    for lineno, cells in tp_table.get("good", []):
+        if "scope:" in cells[evidence]:
+            continue
+        if red is not None and cells[red].strip("` ") == RED[3]:
+            legacy.append(lineno)
+            continue
+        fail("%s:%d the Evidence cell carries no `scope:` line" % (TESTPOINTS, lineno))
+        bad += 1
+    if not bad:
+        ok("every test-point row written since the selector exists carries its `scope:` line (%d rows)"
+           % (len(tp_table.get("good", [])) - len(legacy)))
+    if legacy:
+        info("%d row(s) marked `n/a %s predates` carry no `scope:` line — they were recorded before the "
+             "selector existed (lines %s)" % (len(legacy), DASH, ", ".join(str(n) for n in legacy)))
+if selector_text is not None:
+    tmp = tempfile.mkdtemp(prefix="keel-verify-sel.")
+    try:
+        env = dict((k, v) for k, v in os.environ.items() if not k.startswith("GIT_"))
+        clone = os.path.join(tmp, "repo")
+        rc, _, err = run(["git", "clone", "-q", "--shared", ROOT, clone], env=env)
+        if rc != 0:
+            fail("the synthetic check could not build its throwaway repository: %s" % err.strip()[:160])
+        else:
+            shutil.copyfile(SELECTOR, os.path.join(clone, SELECTOR))
+            if run(["git", "status", "--porcelain"], cwd=clone, env=env)[1].strip():
+                run(["git", "-c", "user.name=keel-verify", "-c", "user.email=keel-verify@localhost", "commit", "-q",
+                     "-a", "-m", "selector under test"], cwd=clone, env=env)
+            synthetic = "includes/keel-verify-synthetic-source-no-test-covers.php"
+            if not os.path.isdir(os.path.join(clone, "includes")):
+                os.makedirs(os.path.join(clone, "includes"))
+            with open(os.path.join(clone, synthetic), "w") as handle:
+                handle.write("<?php\n// synthetic source file: no test covers it\n")
+            rc, out, err = run(["/bin/bash", SELECTOR, "--base", "HEAD"], cwd=clone, env=env)
+            scope = next((l for l in out.split("\n") if l.startswith("scope:")), "")
+            count = re.search(r"(\d+) of \d+ tests", scope)
+            if rc != 0:
+                ok("synthetic uncovered source file: the selector FAILED (exit %d) rather than select nothing" % rc)
+            elif count and int(count.group(1)) > 0 and "widened" in scope:
+                ok("synthetic uncovered source file: the selector widened — %s" % scope)
+            else:
+                fail("synthetic uncovered source file (%s): the selector exited 0 without widening — '%s'"
+                     % (synthetic, scope or out.strip().split("\n")[-1][:160]))
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+# === 26. Tool registry =======================================================
+section("The tool registry is data, complete, and nowhere else")
+TOOLS_DIR = "scripts/keel-tools"
+FIELDS = ["KEEL_TOOL_NAME", "KEEL_TOOL_EVIDENCE", "KEEL_TOOL_VERIFIED_ON", "KEEL_TOOL_TIER", "KEEL_TOOL_CLI",
+          "KEEL_TOOL_PASS_MODEL", "KEEL_TOOL_STOP_HOOK", "KEEL_TOOL_HOOK_FILE", "KEEL_TOOL_LIVE_QUERY"]
+FUNCTIONS = ["keel_tool_detect", "keel_tool_launch"]
+chaining = (card("Chaining") or "").split()[0:1]
+chaining = chaining[0].strip("`") if chaining else ""
+tools_match = re.search(r"\(tools:\s*([^)]+)\)", card("Assistant config") or "")
+card_tools = [t.strip(" `") for t in re.split(r"[,/]", tools_match.group(1))] if tools_match else []
+if not os.path.isdir(TOOLS_DIR) and chaining in ("off", "supervised"):
+    na("the card says `Chaining: %s` and %s/ does not exist — this project generates no registry" % (chaining, TOOLS_DIR))
+elif not os.path.isdir(TOOLS_DIR):
+    fail("%s/ does not exist although the card says `Chaining: %s`" % (TOOLS_DIR, chaining or "?"))
+elif not card_tools:
+    fail("%s: the card's `Assistant config:` line names no tools list `(tools: ...)`" % PROGRESS)
+else:
+    rows = {}
+    for tool in card_tools:
+        path = "%s/%s.sh" % (TOOLS_DIR, tool)
+        if os.path.isfile(path):
+            ok("accepted tool '%s' has its row file %s" % (tool, path))
+            rows[tool] = path
+        else:
+            fail("accepted tool '%s' (card `Assistant config:`) has no row file %s" % (tool, path))
+    for path in sorted(glob.glob(TOOLS_DIR + "/*.sh")):
+        rows.setdefault(os.path.basename(path)[:-3], path)
+    names = set(card_tools)
+    for tool, path in sorted(rows.items()):
+        text = read(path) or ""
+        values, where_set = {}, {}
+        for lineno, line in enumerate(text.split("\n"), 1):
+            match = re.match(r"^(KEEL_TOOL_[A-Z_]+)=(.*)$", line)
+            if match:
+                value = code_part(match.group(2)).strip()
+                if len(value) > 1 and value[0] == value[-1] and value[0] in "'\"":
+                    value = value[1:-1]
+                values[match.group(1)] = value
+                where_set[match.group(1)] = lineno
+        lacking = [f for f in FIELDS if f not in values]
+        lacking += [f + "()" for f in FUNCTIONS if not re.search(r"^%s\s*\(\)" % f, text, re.M)]
+        if lacking:
+            fail("%s is an unfinished row — it does not declare: %s" % (path, ", ".join(lacking)))
+        else:
+            ok("%s declares all %d fields and both functions" % (path, len(FIELDS)))
+        if values.get("KEEL_TOOL_NAME"):
+            names.add(values["KEEL_TOOL_NAME"])
+            if values["KEEL_TOOL_NAME"] != tool:
+                fail("%s:%d KEEL_TOOL_NAME is '%s' but the file is named for '%s'"
+                     % (path, where_set["KEEL_TOOL_NAME"], values["KEEL_TOOL_NAME"], tool))
+        if "KEEL_TOOL_STOP_HOOK" in values and "KEEL_TOOL_HOOK_FILE" in values:
+            stop, hook_file = values["KEEL_TOOL_STOP_HOOK"], values["KEEL_TOOL_HOOK_FILE"]
+            registered = bool(hook_file) and "scripts/keel-stop-hook" in (read(hook_file) or "")
+            if stop not in ("yes", "no"):
+                fail("%s:%d KEEL_TOOL_STOP_HOOK is '%s' — it must be yes or no"
+                     % (path, where_set["KEEL_TOOL_STOP_HOOK"], stop))
+            elif stop == "no" and registered:
+                fail("%s registers scripts/keel-stop-hook, but %s:%d says KEEL_TOOL_STOP_HOOK=\"no\". Remedy: "
+                     "REMOVE the registration from %s — never change the hook's output, which would break the "
+                     "integration that is already proven in the tool whose row says yes"
+                     % (hook_file, path, where_set["KEEL_TOOL_STOP_HOOK"], hook_file))
+            elif stop == "yes" and not registered:
+                fail("%s:%d says KEEL_TOOL_STOP_HOOK=\"yes\" but %s %s. Remedy: register the hook in that file — "
+                     "or, if this tool's turn-end schema is not the hook's own, set the row to \"no\"; never "
+                     "change the hook's output"
+                     % (path, where_set["KEEL_TOOL_STOP_HOOK"], hook_file or "(KEEL_TOOL_HOOK_FILE is empty)",
+                        "does not mention scripts/keel-stop-hook" if os.path.isfile(hook_file or "")
+                        else "does not exist"))
+            else:
+                ok("%s: KEEL_TOOL_STOP_HOOK=\"%s\" and %s %s scripts/keel-stop-hook"
+                   % (path, stop, hook_file or "(no hook file)", "mentions" if registered else "does not mention"))
+    shared = sorted(p for p in glob.glob("scripts/keel-*") if os.path.isfile(p))
+    bad = 0
+    for path in shared:
+        for lineno, line in enumerate((read(path) or "").split("\n"), 1):
+            code = code_part(line).lower()
+            for name in sorted(names):
+                if name and name.lower() in code:
+                    fail("%s:%d names the tool '%s' outside a comment — a tool's facts belong in %s/%s.sh: %s"
+                         % (path, lineno, name, TOOLS_DIR, name, line.strip()[:90]))
+                    bad += 1
+    if not bad:
+        ok("no shared scripts/keel-* names a registry tool (%s) outside a comment (%d scripts)"
+           % (", ".join(sorted(names)), len(shared)))
+
+# === 27. Suppression count ===================================================
+section("Suppression count")
+SUPPRESS = re.compile(r"phpcs:(?:ignore|disable)|@codingStandardsIgnore|eslint-disable|@SuppressWarnings|#\s*noqa\b"
+                      r"|@phpstan-ignore|stylelint-disable")
+count, per_file = 0, 0
+for path in TRACKED:
+    if not path.endswith((".php", ".js", ".jsx", ".ts", ".tsx", ".css", ".scss")):
+        continue
+    if path.startswith(("docs/", "vendor/", "node_modules/")) or "/skills/keel/" in path:
+        continue
+    hits = len(SUPPRESS.findall(read(path) or ""))
+    count += hits
+    per_file += 1 if hits else 0
+previous = None
+for path in sprint_files:
+    for match in re.finditer(r"(?i)suppression count[^0-9\n]*(\d+)", read(path) or ""):
+        previous = (int(match.group(1)), path)
+if previous is None:
+    info("suppression count: %d in %d tracked source files; no count is recorded at a previous sprint close, so "
+         "there is nothing to compare — record `Suppression count: %d` in the sprint file at this close"
+         % (count, per_file, count))
+elif count > previous[0]:
+    info("suppression count GREW: %d now, %d recorded in %s — to be justified at the sprint close"
+         % (count, previous[0], previous[1]))
+else:
+    info("suppression count: %d now, %d recorded in %s — did not grow" % (count, previous[0], previous[1]))
+ok("suppression count reported (%d); growth is a number to justify, never an automatic failure" % count)
+
+flush()
+sys.exit(1 if STATE["failed"] else 0)
+KEEL_PY
+	[ $? -eq 0 ] || FAIL=1
+fi
+
 echo
-if [ "$FAIL" -eq 0 ]; then
+echo "== Summary =="
+N_FAIL=0
+N_NA=0
+while IFS='|' read -r num title verdict; do
+	printf '%-13s %2s. %s\n' "$verdict" "$num" "$title"
+	case "$verdict" in
+		FAIL) N_FAIL=$((N_FAIL + 1)) ;;
+		*N/A*) N_NA=$((N_NA + 1)) ;;
+	esac
+done < "$SUMMARY"
+
+echo
+if [ "$FAIL" -eq 0 ] && [ "$N_NA" -eq 0 ]; then
 	echo "keel-verify: ALL CHECKS PASSED"
 	exit 0
+elif [ "$FAIL" -eq 0 ]; then
+	echo "keel-verify: NO FAILURES — $N_NA check(s) not yet applicable in whole or in part (see N/A lines above; N/A is not a pass)"
+	exit 0
 else
-	echo "keel-verify: FAILURES FOUND (see FAIL lines above)"
+	echo "keel-verify: FAILURES FOUND in $N_FAIL check(s) (see FAIL lines above)"
 	exit 1
 fi

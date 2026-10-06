@@ -332,3 +332,26 @@
 - Documentation found stale and not owned by S-025: `docs/architecture.md` (claims no automated suite; describes the notification as a browser redirect; says a match marks the order `completed`), and `docs/02-functional-spec.md` F2's claim about issue #10. Corrected in S-026.
 - Why not now: the user ordered a reconciliation of the Keel scaffolding. Fixing payment code on an unreproduced reading, inside a scaffolding change, is exactly the scope widening "When to stop and ask" forbids for anything that looks like a security problem.
 - Supersedes: none.
+
+## D-042 — The Redsys generic test signing key is public and may stay in the repository; the gate recognises it by hash
+- Date / phase: 2026-10-06 / post-update reconciliation, slice S-024
+- Decision: the new confidential-data gate (`.githooks/pre-commit`) flagged one value in three tracked files — `classes/class-wc-gateway-bizum-redsys.php:288`, `classes/class-wc-gateway-googlepay-redirection-redsys.php:201` and `docs/playground.md`. The user confirmed it is the generic demonstration signing key Redsys publishes for its test merchant (the one paired with merchant code 999008881), not a credential of any real merchant. It stays where it is. The gate carries the SHA-256 of that exact value and drops a match only when the matched token hashes to it; the value itself is not written into the gate, and any other key still blocks the commit.
+- Why: the value is already in the released plugin and in pushed history, and it is public by design; blocking every commit that touches those files, or bypassing the gate each time, would train the habit of bypassing it.
+- Verified: the whole-tree scan (`.githooks/pre-commit --scan-tree`) reported three hits before the exception and none after it.
+- Alternatives rejected: removing the key from `docs/playground.md` only; leaving the gate strict and bypassing it per commit.
+- Not the same thing as D-025 or D-041 item 5, which concern a MERCHANT's real secret persisted to order meta or written to debug logs. Those stay open.
+- Supersedes: none.
+
+## D-043 — Committed Claude Code settings confirmed; subagent model map
+- Date / phase: 2026-10-06 / post-update reconciliation, slice S-024
+- Decision: (1) the user confirmed the committed `.claude/settings.json`: an allow-list limited to starting and stopping the playground, running the three test suites, `npm run build`, the read-and-verify `scripts/keel-*` commands, the tree scan of the gate and edits under `tests/`, plus the registration of `scripts/keel-stop-hook` as the `Stop` hook. Deliberately absent: `keel-doctor --fix`, the playground reset, any `gh` command, any git write. (2) The machine-local `.claude/settings.local.json` `env.PATH` gained `/usr/sbin`, `/sbin` and the nvm Node directory, all written as literal absolute paths. (3) Subagents use Keel's default map — reviewer and security auditor on `sonnet`, the mechanical agents (docs verifier, playground QA, test driver, accessibility auditor) on `haiku` — chosen by the user over `opus / sonnet` and all-`opus`.
+- Why: committed permissions bind everyone who opens the repository, so they are confirmed by name; the PATH lacked the system directories the chain check requires and the Node the test tooling needs.
+- Supersedes: none. Completes D-039.
+
+## D-044 — The playground does not build today; restoring it is slice S-036 and the test-dependent slices wait on it
+- Date / phase: 2026-10-06 / post-update reconciliation
+- Decision: the automated suites could NOT be run during the reconciliation. `npx wp-env start` fails on the pinned PHP 7.4 image (Debian bullseye package fetches return 404), and a diagnostic PHP 8.1 override got further but did not yield a working site (L-007). The diagnostic override was removed and the half-started environment stopped; `.wp-env.json` is unchanged. Restoring the playground is slice S-036, and S-027, S-029, S-032 and S-035 depend on it.
+- Consequence, stated plainly: nothing in this reconciliation was verified by running the plugin's test suites. The reconciliation changes no product code; its one edit to a test-runner file (`playwright.config.js`, the worker count read from `PW_WORKERS` with the same default of 1) is unexercised.
+- Why not fix it now: the realistic fix moves the playground off PHP 7.4, which reverses a recorded pin and changes what "tested on" means for the next release. That is a decision, not a repair.
+- Not checked: whether an older `@wordpress/env` release, a pinned image digest, or pointing apt at Debian's archive mirror would let the PHP 7.4 image build unchanged; none of the three was tried.
+- Supersedes: none.

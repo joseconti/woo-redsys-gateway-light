@@ -58,6 +58,24 @@ skipped() {
 
 blob() { git show ":$1" 2>/dev/null; }
 
+# Values the user confirmed, on the record, are public and safe to commit
+# (docs/decisions.md D-042). Each is identified by the SHA-256 of the value,
+# so the gate never carries the value itself. One hash per line.
+safe_sha256='009dec741715adaa731d5383fad6624065f5d1ff88a0f176defd4174956007d0'
+
+# Reads "line:match" rows and drops those whose credential-shaped token is one
+# of the recorded safe values. Everything else passes through untouched.
+drop_known_safe() {
+  while IFS= read -r row; do
+    tok=$(printf '%s' "$row" | LC_ALL=C grep -Eao '[A-Za-z0-9+/=]{20,}' | tail -n 1)
+    if [ -n "$tok" ]; then
+      sum=$(printf '%s' "$tok" | shasum -a 256 | cut -d' ' -f1)
+      case "$safe_sha256" in *"$sum"*) continue ;; esac
+    fi
+    printf '%s\n' "$row"
+  done
+}
+
 # first_hit <file> <extended regex> [case-insensitive: i]
 # Prints the line number of the first non-placeholder match, or nothing.
 first_hit() {
@@ -123,7 +141,7 @@ for f in $files; do
       blob "$f" | LC_ALL=C grep -Eanoi -e "$assign_quoted" | LC_ALL=C grep -Ea -e "$value_quoted"
       blob "$f" | LC_ALL=C grep -Eano -e "$assign_define" | LC_ALL=C grep -Ea -e "$value_quoted"
       blob "$f" | LC_ALL=C grep -Eanoi -e "$assign_bare" | LC_ALL=C grep -Ea -e "$value_bare"
-    } | LC_ALL=C grep -Eaiv -e "$placeholder" | head -n 1 | cut -d: -f1
+    } | LC_ALL=C grep -Eaiv -e "$placeholder" | drop_known_safe | head -n 1 | cut -d: -f1
   )
   [ -n "$n" ] && report "$f" "$n" 'a hardcoded credential (key, secret, password or token assigned a literal value)'
 done
