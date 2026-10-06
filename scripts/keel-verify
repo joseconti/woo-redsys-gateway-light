@@ -34,7 +34,7 @@
 #    9. No placeholder copy in distributable surfaces (readme.txt, UI strings).
 #   10. i18n dry run (`wp i18n make-pot` into a temp dir): no user-facing
 #       string outside the project's text domain.
-#   11. Minified-asset sync — N/A until minification is adopted (D-038, S-027).
+#   11. Minified-asset sync — every CSS/JS source has a minified pair, and a rebuild reproduces them (D-054).
 #   12. Cited commands exist (scripts, hooks, npm and composer scripts named in
 #       the root *.md files and docs/).
 #   13. No orphan document under docs/.
@@ -660,17 +660,51 @@ else:
 
 # === 11. Minified-asset sync =================================================
 section("Minified-asset sync")
-minified = [p for p in TRACKED if re.search(r"\.min\.(css|js)$", p)]
-if minified:
-    fail("%d minified file(s) are tracked (%s ...) but this check has no minify command to compare them "
-         "against — extend check 11 with the build command the minification slice introduced"
-         % (len(minified), minified[0]))
-elif "D-038" in DECISION_IDS:
-    na("minification is not adopted yet: D-038 schedules it as slice S-027, and no `name.min.css` / "
-       "`name.min.js` exists in the tree — nothing to compare")
+# D-054 (S-027): every shipped stylesheet and script is a source plus a minified
+# file built from it. The pair is checked by rebuilding, never by reading dates.
+css_sources = [p for p in TRACKED if re.match(r"assets/css/[^/]+\.css$", p) and not p.endswith(".min.css")]
+js_sources = [p for p in TRACKED if re.match(r"assets/js/.+\.js$", p) and not p.endswith(".min.js")]
+pairs_missing = [p for p in css_sources + js_sources
+                 if re.sub(r"\.(css|js)$", r".min.\1", p) not in TRACKED]
+if pairs_missing:
+    fail("no tracked minified pair for: %s — run `npm run build:assets` and commit the output"
+         % ", ".join(pairs_missing))
 else:
-    fail("the plugin ships front-end CSS/JS with no minified pair and docs/decisions.md records no decision "
-         "about it (D-038 not found)")
+    ok("%d stylesheet(s) and %d script(s) each have a tracked minified pair" % (len(css_sources), len(js_sources)))
+if not os.path.isdir("node_modules/cssnano") or not os.path.isdir("node_modules/@wordpress/scripts"):
+    na("minified files cannot be compared with a rebuild: node_modules is not installed (`npm ci`) — "
+       "the pairs exist, their freshness is not checked on this machine")
+else:
+    rc, out, err = run(["node", "bin/build-assets.js", "--check"])
+    if rc == 0:
+        ok("CSS: %s" % out.strip().splitlines()[-1])
+    else:
+        fail("CSS: %s" % (err.strip() or out.strip()))
+    tmp = tempfile.mkdtemp(prefix="keel-verify-js-")
+    try:
+        env = dict(os.environ)
+        # The current toolchain's md4 hash needs this on Node 17+ (D-050); S-039 removes the need.
+        env["NODE_OPTIONS"] = (env.get("NODE_OPTIONS", "") + " --openssl-legacy-provider").strip()
+        rc, out, err = run(["npx", "wp-scripts", "build", "--output-path", tmp], env=env)
+        if rc != 0:
+            fail("JS: `wp-scripts build` failed, so the built scripts cannot be compared with their source: %s"
+                 % (err.strip() or out.strip()).splitlines()[-1])
+        else:
+            built = sorted(p for p in TRACKED if re.match(r"assets/js/.+\.(js|asset\.php)$", p))
+            fresh = sorted("assets/js/" + os.path.relpath(os.path.join(d, f), tmp).replace(os.sep, "/")
+                           for d, _, files in os.walk(tmp) for f in files)
+            stale = [p for p in built
+                     if read(os.path.join(tmp, p[len("assets/js/"):])) != read(p)]
+            untracked = [p for p in fresh if p not in TRACKED]
+            if untracked:
+                fail("JS: the build writes %s, which is not tracked — a deleted or never committed build file "
+                     "breaks the script's registration" % ", ".join(untracked))
+            if stale:
+                fail("JS: out of sync with resources/js: %s — run `npm run build:assets`" % ", ".join(stale))
+            else:
+                ok("JS: %d built file(s) identical to a fresh build of resources/js" % len(built))
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 # === 12. Cited commands exist ================================================
 section("Cited commands exist")

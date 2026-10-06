@@ -60,7 +60,7 @@ No custom capabilities defined. Settings screens rely on WooCommerce's own admin
 | Signature/security-relevant change (anything touching `RedsysLiteAPI` or a notification handler) | the class itself, a regression test if the test suite exists by then, `readme.txt` changelog (security fixes are historically called out explicitly), `docs/threat-model.md` control state, `docs/lessons-learned.md` if it fixes a real incident |
 | Version bump | `woocommerce-redsys.php` header `Version:` + `REDSYS_WOOCOMMERCE_VERSION` constant, `readme.txt` `Stable tag:` + changelog entry, `package.json` `version` (checked by `scripts/keel-verify` since D-050) |
 | Translation-affecting change (new/changed user-facing string) | wrap in `__()`/`_e()` family with the `woo-redsys-gateway-light` text domain, regenerate `.pot` (`npm run i18n:pot`), `languages/` `.po`/`.mo`/`.json` for `es_ES` |
-| Front-end JS/CSS change | edit the source (`resources/js/frontend/index.js`), rebuild via `npm run build` (regenerates `assets/js/frontend/blocks.js` + `.asset.php`) — no minified-CSS pairing exists yet, see the build-assets gap in `docs/04-adoption-audit.md` |
+| Front-end JS/CSS change | edit the source (`resources/js/frontend/index.js`, or the readable `assets/css/<name>.css`) — never a `.min` file or `blocks.js`; rebuild with `npm run build:assets` (regenerates `blocks.js`, `blocks.min.js`, both `.asset.php` files and every `.min.css`); commit source and output together; `scripts/keel-verify` check 11 must pass |
 
 ## Flows index
 One file per multi-step or branching journey, written from the code as built:

@@ -48,4 +48,4 @@ No custom tables. All state lives in WooCommerce's own `wp_options` (gateway set
 See `docs/api/INDEX.md` for the full list of actions/filters this plugin exposes to third-party code (per-gateway `_standard_ipn_request` actions, `_args`/`_icon` filters, plus the internal upsell-widget filters).
 
 ## Known architectural gaps
-See `docs/04-adoption-audit.md` for the full gap audit; the one headline gap still open is the CSS minification pipeline, scheduled as slice S-027 (D-038). The automated suite (PHPUnit unit and integration, Playwright e2e), `## Environment requirements`, `scripts/keel-doctor` and `scripts/keel-verify` have since been built.
+See `docs/04-adoption-audit.md` for the full gap audit; the CSS minification gap it lists was closed in slice S-027 (D-054): every stylesheet and script now ships as a source plus a minified pair. The automated suite (PHPUnit unit and integration, Playwright e2e), `## Environment requirements`, `scripts/keel-doctor` and `scripts/keel-verify` have since been built.

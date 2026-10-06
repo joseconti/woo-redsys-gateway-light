@@ -1,5 +1,6 @@
 const defaultConfig = require('@wordpress/scripts/config/webpack.config');
 const WooCommerceDependencyExtractionWebpackPlugin = require('@woocommerce/dependency-extraction-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const path = require('path');
 
 const wcDepMap = {
@@ -27,8 +28,23 @@ const requestToHandle = (request) => {
 // Export configuration.
 module.exports = {
 	...defaultConfig,
+	// One source, two outputs: `blocks.js` is the readable build WordPress
+	// serves under SCRIPT_DEBUG, `blocks.min.js` is what production loads.
 	entry: {
 		'frontend/blocks': '/resources/js/frontend/index.js',
+		'frontend/blocks.min': '/resources/js/frontend/index.js',
+	},
+	optimization: {
+		...defaultConfig.optimization,
+		minimizer: [
+			// The default minimizer's own settings, applied to the `.min` output only.
+			new TerserPlugin({
+				test: /\.min\.js$/,
+				parallel: true,
+				extractComments: false,
+				terserOptions: defaultConfig.optimization.minimizer[0].options.minimizer.options,
+			}),
+		],
 	},
 	output: {
 		path: path.resolve( __dirname, 'assets/js' ),

@@ -58,7 +58,7 @@ The manifest's Table 1 carries no row ids; `T1-nn` is the row's position in the 
 | T1-39 | `scripts/keel-affected-tests` | present | Executable; base, head, run and full options; prints one scope line; linter check 25 OK |
 | T1-40 | `.githooks/pre-push` + `core.hooksPath` set | present | Hook executable; hooks path reads .githooks; skips tags and deletions |
 | T1-41 | `scripts/keel-doctor` | present | Executable; ran in check mode in this sweep; compiled from the plan's environment-requirements section |
-| T1-42 | Build/minify script for the shipped CSS/JS | missing | Scheduled S-027 (D-038). No minified pair and no minify script in the tree; linter check 11 is not applicable until then |
+| T1-42 | Build/minify script for the shipped CSS/JS | present | `bin/build-assets.js` (CSS) and `webpack.config.js` (Blocks script, readable and minified); `npm run build:assets`; linter check 11 compares against a rebuild (D-054, S-027) |
 | T1-43 | `scripts/keel-handoff-verify` | present | Executable; allow-list entry present in both settings files (chain check row 4) |
 | T1-44 | Single-lane lock | present | Outside the repository, under the state directory's keel-locks folder; chain check row 9 OK (reachable, held by the live session) |
 | T1-45 | `scripts/keel-tools/claude.sh` (one row per accepted assistant) | present | All nine fields plus detect and launch functions (linter check 26); the only accepted tool is claude |
@@ -335,14 +335,14 @@ Counted from the tables above.
 
 | Table | present | missing | declined | n/a | Rows |
 |---|---|---|---|---|---|
-| Table 1 — paths (T1-01…T1-78) | 50 | 2 | 3 | 23 | 78 |
+| Table 1 — paths (T1-01…T1-78) | 51 | 1 | 3 | 23 | 78 |
 | Table 1 — card lines (T1-C01…T1-C17) | 15 | 0 | 0 | 2 | 17 |
-| Table 1 — total | 65 | 2 | 3 | 25 | 95 |
+| Table 1 — total | 66 | 1 | 3 | 25 | 95 |
 | Table 3 — v5.10.0…v6.5.0 | 71 | 3 | 1 | 32 | 107 |
 
 ## Still missing, with the decision that schedules it
 
-- T1-42 — front-end minification: S-027 (D-038).
+
 - T1-61 — accessibility passes: S-029 and S-030 (sprint 3, D-040; S-029 waits on S-036, D-044).
 - T3-5.15.1-5 — the Stop hook observed after a full session restart: S-037 (D-048).
 - T3-6.0.0-4e — a real selection through the pre-push hook: S-037 after S-036 (D-044, D-048).

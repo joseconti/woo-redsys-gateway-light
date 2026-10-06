@@ -49,10 +49,12 @@ The repository is the plugin directory itself.
 git clone https://github.com/joseconti/woo-redsys-gateway-light.git
 cd woo-redsys-gateway-light
 npm install        # build and test tooling
-npm run build      # rebuilds assets/js/frontend/blocks.js from resources/js/frontend/index.js, then the translations
+npm run build:assets   # rebuilds the Blocks script (readable and minified) and the minified stylesheets
+npm run build      # the same, then the translations
 ```
 
-- `npm run build` runs `wp-scripts build` and then `npm run i18n:build`, which needs WP-CLI on the path (`package.json`).
+- `npm run build` runs `npm run build:assets` and then `npm run i18n:build`, which needs WP-CLI on the path (`package.json`).
+- The plugin loads the minified stylesheets and script. Set `SCRIPT_DEBUG` to `true` in `wp-config.php` to load the readable files instead.
 - PHP test dependencies are installed with Composer inside the playground container; the exact commands are in `docs/03-technical-plan.md` (Testing) and `docs/playground.md`.
 - To run the plugin locally, use the playground: `npx wp-env start` (`docs/playground.md`).
 

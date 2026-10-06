@@ -69,8 +69,8 @@ final class WC_Gateway_Inespay_Lite_Support extends AbstractPaymentMethodType {
 	 * @return array
 	 */
 	public function get_payment_method_script_handles() {
-		$script_path       = '/assets/js/frontend/blocks.js';
-		$script_asset_path = plugin_abspath_redsys() . 'assets/js/frontend/blocks.asset.php';
+		$script_path       = '/assets/js/frontend/blocks' . redsyslite_asset_suffix() . '.js';
+		$script_asset_path = plugin_abspath_redsys() . 'assets/js/frontend/blocks' . redsyslite_asset_suffix() . '.asset.php';
 		$script_asset      = file_exists( $script_asset_path )
 			? require $script_asset_path
 			: array(

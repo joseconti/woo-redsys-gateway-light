@@ -44,6 +44,14 @@ if ( function_exists( 'WCPSD2L' ) ) {
 }
 ```
 
+### `redsyslite_asset_suffix()`
+- **Signature:** `redsyslite_asset_suffix(): string` (`woocommerce-redsys.php`). Available as soon as the plugin file is loaded.
+- **What it does:** returns `'.min'`, or `''` when the constant `SCRIPT_DEBUG` is defined and true. Every stylesheet and script the plugin enqueues is named through it, so production loads the minified file and a debugging site loads the readable one.
+
+```php
+wp_enqueue_style( 'my-handle', REDSYS_PLUGIN_URL . 'assets/css/redsys-css' . redsyslite_asset_suffix() . '.css', array(), REDSYS_WOOCOMMERCE_VERSION );
+```
+
 ### `plugin_abspath_redsys()` and `plugin_url_redsys()` — after WooCommerce
 - **Signatures:** `plugin_abspath_redsys(): string` (`woocommerce-redsys.php:325`) — the plugin directory path with a trailing slash; `plugin_url_redsys(): string` (`:331`) — the plugin URL without a trailing slash.
 - **Used by:** the Blocks integrations, to locate `assets/js/frontend/blocks.js` and `languages/`.

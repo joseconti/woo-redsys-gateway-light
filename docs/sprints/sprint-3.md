@@ -14,10 +14,10 @@ slices:
     criteria: []
   - id: S-027
     title: CSS/JS source plus minified pairs, build script, SCRIPT_DEBUG-aware enqueue
-    status: not-started
+    status: done
     hours: 1.5
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.1189
+    actual_source: measured
     depends_on: [S-036]
     criteria: []
   - id: S-028
@@ -104,3 +104,4 @@ slices:
 - S-036 (done 2026-10-06, D-051, L-008): playground rebuilt from nothing on `@wordpress/env` 11 with PHP 7.4 unchanged; setup scripted in `scripts/playground-setup`; automatic updater off; whole suite green, 49 of 49. The S-031 commit was pushed with it, through the pre-push hook.
 - S-035 (done 2026-10-06, D-052): the six candidate defects reproduced from failing tests and fixed, plus two the tests uncovered; 20 new tests; `AC-24`, `AC-33` revised and bound, `AC-58` to `AC-61` added. Two visible behaviour changes for the release notes: Google Pay is now offered in test mode, and a Bizum total equal to the limit is allowed.
 - S-038 (done 2026-10-06, D-053): issue 112 reproduced in both halves and fixed — the cancel URL sent to Redsys is a plain URL, and a return to an order Redsys already cancelled shows WooCommerce's cancelled notice instead of an error. 11 integration tests and one e2e spec; `AC-62`, `AC-63` added. The way the second half was solved is the assistant's choice and is to be confirmed by the user before the release. S-042 deferred.
+- S-027 (done 2026-10-06, D-054): every stylesheet and the Blocks script ship as a source plus a minified pair; production loads the minified file, `SCRIPT_DEBUG` the readable one. The minified script is byte-identical to the one shipped today. Linter check 11 now compares against a rebuild. Conformance row T1-42 is `present`.

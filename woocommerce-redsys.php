@@ -42,6 +42,19 @@ if ( ! defined( 'REDSYS_PLUGIN_CLASS_PATH' ) ) {
 	define( 'REDSYS_PLUGIN_CLASS_PATH', REDSYS_PLUGIN_PATH . 'classes/' );
 }
 
+/**
+ * Suffix of the stylesheet or script file to load.
+ *
+ * Every shipped stylesheet and script exists as a readable source and a
+ * minified file built from it. Production loads the minified one; with
+ * WordPress's SCRIPT_DEBUG on, the readable one is served instead.
+ *
+ * @return string '.min', or '' when SCRIPT_DEBUG is on.
+ */
+function redsyslite_asset_suffix() {
+	return ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
+}
+
 add_action( 'plugins_loaded', 'redsys_language_init', 10 );
 add_action( 'woocommerce_loaded', 'woocommerce_gateway_redsys_init', 11 );
 
@@ -87,7 +100,7 @@ function redsys_styles_css( $hook ) {
 	if ( $redsys_about !== $hook ) {
 		return;
 	} else {
-		wp_register_style( 'aboutRedsys', REDSYS_PLUGIN_URL . 'assets/css/welcome.css', array(), '1.2.0' );
+		wp_register_style( 'aboutRedsys', REDSYS_PLUGIN_URL . 'assets/css/welcome' . redsyslite_asset_suffix() . '.css', array(), '1.2.0' );
 		wp_enqueue_style( 'aboutRedsys' );
 	}
 }
@@ -128,7 +141,7 @@ function redsys_css_lite() {
 	$current_screen = get_current_screen();
 
 	if ( 'woocommerce_page_wc-settings' === $current_screen->id ) {
-		wp_register_style( 'redsys-css', plugins_url( 'assets/css/redsys-css.css', __FILE__ ), array(), REDSYS_WOOCOMMERCE_VERSION );
+		wp_register_style( 'redsys-css', plugins_url( 'assets/css/redsys-css' . redsyslite_asset_suffix() . '.css', __FILE__ ), array(), REDSYS_WOOCOMMERCE_VERSION );
 		wp_enqueue_style( 'redsys-css' );
 	}
 }
@@ -258,7 +271,7 @@ function woocommerce_gateway_redsys_init() {
 	 * Redsys notice CSS.
 	 */
 	function redsys_lite_notice_style() {
-		wp_register_style( 'redsys_notice_css', REDSYS_PLUGIN_URL . 'assets/css/redsys-notice.css', false, REDSYS_WOOCOMMERCE_VERSION );
+		wp_register_style( 'redsys_notice_css', REDSYS_PLUGIN_URL . 'assets/css/redsys-notice' . redsyslite_asset_suffix() . '.css', false, REDSYS_WOOCOMMERCE_VERSION );
 		wp_enqueue_style( 'redsys_notice_css' );
 	}
 	add_action( 'admin_enqueue_scripts', 'redsys_lite_notice_style' );

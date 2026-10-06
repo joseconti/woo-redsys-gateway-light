@@ -31,12 +31,15 @@ includes/
   data/                                                    [E] static reference tables (currencies, countries, error codes, status maps)
   blocks/                                                  [E] one *-support.php per gateway for WooCommerce Blocks checkout
 assets/
-  css/redsys-css.css, redsys-notice.css, welcome.css       [E] hand-written, unminified — no minified pairs exist [gap, see audit]
+  css/redsys-css.css, redsys-notice.css, welcome.css       [E] hand-written SOURCE, the only CSS files edited
+  css/*.min.css                                             [G] minified pair of each stylesheet — `npm run build:css` (bin/build-assets.js); loaded unless SCRIPT_DEBUG
   images/                                                   [E] payment logos (bizum.png, GPay.svg, GPay-peque.svg, inespay.svg, ...)
-  js/frontend/blocks.js + blocks.asset.php                 [G] webpack build output — regenerated from resources/js/frontend/index.js via `npm run build`
+  js/frontend/blocks.js + blocks.asset.php                 [G] webpack build output, readable — served under SCRIPT_DEBUG; regenerated from resources/js/frontend/index.js via `npm run build:assets`
+  js/frontend/blocks.min.js + blocks.min.asset.php         [G] webpack build output, minified — what production loads; same source, same command
 resources/js/frontend/index.js                             [E] webpack SOURCE for the Blocks checkout bundle
 languages/                                                  [E] es_ES .po/.mo/.l10n.php/.json; .pot generated via `npm run i18n:pot`
 bin/build_i18n.sh                                           [E] i18n JSON-build helper invoked from package.json
+bin/build-assets.js                                         [E] CSS minifier (postcss + cssnano); `--check` reports a stale or missing minified file
 docs/                                                        [E] Keel state + reconstructed docs (this adoption)
 .reference/inespay-payment/                                  [E] vendored third-party reference plugin, gitignored (relocated from docs/, D-006)
 .wp-env-mu-plugins/                                           [E] dev/test-only wp-env mu-plugin(s); mapped via .wp-env.json's `mappings`, never shipped (D-029)
@@ -51,7 +54,7 @@ scripts/
 .githooks/pre-push                                             [E] runs scripts/keel-affected-tests --run on every pushed branch (active once core.hooksPath = .githooks)
 ```
 
-**Not shipped as source-controlled minified pairs** — `assets/js/frontend/blocks.js` is a build OUTPUT (correctly `[G]`), but the CSS files have no `*.min.css` counterpart at all: the project has never adopted Keel's "source first, minified for production" contract. This is a real gap, recorded in `docs/04-adoption-audit.md` and NOT silently fixed during adoption (adoption changes no code beyond the user-approved license reconciliation, D-003/D-006).
+**Source plus minified pairs (D-054, S-027)** — every shipped stylesheet and script exists as a readable file and a minified file built from it. The readable CSS is the source; for the Blocks script the source is `resources/js/frontend/index.js` and both `blocks.js` and `blocks.min.js` are build output. Production loads the minified file; `redsyslite_asset_suffix()` switches to the readable one when `SCRIPT_DEBUG` is on.
 
 ## Change map
 
@@ -204,7 +207,9 @@ One machine plays all three roles here — the user's Mac holds the repository a
 **Not probed by the doctor:** the notification channel (card `Notify:`). A shell script cannot probe the assistant's own notification tool, so the session records that probe; the doctor does not claim it.
 
 ## Build/lint commands (verified from `package.json`)
-- `npm run build` — `wp-scripts build`, compiles `resources/js/frontend/index.js` → `assets/js/frontend/blocks.js` + `.asset.php`
+- `npm run build:assets` — `wp-scripts build` (compiles `resources/js/frontend/index.js` → `assets/js/frontend/blocks.js`, `blocks.min.js` and their `.asset.php` files), then `npm run build:css` (`node bin/build-assets.js`: every `assets/css/<name>.css` → `<name>.min.css`). On Node 17 or newer the current toolchain needs `NODE_OPTIONS=--openssl-legacy-provider` for the `wp-scripts` half (D-050; S-039 removes the need).
+- `npm run check:css` — exits 1 when a minified stylesheet is missing or stale; `scripts/keel-verify` check 11 runs it and also rebuilds the script into a temporary directory to compare.
+- `npm run build` — `npm run build:assets`, then `npm run i18n:build`
 - `npm run start` — `wp-scripts start` (watch mode)
 - `npm run i18n:pot` — generates the `.pot` via `wp i18n make-pot` (WP-CLI, not verified runnable in this environment — requires WP-CLI + a WordPress install)
 - `npm run test:e2e` (`playwright test`) — runs `tests/e2e/`; needs `npx wp-env start` and the one-time environment setup in `docs/playground.md`
@@ -224,4 +229,4 @@ One machine plays all three roles here — the user's Mac holds the repository a
 GPL-2.0-or-later (D-003). No Composer/npm runtime dependencies are bundled into the shipped plugin (`package.json` deps are dev-only build tooling); no license-compatibility conflict identified.
 
 ## Front-end asset build contract
-Keel's "source first, minified for production" contract (`SKILL.md`) is **not yet applied** to this project — CSS ships unminified with no source/minified pairing, and there is no dedicated minify build step for CSS. Recorded as a gap (`docs/04-adoption-audit.md`), not retrofitted during adoption. When next touched, the fix is: add a CSS minify step to the existing webpack/`@wordpress/scripts` build (or a small dedicated script), rename sources to the `name.css` + `name.min.css` pairing, and load the minified form in production per WordPress `SCRIPT_DEBUG` convention.
+Keel's "source first, minified for production" contract (`SKILL.md`) is applied since S-027 (D-054): edit the source, run `npm run build:assets` locally before committing, commit source and output together. No CI or forge action builds them. `scripts/keel-verify` check 11 fails on a missing pair, a stale minified stylesheet, or built script files that differ from a fresh build. The minifier (`cssnano`, `postcss`) is reached through `@wordpress/scripts`' dependency tree, not declared by this project — to be declared when S-039 rewrites the lockfile.

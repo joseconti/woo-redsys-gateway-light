@@ -46,6 +46,7 @@ See [`README.md`](README.md) for how this reference is organised.
 | `Redsys_Lite_Apps_Plugins` | class | includes/class-redsys-lite-apps-plugins.php | docs/reference/classes.md | Renders the About page (`render()`) |
 | `WCRedL()` | function | woocommerce-redsys.php | docs/reference/functions.md | Returns a new `WC_Gateway_Redsys_Global_Lite` |
 | `WCPSD2L()` | function | woocommerce-redsys.php | docs/reference/functions.md | Returns a new `WC_Gateway_Redsys_PSD2_Light` |
+| `redsyslite_asset_suffix()` | function | woocommerce-redsys.php | docs/reference/functions.md | `.min`, or empty under `SCRIPT_DEBUG` — the suffix of every enqueued stylesheet and script |
 | `plugin_abspath_redsys()` / `plugin_url_redsys()` | function | woocommerce-redsys.php | docs/reference/functions.md | Plugin directory path / plugin URL |
 | `redsyslite_mark_order_as_paid()` / `redsyslite_force_mark_order_as_paid_on_thankyou_page()` | function | woocommerce-redsys.php | docs/reference/functions.md | The order-received fallback and its `wp_head` listener |
 | `redsyslite_allow_cancel_return_for_cancelled_order()` | function | woocommerce-redsys.php | docs/reference/functions.md | Callback on WooCommerce's `woocommerce_valid_order_statuses_for_cancel`: a customer returning from a payment Redsys already cancelled is not shown an error |
