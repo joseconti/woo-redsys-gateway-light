@@ -25,8 +25,8 @@ The contract is Keel's `references/project-state.md`: "Sprint files (Phase 5) â€
 |---|---|---|---|---|---|---|---|---|---|
 | [1](sprint-1.md) | Backfill of the work done before the sprint plan existed (Keel adoption, test scaffold and coverage, security and correctness fixes) | done | 11 / 11 | 20 | 20 | 20 | 0 | 0 | 100 |
 | [2](sprint-2.md) | Keel v5.9.0 to v6.5.0 post-update reconciliation | done | 7 / 7 | 9.75 | 9.75 | 4.22 | 0 | 0 | 100 |
-| [3](sprint-3.md) | Release preparation for the unreleased security and correctness fixes | in-progress | 20 / 23 | 20.5 | 17 | 2.11 | 3.5 | 0.76 | 82.9 |
-| **Total** | | | 38 / 41 | 50.25 | 46.75 | 26.33 | 3.5 | 0.76 | 93 |
+| [3](sprint-3.md) | Release preparation for the unreleased security and correctness fixes | in-progress | 20 / 27 | 25.5 | 17 | 2.11 | 8.5 | 1.85 | 66.7 |
+| **Total** | | | 38 / 45 | 55.25 | 46.75 | 26.33 | 8.5 | 1.85 | 84.6 |
 
 All figures are hours of AI working time plus supervision. Contingency is not included, and neither is the backlog in [`deferred.md`](deferred.md) (8 items, 8.75 h). Pace factor: 0.2178 (21 measured slices).
 <!-- keel-plan:index:end -->

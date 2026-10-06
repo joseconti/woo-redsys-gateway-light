@@ -188,6 +188,30 @@ slices:
     actual_source: measured
     depends_on: [S-036, S-027, S-028, S-029, S-031, S-035, S-039, S-052, S-054, S-056]
     criteria: []
+  - id: S-058
+    title: Support-matrix ceiling — a second wp-env instance on the declared WooCommerce ceiling and a current PHP, and the entire suite run on it
+    status: not-started
+    hours: 1
+    depends_on: [S-036]
+    criteria: []
+  - id: S-059
+    title: Lifecycle rehearsal on the built archive — install, configure, uninstall, reinstall, and the upgrade from 7.0.2 (unversioned candidate; repeated on the versioned package at the gate)
+    status: not-started
+    hours: 1
+    depends_on: [S-032]
+    criteria: []
+  - id: S-060
+    title: Driven tests for the as-built acceptance criteria still on D-045's unverified list
+    status: not-started
+    hours: 2
+    depends_on: [S-036]
+    criteria: [AC-09, AC-10, AC-11, AC-12, AC-15, AC-16, AC-23, AC-31, AC-32, AC-35, AC-41, AC-42, AC-43, AC-46, AC-47, AC-49, AC-50, AC-52, AC-54, AC-55, AC-56, AC-57]
+  - id: S-061
+    title: Gate checks that do not need the version number — whole-tree confidential-data check, conformance sweep, self-audit, threat model, code map and change map, security-auditor and docs-verifier on the tree
+    status: not-started
+    hours: 1
+    depends_on: [S-052]
+    criteria: []
 ---
 
 # Sprint 3 — Release preparation for the unreleased security and correctness fixes
