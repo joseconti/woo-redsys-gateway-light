@@ -81,6 +81,14 @@ items:
     reason: D-074 — found while driving AC-46 (S-060); the classic checkout hides it for the same customer; not checked on a current WooCommerce nor whether such an order can be placed; older than this release
     depends_on: []
     criteria: []
+  - id: S-068
+    title: The line numbers in the "Source files" lists of docs/flows/ are behind the code (docs/flows/refund.md names ask_for_refund() at 1091, it is at 1137); repair them and extend keel-verify's check 28, which reads docs/reference/ only, to docs/flows/
+    status: not-started
+    hours: 0.5
+    target: null
+    reason: D-076 — found while correcting docs/usage/configuration.md (S-067); only refund.md was compared with the code, the other flow files were not read; documentation only, nothing ships
+    depends_on: []
+    criteria: []
 ---
 
 # Deferred — wanted, not in the current plan

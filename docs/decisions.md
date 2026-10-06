@@ -700,3 +700,13 @@
 - Not checked: the ceiling instance (WordPress 7.0.7, WooCommerce 10.9.4, PHP 8.3) — its containers are stopped and these tests ran on the pinned one only; the admin order screen and the order-received page for Bizum and Google Pay in a browser (in-process only); the saving of the Bizum, Google Pay and Inespay settings screens in a browser (in-process only); the coding-standard sniffer on the new files (`vendor/bin/phpcs` is not installed in the playground — an open item of the gate).
 - Side effect on the playground: saving the card settings through the screen left a `logo` key with an empty value in `woocommerce_redsys_settings`, which `scripts/playground-setup` does not write. It is the field's default and changes nothing.
 - Supersedes: none.
+
+## D-076 — Two drifts corrected (S-067); the line numbers of `docs/flows/` are behind the code (S-068, deferred)
+- Date / phase: 2026-10-06 / sprint 3, slice S-067
+- Decision: (1) `docs/usage/configuration.md` now gives the refund confirmation flag `<order id>_redsys_refund` its real lifetime — 10 minutes, cleared when a refund is requested and when it is confirmed (D-062, `AC-69`); it said "no expiry". (2) The test map in `scripts/keel-affected-tests` has a row for every test file again: `tests/Unit/PluginWithoutWooCommerceTest.php` (in no row since S-051) is under `woocommerce-redsys.php`, and the rows of the main file and of the two About-page files name the tests S-060 wrote for them instead of "the axe scan is its only test". `scripts/keel-affected-tests --check-map` → `OK: every map row points at real files and every test file is mapped (38 test files)`.
+- Why the map check had been failing unnoticed: `scripts/keel-verify` does not run `--check-map`, and nothing else does. Not changed here: wiring it into the linter is part of S-068's question, since that slice already touches check 28.
+- Found on the way, recorded and not fixed (S-068 in `docs/sprints/deferred.md`, 0.5 h): the "Source files" list of `docs/flows/refund.md` names line numbers the code has moved past (for the card gateway: `ask_for_refund()` 1091 against 1137, `process_refund()` 1269 against 1329; the Bizum, Google Pay and Inespay numbers are off as well). Check 28 of the linter compares such references in `docs/reference/` only (S-054, D-066).
+- Not checked: the other five flow files — they carry line numbers too and were not compared with the code.
+- No shipped code changed. Editing `scripts/keel-affected-tests` widens the push selection to the entire suite, by its own rule.
+- Supersedes: none.
+

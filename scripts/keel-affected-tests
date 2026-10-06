@@ -82,10 +82,10 @@ classes/class-wc-gateway-bizum-redsys.php | tests/Integration/GatewayBizumIpnTes
 classes/class-wc-gateway-googlepay-redirection-redsys.php | tests/Integration/GatewayGooglePayIpnTest.php tests/Integration/RefundOrderNumberTransientTest.php tests/e2e/checkout-googlepay.spec.js | WC_Gateway_GooglePay_Redirection_Redsys
 classes/class-wc-gateway-inespay-redsys.php | tests/Integration/GatewayInespayIpnTest.php tests/e2e/checkout-inespay.spec.js tests/e2e/inespay-transaction-limit.spec.js | WC_Gateway_Inespay_Redsys
 classes/class-wc-gateway-redsys-global-lite.php | tests/Integration/GlobalLiteOrderNumberTest.php tests/Integration/RefundOrderNumberTransientTest.php tests/Integration/GatewayBizumIpnTest.php tests/Integration/GatewayGooglePayIpnTest.php | WC_Gateway_Redsys_Global_Lite via WCRedL()
-woocommerce-redsys.php | tests/Integration/MarkOrderAsPaidRateLimitTest.php tests/e2e/*.spec.js | plugin bootstrap: redsyslite_mark_order_as_paid() + gateway and Blocks registration, which only the e2e flows exercise
+woocommerce-redsys.php | tests/Unit/PluginWithoutWooCommerceTest.php tests/Integration/MarkOrderAsPaidRateLimitTest.php tests/Integration/OrderPaymentDetailsAsBuiltTest.php tests/Integration/AboutPageAsBuiltTest.php tests/e2e/*.spec.js | plugin bootstrap: loading without WooCommerce, redsyslite_mark_order_as_paid(), the admin order details, the order-received text, the About menu entry + gateway and Blocks registration, which only the e2e flows exercise
 includes/blocks/class-wc-gateway-redsys-lite-support.php | tests/e2e/checkout-blocks-redsys.spec.js | Blocks checkout support, Redsys
-includes/class-redsys-lite-apps-plugins.php | tests/e2e/accessibility.spec.js | About page content: the axe scan is its only test
-about-redsys.php | tests/e2e/accessibility.spec.js | About page shell
+includes/class-redsys-lite-apps-plugins.php | tests/Integration/AboutPageAsBuiltTest.php tests/e2e/as-built-screens.spec.js tests/e2e/accessibility.spec.js | About page content: its lists and filters, the page in a browser, the axe scan
+about-redsys.php | tests/Integration/AboutPageAsBuiltTest.php tests/e2e/as-built-screens.spec.js tests/e2e/accessibility.spec.js | About page shell
 resources/js/frontend/index.js | tests/e2e/checkout-blocks-redsys.spec.js | webpack source of the Blocks bundle
 assets/js/frontend/blocks.js | tests/e2e/checkout-blocks-redsys.spec.js | built Blocks bundle
 assets/js/frontend/blocks.asset.php | tests/e2e/checkout-blocks-redsys.spec.js | built Blocks bundle manifest

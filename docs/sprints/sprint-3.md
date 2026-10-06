@@ -246,10 +246,10 @@ slices:
     criteria: []
   - id: S-067
     title: Two drifts found while driving the last criteria (S-060) — the configuration reference says the refund confirmation flag never expires, and the test map has no row for PluginWithoutWooCommerceTest
-    status: not-started
+    status: done
     hours: 0.15
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.1364
+    actual_source: measured
     depends_on: [S-060]
     criteria: []
 ---
@@ -288,3 +288,4 @@ slices:
 - S-060, timing: the slice's clock was closed at the first commit of this session and not re-opened for the second part, so the measured 0.49 h covers the first part only; the second part's time (about 40 minutes by the session's wall clock) is in the session row, not in the slice's `actual_hours`.
 - S-037 (open), one more observation made without its clock: `.githooks/pre-push` refused a real push (`pre-push: REFUSED — the selection for refs/heads/develop is RED`) when Docker Desktop had stopped under the suite, and let the same commit through once the playground was back (`131 of 131`, GREEN). Lesson L-013 recorded (the refused mutation run).
 - S-060 (done 2026-10-06, D-075): the last nine criteria bound — AC-15 and AC-16 (test-mode warning, currency rule), AC-47 (settings fields of the four gateways against `docs/usage/configuration.md`), AC-49 (About page, who may open it, its six filters), AC-50 and AC-52 (refund request, wait and failures), AC-55, AC-56 and AC-57 (admin order details, order-received text, High-Performance Order Storage declaration). Five integration classes (66 tests) and one browser spec (11 tests); whole integration suite `OK (309 tests, 1977 assertions)`. The session read the gateway classes without being refused. No shipped code changed. Only AC-48 is left on D-045's list, and it is S-030's. Two drifts found on the way are S-067. Not run on the ceiling instance, which is still stopped.
+- S-067 (done 2026-10-06, D-076): the refund flag's lifetime corrected in `docs/usage/configuration.md`; the test map has a row for every test file again (`--check-map` OK, 38 test files). A third drift found while doing it — stale line numbers in `docs/flows/` — is S-068, deferred.

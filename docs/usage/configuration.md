@@ -166,7 +166,7 @@ Everything the plugin keeps. There are no custom tables.
 |-----------|----------|---------|
 | `redys_order_temp_<Redsys order number>` | 1 hour at checkout; 24 hours when renewed by a refund | Maps the order number sent to Redsys back to the WooCommerce order ID. The spelling `redys` is the code's. |
 | `redsys_signature_<Redsys order number>` | 600 seconds (Bizum), 3600 seconds (Google Pay) | The signing secret used for that payment, in clear. |
-| `<order id>_redsys_refund` | no expiry; deleted when the refund is confirmed | Flag set by a refund notification. |
+| `<order id>_redsys_refund` | 10 minutes; deleted when a refund is requested and again when it is confirmed | Flag set by a refund notification: Redsys confirmed a refund of the order. Used once, by the refund that is waiting for it. |
 | `redsyslite_mark_paid_attempt_<order id>` | 30 seconds | Rate limit of the order-received fallback. |
 
 ### Order meta
