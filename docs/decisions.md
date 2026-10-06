@@ -540,3 +540,15 @@
 - Related, not changed: SA-06 (a signed success return replayed for an order cancelled later) still waits for the owner's observation. The binding added here does not decide it: that replay names its own order.
 - Not checked: PHP 8.x itself (the `TypeError` was reproduced as PHP 7.4's warning, which the test run turns into an error); concurrency.
 - Supersedes: the "FIXED" claim of D-026 for this vector, which D-056 had marked incomplete; the fixture of D-026's rate-limit test.
+
+## D-061 — The admin notices and the welcome redirect check who is asking (S-047 and S-048, audit findings SA-08 and SA-09)
+- Date / phase: 2026-10-06 / sprint 3, slices S-047 and S-048
+- Reproduced before any change (D-036). (1) The "new version" and Telegram notices were printed for every user who can open an admin screen, and their dismiss handlers checked the nonce but no capability: a contributor could hide both for everyone. (2) `redsys_welcome_splash()` runs on `admin_init`, which also fires for `admin-ajax.php` and `admin-post.php`, with nobody logged in: such a request, while the stored version differed from the running one, wrote two options, was answered with a redirect to the About page and never reached its own handler.
+- Fixed: both notices return at once without `manage_woocommerce`, for display and for dismissal; the nonce is read only when present. The welcome redirect returns at once unless the user has `manage_options`, the request is not AJAX and it is not a submitted form.
+- Capability chosen for the redirect: `manage_options`, not the `manage_woocommerce` the audit suggested. The About page it leads to is registered with `manage_options`; a shop manager sent there would land on a permission error and the welcome would be spent. The welcome now waits for an administrator.
+- The submitted-form guard came from the independent review: an administrator saving any form right after an update had the submission swallowed by the redirect. Reproduced by a failing test before the guard was added.
+- `wp_doing_ajax()` is not used bare: it exists from WordPress 4.7 and `readme.txt` declares 4.0. The function is called when it exists and the `DOING_AJAX` constant is read otherwise.
+- Visible changes: users below shop manager no longer see the two notices. After an update the About page opens on the administrator's next screen, not on whichever request came first.
+- Left for S-051 (WooCommerce absent): with WooCommerce inactive the redirect still sends an administrator to a page that is not registered then.
+- Not changed: the notice for a PHP older than 7.0 (`admin_notice_mcrypt_encrypt`), which writes nothing and cannot print on a supported PHP; multisite network admin (not exercised, D-056).
+- Not checked: WordPress older than 7.0 (the 4.0-safe form was read, not run); multisite.

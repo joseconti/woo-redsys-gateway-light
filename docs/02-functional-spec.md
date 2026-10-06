@@ -49,7 +49,7 @@ No custom database tables or post types. State lives in:
 - **WooCommerce Blocks** — via `@woocommerce/dependency-extraction-webpack-plugin` and the blocks-support classes.
 
 ## Permissions
-No custom capabilities defined. Settings screens rely on WooCommerce's own admin capability gating (`manage_woocommerce`, standard WordPress admin access) — `as-built, unverified`: not traced to a specific capability check in the sampled code, this is WooCommerce's default behavior for its Settings API pages.
+No custom capabilities defined. The plugin's two admin notices are shown to and dismissed by users with `manage_woocommerce`; the one-time redirect to the About page after an update, like the page itself, needs `manage_options` (S-047, S-048, D-061). Settings screens rely on WooCommerce's own admin capability gating (`manage_woocommerce`, standard WordPress admin access) — `as-built, unverified`: not traced to a specific capability check in the sampled code, this is WooCommerce's default behavior for its Settings API pages.
 
 ## Change map (recurring change types → what must be touched)
 
@@ -191,9 +191,11 @@ Reading the tables:
 | AC-55 | The admin order screen shows the payment gateway, Redsys order number, date, hour and authorisation code for orders paid with `redsys`, `bizumredsys` or `googlepayredirecredsys`. | uncovered |
 | AC-56 | For a paid order of those three gateways, the order-received text lists the site, merchant code, authorisation number, store name, date and hour. | uncovered |
 | AC-57 | The plugin declares compatibility with WooCommerce High-Performance Order Storage. | uncovered |
+| AC-67 | The "updated to version" and Telegram admin notices are printed only for a user with `manage_woocommerce`, and only such a user, with the notice's nonce, can dismiss them. | `Integration/AdminNoticesCapabilityTest.php::test_a_user_who_does_not_manage_the_store_cannot_dismiss_a_notice_for_everyone`, `::test_a_user_who_does_not_manage_the_store_is_not_shown_the_notice`, `::test_a_shop_manager_sees_the_notice_and_can_dismiss_it`, `::test_a_dismissal_without_its_nonce_writes_nothing` |
+| AC-68 | After an update, the one-time redirect to the About page happens once, for a user with `manage_options`, on a screen request: never for a visitor who is not logged in, a user without that capability, an AJAX request or a submitted form, none of which use up the welcome. | `Integration/AdminNoticesCapabilityTest.php::test_a_visitor_who_is_not_logged_in_does_not_trigger_the_welcome_redirect`, `::test_a_user_who_cannot_open_the_about_page_is_not_redirected_to_it`, `::test_an_ajax_request_is_never_answered_with_the_welcome_redirect`, `::test_a_form_submission_is_not_swallowed_by_the_welcome_redirect`, `::test_an_administrator_is_welcomed_once` |
 
 ### Coverage summary
-66 criteria, `AC-01` to `AC-66`. 43 are proven by a named automated test; 23 are `uncovered`:
+68 criteria, `AC-01` to `AC-68`. 45 are proven by a named automated test; 23 are `uncovered`:
 `AC-09`, `AC-10`, `AC-11`, `AC-12`, `AC-15`, `AC-16`, `AC-23`, `AC-31`, `AC-32`, `AC-35`, `AC-41`, `AC-42`, `AC-43`, `AC-46`, `AC-47`, `AC-48`, `AC-49`, `AC-50`, `AC-52`, `AC-54`, `AC-55`, `AC-56`, `AC-57`.
 
 The largest gap is the order-status half of the three Redsys-protocol gateways: signature validation is proven for all of them, but what the card gateway does with an accepted notification (`AC-09` to `AC-12`) has no test at all, and the mismatch and denial branches of Bizum and Google Pay (`AC-23`, `AC-31`) have none either.

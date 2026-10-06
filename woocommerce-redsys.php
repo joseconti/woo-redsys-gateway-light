@@ -108,8 +108,24 @@ add_action( 'admin_enqueue_scripts', 'redsys_styles_css' );
 
 /**
  * Redsys Redirect to Welcome/About Page.
+ *
+ * Runs on admin_init, which also fires for admin-ajax.php and admin-post.php
+ * requests, including those of visitors who are not logged in. The welcome is
+ * for a user who can open the About page, on a screen they asked for (not an
+ * AJAX call, not a submitted form): anyone else must not be redirected, and
+ * must not use up the one-time welcome either.
+ *
+ * @return void
  */
 function redsys_welcome_splash() {
+	// wp_doing_ajax() exists from WordPress 4.7; this file also loads on older ones.
+	$doing_ajax = function_exists( 'wp_doing_ajax' ) ? wp_doing_ajax() : ( defined( 'DOING_AJAX' ) && DOING_AJAX );
+	// A submitted form has to reach its own handler; the welcome waits for the next screen.
+	$is_post = isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'];
+	if ( $doing_ajax || $is_post || ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
 	$seur_parent = redsys_get_parent_page();
 
 	if ( get_option( 'woocommerce-redsys-version' ) === REDSYS_WOOCOMMERCE_VERSION ) {
@@ -197,14 +213,23 @@ function woocommerce_gateway_redsys_init() {
 	);
 	/**
 	 * Redsys Notice version.
+	 *
+	 * Shown to, and dismissed by, users who manage the store: dismissing it
+	 * hides it for everyone.
+	 *
+	 * @return void
 	 */
 	function redsys_lite_add_notice_new_version() {
+
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			return;
+		}
 
 		$version = get_option( 'hide-new-version-redsys-notice' );
 
 		if ( REDSYS_WOOCOMMERCE_VERSION !== $version ) {
 			if ( isset( $_REQUEST['redsys-hide-new-version'] ) && 'hide-new-version-redsys' === $_REQUEST['redsys-hide-new-version'] ) {
-				$nonce = sanitize_text_field( $_REQUEST['_redsys_hide_new_version_nonce'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+				$nonce = isset( $_REQUEST['_redsys_hide_new_version_nonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_redsys_hide_new_version_nonce'] ) ) : '';
 				if ( wp_verify_nonce( $nonce, 'redsys_hide_new_version_nonce' ) ) {
 					update_option( 'hide-new-version-redsys-notice', REDSYS_WOOCOMMERCE_VERSION );
 				}
@@ -237,14 +262,23 @@ function woocommerce_gateway_redsys_init() {
 
 	/**
 	 * Redsys ask for Telegram.
+	 *
+	 * Shown to, and dismissed by, users who manage the store: dismissing it
+	 * hides it for everyone.
+	 *
+	 * @return void
 	 */
 	function redsys_lite_ask_for_telegram() {
+
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			return;
+		}
 
 		$status = get_option( 'telegram-redsys-notice' );
 
 		if ( 'yes' !== $status ) {
 			if ( isset( $_REQUEST['redsys-telegram'] ) && 'telegram-redsys' === $_REQUEST['redsys-telegram'] ) {
-				$nonce = sanitize_text_field( $_REQUEST['_redsys_telegram_nonce'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+				$nonce = isset( $_REQUEST['_redsys_telegram_nonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_redsys_telegram_nonce'] ) ) : '';
 				if ( wp_verify_nonce( $nonce, 'redsys_telegram_nonce' ) ) {
 					update_option( 'telegram-redsys-notice', 'yes' );
 				}

@@ -63,7 +63,7 @@ $script = plugin_url_redsys() . '/assets/js/frontend/blocks.js';
 ## Payment handling
 
 ### `redsyslite_mark_order_as_paid( $order_id )`
-- **Signature:** `redsyslite_mark_order_as_paid( int $order_id ): void` (`woocommerce-redsys.php:423`).
+- **Signature:** `redsyslite_mark_order_as_paid( int $order_id ): void` (`woocommerce-redsys.php:452`).
 - **What it does:** the fallback behind the order-received page (`docs/flows/notification-handling.md`, part C). In this order, and stopping at the first that fails: the query string has `Ds_MerchantParameters`; the function has not processed a signed return for this order in the last 30 seconds; the order exists, belongs to one of the three Redsys-protocol gateways and is unpaid; the gateway's `is_valid_return()` accepts the signature. Only then does it wait 5 seconds, and if the order is still unpaid it hands `Ds_MerchantParameters`, `Ds_Signature` and `Ds_SignatureVersion` to the gateway's `successful_request()`.
 - **Side effects:** clears the order caches. For a return with a valid signature only: sets the transient `redsyslite_mark_paid_attempt_<order id>` for 30 seconds, blocks for 5 seconds, and may update the order. A request without a valid signature costs no wait and does not use up the order's attempt (S-046, D-060).
 - **Errors:** none returned. It reads `$_GET` directly, so it only does something useful in the request it was written for.
@@ -74,7 +74,7 @@ redsyslite_mark_order_as_paid( $order_id );
 ```
 
 ### `redsyslite_force_mark_order_as_paid_on_thankyou_page()`
-- **Signature:** `(): void` (`woocommerce-redsys.php:516`), attached to `wp_head`.
+- **Signature:** `(): void` (`woocommerce-redsys.php:565`), attached to `wp_head`.
 - **What it does:** on the order-received page, when the query string has `key` and `Ds_MerchantParameters`, resolves the order from the key and calls `redsyslite_mark_order_as_paid()`.
 
 ### `redsyslite_allow_cancel_return_for_cancelled_order( $statuses, $order )`
@@ -105,12 +105,12 @@ $order = wc_get_order( $order_id ); // Fresh from the database.
 | `woocommerce_gateway_redsys_init` | `(): void` (`:141`) | `woocommerce_loaded`, 11 | Declares the functions marked "after WooCommerce", registers the admin menu, notices and gateways, and loads the four gateway classes. |
 | `woocommerce_add_gateway_redsys_gateway` | `( array $methods ): array` (`:271`) | filter `woocommerce_payment_gateways` | Appends the four gateway class names. After WooCommerce. |
 | `woocommerce_gateway_redsys_lite_block_support` | `(): void` (`:342`) | `woocommerce_blocks_loaded` | Loads and registers the four Blocks integrations when WooCommerce Blocks is available. After WooCommerce. |
-| `redsys_menu` | `(): void` (`:148`) | `admin_menu` | Adds WooCommerce → About Redsys (`redsys-about-page`, capability `manage_options`). After WooCommerce. |
+| `redsys_menu` | `(): void` (`:172`) | `admin_menu` | Adds WooCommerce → About Redsys (`redsys-about-page`, capability `manage_options`). After WooCommerce. |
 | `redsys_about_page` | `(): void` (`about-redsys.php:15`) | menu callback | Prints the About page and calls `Redsys_Lite_Apps_Plugins::render()`. |
-| `redsys_welcome_splash` | `(): void` (`:99`) | `admin_init`, 1 | When the stored option `woocommerce-redsys-version` differs from the running version — and the request is not `update.php` or `update-core.php` — stores the new version, stores the first-seen time in `woocommerce-redsys-rate` if absent, and redirects to the About page. |
-| `redsys_get_parent_page` | `(): string` (`:74`) | — | Base name of the running script; used by `redsys_welcome_splash()`. |
-| `redsys_lite_add_notice_new_version` | `(): void` (`:188`) | `admin_notices` | Prints the "updated to version…" notice until dismissed for the running version. After WooCommerce. |
-| `redsys_lite_ask_for_telegram` | `(): void` (`:228`) | `admin_notices` | Prints the Telegram-channel notice until dismissed. After WooCommerce. |
+| `redsys_welcome_splash` | `(): void` (`:119`) | `admin_init`, 1 | Only for a user with `manage_options` (the capability of the About page) and never during an AJAX request (S-048, D-061). When the stored option `woocommerce-redsys-version` differs from the running version — and the request is not `update.php` or `update-core.php` — stores the new version, stores the first-seen time in `woocommerce-redsys-rate` if absent, and redirects to the About page. |
+| `redsys_get_parent_page` | `(): string` (`:87`) | — | Base name of the running script; used by `redsys_welcome_splash()`. |
+| `redsys_lite_add_notice_new_version` | `(): void` (`:217`) | `admin_notices` | Prints the "updated to version…" notice until dismissed for the running version. Shown to and dismissed by users with `manage_woocommerce` only. After WooCommerce. |
+| `redsys_lite_ask_for_telegram` | `(): void` (`:266`) | `admin_notices` | Prints the Telegram-channel notice until dismissed. Shown to and dismissed by users with `manage_woocommerce` only. After WooCommerce. |
 | `redsys_styles_css` | `( string $hook ): void` (`:84`) | `admin_enqueue_scripts` | Enqueues `assets/css/welcome.css` on the About page only. |
 | `redsys_css_lite` | `(): void` (`:125`) | `admin_enqueue_scripts` | Enqueues `assets/css/redsys-css.css` on the WooCommerce settings screen. |
 | `redsys_lite_notice_style` | `(): void` (`:260`) | `admin_enqueue_scripts` | Enqueues `assets/css/redsys-notice.css` on every admin screen. After WooCommerce. |

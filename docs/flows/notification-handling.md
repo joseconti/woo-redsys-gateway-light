@@ -177,4 +177,4 @@ Part A: `AC-03` to `AC-12`, `AC-18` to `AC-23`, `AC-26` to `AC-32`, and the refu
 - `classes/class-wc-gateway-redsys-global-lite.php` — `get_status_pending()` line 865, `is_paid()` 879, `clean_order_number()` 1093, `get_order_id_by_redsys_order_number()` 1111.
 - `includes/class-redsysliteapi.php` — `sanitize_merchant_parameters()` line 139, `decode_merchant_parameters()` 257, `create_merchant_signature_notif()` 310 (key derivation in `diversify_notif_key()`: a notification that names no order never verifies, `AC-64`).
 - `includes/data/redsys-status-paid.php`, `includes/data/redsys-types.php` — the unpaid-status list and the gateway list.
-- `woocommerce-redsys.php` — `redsyslite_bust_order_cache()` line 397, `redsyslite_mark_order_as_paid()` 423, `redsyslite_force_mark_order_as_paid_on_thankyou_page()` 516.
+- `woocommerce-redsys.php` — `redsyslite_bust_order_cache()` line 426, `redsyslite_mark_order_as_paid()` 452, `redsyslite_force_mark_order_as_paid_on_thankyou_page()` 565.

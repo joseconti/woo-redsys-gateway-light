@@ -101,6 +101,8 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == Unreleased ==
 
+* Security Fix: The plugin's two admin notices are now shown to, and can be dismissed by, users who manage WooCommerce only. Any user able to open an admin screen could dismiss them for everyone.
+* Fix: The one-time redirect to the About page after an update now happens only for an administrator on an admin screen. It could be triggered by any request to an admin entry point, including from a visitor who was not logged in, and it could interrupt that request.
 * Security Fix: A return to the order-received page is now checked (gateway, order status and Redsys signature) before the plugin waits for the payment notification. A request without a valid signature no longer holds the page for five seconds.
 * Security Fix: The Logo setting of the Redsys, Bizum and Inespay gateways is now saved as a URL and escaped where the checkout prints it. A value that was not a plain URL could add markup to the checkout page; only a user allowed to change the gateway settings could enter one.
 * Security Fix: A payment notification that names no order is now always rejected by the Redsys, Bizum and Google Pay gateways. Such a notification could not reach any order, but it passed the signature check.

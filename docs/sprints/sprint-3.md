@@ -118,18 +118,18 @@ slices:
     criteria: []
   - id: S-047
     title: Security fix SA-08 from the 2026-10-06 audit
-    status: not-started
+    status: done
     hours: 0.25
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.0164
+    actual_source: measured
     depends_on: [S-036]
     criteria: []
   - id: S-048
     title: Security fix SA-09 from the 2026-10-06 audit
-    status: not-started
+    status: done
     hours: 0.25
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.0544
+    actual_source: measured
     depends_on: [S-036]
     criteria: []
   - id: S-049

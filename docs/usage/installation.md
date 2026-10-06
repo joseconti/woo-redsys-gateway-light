@@ -32,7 +32,7 @@ The steps in `readme.txt` are these. The plugin is also distributed on WordPress
 ## What activation does
 
 - There is no activation, deactivation or uninstall routine: the plugin registers none (no `register_activation_hook`, `register_deactivation_hook` or `uninstall.php`). Nothing is created in the database on activation.
-- On the first admin page load after activation, and again after every update, `redsys_welcome_splash()` stores the running version in the option `woocommerce-redsys-version` and redirects once to WooCommerce → About Redsys.
+- On the first admin page load by an administrator (a user with `manage_options`) after activation, and again after every update, `redsys_welcome_splash()` stores the running version in the option `woocommerce-redsys-version` and redirects once to WooCommerce → About Redsys.
 - Four gateways are added to WooCommerce, all disabled by default: Redsys (card), Bizum, Google Pay redirection and Inespay.
 - Two admin notices appear until dismissed: the "updated to version…" notice and the Telegram-channel notice.
 - Compatibility with WooCommerce High-Performance Order Storage is declared.
