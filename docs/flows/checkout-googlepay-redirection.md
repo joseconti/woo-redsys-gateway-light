@@ -45,7 +45,7 @@ This gateway has no `orderdo` setting. The property is read from the stored sett
 - **Test-mode banner:** `warning_checkout_test_mode_bizum()` (the method keeps the Bizum name) on `woocommerce_before_checkout_form`.
 
 ## Failure paths and recovery
-- **Customer abandons or the wallet payment is refused:** return to the cancel-order URL; a denied notification cancels the order, stores the Redsys error text, empties the cart and fires `googlepayredirecredsys_post_payment_error`.
+- **Customer abandons or the wallet payment is refused:** return to the cancel-order URL, sent as a plain URL (`AC-62`); a denied notification cancels the order, stores the Redsys error text, empties the cart and fires `googlepayredirecredsys_post_payment_error`. Whichever arrives first, the customer sees WooCommerce's "Your order was cancelled." notice (`AC-63`).
 - **Notification rejected:** the `redsys_signature_<number>` transient is deleted and the order stays `pending`.
 - **Return to the order-received page while the order is still unpaid:** the shared fallback calls this gateway's `successful_request()` with `Ds_SignatureVersion`, `Ds_MerchantParameters` and `Ds_Signature` taken from the return URL. A correctly signed return completes the payment; anything else leaves the order unchanged (`AC-60`; corrected in S-035, D-052 — the signature version used not to be forwarded and this class stopped the page).
 

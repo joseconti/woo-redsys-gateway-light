@@ -69,6 +69,17 @@ redsyslite_mark_order_as_paid( $order_id );
 - **Signature:** `(): void` (`woocommerce-redsys.php:457`), attached to `wp_head`.
 - **What it does:** on the order-received page, when the query string has `key` and `Ds_MerchantParameters`, resolves the order from the key and calls `redsyslite_mark_order_as_paid()`.
 
+### `redsyslite_allow_cancel_return_for_cancelled_order( $statuses, $order )`
+- **Signature:** `redsyslite_allow_cancel_return_for_cancelled_order( array $statuses, WC_Order|null $order = null ): array` (`woocommerce-redsys.php`), attached to WooCommerce's filter `woocommerce_valid_order_statuses_for_cancel`, priority 10.
+- **What it does:** when Redsys refuses or the customer abandons a payment, the notification sets the order `cancelled` and Redsys then sends the customer to the order's cancel URL. WooCommerce only cancels `pending` and `failed` orders and answered that return with "Your order can no longer be cancelled". This callback adds `cancelled` to the list for one order only, so WooCommerce shows its own "Your order was cancelled." notice.
+- **Conditions, all required:** the request carries `cancel_order`, `order_id` and a `_wpnonce` valid for `woocommerce-cancel_order`; `order_id` is the ID of the order being checked; that order is already `cancelled`; its payment method is `redsys`, `bizumredsys` or `googlepayredirecredsys`. Anything else returns `$statuses` unchanged — the My Account order list included.
+- **Side effects:** none of its own. WooCommerce then clears the session's `order_awaiting_payment` and fires `woocommerce_cancelled_order`; the status does not change, so no order note is added and no status-transition hook fires (measured on WooCommerce 7.4).
+
+```php
+// Restore WooCommerce's stock behaviour for those returns:
+remove_filter( 'woocommerce_valid_order_statuses_for_cancel', 'redsyslite_allow_cancel_return_for_cancelled_order', 10 );
+```
+
 ### `redsyslite_bust_order_cache( $order_id )`
 - **Signature:** `redsyslite_bust_order_cache( int $order_id ): void` (`woocommerce-redsys.php:384`).
 - **What it does:** clears the post cache, the `posts`, `post_meta`, `orders` and `order_meta` object-cache entries, and WooCommerce's `OrderCache` entry when that class exists, so the next read of the order comes from the database. Works for both order storage modes.

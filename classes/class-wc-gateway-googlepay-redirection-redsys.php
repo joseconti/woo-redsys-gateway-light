@@ -633,7 +633,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		} else {
 			$gatewaylanguage = '001';
 		}
-		$returnfromredsys   = $order->get_cancel_order_url();
+		$returnfromredsys   = WCRedL()->get_cancel_url_raw( $order );
 		$dsmerchantterminal = $this->terminal;
 		if ( 'yes' === $this->not_use_https ) {
 				$final_notify_url = $this->notify_url_not_https;
@@ -1362,7 +1362,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		$mi_obj->set_parameter( 'DS_MERCHANT_TERMINAL', $terminal );
 		$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTURL', $final_notify_url );
 		$mi_obj->set_parameter( 'DS_MERCHANT_URLOK', add_query_arg( 'utm_nooverride', '1', $this->get_return_url( $order ) ) );
-		$mi_obj->set_parameter( 'DS_MERCHANT_URLKO', $order->get_cancel_order_url() );
+		$mi_obj->set_parameter( 'DS_MERCHANT_URLKO', WCRedL()->get_cancel_url_raw( $order ) );
 		$mi_obj->set_parameter( 'DS_MERCHANT_CONSUMERLANGUAGE', '001' );
 		$mi_obj->set_parameter( 'DS_MERCHANT_PRODUCTDESCRIPTION', WCRedL()->clean_data( __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number() ) );
 		$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTNAME', $this->commercename );
@@ -1381,7 +1381,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'googlepayredirecredsys', __( 'DS_MERCHANT_TERMINAL : ', 'woo-redsys-gateway-light' ) . $terminal );
 			$this->log->add( 'googlepayredirecredsys', __( 'DS_MERCHANT_MERCHANTURL : ', 'woo-redsys-gateway-light' ) . $final_notify_url );
 			$this->log->add( 'googlepayredirecredsys', __( 'DS_MERCHANT_URLOK : ', 'woo-redsys-gateway-light' ) . add_query_arg( 'utm_nooverride', '1', $this->get_return_url( $order ) ) );
-			$this->log->add( 'googlepayredirecredsys', __( 'DS_MERCHANT_URLKO : ', 'woo-redsys-gateway-light' ) . $order->get_cancel_order_url() );
+			$this->log->add( 'googlepayredirecredsys', __( 'DS_MERCHANT_URLKO : ', 'woo-redsys-gateway-light' ) . WCRedL()->get_cancel_url_raw( $order ) );
 			$this->log->add( 'googlepayredirecredsys', __( 'DS_MERCHANT_CONSUMERLANGUAGE : 001', 'woo-redsys-gateway-light' ) );
 			$this->log->add( 'googlepayredirecredsys', __( 'DS_MERCHANT_PRODUCTDESCRIPTION : ', 'woo-redsys-gateway-light' ) . WCRedL()->clean_data( __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number() ) );
 			$this->log->add( 'googlepayredirecredsys', __( 'DS_MERCHANT_MERCHANTNAME : ', 'woo-redsys-gateway-light' ) . $this->commercename );

@@ -7,7 +7,7 @@
 ## Inventory
 | # | Title | Type | Priority | Status | Entry |
 |---|-------|------|----------|--------|-------|
-| 112 | Mensaje "Your order can no longer be cancelled" al cancelar el usuario el pago en Redsys | bug | medium | triaged — scheduled S-038 (sprint 3); reported 2026-09-16: `DS_MERCHANT_URLKO` is built with `get_cancel_order_url()` (HTML-escaped ampersands) and sends the customer back to a cancel URL for an order Redsys has already cancelled; not reproduced yet (playground down, D-044); no reply published | — |
+| 112 | Mensaje "Your order can no longer be cancelled" al cancelar el usuario el pago en Redsys | bug | medium | resolved (fix implemented, unreleased) | E-002 |
 | 93 | wc_enqueue_js() deprecada desde WooCommerce 10.4 (avisos en la página de pago) | bug | medium | resolved (fix implemented, unreleased) | E-001 |
 | 34 | Falta el text domain | bug | low | resolved (moot — file rewritten since) | — |
 | 21 | Posible error en string | bug | low | won't fix (dead code, not used in Lite) | — |
@@ -31,6 +31,20 @@
 - Inbound: none since the sweep (report has no earlier maintainer reply).
 - Lesson: none recorded — straightforward, well-specified fix.
 - Pending: a version bump + release (Phase 7) before the reporter can actually test this; then beats 2–3 of the reply lifecycle.
+
+### E-002 — #112 "Your order can no longer be cancelled" al cancelar el usuario el pago en Redsys
+- Link: https://github.com/joseconti/woo-redsys-gateway-light/issues/112   Status: fix landed on `develop`, unreleased
+- Diagnosis: two defects, the first hiding the second. `DS_MERCHANT_URLKO` was built with `WC_Order::get_cancel_order_url()`, which is escaped for HTML, so the browser returned with `amp;`-prefixed parameters and WooCommerce's cancel handler never ran (the reporter's WPML add-on decoded the URL by accident, which is why it surfaced there). Once the URL is correct, the handler runs on an order the notification has already set `cancelled` and WooCommerce answers with the error in the title. Both reproduced by failing tests before any change.
+- Resolution: `WCRedL()->get_cancel_url_raw()` for every non-markup use in the card, Bizum and Google Pay gateways; a callback on `woocommerce_valid_order_statuses_for_cancel` that accepts the one already cancelled order named in a verified cancel request, so WooCommerce shows "Your order was cancelled." (D-053). The reporter's second option; the choice is the assistant's and awaits the maintainer's confirmation before release.
+- Changes: `classes/class-wc-gateway-redsys-global-lite.php`, the three gateway classes, `woocommerce-redsys.php`, `tests/Integration/CancelUrlTest.php`, `tests/e2e/cancel-return-redsys.spec.js` — slice S-038.
+- Verification: `docs/05-test-points.md`, S-038 row. Not verified: a real refused payment against Redsys, and the reporter's WPML setup.
+- Replies: none yet.
+- Deploy: not yet — needs the next release before the reporter can test it.
+- Closed by: still open — never closed by Keel on its own reading of the code.
+- Inbound: none since the report (2026-09-16).
+- Lesson: none recorded.
+- Pending: beat 1 of the reply lifecycle (fix landed), then a release, then beats 2–3.
+
 
 ## Stale issues found already resolved (verified against current v7.0.2 code, no new work needed)
 

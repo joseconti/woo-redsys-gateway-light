@@ -49,7 +49,7 @@ A customer chooses the payment method with ID `bizumredsys` on the WooCommerce c
 - **Test-mode banner:** `warning_checkout_test_mode_bizum()` on `woocommerce_before_checkout_form`.
 
 ## Failure paths and recovery
-- **Customer abandons or Bizum refuses:** return to the cancel-order URL; a denied notification cancels the order, stores the Redsys error text and empties the cart.
+- **Customer abandons or Bizum refuses:** return to the cancel-order URL, sent as a plain URL (`AC-62`); a denied notification cancels the order, stores the Redsys error text and empties the cart. Whichever arrives first, the customer sees WooCommerce's "Your order was cancelled." notice (`AC-63`).
 - **Notification rejected:** the `redsys_signature_<number>` transient is deleted and the order stays `pending`.
 - **Transient expired before the notification arrives** (more than 600 seconds): verification falls back to the secret from the settings, which is the same value unless the settings changed in between.
 - **Amount mismatch:** `on-hold` for a manual check.

@@ -47,7 +47,7 @@ A customer chooses the payment method with ID `redsys` on the WooCommerce checko
 - **Test-mode banner:** while `testmode` is `yes` and the gateway is enabled, `warning_checkout_test_mode()` prints a warning above the checkout form (`AC-15`).
 
 ## Failure paths and recovery
-- **Customer cancels or the card is refused:** Redsys returns the customer to the cancel-order URL; a denied notification also cancels the order and empties the cart (`AC-11`). The customer can check out again.
+- **Customer cancels or the card is refused:** Redsys returns the customer to the cancel-order URL, sent as a plain URL (`AC-62`); a denied notification also cancels the order and empties the cart (`AC-11`). Whichever of the two arrives first, the customer sees WooCommerce's "Your order was cancelled." notice (`AC-63`) and can check out again.
 - **No secret configured:** the form is generated and Redsys may accept the payment, but the notification is rejected. Recovery: configure the secret; the store owner then reconciles the order by hand.
 - **Notification never arrives** (blocked by a firewall, or an HTTPS certificate Redsys does not accept): the order stays `pending`. The return handler on the order-received page is the fallback (`AC-13`); `not_use_https` exists for the certificate case.
 - **Amount mismatch:** the order goes `on-hold` for a manual check (`AC-10`).

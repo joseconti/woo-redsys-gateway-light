@@ -1197,6 +1197,30 @@ class WC_Gateway_Redsys_Global_Lite {
 		return $description;
 	}
 	/**
+	 * The order's cancel URL, as a URL — never as HTML.
+	 *
+	 * `WC_Order::get_cancel_order_url()` returns the address already escaped
+	 * for HTML (`&amp;` for every `&`), which is right inside an `href` and
+	 * wrong in `DS_MERCHANT_URLKO`: Redsys sends the browser to it as it is,
+	 * and WooCommerce then receives parameters named `amp;order_id` and
+	 * `amp;_wpnonce`. One canonical answer for every gateway.
+	 *
+	 * @param WC_Order|object $order Order object.
+	 * @return string Cancel URL with literal `&` separators, or '' when it cannot be built.
+	 */
+	public function get_cancel_url_raw( $order ) {
+		if ( ! is_object( $order ) ) {
+			return '';
+		}
+		if ( is_callable( array( $order, 'get_cancel_order_url_raw' ) ) ) {
+			return (string) $order->get_cancel_order_url_raw();
+		}
+		if ( is_callable( array( $order, 'get_cancel_order_url' ) ) ) {
+			return html_entity_decode( (string) $order->get_cancel_order_url(), ENT_QUOTES, 'UTF-8' );
+		}
+		return '';
+	}
+	/**
 	 * Get the PSD2 argument for the Redsys payment gateway.
 	 *
 	 * @param WC_Order $order The order object.

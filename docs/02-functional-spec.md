@@ -96,6 +96,8 @@ Reading the tables:
 | AC-09 | An accepted notification with `Ds_Response` 0–99 and an amount equal to the order total stores the Redsys order number, date, hour, merchant code, authorisation code, card country and card type in order meta, adds the two order notes, calls `payment_complete()`, and sets the order to `completed` only when `orderdo` is `completed`. | uncovered |
 | AC-10 | An accepted notification with `Ds_Response` 0–99 whose amount differs from the order total sets the order `on-hold` with a note showing both amounts, and does not complete payment. | uncovered |
 | AC-11 | An accepted notification with `Ds_Response` above 99 sets the order `cancelled`, adds a note and empties the cart. | uncovered |
+| AC-62 | For the card, Bizum and Google Pay gateways, the cancel URL sent to Redsys as `DS_MERCHANT_URLKO` is a plain URL with literal `&` separators, carrying the order ID, the order key and the cancel nonce. | `Integration/CancelUrlTest.php::test_the_cancel_url_sent_to_redsys_is_a_url_not_html`, `::test_no_gateway_uses_the_html_escaped_cancel_url_outside_markup`, `e2e/cancel-return-redsys.spec.js` |
+| AC-63 | A customer who returns through that cancel URL to an order of those three gateways that a notification has already set `cancelled` is shown WooCommerce's "Your order was cancelled." notice and no error; orders of other gateways, orders in any other status and requests without a valid cancel nonce keep WooCommerce's own behaviour. | `Integration/CancelUrlTest.php::test_returning_to_an_order_redsys_already_cancelled_is_not_an_error`, `::test_an_order_of_another_gateway_keeps_woocommerce_behaviour`, `::test_a_cancelled_order_is_not_cancellable_outside_its_own_cancel_request`, `::test_a_completed_order_is_never_made_cancellable`, `e2e/cancel-return-redsys.spec.js` |
 | AC-12 | A payment notification for an order that is already paid (any status outside the list filtered by `redsys_status_pending`) changes nothing. | uncovered |
 | AC-13 | When the customer returns to the order-received page with `key` and `Ds_MerchantParameters` in the URL and the order is still unpaid after the 5-second wait, the returned parameters go through the gateway's `successful_request()`, which verifies the signature before acting. | uncovered |
 | AC-14 | That return handling runs at most once every 30 seconds per order, and an already-paid order skips the 5-second wait. | `Integration/MarkOrderAsPaidRateLimitTest.php::test_repeat_calls_for_the_same_unpaid_order_are_rate_limited`, `::test_an_already_paid_order_skips_the_sleep_entirely` |
@@ -188,7 +190,7 @@ Reading the tables:
 | AC-57 | The plugin declares compatibility with WooCommerce High-Performance Order Storage. | uncovered |
 
 ### Coverage summary
-61 criteria, `AC-01` to `AC-61`. 37 are proven by a named automated test; 24 are `uncovered`:
+63 criteria, `AC-01` to `AC-63`. 39 are proven by a named automated test; 24 are `uncovered`:
 `AC-09`, `AC-10`, `AC-11`, `AC-12`, `AC-13`, `AC-15`, `AC-16`, `AC-23`, `AC-31`, `AC-32`, `AC-35`, `AC-41`, `AC-42`, `AC-43`, `AC-46`, `AC-47`, `AC-48`, `AC-49`, `AC-50`, `AC-52`, `AC-54`, `AC-55`, `AC-56`, `AC-57`.
 
 The largest gap is the order-status half of the three Redsys-protocol gateways: signature validation is proven for all of them, but what the card gateway does with an accepted notification (`AC-09` to `AC-12`) has no test at all, and the mismatch and denial branches of Bizum and Google Pay (`AC-23`, `AC-31`) have none either.

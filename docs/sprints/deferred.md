@@ -33,6 +33,14 @@ items:
     reason: D-052 — triaged only; none blocks the release of the pending fixes
     depends_on: []
     criteria: []
+  - id: S-042
+    title: Google Pay get_redsys_args() reads the billing name through the generic meta API instead of the order's getters (WooCommerce doing_it_wrong notice)
+    status: not-started
+    hours: 0.25
+    target: null
+    reason: D-053 — found while testing S-038; the value is still read correctly, only a notice is raised under WP_DEBUG; same class as L-004
+    depends_on: []
+    criteria: []
 ---
 
 # Deferred — wanted, not in the current plan

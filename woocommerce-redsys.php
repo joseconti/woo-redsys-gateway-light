@@ -445,6 +445,38 @@ function redsyslite_mark_order_as_paid( $order_id ) {
 }
 
 /**
+ * Lets WooCommerce treat the customer's return from Redsys as the cancellation it is.
+ *
+ * When a payment is cancelled or refused, Redsys notifies the shop server to server
+ * (the order becomes `cancelled`) and then sends the customer to the order's cancel
+ * URL. WooCommerce only cancels `pending` and `failed` orders, so it answered that
+ * return with "Your order can no longer be cancelled". For the one order named in a
+ * verified cancel request, already cancelled and paid through one of these gateways,
+ * `cancelled` is accepted and WooCommerce shows its own "Your order was cancelled".
+ *
+ * @param array         $statuses Order statuses WooCommerce allows a customer to cancel.
+ * @param WC_Order|null $order    Order being checked.
+ * @return array
+ */
+function redsyslite_allow_cancel_return_for_cancelled_order( $statuses, $order = null ) {
+	if ( ! is_array( $statuses ) || ! $order instanceof WC_Order || ! isset( $_GET['cancel_order'], $_GET['order_id'], $_GET['_wpnonce'] ) ) {
+		return $statuses;
+	}
+	if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'woocommerce-cancel_order' ) ) {
+		return $statuses;
+	}
+	if ( absint( $_GET['order_id'] ) !== $order->get_id() || ! $order->has_status( 'cancelled' ) ) {
+		return $statuses;
+	}
+	if ( ! in_array( $order->get_payment_method(), array( 'redsys', 'bizumredsys', 'googlepayredirecredsys' ), true ) ) {
+		return $statuses;
+	}
+	$statuses[] = 'cancelled';
+	return $statuses;
+}
+add_filter( 'woocommerce_valid_order_statuses_for_cancel', 'redsyslite_allow_cancel_return_for_cancelled_order', 10, 2 );
+
+/**
  * Ejecuta redsys_mark_order_as_paid desde wp_head si estamos en la página de "order received"
  * y hay una key válida en la URL.
  */
