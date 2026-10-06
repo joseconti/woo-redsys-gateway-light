@@ -348,3 +348,4 @@ slices:
 - Clock, this session: S-069, S-070, S-071 and S-072 were worked interleaved while agents and suites ran, and the clock holds one slice at a time — most of the four slices' time is on S-071's line. Their sum is measured; the split between them is not.
 - S-075 (done 2026-10-06, D-081): the six documented hooks no test named are driven — `OK (10 tests, 45 assertions)`; self-audit answer 5 closed. Lesson L-014 recorded (two instances at once; Docker Desktop restarted again).
 - Suppression count: 145 (D-081; four more, all in the new test file).
+- Session close, 2026-10-06 night: no inbound issue sweep — the last one was at 21:52, inside the 24-hour interval; token ledger and session row written. Nothing is left that the assistant can advance alone: S-032 and S-030 wait for the owner, S-037 for an observation a session cannot make of itself.
