@@ -6,7 +6,7 @@
 - PHP — `Requires PHP: 7.0` declared in `readme.txt` (not declared in the main plugin file header — a gap, see `docs/04-adoption-audit.md`)
 - WordPress — `Tested up to: 7.0`
 - WooCommerce — `WC requires at least: 7.4`, `WC tested up to: 10.9`
-- No Composer / PHP dependency manager
+- Composer — **dev-only**: `composer.json` requires `phpunit/phpunit ^9.6` and `yoast/phpunit-polyfills ^2.0` under `require-dev` (added with the first test suites, D-016/D-018). No runtime PHP dependency is installed or shipped; `vendor/` is gitignored
 - Front-end build: `@wordpress/scripts` (`^30.20.0`) + webpack (`webpack-cli ^4.10.0`), `@woocommerce/dependency-extraction-webpack-plugin ^1.7.0`, `cross-env`
 - Coding standard: `phpcs.xml` — `WooCommerce-Core` + `WordPress-Extra` ruleset, `testVersion 5.6-`, `minimum_supported_wp_version 4.7`
 
@@ -40,6 +40,15 @@ bin/build_i18n.sh                                           [E] i18n JSON-build 
 docs/                                                        [E] Keel state + reconstructed docs (this adoption)
 .reference/inespay-payment/                                  [E] vendored third-party reference plugin, gitignored (relocated from docs/, D-006)
 .wp-env-mu-plugins/                                           [E] dev/test-only wp-env mu-plugin(s); mapped via .wp-env.json's `mappings`, never shipped (D-029)
+tests/
+  bootstrap.php, bootstrap-integration.php                     [E] PHPUnit bootstraps (unit: stubs wp_json_encode; integration: boots WordPress + WooCommerce + this plugin)
+  Unit/, Integration/, e2e/                                    [E] PHPUnit unit suite, PHPUnit integration suite, Playwright specs
+phpunit.xml.dist, phpunit-integration.xml.dist, playwright.config.js   [E] test runner configuration
+scripts/
+  keel-doctor                                                  [E] environment doctor, compiled from "Environment requirements" below
+  keel-affected-tests                                          [E] test selection, compiled from the "Test selection" line below
+  keel-verify                                                  [E] mechanical docs-vs-reality checks
+.githooks/pre-push                                             [E] runs scripts/keel-affected-tests --run on every pushed branch (active once core.hooksPath = .githooks)
 ```
 
 **Not shipped as source-controlled minified pairs** — `assets/js/frontend/blocks.js` is a build OUTPUT (correctly `[G]`), but the CSS files have no `*.min.css` counterpart at all: the project has never adopted Keel's "source first, minified for production" contract. This is a real gap, recorded in `docs/04-adoption-audit.md` and NOT silently fixed during adoption (adoption changes no code beyond the user-approved license reconciliation, D-003/D-006).
@@ -56,7 +65,7 @@ docs/                                                        [E] Keel state + re
 PHPUnit 9.6 unit tests exist for `RedsysLiteAPI` (`tests/Unit/RedsysLiteAPITest.php`), the plugin's HMAC-SHA256 signature creation/verification class — the highest-risk code path per `docs/threat-model.md`. No `jest.config.*` or JS test suite exists — a deliberate decision (D-031), not a gap: see the "Remaining gap" paragraph below.
 
 - **Scope decision:** these are true unit tests against `RedsysLiteAPI` in isolation, not `WP_UnitTestCase` integration tests against a booted WordPress. The class has no WordPress runtime dependency beyond `wp_json_encode()`, which `tests/bootstrap.php` stubs — booting full WP core for this class would add engineering cost with no coverage benefit. See D-016 in `docs/decisions.md`.
-- **Where it runs:** the host machine has no local PHP/Composer; tests run inside the `wp-env` `cli` Docker container (PHP 7.4, matches `.wp-env.json`), which already has Composer 2.10 and downloads PHPUnit 9.6.35 project-locally via `composer.json`.
+- **Where it runs:** inside the `wp-env` `cli` Docker container (PHP 7.4, matches `.wp-env.json`), which already has Composer 2.10 and downloads PHPUnit 9.6.35 project-locally via `composer.json`. The host is not the test runtime: when these suites were written it had no PHP at all, and the PHP it has today (8.5.11 via Homebrew, `scripts/keel-doctor` 2026-10-06) is not the 7.4 the plugin is tested against — it is used for `php -l` only.
 - **Verified commands** (from the repo root, `wp-env` running):
   ```
   npx wp-env run cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && composer install"
@@ -89,12 +98,114 @@ All four gateways' checkout flows now have e2e coverage: `tests/e2e/checkout-biz
   ```
   Real run, 2026-08-01: unit `OK (8 tests, 8 assertions)`; integration `OK (31 tests, 295 assertions)`; e2e `7 passed` (`checkout-redsys`, `checkout-bizum`, `checkout-googlepay`, `checkout-inespay`, `checkout-blocks-redsys`, `inespay-transaction-limit` ×2) — 46 automated tests total, all mutation/regression-verified individually (see `docs/05-test-points.md`).
 
+### Driver per surface
+
+| Surface | Driver | Headless? | Evidence it produces |
+|---|---|---|---|
+| Signature logic (`RedsysLiteAPI`) | PHPUnit 9.6, unit suite, in the wp-env `cli` container | yes — no UI | PHPUnit output (`OK (N tests, M assertions)`), exit code |
+| Notification / callback endpoints (`?wc-api=WC_Gateway_<id>`), refunds, order-number logic | PHPUnit 9.6 integration suite (`WP_UnitTestCase`) in the wp-env `tests-cli` container; `curl` against the playground for a raw POST | yes — no UI | PHPUnit output; HTTP status + body; `wp-content/debug.log` |
+| Storefront checkout — classic and Blocks (the four gateways' payment options and generated payment forms) | Playwright (`@playwright/test`, Chromium) against the wp-env playground on `http://localhost:8888` | yes — Playwright's default; nothing takes the screen | list reporter output; a trace for a failed test (`test-results/`) |
+| WooCommerce admin settings screens (per gateway) | Playwright against the same playground — **`TO BUILD`**: no spec drives the admin screens today | yes | — |
+
+No surface of this project needs a non-headless driver, so there is no screen-stealing mitigation to agree.
+
+### Run mode and recording
+- **Headless is the default and the only documented mode:** `npx playwright test` (`npm run test:e2e`). A headed, slowed-down script for watching a run is **`TO BUILD`** — none exists in `package.json`; the ad-hoc equivalent is `npx playwright test --headed`, which leaves no recording behind and is never evidence.
+- **Recording:** `trace: 'retain-on-failure'` (`playwright.config.js`); artifacts land in `test-results/` (gitignored). Video is **not** enabled — recording a video per test is `TO BUILD`; today a green run's evidence is the reporter output, a red run's is its trace.
+- **Worker cap:** `workers: Number( process.env.PW_WORKERS ?? 1 )`. The cap is **1** locally and everywhere, because every spec drives the same wp-env site (one set of gateway options, one storefront); `PW_WORKERS=<n>` raises it for a run of specs known not to share state. Keel's reference expression leaves the count `undefined` under `CI`; this project deliberately does not, for that shared-site reason — and it has no forge CI (card: `CI runs on: n/a`).
+- **Browser MCP:** none is registered for this project (no `.mcp.json`); the browser is driven by the test runner only. If one is ever added it goes in the repo-level `.mcp.json` with `--headless --isolated` (or `--cdp-endpoint` to one shared browser) and this line records which. `scripts/keel-doctor` checks the three advisory rows (user-level registration, flags, browsers orphaned to PID 1) on every run.
+- Several sessions on one machine take turns running the browser suite — one executing verifier per environment; the playground is one environment.
+
+### Element addressability
+The checkout markup this plugin's tests bind to is rendered by WooCommerce, not by the plugin: specs address the stable element IDs WooCommerce derives from the gateway ID (`#payment_method_redsys`, `#payment_method_bizumredsys`, `#payment_method_googlepayredirecredsys`, `#payment_method_inespayredsys`) and the `name` attributes of the generated Redsys form fields (`Ds_MerchantParameters`, `Ds_Signature`, `Ds_SignatureVersion`) — identifiers, never localized visible text. The plugin adds no `data-testid` of its own today. Convention for any interactive element the plugin itself renders from now on: `data-testid="redsys-lite-<screen>-<element>"`, kebab-case. No accessibility label is ever invented to make an element findable.
+
+### Division of labour
+The assistant drives every suite above end to end; every row of `docs/05-test-points.md` is `driven`. The legs it cannot drive, each with the tag a slice takes when it needs that leg — the tag covers only the leg, never the whole flow:
+
+| Leg | Tag | Who runs it, how |
+|---|---|---|
+| A payment completed on Redsys's own hosted page (the e2e specs stop at the generated, signed form and abort every request to `*.redsys.es`, D-022) with a merchant's real terminal and secret | `CREDENTIAL` | the merchant/user, with their own Redsys test-environment credentials, following `docs/playground.md` "Try it yourself" |
+| A Bizum payment confirmed on a phone | `HARDWARE` | the user, on a device with a Bizum-enabled banking app |
+| An Inespay transfer authorised at a real bank (the playground fakes Inespay's API response, D-029) | `CREDENTIAL` | the user, with a real Inespay API key and bank login |
+| A real charge against a live merchant account | `PRODUCTION-RISK` | never automated; the user, deliberately |
+| The screen-reader pass on the checkout and settings screens (`docs/accessibility.md`) | `ASSISTIVE-TECH` | a person with VoiceOver/NVDA |
+| Publishing to WordPress.org (SVN commit, plugin review) | `EXTERNAL-APPROVAL` | the user, with their WordPress.org account |
+
+### Static analysis and sniffers
+Run at every test point on the changed files, and over the whole tree at the release gate:
+
+- `php -l <file>` on every touched PHP file — on the host (`/opt/homebrew/bin/php`), or `npx wp-env run cli php -l wp-content/plugins/woo-redsys-gateway-light/<file>` for the PHP 7.4 the plugin targets. **Available today.**
+- PHP_CodeSniffer with `phpcs.xml` (`WooCommerce-Core` + `WordPress-Extra`) — **`TO BUILD`**: the ruleset is committed, but `phpcs` and the WooCommerce/WordPress standards are not a `require-dev` dependency and are not installed anywhere this project can call (`vendor/bin/phpcs` is absent). No phpcs run is claimed until that exists.
+- PHPStan — **absent**: no `phpstan.neon`, not installed.
+- WordPress Plugin Check — **absent**: not installed in the playground.
+- JavaScript: `@wordpress/scripts` ships ESLint (`npx wp-scripts lint-js resources/js`), but no lint script is defined in `package.json` and no run has been recorded — **`TO BUILD`**.
+- `scripts/keel-verify` — cheap, runs whole, always.
+
+### Accessibility automation
+**`TO BUILD`** — `@axe-core/playwright` is not a dependency and no spec runs an axe scan; no driven keyboard/focus-order pass exists. The mechanism, when built: axe inside the existing e2e specs, per state (payment method unselected / selected / the generated payment form), tagged to WCAG 2.2 AA (D-007). `docs/accessibility.md` holds the same honest status.
+
+### Read-back duty
+- **WordPress log — in place:** `.wp-env.json` sets `WP_DEBUG` and `WP_DEBUG_LOG` for both environments; the log is read at every test point with `npx wp-env run cli tail -n 100 wp-content/debug.log` (`docs/playground.md`, "Reading the WordPress debug log"). A flow that passes while the log gained a fatal or a notice has not passed.
+- **Browser — `TO BUILD`:** the specs do not yet subscribe to `console`, `pageerror`, `requestfailed` or 5xx `response` events, so a page that renders correctly while throwing does not fail its test today.
+- **Gateway log:** the plugin's own `WC_Logger` output (WooCommerce → Status → Logs), switched by each gateway's debug setting.
+
+### Test selection (the source of `scripts/keel-affected-tests`)
+Every test point, every push (`.githooks/pre-push`) and every sprint close runs the affected selection; the entire suite runs only at the Phase 7 gate on the release candidate (`scripts/keel-affected-tests --full --run`, recorded as `scope: full — M of M tests`). Card: `Push test scope: affected`.
+
+- **Impact tool:** none exists for PHPUnit, so the path tables written into `scripts/keel-affected-tests` plus a reverse-dependency grep ARE the tool:
+  - *source → tests* — the script's `DIRECT` table (e.g. `includes/class-redsysliteapi.php` → `tests/Unit/RedsysLiteAPITest.php` and the three IPN tests that sign their fixtures with it; `classes/class-wc-gateway-<name>-redsys.php` → `tests/Integration/Gateway<Name>IpnTest.php` + `tests/e2e/checkout-<name>.spec.js`), plus, at run time, a grep of `tests/` for every class (or, in a classless file, function) the changed file declares — which is what selects a new test before its row is added;
+  - *reverse dependencies* — the script's `DEPENDENTS` table, by symbol use (`new RedsysLiteAPI`, `WCRedL()`, `WCPSD2L()`, `include_once REDSYS_PLUGIN_DATA_PATH`), followed transitively: a change to `classes/class-wc-gateway-redsys-global-lite.php` reaches every gateway's tests. `woocommerce-redsys.php`'s `require_once` list is deliberately not an edge (it loads everything; counting it would select everything on every change);
+  - every test file added or modified in the diff.
+- **Always-run smoke set:** none.
+- **Widening list, this project's concrete paths → the entire suite:** `composer.json`, `composer.lock`, `package.json`, `package-lock.json` (manifests and lockfiles); `phpunit.xml.dist`, `phpunit-integration.xml.dist`, `playwright.config.js` (runner configuration); `tests/bootstrap.php`, `tests/bootstrap-integration.php` (bootstraps); any other non-test file under `tests/` (shared fixture or helper — none exists yet); `webpack.config.js`, `bin/*`, `phpcs.xml` (build configuration); `.wp-env.json`, `.wp-env.override.json`, `.wp-env-mu-plugins/*` (playground configuration); `.github/workflows/*` (CI — none exists); `scripts/keel-affected-tests` itself.
+- **Database schema / migrations:** none — the plugin creates no table and ships no migration, so that widening row has nothing to match.
+- **Uncovered source:** a source file with no test and no tested dependent gets the tests of its enclosing module (the script's `MODULES` table — e.g. the Bizum/Google Pay/Inespay Blocks support classes → that gateway's tests; anything else → the plugin-bootstrap pair) and is printed as a coverage gap, never passed over.
+- **Docs only:** a diff touching only `docs/`, `*.md`, `readme.txt`, `LICENSE`, `scripts/keel-*` (other than the selector), `.githooks/`, `.claude/`, `.agents/`, `.codex/` or repository metadata selects nothing — `scope: none — docs only`.
+- **Failure modes:** a source diff with an empty selection exits non-zero; a stale table or an unresolvable base falls back to the entire suite and says why; `--run` with the playground down exits non-zero naming `npx wp-env start` — it never passes silently.
+- **Keeping it true:** adding a source or test file means adding its row; `scripts/keel-affected-tests --check-map` fails when a test file is in no row or a row names a path that does not exist.
+- **Test counts in the `scope:` line are static** (PHPUnit test methods + Playwright `test()` calls); data-provider rows are not expanded, so PHPUnit's own total can be higher.
+
+### Regression rule
+Every bug fixed gets a test pinning the fix, **written and failing before the fix** (linked from `docs/lessons-learned.md`) — on every policy value below, hotfixes included.
+
+### Test-first policy: pure-logic
+Card value `pure-logic` (D-036). Pure logic gets its test written and **seen failing** before its code: here that is signature creation/verification (`RedsysLiteAPI`, the Inespay HMAC), order-number preparation and its transients, amount formatting, and response/status-code mapping. Not applied to gateway settings markup, hook registration and bootstrap glue, or exploratory work against Redsys/Inespay behaviour that is not yet known (a spike, closed by a test once the shape is known). No acceptance-level scope is in force. A test derived from an `AC-nn` or a reproduced bug is never edited to make it pass. The policy is not retroactive: rows already in `docs/05-test-points.md` carry `Red first: n/a — predates`.
+
+## Environment requirements (the source of `scripts/keel-doctor`)
+
+One machine plays all three roles here — the user's Mac holds the repository and runs the tests. PHP, Composer, MySQL, WordPress and WooCommerce are **not** host requirements: they run inside the wp-env containers.
+
+| Requirement | Required version/state | Severity | How it is installed on macOS / Windows / Linux |
+|---|---|---|---|
+| Node.js | >= 18 | blocking | `nvm install --lts` or `mise use node@lts` (macOS/Linux); `fnm`/`volta` (Windows). Never a silent global version change |
+| npm, npx | any (ship with Node.js) | blocking | with Node.js |
+| Docker CLI | any | blocking | Docker Desktop (macOS/Windows) or Docker Engine (Linux). **Licence:** Docker Desktop needs a paid subscription for organisations with 250+ employees or over $10M revenue — Colima (MIT) on macOS/Linux is the drop-in alternative. **Privilege:** adding a user to the `docker` group on Linux is effectively granting root |
+| Docker daemon | running — "installed but stopped" is `NOT OPERATIONAL`, not `MISSING` | blocking | start Docker Desktop, `colima start`, or `systemctl start docker` |
+| `@wordpress/env` (wp-env) | `^10.0.0`, project-local | optional (npx fetches it on first run) | `npm install` |
+| wp-env playground of THIS repository | running, for any test run — a state, not an install; another project's wp-env is not it | optional | `npx wp-env start` |
+| PHPUnit + `yoast/phpunit-polyfills` | `^9.6` / `^2.0`, in `vendor/` | blocking | with the playground running: `npx wp-env run cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && composer install"` |
+| `@playwright/test` | `^1.62.1`, project-local | blocking | `npm install` |
+| Playwright Chromium | the revision the installed `@playwright/test` pins | blocking | `npx playwright install chromium` — a download of a few hundred MB |
+| PHP on the host | >= 7.4 recommended | optional — only for `php -l` outside Docker | Homebrew / the OS package manager |
+| python3 | any | optional — the doctor reads the MCP and settings JSON with it | Xcode Command Line Tools / the OS package manager |
+| Permission mode | not `manual` | advisory | `.claude/settings.local.json` (`permissions.defaultMode: "auto"`), or `claude --permission-mode auto` |
+| Browser MCP scope | no user-level registration | advisory | `claude mcp remove -s user playwright`; register in the project's `.mcp.json` |
+| Browser MCP flags | `--headless` + `--isolated`, or `--cdp-endpoint` | advisory | add the flags in `.mcp.json` |
+| Orphaned Playwright browsers | 0 with parent PID 1 | advisory | `kill <the listed PIDs>` — never `pkill -f ms-playwright` |
+
+**Not in the table because they do not exist yet** (see "Static analysis and sniffers"): phpcs with the WooCommerce/WordPress standards, PHPStan, Plugin Check, `@axe-core/playwright`. Each gets a row here — and so a row in the doctor — in the slice that installs it.
+
+**Nothing in this project is impossible on this machine:** no Apple, Android or native-desktop surface exists.
+
+**Not probed by the doctor:** the notification channel (card `Notify:`). A shell script cannot probe the assistant's own notification tool, so the session records that probe; the doctor does not claim it.
+
 ## Build/lint commands (verified from `package.json`)
 - `npm run build` — `wp-scripts build`, compiles `resources/js/frontend/index.js` → `assets/js/frontend/blocks.js` + `.asset.php`
 - `npm run start` — `wp-scripts start` (watch mode)
 - `npm run i18n:pot` — generates the `.pot` via `wp i18n make-pot` (WP-CLI, not verified runnable in this environment — requires WP-CLI + a WordPress install)
 - `npm run test:e2e` (`playwright test`) — runs `tests/e2e/`; needs `npx wp-env start` and the one-time environment setup in `docs/playground.md`
-- `phpcs.xml` — `WooCommerce-Core` + `WordPress-Extra` ruleset; not verified to run cleanly during adoption (adoption is read-only; running phpcs and recording its output is a Phase 5/gap-audit follow-up, not repeated here to avoid a stale claim)
+- `phpcs.xml` — `WooCommerce-Core` + `WordPress-Extra` ruleset; never run for this project: no `phpcs` binary with those standards is installed or declared as a dependency (`TO BUILD`, see "Static analysis and sniffers")
+- `scripts/keel-affected-tests [--base <ref>] [--head <ref>] [--run] [--full]` — prints (and with `--run`, runs) the tests the diff reaches; `scripts/keel-doctor [--check|--plan|--fix]` — environment table
 
 ## Version touchpoints (verified, and their current agreement)
 | Location | Value | Agrees with Stable tag? |

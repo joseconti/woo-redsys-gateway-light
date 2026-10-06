@@ -7,9 +7,14 @@
 #                       if anything BLOCKING is missing.
 #   --plan              Detect, then print the exact commands that --fix WOULD
 #                       run, without running them.
-#   --fix               Run those commands, after the user has seen --plan.
-#                       Installs ONLY this project's npm devDependencies
-#                       (`npm install`) — never anything system-global.
+#   --fix               Print that same list, ask for one OK (or take --yes),
+#                       then run it. Installs ONLY project-local things
+#                       (`npm install`, the Playwright Chromium binary) and
+#                       kills ONLY the orphaned Playwright browser PIDs it
+#                       listed — never anything system-global, never
+#                       `pkill -f ms-playwright`.
+#   --yes                With --fix: the OK was already given on the --plan
+#                       list; do not prompt.
 #   --json               Emit the same result as machine-readable JSON instead
 #                       of the human table. Combine with --check/--plan/--fix.
 #
@@ -17,11 +22,19 @@
 # working Docker daemon. Node/npm are needed to run `npx wp-env` and the
 # front-end build (`npm run build`). PHP is used by phpcs/phpcbf locally but
 # is NOT required to run wp-env itself (PHP runs inside the containers).
+#
+# Compiled from docs/03-technical-plan.md "## Environment requirements".
+# The three browser-MCP rows and the permission-mode row are ADVISORY: they
+# never change the exit code (Keel references/test-automation.md).
 
 set -u
 
+cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)" || exit 2
+ROOT=$(pwd -P)
+
 MODE="check"
 JSON=0
+YES=0
 
 for arg in "$@"; do
 	case "$arg" in
@@ -29,8 +42,9 @@ for arg in "$@"; do
 		--plan) MODE="plan" ;;
 		--fix) MODE="fix" ;;
 		--json) JSON=1 ;;
+		--yes) YES=1 ;;
 		-h|--help)
-			echo "Usage: scripts/keel-doctor [--check|--plan|--fix] [--json]"
+			echo "Usage: scripts/keel-doctor [--check|--plan|--fix [--yes]] [--json]"
 			exit 0
 			;;
 		*)
@@ -44,12 +58,47 @@ done
 # requirement|detected|required|state|severity|how_to_install
 ROWS=()
 BLOCKING_MISSING=0
+NEED_NPM_INSTALL=0
+NEED_PW_INSTALL=0
 
 add_row() {
 	ROWS+=("$1|$2|$3|$4|$5|$6")
 	if [ "$4" != "OK" ] && [ "$5" = "blocking" ]; then
 		BLOCKING_MISSING=1
 	fi
+}
+
+# The commands --fix runs (FIX_CMDS) and the ones it never runs because they
+# are the user's decision or need a running playground (MANUAL_CMDS).
+FIX_CMDS=()
+MANUAL_CMDS=()
+ORPHAN_PIDS=""
+
+# find_tool <name> — absolute path of a tool, or empty.
+# A negative `command -v` never concludes MISSING on its own: the assistant's
+# shell is frequently not the user's shell (nvm, mise and volta load from the
+# interactive profile). Corroborate with the login shell, then the known
+# install locations, before calling anything absent.
+find_tool() {
+	local p sh cand
+	p=$(command -v "$1" 2>/dev/null)
+	if [ -n "$p" ]; then printf '%s' "$p"; return 0; fi
+	for sh in zsh bash; do
+		command -v "$sh" >/dev/null 2>&1 || continue
+		p=$("$sh" -lc "command -v $1" 2>/dev/null </dev/null | tail -1)
+		if [ -n "$p" ] && [ -x "$p" ]; then printf '%s' "$p"; return 0; fi
+	done
+	p=""
+	for cand in "$HOME"/.nvm/versions/node/*/bin "$HOME/.local/share/mise/shims" "$HOME/.volta/bin" /opt/homebrew/bin /usr/local/bin; do
+		[ -x "$cand/$1" ] && p="$cand/$1"
+	done
+	printf '%s' "$p"
+}
+
+# where <name> <path> — a suffix naming the absolute path when the tool was
+# found outside this shell's PATH (that path is what later commands must use).
+where() {
+	if command -v "$1" >/dev/null 2>&1; then printf ''; else printf ' at %s (not on this shell PATH)' "$2"; fi
 }
 
 version_ge() {
@@ -62,12 +111,15 @@ version_ge() {
 }
 
 # --- Node.js -----------------------------------------------------------
-if command -v node >/dev/null 2>&1; then
-	NODE_V=$(node -p "process.versions.node" 2>/dev/null || echo "")
+NODE_BIN=$(find_tool node)
+NODE_DIR=""
+if [ -n "$NODE_BIN" ]; then
+	NODE_DIR=$(dirname "$NODE_BIN")
+	NODE_V=$("$NODE_BIN" -p "process.versions.node" 2>/dev/null || echo "")
 	if [ -n "$NODE_V" ] && version_ge "$NODE_V" "18.0.0"; then
-		add_row "Node.js" "$NODE_V" ">=18" "OK" "blocking" "—"
+		add_row "Node.js" "$NODE_V$(where node "$NODE_BIN")" ">=18" "OK" "blocking" "—"
 	elif [ -n "$NODE_V" ]; then
-		add_row "Node.js" "$NODE_V" ">=18" "TOO OLD" "blocking" "mise use -g node@lts (or nvm install --lts)"
+		add_row "Node.js" "$NODE_V$(where node "$NODE_BIN")" ">=18" "TOO OLD" "blocking" "mise use -g node@lts (or nvm install --lts)"
 	else
 		add_row "Node.js" "present, version unreadable" ">=18" "NOT OPERATIONAL" "blocking" "reinstall Node.js (nvm/mise/nodejs.org)"
 	fi
@@ -75,11 +127,20 @@ else
 	add_row "Node.js" "absent" ">=18" "MISSING" "blocking" "install via nvm/mise, or https://nodejs.org/"
 fi
 
+# node_run <tool> <args...> — run a Node-based tool with Node resolvable,
+# for this one command only.
+node_run() {
+	local tool="$1"
+	shift
+	if [ -n "$NODE_DIR" ]; then PATH="$NODE_DIR:$PATH" "$tool" "$@"; else "$tool" "$@"; fi
+}
+
 # --- npm -----------------------------------------------------------------
-if command -v npm >/dev/null 2>&1; then
-	NPM_V=$(npm -v 2>/dev/null || echo "")
+NPM_BIN=$(find_tool npm)
+if [ -n "$NPM_BIN" ]; then
+	NPM_V=$(node_run "$NPM_BIN" -v 2>/dev/null || echo "")
 	if [ -n "$NPM_V" ]; then
-		add_row "npm" "$NPM_V" "any" "OK" "blocking" "—"
+		add_row "npm" "$NPM_V$(where npm "$NPM_BIN")" "any" "OK" "blocking" "—"
 	else
 		add_row "npm" "present, version unreadable" "any" "NOT OPERATIONAL" "blocking" "reinstall Node.js (npm ships with it)"
 	fi
@@ -111,8 +172,9 @@ else
 fi
 
 # --- npx / wp-env (via @wordpress/env devDependency, run through npx) ---
-if command -v npx >/dev/null 2>&1; then
-	add_row "npx" "present" "any" "OK" "blocking" "—"
+NPX_BIN=$(find_tool npx)
+if [ -n "$NPX_BIN" ]; then
+	add_row "npx" "present$(where npx "$NPX_BIN")" "any" "OK" "blocking" "—"
 else
 	add_row "npx" "absent" "any" "MISSING" "blocking" "install Node.js (npx ships with npm >=5.2)"
 fi
@@ -123,6 +185,80 @@ if [ -d "node_modules/.bin" ] && [ -x "node_modules/.bin/wp-env" ]; then
 	add_row "wp-env (local)" "installed (node_modules/.bin/wp-env)" "any" "OK" "optional" "—"
 else
 	add_row "wp-env (local)" "not installed" "any" "MISSING" "optional" "npm install (adds @wordpress/env as a devDependency if not already present) — npx wp-env also works without a local install, it fetches on first run"
+	NEED_NPM_INSTALL=1
+fi
+
+# --- wp-env playground of THIS repository (a state, not an install) -----
+# Another project's wp-env on the same machine is not this project's
+# environment: only a running container that bind-mounts this repository
+# counts.
+WPENV_UP=0
+if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+	for cid in $(docker ps -q 2>/dev/null); do
+		mounts=$(docker inspect --format '{{range .Mounts}}{{.Source}}{{"\n"}}{{end}}' "$cid" 2>/dev/null)
+		if printf '%s\n' "$mounts" | grep -qxF -e "$ROOT" -e "/host_mnt$ROOT"; then
+			WPENV_UP=1
+		fi
+	done
+	if [ "$WPENV_UP" -eq 1 ]; then
+		add_row "wp-env playground" "running (a container mounts this repo)" "running for tests" "OK" "optional" "—"
+	else
+		add_row "wp-env playground" "not running for this repo" "running for tests" "NOT OPERATIONAL" "optional" "npx wp-env start"
+	fi
+else
+	add_row "wp-env playground" "n/a — Docker not responding" "running for tests" "NOT OPERATIONAL" "optional" "start Docker, then: npx wp-env start"
+fi
+
+# --- PHPUnit (project-local, installed by Composer INSIDE wp-env) -------
+PLUGIN_DIR=$(basename "$ROOT")
+COMPOSER_CMD="npx wp-env run cli bash -c \"cd wp-content/plugins/$PLUGIN_DIR && composer install\""
+if [ -f "vendor/bin/phpunit" ]; then
+	add_row "PHPUnit (vendor/)" "installed (vendor/bin/phpunit)" "^9.6" "OK" "blocking" "—"
+else
+	add_row "PHPUnit (vendor/)" "absent" "^9.6" "MISSING" "blocking" "with wp-env running: $COMPOSER_CMD"
+	MANUAL_CMDS+=("$COMPOSER_CMD   # needs 'npx wp-env start' first; Composer runs inside the cli container")
+fi
+
+# --- Playwright (the e2e driver) and its Chromium binary ----------------
+if [ -x "node_modules/.bin/playwright" ]; then
+	add_row "@playwright/test" "installed (node_modules/.bin/playwright)" "^1.62" "OK" "blocking" "—"
+else
+	add_row "@playwright/test" "absent" "^1.62" "MISSING" "blocking" "npm install"
+	NEED_NPM_INSTALL=1
+fi
+
+# The revision this project's Playwright wants is only known once
+# node_modules exists (playwright-core/browsers.json). A cached build of
+# some other revision is not this project's browser, and a directory is
+# evidence of a download, not of a launch.
+PW_CACHE="${PLAYWRIGHT_BROWSERS_PATH:-}"
+if [ -z "$PW_CACHE" ]; then
+	if [ -d "$HOME/Library/Caches/ms-playwright" ]; then PW_CACHE="$HOME/Library/Caches/ms-playwright"; else PW_CACHE="$HOME/.cache/ms-playwright"; fi
+fi
+PW_REV=""
+if [ -f "node_modules/playwright-core/browsers.json" ] && command -v python3 >/dev/null 2>&1; then
+	PW_REV=$(python3 -c 'import json
+try:
+    for b in json.load(open("node_modules/playwright-core/browsers.json"))["browsers"]:
+        if b.get("name") == "chromium":
+            print(b.get("revision", ""))
+except Exception:
+    pass' 2>/dev/null)
+fi
+PW_HOW="npx playwright install chromium (downloads a few hundred MB)"
+if [ -n "$PW_REV" ]; then
+	if [ -d "$PW_CACHE/chromium-$PW_REV" ] || [ -d "$PW_CACHE/chromium_headless_shell-$PW_REV" ]; then
+		add_row "Playwright Chromium" "revision $PW_REV downloaded" "chromium r$PW_REV" "OK" "blocking" "—"
+	else
+		add_row "Playwright Chromium" "revision $PW_REV absent" "chromium r$PW_REV" "MISSING" "blocking" "$PW_HOW"
+		NEED_PW_INSTALL=1
+	fi
+elif ls -d "$PW_CACHE"/chromium* >/dev/null 2>&1; then
+	add_row "Playwright Chromium" "a build is cached; required revision unknown until npm install" "chromium" "MISSING" "blocking" "npm install, then $PW_HOW"
+	NEED_PW_INSTALL=1
+else
+	add_row "Playwright Chromium" "absent" "chromium" "MISSING" "blocking" "$PW_HOW"
+	NEED_PW_INSTALL=1
 fi
 
 # --- PHP (used for phpcs/phpcbf locally; NOT required to run wp-env) ----
@@ -138,23 +274,187 @@ else
 fi
 
 # --- Permission mode (advisory, per Keel test-automation.md) -----------
-PERM_MODE="manual"
-if [ -f ".claude/settings.local.json" ] && grep -q '"defaultMode"[[:space:]]*:[[:space:]]*"auto"' .claude/settings.local.json 2>/dev/null; then
-	PERM_MODE="auto"
+# OK when .claude/settings.local.json sets a permissions.defaultMode other
+# than `manual`. A mode passed on the command line (`--permission-mode`) is
+# not visible to a script, so "no file" reads as manual-or-unset.
+PERM_MODE=""
+if [ -f ".claude/settings.local.json" ]; then
+	if command -v python3 >/dev/null 2>&1; then
+		PERM_MODE=$(python3 -c 'import json,sys
+try:
+    d=json.load(open(".claude/settings.local.json"))
+    print((d.get("permissions") or {}).get("defaultMode") or "")
+except Exception:
+    print("")' 2>/dev/null)
+	else
+		PERM_MODE=$(grep -oE '"defaultMode"[[:space:]]*:[[:space:]]*"[A-Za-z]+"' .claude/settings.local.json 2>/dev/null | sed -E 's/.*"([A-Za-z]+)"$/\1/' | head -1)
+	fi
 fi
-if [ "$PERM_MODE" = "auto" ]; then
-	add_row "Permission mode" "auto" "not manual" "OK" "advisory" "—"
+if [ -n "$PERM_MODE" ] && [ "$PERM_MODE" != "manual" ] && [ "$PERM_MODE" != "default" ]; then
+	add_row "Permission mode" "$PERM_MODE" "not manual" "OK" "advisory" "—"
 else
-	add_row "Permission mode" "manual (or unset)" "not manual" "MISSING" "advisory" "write .claude/settings.local.json (permissions.defaultMode: \"auto\"), or start with --permission-mode auto"
+	add_row "Permission mode" "${PERM_MODE:-manual (or unset)}" "not manual" "MISSING" "advisory" "write .claude/settings.local.json (permissions.defaultMode: \"auto\"), or start with --permission-mode auto"
 fi
+
+# --- Browser MCP: three advisory rows ------------------------------------
+# This project has a browser surface (the WooCommerce checkout, driven by
+# Playwright), so the rows are always generated. A browser MCP registered at
+# USER level starts a browser in every assistant session on the machine;
+# the project's own registration must be headless and isolated (or attach to
+# one shared browser); a Playwright browser reparented to PID 1 belongs to
+# no session any more.
+
+# Scope — every user-level container the accepted tools use.
+if command -v python3 >/dev/null 2>&1; then
+	MCP_SCOPE=$(python3 - <<'PY' 2>/dev/null
+import json, os, re, glob
+
+home = os.path.expanduser("~")
+hits = []
+
+def is_playwright(name, spec):
+    if str(name).lower() == "playwright":
+        return True
+    text = json.dumps(spec) if not isinstance(spec, str) else spec
+    return "@playwright/mcp" in text
+
+def scan_json(path, label, key="mcpServers"):
+    try:
+        with open(path) as fh:
+            data = json.load(fh)
+    except Exception:
+        return
+    servers = data.get(key) or {}
+    if isinstance(servers, dict):
+        for name, spec in servers.items():
+            if is_playwright(name, spec):
+                hits.append("`%s` in %s" % (name, label))
+
+# Top-level mcpServers only: the per-project entries of ~/.claude.json are
+# local scope and bind one checkout.
+scan_json(os.path.join(home, ".claude.json"), "~/.claude.json mcpServers")
+scan_json(os.path.join(home, ".cursor", "mcp.json"), "~/.cursor/mcp.json")
+scan_json(os.path.join(home, ".gemini", "settings.json"), "~/.gemini/settings.json")
+
+# ~/.codex/config.toml — [mcp_servers.<name>] sections (no TOML parser in
+# the stdlib of older Pythons, so read the sections as text).
+try:
+    with open(os.path.join(home, ".codex", "config.toml")) as fh:
+        toml = fh.read()
+    for m in re.finditer(r"(?m)^\[mcp_servers\.([^\]\s.]+)\]\s*$", toml):
+        name = m.group(1).strip('"')
+        nxt = re.search(r"(?m)^\[", toml[m.end():])
+        body = toml[m.end(): m.end() + nxt.start()] if nxt else toml[m.end():]
+        if is_playwright(name, body):
+            hits.append("`%s` in ~/.codex/config.toml" % name)
+except Exception:
+    pass
+
+# Plugins enabled at user level that bundle the server.
+enabled = set()
+try:
+    with open(os.path.join(home, ".claude", "settings.json")) as fh:
+        for key, on in (json.load(fh).get("enabledPlugins") or {}).items():
+            if on:
+                enabled.add(key.split("@")[0])
+except Exception:
+    pass
+if enabled:
+    for path in glob.glob(os.path.join(home, ".claude", "plugins", "**", ".mcp.json"), recursive=True):
+        parts = path.split(os.sep)
+        plugin = next((p for p in parts if p in enabled), None)
+        if not plugin:
+            continue
+        try:
+            with open(path) as fh:
+                data = json.load(fh)
+        except Exception:
+            continue
+        servers = data.get("mcpServers") if isinstance(data.get("mcpServers"), dict) else data
+        for name, spec in (servers or {}).items():
+            if is_playwright(name, spec):
+                hits.append("`%s` bundled by enabled plugin %s" % (name, plugin))
+
+print("; ".join(sorted(set(hits))))
+PY
+)
+	if [ -z "$MCP_SCOPE" ]; then
+		add_row "Browser MCP scope" "no user-level registration" "project .mcp.json only" "OK" "advisory" "—"
+	else
+		add_row "Browser MCP scope" "$MCP_SCOPE" "project .mcp.json only" "MISSING" "advisory" "claude mcp remove -s user playwright (or delete the entry from the file named); register it in this project's .mcp.json instead"
+		MANUAL_CMDS+=("claude mcp remove -s user playwright   # your machine-wide config: $MCP_SCOPE")
+	fi
+else
+	add_row "Browser MCP scope" "python3 absent — user-level MCP files not read" "project .mcp.json only" "NOT OPERATIONAL" "advisory" "install python3 (Xcode Command Line Tools), then re-run"
+fi
+
+# Flags — this project's own registration.
+if [ ! -f ".mcp.json" ]; then
+	add_row "Browser MCP flags" "no .mcp.json (browser driven by the test runner only)" "--headless + --isolated, or --cdp-endpoint" "OK" "advisory" "—"
+elif command -v python3 >/dev/null 2>&1; then
+	MCP_FLAGS=$(python3 - <<'PY' 2>/dev/null
+import json
+
+try:
+    with open(".mcp.json") as fh:
+        servers = json.load(fh).get("mcpServers") or {}
+except Exception:
+    print("UNREADABLE")
+    raise SystemExit
+
+out = []
+found = False
+for name, spec in servers.items():
+    text = json.dumps(spec)
+    if str(name).lower() != "playwright" and "@playwright/mcp" not in text:
+        continue
+    found = True
+    args = [str(a) for a in (spec.get("args") or [])] if isinstance(spec, dict) else []
+    has = lambda flag: any(a == flag or a.startswith(flag + "=") for a in args)
+    if has("--cdp-endpoint") or (has("--headless") and has("--isolated")):
+        continue
+    missing = [f for f in ("--headless", "--isolated") if not has(f)]
+    out.append("`%s` args without %s" % (name, " and ".join(missing)))
+print("NONE" if not found else "; ".join(out))
+PY
+)
+	case "$MCP_FLAGS" in
+		NONE) add_row "Browser MCP flags" "no browser MCP in .mcp.json" "--headless + --isolated, or --cdp-endpoint" "OK" "advisory" "—" ;;
+		UNREADABLE) add_row "Browser MCP flags" ".mcp.json is not valid JSON" "--headless + --isolated, or --cdp-endpoint" "NOT OPERATIONAL" "advisory" "fix .mcp.json" ;;
+		"") add_row "Browser MCP flags" "headless + isolated (or shared --cdp-endpoint)" "--headless + --isolated, or --cdp-endpoint" "OK" "advisory" "—" ;;
+		*) add_row "Browser MCP flags" "$MCP_FLAGS" "--headless + --isolated, or --cdp-endpoint" "MISSING" "advisory" "add the flags to the playwright entry's args in .mcp.json" ;;
+	esac
+else
+	add_row "Browser MCP flags" "python3 absent — .mcp.json not read" "--headless + --isolated, or --cdp-endpoint" "NOT OPERATIONAL" "advisory" "install python3, then re-run"
+fi
+
+# Orphans — Playwright browsers whose parent is PID 1.
+ORPHANS=$(ps -axo pid=,ppid=,rss=,command= 2>/dev/null | awk '$2 == 1 && index($0, "ms-playwright") { print $1, $3 }')
+if [ -z "$ORPHANS" ]; then
+	add_row "Orphaned Playwright browsers" "0 (PPID 1)" "0" "OK" "advisory" "—"
+else
+	ORPHAN_PIDS=$(printf '%s\n' "$ORPHANS" | awk '{ printf "%s ", $1 }' | sed 's/ $//')
+	ORPHAN_SUM=$(printf '%s\n' "$ORPHANS" | LC_ALL=C awk '{ n++; kb += $2 } END { printf "%d (PPID 1), %.1f GB resident", n, kb / 1048576 }')
+	add_row "Orphaned Playwright browsers" "$ORPHAN_SUM" "0" "MISSING" "advisory" "kill $ORPHAN_PIDS"
+fi
+
+# The notification-channel advisory row of the contract is NOT generated
+# here: a channel is only OK once it has been PROBED, and a shell script
+# cannot probe the assistant's own notification tool. The session records
+# that probe (CLAUDE.local.md, "Notifications") instead of this table
+# claiming it.
+
+[ "$NEED_NPM_INSTALL" -eq 1 ] && FIX_CMDS+=("npm install")
+[ "$NEED_PW_INSTALL" -eq 1 ] && FIX_CMDS+=("npx playwright install chromium")
+[ -n "$ORPHAN_PIDS" ] && FIX_CMDS+=("kill $ORPHAN_PIDS")
 
 # ---------------------------------------------------------------------------
 print_table() {
-	printf '%-24s %-32s %-16s %-16s %-10s %s\n' "Requirement" "Detected" "Required" "State" "Severity" "How to install"
-	printf '%-24s %-32s %-16s %-16s %-10s %s\n' "-----------" "--------" "--------" "-----" "--------" "--------------"
+	printf '%-29s %-44s %-24s %-16s %-10s %s\n' "Requirement" "Detected" "Required" "State" "Severity" "How to install"
+	printf '%-29s %-44s %-24s %-16s %-10s %s\n' "-----------" "--------" "--------" "-----" "--------" "--------------"
 	for row in "${ROWS[@]}"; do
 		IFS='|' read -r req det req2 state sev how <<< "$row"
-		printf '%-24s %-32s %-16s %-16s %-10s %s\n' "$req" "$det" "$req2" "$state" "$sev" "$how"
+		printf '%-29s %-44s %-24s %-16s %-10s %s\n' "$req" "$det" "$req2" "$state" "$sev" "$how"
 	done
 }
 
@@ -177,6 +477,32 @@ print_json() {
 	echo "}"
 }
 
+print_plan() {
+	local c
+	if [ "${#FIX_CMDS[@]}" -eq 0 ]; then
+		echo "--fix runs: nothing — no project-local requirement is missing."
+	else
+		echo "--fix runs, in this order (and nothing else):"
+		echo
+		for c in "${FIX_CMDS[@]}"; do echo "  $c"; done
+		echo
+		echo "'npm install' installs this project's own devDependencies into"
+		echo "./node_modules. 'npx playwright install chromium' downloads the"
+		echo "Chromium binary (a few hundred MB) into the Playwright cache in your"
+		echo "home. 'kill' targets exactly the orphaned Playwright browser PIDs"
+		echo "listed (parent PID 1). Nothing system-global, no sudo."
+	fi
+	if [ "${#MANUAL_CMDS[@]}" -gt 0 ]; then
+		echo
+		echo "NOT run by --fix (your decision, or needs the playground running):"
+		echo
+		for c in "${MANUAL_CMDS[@]}"; do echo "  $c"; done
+	fi
+	echo
+	echo "Node.js and Docker themselves are NOT installed by this script — install"
+	echo "them yourself (see --check), or via nvm / mise / Docker Desktop / Colima."
+}
+
 case "$MODE" in
 	check)
 		if [ "$JSON" -eq 1 ]; then print_json; else
@@ -191,35 +517,46 @@ case "$MODE" in
 		[ "$BLOCKING_MISSING" -eq 1 ] && exit 1 || exit 0
 		;;
 	plan)
-		echo "The following commands would run under --fix:"
-		echo
-		echo "  npm install"
-		echo
-		echo "This is the ONLY command --fix runs. It installs this project's own"
-		echo "npm devDependencies (into ./node_modules) — nothing system-global, no"
-		echo "sudo, no global npm packages. Node.js and Docker themselves are NOT"
-		echo "installed by this script — install them yourself (see the table above),"
-		echo "or via your OS package manager / nvm / mise / Docker Desktop."
+		print_plan
 		[ "$JSON" -eq 1 ] && print_json
 		exit 0
 		;;
 	fix)
-		echo "keel-doctor --fix: this installs ONLY 'npm install' (this project's own"
-		echo "devDependencies). It will not touch anything system-global."
-		echo
-		if ! command -v npm >/dev/null 2>&1; then
-			echo "npm is not available — cannot run 'npm install'. Install Node.js first" >&2
-			echo "(see 'scripts/keel-doctor --check')." >&2
-			exit 1
+		print_plan
+		if [ "${#FIX_CMDS[@]}" -eq 0 ]; then
+			exit 0
 		fi
-		echo "Running: npm install"
-		npm install
-		STATUS=$?
-		if [ $STATUS -eq 0 ]; then
-			echo "npm install completed."
-		else
-			echo "npm install failed (exit $STATUS)." >&2
+		if [ "$YES" -ne 1 ]; then
+			if [ -t 0 ]; then
+				printf 'Run the commands listed under "--fix runs"? [y/N] '
+				read -r answer
+				case "$answer" in y|Y|yes|YES) ;; *) echo "Nothing was run."; exit 1 ;; esac
+			else
+				echo "Not run: --fix needs your OK on the list above. Re-run with --yes once you have read it." >&2
+				exit 1
+			fi
 		fi
+		STATUS=0
+		if [ "$NEED_NPM_INSTALL" -eq 1 ]; then
+			if [ -z "$NPM_BIN" ]; then
+				echo "npm is not available — cannot run 'npm install'. Install Node.js first (see 'scripts/keel-doctor --check')." >&2
+				exit 1
+			fi
+			echo "Running: npm install"
+			node_run "$NPM_BIN" install || STATUS=$?
+			[ "$STATUS" -eq 0 ] && echo "npm install completed." || echo "npm install failed (exit $STATUS)." >&2
+		fi
+		if [ "$NEED_PW_INSTALL" -eq 1 ] && [ "$STATUS" -eq 0 ]; then
+			echo "Running: npx playwright install chromium"
+			node_run node_modules/.bin/playwright install chromium || STATUS=$?
+		fi
+		if [ -n "$ORPHAN_PIDS" ]; then
+			echo "Running: kill $ORPHAN_PIDS"
+			# Exactly the listed PIDs — never pkill -f ms-playwright.
+			# shellcheck disable=SC2086
+			kill $ORPHAN_PIDS || STATUS=$?
+		fi
+		echo "Re-run 'scripts/keel-doctor --check' to verify."
 		exit $STATUS
 		;;
 esac

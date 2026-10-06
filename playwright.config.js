@@ -12,7 +12,14 @@ module.exports = defineConfig( {
 	fullyParallel: false,
 	forbidOnly: !! process.env.CI,
 	retries: 0,
-	workers: 1,
+	// Local worker cap (Keel test-automation.md, "A browser MCP costs one
+	// browser per session"): every worker is a whole browser. The default
+	// stays 1 because every spec drives the SAME wp-env site (one cart
+	// session, one set of gateway options) — raise it with PW_WORKERS only
+	// for specs known not to share state. Deliberately not `undefined` under
+	// CI: a default worker count would run the specs in parallel against
+	// that one shared site.
+	workers: Number( process.env.PW_WORKERS ?? 1 ),
 	reporter: 'list',
 	use: {
 		baseURL: 'http://localhost:8888',

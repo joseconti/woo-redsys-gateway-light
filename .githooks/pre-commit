@@ -1,0 +1,151 @@
+#!/bin/sh
+# Keel confidential-data gate — blocks commits that stage secrets.
+# Rule source: Keel SKILL.md "Confidential data never reaches Git".
+# Bypass policy: fix the finding, or record the user's explicit OK in
+# docs/decisions.md and repeat that single commit with --no-verify.
+# There is no other escape hatch (no environment variable, no allow file).
+#
+# Usage:
+#   (git runs it)              scan the STAGED files, block on a finding
+#   .githooks/pre-commit --scan-tree
+#                              read-only audit of every tracked file (index
+#                              content); prints findings, changes nothing
+#
+# What it cannot see: real personal or customer data (names, emails, orders)
+# has no reliable shape. That stays with the assistant-side check and review.
+#
+# Portability: POSIX sh, macOS stock bash 3.2 and BSD userland.
+
+mode=staged
+[ "${1:-}" = "--scan-tree" ] && mode=tree
+
+if [ "$mode" = "tree" ]; then
+  files=$(git -c core.quotepath=off ls-files)
+else
+  files=$(git -c core.quotepath=off diff --cached --name-only --diff-filter=ACMR)
+fi
+[ -z "$files" ] && exit 0
+
+fail=0
+IFS='
+'
+
+q="[\"']"
+
+# Values that are obviously not secrets: template placeholders, environment
+# expansion, format specifiers. Checked against the MATCHED TOKEN only, never
+# the whole line, so a placeholder elsewhere on a line cannot hide a real key.
+placeholder='your[-_ ]|example|placeholder|change[-_]?me|dummy|fake|redacted|not[-_]a[-_]real|test[-_](api[-_])?(key|token|secret|password)|xxxx|\*\*\*\*|\.\.\.|<[^>]*>|\$\{|\{\$|\{\{|%s|%[0-9]\$s|["'"'"']\$'
+
+# Credential-shaped assignments. The value must be a literal: a quoted run of
+# 12+ non-space characters, or an unquoted run of 20+ that ends the line.
+kw='(api[_-]?key|secret|passw(or)?d|passwd|token|private[_-]?key|merchant[_-]?key|access[_-]?key|sha256)'
+assign_quoted="${kw}[A-Za-z0-9_-]*${q}?\\]?[[:space:]]*(=>|[:=])[[:space:]]*${q}[^\"'[:space:]]{12,}${q}"
+assign_define="define\\([[:space:]]*${q}[A-Za-z0-9_]*(KEY|SALT|SECRET|PASSW|TOKEN)[A-Za-z0-9_]*${q}[[:space:]]*,[[:space:]]*${q}[^\"'[:space:]]{12,}${q}"
+assign_bare="${kw}[A-Za-z0-9_-]*[[:space:]]*[:=][[:space:]]*[A-Za-z0-9+/_=-]{20,}[[:space:]]*\$"
+# A literal value carries a digit or a non-identifier symbol; a plain
+# identifier (an option name, a function name) does not.
+value_quoted="${q}[^\"']*[0-9+/=!@#%^&*][^\"']*${q}\$"
+value_bare='[:=][[:space:]]*[A-Za-z0-9+/_=-]*[0-9][A-Za-z0-9+/_=-]*[[:space:]]*$'
+
+# The canonical trees that legitimately CONTAIN the gate's own patterns are
+# skipped by this net: the hooks directory and the embedded Keel skill (either
+# tree). The assistant-side check still scans them.
+skipped() {
+  case "$1" in .githooks/*|.claude/skills/*|.agents/skills/*) return 0 ;; esac
+  return 1
+}
+
+blob() { git show ":$1" 2>/dev/null; }
+
+# first_hit <file> <extended regex> [case-insensitive: i]
+# Prints the line number of the first non-placeholder match, or nothing.
+first_hit() {
+  if [ "${3:-}" = "i" ]; then
+    blob "$1" | LC_ALL=C grep -Eanoi -e "$2"
+  else
+    blob "$1" | LC_ALL=C grep -Eano -e "$2"
+  fi | LC_ALL=C grep -Eaiv -e "$placeholder" | head -n 1 | cut -d: -f1
+}
+
+report() {
+  # report <file> <line> <what it looks like>
+  printf 'BLOCKED (content): %s:%s looks like %s\n' "$1" "$2" "$3"
+  fail=1
+}
+
+# 1) Suspicious names
+for f in $files; do
+  skipped "$f" && continue
+  base=$(basename "$f")
+  what=
+  case "$base" in
+    .env|.env.*)                       what='an environment file' ;;
+    *.pem|*.key|*.p12|*.pfx|id_rsa*|id_dsa*|id_ecdsa*|id_ed25519*)
+                                       what='a private key or certificate bundle' ;;
+    *credential*)                      what='a credentials file' ;;
+    *secret*)                          what='a secrets file' ;;
+    *.sql|*.sql.gz|*.sql.zip|*.sqlite|*.sqlite3|*.dump)
+                                       what='a database dump or export' ;;
+    wp-config.php)                     what='a WordPress configuration file' ;;
+    .netrc)                            what='a credentials file' ;;
+  esac
+  if [ -n "$what" ]; then
+    printf 'BLOCKED (name): %s looks like %s\n' "$f" "$what"
+    fail=1
+  fi
+done
+
+# 2) Secret-shaped content in the STAGED blob (not the working tree)
+for f in $files; do
+  skipped "$f" && continue
+
+  n=$(first_hit "$f" '-----BEGIN [A-Z ]*PRIVATE KEY-----')
+  [ -n "$n" ] && report "$f" "$n" 'a private-key block'
+
+  n=$(first_hit "$f" 'AKIA[0-9A-Z]{16}')
+  [ -n "$n" ] && report "$f" "$n" 'an AWS access key id'
+
+  n=$(first_hit "$f" 'sk-(proj-)?[A-Za-z0-9]{20,}')
+  [ -n "$n" ] && report "$f" "$n" 'a provider-prefixed secret key (sk- prefix)'
+
+  n=$(first_hit "$f" 'gh[pousr]_[A-Za-z0-9]{36,}')
+  [ -n "$n" ] && report "$f" "$n" 'a GitHub token'
+
+  n=$(first_hit "$f" 'xox[baprs]-[A-Za-z0-9-]{10,}')
+  [ -n "$n" ] && report "$f" "$n" 'a Slack token'
+
+  n=$(first_hit "$f" 'Bearer [A-Za-z0-9._~+/=-]{20,}')
+  [ -n "$n" ] && report "$f" "$n" 'a bearer token'
+
+  n=$(
+    {
+      blob "$f" | LC_ALL=C grep -Eanoi -e "$assign_quoted" | LC_ALL=C grep -Ea -e "$value_quoted"
+      blob "$f" | LC_ALL=C grep -Eano -e "$assign_define" | LC_ALL=C grep -Ea -e "$value_quoted"
+      blob "$f" | LC_ALL=C grep -Eanoi -e "$assign_bare" | LC_ALL=C grep -Ea -e "$value_bare"
+    } | LC_ALL=C grep -Eaiv -e "$placeholder" | head -n 1 | cut -d: -f1
+  )
+  [ -n "$n" ] && report "$f" "$n" 'a hardcoded credential (key, secret, password or token assigned a literal value)'
+done
+
+[ "$fail" -eq 0 ] && exit 0
+
+if [ "$mode" = "tree" ]; then
+  printf '\nTree scan finished with findings (read-only; nothing was changed).\n'
+  exit 1
+fi
+
+cat <<'MSG'
+
+Commit stopped by the Keel confidential-data gate.
+A staged file looks like it carries secrets, credentials, keys, or real
+personal data. Options, in order:
+  1. Unstage it and add it to .gitignore (never tracked).
+  2. Already tracked: git rm --cached <file> + .gitignore, commit the removal.
+  3. Ever pushed: purge it from history (git filter-repo / BFG) AND rotate
+     the credential — ignoring it is not enough.
+  4. Genuinely safe (placeholders, sandbox keys meant to ship): record the
+     user's explicit OK in docs/decisions.md, then repeat this one commit
+     with --no-verify.
+MSG
+exit 1

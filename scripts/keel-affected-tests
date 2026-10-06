@@ -1,0 +1,793 @@
+#!/usr/bin/env bash
+#
+# keel-affected-tests — select (and optionally run) the tests a diff reaches.
+#
+# The selection is a script, never a judgment (Keel references/
+# test-automation.md, "Which tests run when"). PHPUnit has no native impact
+# analysis, so for this repository the path convention plus the
+# reverse-dependency tables below ARE the tool. Source of the rules:
+# docs/03-technical-plan.md §Testing, "Test selection".
+#
+# Usage:
+#   scripts/keel-affected-tests [--base <ref>] [--head <ref>] [--run] [--full]
+#   scripts/keel-affected-tests <ref>            (same as --base <ref>)
+#   scripts/keel-affected-tests --check-map
+#
+#   --base <ref>   Base of the diff. Default: the upstream of the current
+#                  branch, else the merge-base with the integration branch
+#                  (develop).
+#   --head <ref>   Compare base..head (committed changes only). Default: the
+#                  working tree, including staged, unstaged and untracked
+#                  files. .githooks/pre-push passes the pushed sha here.
+#   --run          Execute the selection. Without it, only print.
+#   --full         Select the entire suite (the Phase 7 release gate). Also
+#                  forced by `Push test scope: full` on the project card.
+#   --check-map    Verify the tables below against the tree and exit.
+#
+# The selection is built from four inclusions:
+#   1. the tests of every changed source file (DIRECT table + a grep of
+#      tests/ for the classes/functions the changed file declares);
+#   2. the tests of everything that depends on a changed file (DEPENDENTS
+#      table, followed transitively);
+#   3. every test file added or modified in the diff;
+#   4. the always-run set — this project names none.
+# and it widens from a closed list (WIDEN_FULL, the MODULES fallback).
+#
+# Every run prints ONE `scope:` line; that line goes in the evidence cell of
+# docs/05-test-points.md.
+#
+# Exit codes:
+#   0  selection printed / selection green / legitimate empty selection
+#   1  the selection ran and is red
+#   2  usage error, or selector failure (a source diff with an empty
+#      selection is a failure of the selector, never a green)
+#   3  --run could not run: a required environment is missing (named in the
+#      message, with the command that starts it). Never a silent pass.
+#
+# Test seam: KEEL_AFFECTED_RUNNER=<executable> replaces the real runners
+# with `<executable> <suite> <files...>` and skips the environment checks.
+# It exists only so the hook can be tested in a throwaway repository; it
+# announces itself on stderr on every use.
+
+set -u
+
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || {
+	echo "keel-affected-tests: not inside a git repository" >&2
+	exit 2
+}
+cd "$ROOT" || exit 2
+
+INTEGRATION_BRANCH="develop"
+PLUGIN_DIR=$(basename "$ROOT")
+E2E_PORT="8888"
+NL='
+'
+
+# ---------------------------------------------------------------------------
+# The tables. One row per line: `path-glob | value | note`.
+# A glob follows shell `case` rules (`*` also matches `/`).
+# Built from the real tree — re-check with `--check-map` after adding a
+# source or a test file.
+# ---------------------------------------------------------------------------
+
+# DIRECT: source file -> the test files that exercise it directly.
+# Derived by reading what each test loads and calls (tests/bootstrap.php
+# requires includes/class-redsysliteapi.php; tests/bootstrap-integration.php
+# boots woocommerce-redsys.php; each test's `new <Class>` / `WCRedL()` /
+# function calls; each spec's `#payment_method_<gateway id>`).
+DIRECT=$(cat <<'EOF'
+includes/class-redsysliteapi.php | tests/Unit/RedsysLiteAPITest.php tests/Integration/GatewayRedsysIpnTest.php tests/Integration/GatewayBizumIpnTest.php tests/Integration/GatewayGooglePayIpnTest.php | RedsysLiteAPI: unit suite + the three IPN tests that sign fixtures with it
+classes/class-wc-gateway-redsys.php | tests/Integration/GatewayRedsysIpnTest.php tests/Integration/RefundOrderNumberTransientTest.php tests/e2e/checkout-redsys.spec.js tests/e2e/checkout-blocks-redsys.spec.js | WC_Gateway_Redsys
+classes/class-wc-gateway-bizum-redsys.php | tests/Integration/GatewayBizumIpnTest.php tests/Integration/RefundOrderNumberTransientTest.php tests/e2e/checkout-bizum.spec.js | WC_Gateway_Bizum_Redsys
+classes/class-wc-gateway-googlepay-redirection-redsys.php | tests/Integration/GatewayGooglePayIpnTest.php tests/Integration/RefundOrderNumberTransientTest.php tests/e2e/checkout-googlepay.spec.js | WC_Gateway_GooglePay_Redirection_Redsys
+classes/class-wc-gateway-inespay-redsys.php | tests/Integration/GatewayInespayIpnTest.php tests/e2e/checkout-inespay.spec.js tests/e2e/inespay-transaction-limit.spec.js | WC_Gateway_Inespay_Redsys
+classes/class-wc-gateway-redsys-global-lite.php | tests/Integration/GlobalLiteOrderNumberTest.php tests/Integration/RefundOrderNumberTransientTest.php tests/Integration/GatewayBizumIpnTest.php tests/Integration/GatewayGooglePayIpnTest.php | WC_Gateway_Redsys_Global_Lite via WCRedL()
+woocommerce-redsys.php | tests/Integration/MarkOrderAsPaidRateLimitTest.php tests/e2e/*.spec.js | plugin bootstrap: redsyslite_mark_order_as_paid() + gateway and Blocks registration, which only the e2e flows exercise
+includes/blocks/class-wc-gateway-redsys-lite-support.php | tests/e2e/checkout-blocks-redsys.spec.js | Blocks checkout support, Redsys
+resources/js/frontend/index.js | tests/e2e/checkout-blocks-redsys.spec.js | webpack source of the Blocks bundle
+assets/js/frontend/blocks.js | tests/e2e/checkout-blocks-redsys.spec.js | built Blocks bundle
+assets/js/frontend/blocks.asset.php | tests/e2e/checkout-blocks-redsys.spec.js | built Blocks bundle manifest
+EOF
+)
+
+# DEPENDENTS: source file -> the source files that USE it (reverse
+# dependencies by symbol use: `new RedsysLiteAPI`, `WCRedL()`, `WCPSD2L()`,
+# `include_once REDSYS_PLUGIN_DATA_PATH`). Followed transitively.
+# woocommerce-redsys.php's `require_once` list is deliberately NOT a
+# dependency edge: it loads every file, so counting it would make every
+# change select everything and the selection would stop being one.
+DEPENDENTS=$(cat <<'EOF'
+includes/class-redsysliteapi.php | classes/class-wc-gateway-redsys.php classes/class-wc-gateway-bizum-redsys.php classes/class-wc-gateway-googlepay-redirection-redsys.php | `new RedsysLiteAPI`
+classes/class-wc-gateway-redsys-global-lite.php | classes/class-wc-gateway-redsys.php classes/class-wc-gateway-bizum-redsys.php classes/class-wc-gateway-googlepay-redirection-redsys.php classes/class-wc-gateway-inespay-redsys.php classes/class-wc-gateway-redsys-psd2-light.php includes/blocks/class-wc-gateway-*-support.php woocommerce-redsys.php | `WCRedL()` — reaches every gateway
+classes/class-wc-gateway-redsys-psd2-light.php | classes/class-wc-gateway-redsys-global-lite.php classes/class-wc-gateway-redsys.php | `WCPSD2L()`
+includes/data/* | classes/class-wc-gateway-redsys-global-lite.php | `include_once REDSYS_PLUGIN_DATA_PATH . ...`
+resources/js/frontend/index.js | assets/js/frontend/blocks.js | webpack build output
+assets/js/frontend/blocks.* | includes/blocks/class-wc-gateway-*-support.php | the script each Blocks support class registers
+includes/class-redsys-lite-apps-plugins.php | about-redsys.php | required by the about screen
+EOF
+)
+
+# MODULES: the fallback for a source file that maps to no test and has no
+# dependent that does. It gets the tests of its enclosing module AND is
+# reported as a coverage gap. The last row catches everything else.
+MODULES=$(cat <<'EOF'
+includes/blocks/class-wc-gateway-bizum-lite-support.php | tests/Integration/GatewayBizumIpnTest.php tests/e2e/checkout-bizum.spec.js | Bizum gateway
+includes/blocks/class-wc-gateway-googlepay-redirection-redsys-support.php | tests/Integration/GatewayGooglePayIpnTest.php tests/e2e/checkout-googlepay.spec.js | Google Pay gateway
+includes/blocks/class-wc-gateway-inespay-lite-support.php | tests/Integration/GatewayInespayIpnTest.php tests/e2e/checkout-inespay.spec.js | Inespay gateway
+classes/* | tests/Integration/*Test.php tests/e2e/*.spec.js | gateway classes
+* | tests/Integration/MarkOrderAsPaidRateLimitTest.php tests/e2e/checkout-redsys.spec.js | plugin bootstrap (boots the whole plugin; loads the storefront)
+EOF
+)
+
+# WIDEN_FULL: the closed list — a file mapping cannot bound the reach of
+# these, so the selection becomes the entire suite.
+WIDEN_FULL=$(cat <<'EOF'
+composer.json | dependency manifest
+composer.lock | dependency lockfile
+package.json | dependency manifest
+package-lock.json | dependency lockfile
+phpunit.xml.dist | test runner configuration
+phpunit-integration.xml.dist | test runner configuration
+playwright.config.js | test runner configuration
+tests/bootstrap.php | test bootstrap
+tests/bootstrap-integration.php | test bootstrap
+webpack.config.js | build configuration
+bin/* | build script
+phpcs.xml | build configuration
+.wp-env.json | playground configuration
+.wp-env.override.json | playground configuration
+.wp-env-mu-plugins/* | playground configuration (mu-plugin loaded on every playground request)
+.github/workflows/* | CI configuration
+scripts/keel-affected-tests | the selector itself
+EOF
+)
+
+# NO_TESTS: documentation and Keel/assistant scaffolding. A diff made only
+# of these selects nothing, legitimately.
+NO_TESTS=$(cat <<'EOF'
+docs/* | documentation
+*.md | documentation
+readme.txt | documentation
+LICENSE | documentation
+scripts/keel-* | Keel scaffolding
+.githooks/* | Keel scaffolding
+.claude/* | assistant configuration
+.agents/* | assistant configuration
+.codex/* | assistant configuration
+.gitignore | repository metadata
+.gitattributes | repository metadata
+.vscode/* | editor metadata
+.VSCodeCounter/* | editor metadata
+.DS_Store | editor metadata
+*/.DS_Store | editor metadata
+EOF
+)
+
+# ---------------------------------------------------------------------------
+# Helpers (bash 3.2: no associative arrays; lists are newline-separated).
+# ---------------------------------------------------------------------------
+
+trim() {
+	local s="$1"
+	s="${s#"${s%%[![:space:]]*}"}"
+	s="${s%"${s##*[![:space:]]}"}"
+	printf '%s' "$s"
+}
+
+# add <list-variable-name> <item> — append if not already present.
+add() {
+	local cur
+	eval "cur=\"\${$1}\""
+	case "$NL$cur$NL" in *"$NL$2$NL"*) return 0 ;; esac
+	if [ -z "$cur" ]; then
+		eval "$1=\"\$2\""
+	else
+		eval "$1=\"\$cur\$NL\$2\""
+	fi
+}
+
+count_lines() {
+	if [ -z "$1" ]; then echo 0; else printf '%s\n' "$1" | wc -l | tr -d ' '; fi
+}
+
+# table_lookup <table> <path> <column 2|3> — the column of every matching row.
+table_lookup() {
+	local line pat rest col
+	while IFS= read -r line; do
+		[ -z "$line" ] && continue
+		pat=$(trim "${line%%|*}")
+		rest="${line#*|}"
+		if [ "$3" = "2" ]; then col="${rest%%|*}"; else col="${rest#*|}"; fi
+		# shellcheck disable=SC2254
+		case "$2" in
+			$pat) trim "$col"; printf '\n' ;;
+		esac
+	done <<EOF
+$1
+EOF
+}
+
+is_test_file() {
+	case "$1" in
+		tests/Unit/*Test.php|tests/Integration/*Test.php|tests/e2e/*.spec.js) return 0 ;;
+	esac
+	return 1
+}
+
+all_tests() {
+	local f
+	for f in tests/Unit/*Test.php tests/Integration/*Test.php tests/e2e/*.spec.js; do
+		[ -f "$f" ] && printf '%s\n' "$f"
+	done
+}
+
+# Static count: PHPUnit test methods / Playwright test() calls. Data-provider
+# rows are not expanded, so the runner's own total can be higher.
+count_tests_in() {
+	local n=0 c f
+	while IFS= read -r f; do
+		[ -z "$f" ] && continue
+		[ -f "$f" ] || continue
+		case "$f" in
+			*.php) c=$(grep -cE '^[[:space:]]*(public[[:space:]]+)?function[[:space:]]+test' "$f") ;;
+			*) c=$(grep -cE '^[[:space:]]*test(\.only)?\(' "$f") ;;
+		esac
+		n=$((n + c))
+	done <<EOF
+$1
+EOF
+	echo "$n"
+}
+
+# expand_tests <tokens> <list-variable-name> — expand globs, keep real files.
+expand_tests() {
+	local t
+	# shellcheck disable=SC2086
+	for t in $1; do
+		if [ -f "$t" ] && is_test_file "$t"; then
+			add "$2" "$t"
+		else
+			add MAP_STALE "$t"
+		fi
+	done
+}
+
+# closure <file> — the file plus everything that depends on it, transitively.
+closure() {
+	local todo="$1" seen="" cur d deps
+	while [ -n "$todo" ]; do
+		cur="${todo%%"$NL"*}"
+		if [ "$cur" = "$todo" ]; then todo=""; else todo="${todo#*"$NL"}"; fi
+		case "$NL$seen$NL" in *"$NL$cur$NL"*) continue ;; esac
+		seen="$seen${seen:+$NL}$cur"
+		deps=$(table_lookup "$DEPENDENTS" "$cur" 2)
+		# shellcheck disable=SC2086
+		for d in $deps; do
+			[ -e "$d" ] || continue
+			todo="$todo${todo:+$NL}$d"
+		done
+	done
+	printf '%s\n' "$seen"
+}
+
+# grep_tests_for <php source file> — test files naming a class (or, in a
+# classless file, a function) the source file declares. This is what picks
+# up a new test before anyone adds its row to DIRECT.
+grep_tests_for() {
+	local f="$1" names n
+	case "$f" in *.php) ;; *) return 0 ;; esac
+	[ -f "$f" ] || return 0
+	names=$(grep -oE '^[[:space:]]*((final|abstract)[[:space:]]+)?class[[:space:]]+[A-Za-z_][A-Za-z0-9_]*' "$f" | awk '{ print $NF }')
+	if [ -n "$names" ]; then
+		for n in $names; do
+			grep -rliw --include='*Test.php' --include='*.spec.js' -- "$n" tests 2>/dev/null
+		done
+	else
+		names=$(grep -oE '^[[:space:]]*function[[:space:]]+[A-Za-z_][A-Za-z0-9_]*' "$f" | awk '{ print $NF }')
+		for n in $names; do
+			grep -rlw --include='*Test.php' --include='*.spec.js' -- "$n" tests 2>/dev/null
+		done
+	fi
+}
+
+short() { git rev-parse --short "$1" 2>/dev/null || printf '%s' "$1"; }
+
+# ---------------------------------------------------------------------------
+# Arguments
+# ---------------------------------------------------------------------------
+
+BASE=""
+HEAD_REF=""
+RUN=0
+FULL=0
+CHECK_MAP=0
+
+usage() {
+	sed -n '/^# Usage:/,/^# The selection is built/p' "$0" | sed '$d' | sed 's/^# \{0,1\}//'
+}
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+		--base) [ $# -ge 2 ] || { echo "--base needs a ref" >&2; exit 2; }; BASE="$2"; shift ;;
+		--base=*) BASE="${1#--base=}" ;;
+		--head) [ $# -ge 2 ] || { echo "--head needs a ref" >&2; exit 2; }; HEAD_REF="$2"; shift ;;
+		--head=*) HEAD_REF="${1#--head=}" ;;
+		--run) RUN=1 ;;
+		--full) FULL=1 ;;
+		--check-map) CHECK_MAP=1 ;;
+		-h|--help) usage; exit 0 ;;
+		-*) echo "Unknown argument: $1" >&2; usage >&2; exit 2 ;;
+		*) BASE="$1" ;;
+	esac
+	shift
+done
+
+MAP_STALE=""
+
+# ---------------------------------------------------------------------------
+# --check-map: the tables against the tree.
+# ---------------------------------------------------------------------------
+
+check_map() {
+	local bad=0 line pat tests t mapped="" f table
+	for table in "$DIRECT" "$MODULES"; do
+		while IFS= read -r line; do
+			[ -z "$line" ] && continue
+			pat=$(trim "${line%%|*}")
+			tests="${line#*|}"; tests=$(trim "${tests%%|*}")
+			if [ "$pat" != "*" ] && ! ls -d $pat >/dev/null 2>&1; then
+				echo "FAIL: map row names a source path that does not exist: $pat"; bad=1
+			fi
+			# shellcheck disable=SC2086
+			for t in $tests; do
+				if [ -f "$t" ]; then add mapped "$t"; else
+					echo "FAIL: map row '$pat' names a test that does not exist: $t"; bad=1
+				fi
+			done
+		done <<EOF
+$table
+EOF
+	done
+	while IFS= read -r line; do
+		[ -z "$line" ] && continue
+		pat=$(trim "${line%%|*}")
+		tests="${line#*|}"; tests=$(trim "${tests%%|*}")
+		if ! ls -d $pat >/dev/null 2>&1; then
+			echo "FAIL: DEPENDENTS row names a source path that does not exist: $pat"; bad=1
+		fi
+		# shellcheck disable=SC2086
+		for t in $tests; do
+			[ -e "$t" ] || { echo "FAIL: DEPENDENTS row '$pat' names a dependent that does not exist: $t"; bad=1; }
+		done
+	done <<EOF
+$DEPENDENTS
+EOF
+	while IFS= read -r f; do
+		[ -z "$f" ] && continue
+		case "$NL$mapped$NL" in
+			*"$NL$f$NL"*) ;;
+			*) echo "FAIL: test file is in no DIRECT/MODULES row (add the row for the source it covers): $f"; bad=1 ;;
+		esac
+	done <<EOF
+$(all_tests)
+EOF
+	if [ "$bad" -eq 0 ]; then
+		echo "OK:   every map row points at real files and every test file is mapped ($(count_lines "$(all_tests)") test files)"
+		return 0
+	fi
+	return 1
+}
+
+if [ "$CHECK_MAP" -eq 1 ]; then
+	check_map
+	exit $?
+fi
+
+# ---------------------------------------------------------------------------
+# Base and diff
+# ---------------------------------------------------------------------------
+
+ALL_TESTS=$(all_tests)
+TOTAL=$(count_tests_in "$ALL_TESTS")
+
+FULL_REASON=""      # non-empty => the whole suite, with the reason
+SELECTOR_ERROR=""   # non-empty => the selector could not work; falls back to full
+BASE_SHA=""
+BASE_LABEL=""
+CHANGED=""
+
+if grep -qE 'Push test scope:[[:space:]]*full' docs/PROGRESS.md 2>/dev/null; then
+	FULL=1
+fi
+
+if [ "$FULL" -eq 0 ]; then
+	if [ -z "$BASE" ]; then
+		UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null)
+		if [ -n "$UPSTREAM" ]; then
+			BASE="$UPSTREAM"
+			BASE_LABEL="upstream $UPSTREAM"
+		elif git rev-parse -q --verify "origin/$INTEGRATION_BRANCH^{commit}" >/dev/null 2>&1; then
+			BASE="origin/$INTEGRATION_BRANCH"
+			BASE_LABEL="merge-base with origin/$INTEGRATION_BRANCH"
+		elif git rev-parse -q --verify "$INTEGRATION_BRANCH^{commit}" >/dev/null 2>&1; then
+			BASE="$INTEGRATION_BRANCH"
+			BASE_LABEL="merge-base with $INTEGRATION_BRANCH"
+		else
+			SELECTOR_ERROR="no upstream and no integration branch ($INTEGRATION_BRANCH) to diff against"
+		fi
+	else
+		BASE_LABEL="$BASE"
+	fi
+
+	HEAD_SHA=""
+	if [ -z "$SELECTOR_ERROR" ] && [ -n "$HEAD_REF" ]; then
+		HEAD_SHA=$(git rev-parse -q --verify "$HEAD_REF^{commit}" 2>/dev/null) ||
+			SELECTOR_ERROR="head ref does not resolve to a commit: $HEAD_REF"
+	fi
+
+	if [ -z "$SELECTOR_ERROR" ]; then
+		if RESOLVED=$(git rev-parse -q --verify "$BASE^{commit}" 2>/dev/null); then
+			# The merge-base, so commits that exist only on the base side are
+			# not counted as this change.
+			BASE_SHA=$(git merge-base "$RESOLVED" "${HEAD_SHA:-HEAD}" 2>/dev/null) || BASE_SHA="$RESOLVED"
+		else
+			SELECTOR_ERROR="base ref does not resolve to a commit in this repository: $BASE"
+		fi
+	fi
+
+	if [ -z "$SELECTOR_ERROR" ]; then
+		if [ -n "$HEAD_SHA" ]; then
+			CHANGED=$(git diff --no-renames --name-only "$BASE_SHA" "$HEAD_SHA" 2>/dev/null) ||
+				SELECTOR_ERROR="git diff failed for $BASE_SHA..$HEAD_SHA"
+		else
+			CHANGED=$(git diff --no-renames --name-only "$BASE_SHA" 2>/dev/null) ||
+				SELECTOR_ERROR="git diff failed for $BASE_SHA..working tree"
+			UNTRACKED=$(git ls-files --others --exclude-standard 2>/dev/null)
+			if [ -n "$UNTRACKED" ]; then
+				CHANGED="$CHANGED${CHANGED:+$NL}$UNTRACKED"
+			fi
+		fi
+	fi
+fi
+
+# ---------------------------------------------------------------------------
+# Selection
+# ---------------------------------------------------------------------------
+
+SELECTED=""
+GAPS=""
+REPORT=""
+N_SOURCE=0
+N_TESTS=0
+N_NONE=0
+N_WIDEN=0
+N_CHANGED=0
+
+if [ "$FULL" -eq 0 ] && [ -z "$SELECTOR_ERROR" ]; then
+	while IFS= read -r f; do
+		[ -z "$f" ] && continue
+		N_CHANGED=$((N_CHANGED + 1))
+
+		reason=$(table_lookup "$WIDEN_FULL" "$f" 2 | head -1)
+		if [ -n "$reason" ]; then
+			N_WIDEN=$((N_WIDEN + 1))
+			add FULL_REASON "$f ($reason)"
+			REPORT="$REPORT${REPORT:+$NL}  $f  [$reason] -> entire suite"
+			continue
+		fi
+
+		reason=$(table_lookup "$NO_TESTS" "$f" 2 | head -1)
+		if [ -n "$reason" ]; then
+			N_NONE=$((N_NONE + 1))
+			continue
+		fi
+
+		case "$f" in
+			tests/*)
+				if is_test_file "$f"; then
+					N_TESTS=$((N_TESTS + 1))
+					if [ -f "$f" ]; then
+						add SELECTED "$f"
+						REPORT="$REPORT${REPORT:+$NL}  $f  [test changed] -> itself"
+					else
+						REPORT="$REPORT${REPORT:+$NL}  $f  [test deleted] -> nothing to run"
+					fi
+				else
+					N_WIDEN=$((N_WIDEN + 1))
+					add FULL_REASON "$f (shared test fixture or helper)"
+					REPORT="$REPORT${REPORT:+$NL}  $f  [shared test fixture or helper] -> entire suite"
+				fi
+				continue
+				;;
+		esac
+
+		# A source file.
+		N_SOURCE=$((N_SOURCE + 1))
+		found=""
+		via=""
+		while IFS= read -r node; do
+			[ -z "$node" ] && continue
+			[ "$node" != "$f" ] && add via "$node"
+			expand_tests "$(table_lookup "$DIRECT" "$node" 2 | tr '\n' ' ')" found
+			while IFS= read -r t; do
+				[ -n "$t" ] && [ -f "$t" ] && add found "$t"
+			done <<EOF
+$(grep_tests_for "$node")
+EOF
+		done <<EOF
+$(closure "$f")
+EOF
+
+		if [ -z "$found" ]; then
+			module=$(table_lookup "$MODULES" "$f" 3 | head -1)
+			expand_tests "$(table_lookup "$MODULES" "$f" 2 | head -1)" found
+			add GAPS "$f — no test covers it and no dependent's test does; ran the tests of its module ($module)"
+			REPORT="$REPORT${REPORT:+$NL}  $f  [source, UNCOVERED] -> $(count_lines "$found") test file(s) of its module: $module"
+		else
+			REPORT="$REPORT${REPORT:+$NL}  $f  [source] -> $(count_lines "$found") test file(s), reaching $(count_lines "$via") dependent file(s)"
+		fi
+
+		while IFS= read -r t; do
+			[ -n "$t" ] && add SELECTED "$t"
+		done <<EOF
+$found
+EOF
+	done <<EOF
+$CHANGED
+EOF
+fi
+
+# A stale table is a selector that cannot be trusted: fall back to the suite.
+if [ -n "$MAP_STALE" ] && [ -z "$SELECTOR_ERROR" ]; then
+	SELECTOR_ERROR="the selection tables name test files that do not exist ($(printf '%s' "$MAP_STALE" | tr '\n' ' ')) — run scripts/keel-affected-tests --check-map"
+fi
+
+MODE="affected"
+if [ "$FULL" -eq 1 ]; then
+	MODE="full"
+	SELECTED="$ALL_TESTS"
+elif [ -n "$SELECTOR_ERROR" ]; then
+	MODE="fallback"
+	SELECTED="$ALL_TESTS"
+elif [ -n "$FULL_REASON" ]; then
+	MODE="widened"
+	SELECTED="$ALL_TESTS"
+fi
+
+SEL_UNIT=""
+SEL_INTEGRATION=""
+SEL_E2E=""
+while IFS= read -r t; do
+	case "$t" in
+		tests/Unit/*) add SEL_UNIT "$t" ;;
+		tests/Integration/*) add SEL_INTEGRATION "$t" ;;
+		tests/e2e/*) add SEL_E2E "$t" ;;
+	esac
+done <<EOF
+$(printf '%s\n' "$SELECTED" | sort)
+EOF
+
+N_SELECTED=$(count_tests_in "$SELECTED")
+BASE_SHORT=""
+[ -n "$BASE_SHA" ] && BASE_SHORT=$(short "$BASE_SHA")
+
+# ---------------------------------------------------------------------------
+# Report
+# ---------------------------------------------------------------------------
+
+print_group() {
+	echo "  $1:"
+	if [ -z "$2" ]; then
+		echo "    (none)"
+	else
+		printf '%s\n' "$2" | sed 's/^/    /'
+	fi
+}
+
+if [ "$MODE" = "full" ]; then
+	echo "keel-affected-tests — entire suite requested (--full, or 'Push test scope: full' on the project card)"
+elif [ "$MODE" = "fallback" ]; then
+	echo "keel-affected-tests — SELECTOR ERROR: $SELECTOR_ERROR"
+	echo "Falling back to the entire suite."
+else
+	if [ -n "$HEAD_REF" ]; then TARGET=$(short "$HEAD_SHA"); else TARGET="working tree (staged, unstaged and untracked)"; fi
+	echo "keel-affected-tests — base $BASE_SHORT ($BASE_LABEL) -> $TARGET"
+	echo "changed: $N_CHANGED file(s) — $N_SOURCE source, $N_TESTS test, $N_WIDEN widening, $N_NONE docs/scaffolding"
+	[ -n "$REPORT" ] && printf '%s\n' "$REPORT"
+fi
+
+SCOPE=""
+EMPTY_OK=0
+if [ -z "$SELECTED" ]; then
+	if [ "$MODE" = "affected" ] && [ "$N_CHANGED" -eq 0 ]; then
+		SCOPE="scope: none — no changes — base $BASE_SHORT"
+		EMPTY_OK=1
+	elif [ "$MODE" = "affected" ] && [ "$N_SOURCE" -eq 0 ] && [ "$N_TESTS" -eq 0 ] && [ "$N_WIDEN" -eq 0 ]; then
+		echo "Only documentation / Keel scaffolding changed: no test can be reached by this diff. This is a legitimate empty selection (scripts/keel-verify still runs)."
+		SCOPE="scope: none — docs only"
+		EMPTY_OK=1
+	elif [ "$MODE" = "affected" ] && [ "$N_SOURCE" -eq 0 ] && [ "$N_WIDEN" -eq 0 ]; then
+		echo "Only deleted test files (and documentation) changed: nothing left to run."
+		SCOPE="scope: none — docs only"
+		EMPTY_OK=1
+	else
+		echo "SELECTOR FAILURE: the diff touches source code and the selection is empty." >&2
+		echo "An empty selection for a source diff is a failure of the selector, never a green." >&2
+		echo "Run the entire suite (scripts/keel-affected-tests --full --run) and fix the tables in this script." >&2
+		exit 2
+	fi
+else
+	echo "selected:"
+	print_group "unit (PHPUnit, wp-env cli)" "$SEL_UNIT"
+	print_group "integration (PHPUnit, wp-env tests-cli)" "$SEL_INTEGRATION"
+	print_group "e2e (Playwright, headless Chromium against wp-env)" "$SEL_E2E"
+	if [ -n "$GAPS" ]; then
+		echo "coverage gaps (reported, not passed over):"
+		printf '%s\n' "$GAPS" | sed 's/^/  /'
+	fi
+	case "$MODE" in
+		full) SCOPE="scope: full — $N_SELECTED of $TOTAL tests" ;;
+		fallback) SCOPE="scope: full — $N_SELECTED of $TOTAL tests — widened: selector error ($SELECTOR_ERROR)" ;;
+		widened) SCOPE="scope: affected — $N_SELECTED of $TOTAL tests — base $BASE_SHORT — widened: entire suite, $(printf '%s' "$FULL_REASON" | tr '\n' ';' | sed 's/;/; /g')" ;;
+		*)
+			SCOPE="scope: affected — $N_SELECTED of $TOTAL tests — base $BASE_SHORT"
+			[ -n "$GAPS" ] && SCOPE="$SCOPE — widened: $(count_lines "$GAPS") uncovered source file(s) -> module tests"
+			;;
+	esac
+fi
+
+if [ "$RUN" -eq 0 ] || [ "$EMPTY_OK" -eq 1 ]; then
+	echo "$SCOPE"
+	exit 0
+fi
+
+# ---------------------------------------------------------------------------
+# --run
+# ---------------------------------------------------------------------------
+
+if [ -n "$HEAD_REF" ] && [ -n "$(git status --porcelain --untracked-files=no 2>/dev/null)" ]; then
+	echo "note: the working tree has uncommitted changes — the run exercises the working tree, which is not exactly $(short "$HEAD_SHA")."
+fi
+
+RESULT=0
+
+if [ -n "${KEEL_AFFECTED_RUNNER:-}" ]; then
+	echo "RUNNER OVERRIDE: KEEL_AFFECTED_RUNNER=$KEEL_AFFECTED_RUNNER — the real runners and the environment checks are NOT used. This is a test seam, not evidence." >&2
+	for suite in unit integration e2e; do
+		case "$suite" in
+			unit) files="$SEL_UNIT" ;;
+			integration) files="$SEL_INTEGRATION" ;;
+			*) files="$SEL_E2E" ;;
+		esac
+		[ -z "$files" ] && continue
+		# shellcheck disable=SC2086
+		"$KEEL_AFFECTED_RUNNER" "$suite" $files </dev/null || RESULT=1
+	done
+	echo "$SCOPE"
+	[ "$RESULT" -eq 0 ] && echo "result: GREEN (runner override)" || echo "result: RED (runner override)"
+	exit "$RESULT"
+fi
+
+# Node is frequently absent from a non-interactive shell's PATH (nvm loads
+# from the interactive profile). Corroborate before calling it missing.
+NODE_DIR=""
+if command -v node >/dev/null 2>&1; then
+	NODE_DIR=$(dirname "$(command -v node)")
+else
+	for cand in "$HOME"/.nvm/versions/node/*/bin "$HOME/.local/share/mise/shims" "$HOME/.volta/bin" /opt/homebrew/bin /usr/local/bin; do
+		[ -x "$cand/node" ] && NODE_DIR="$cand"
+	done
+fi
+
+# The running container that bind-mounts THIS repository. Another project's
+# wp-env on the same machine is not this project's environment.
+WPENV_UP=0
+WPENV_PORT_OK=0
+DOCKER_STATE="ok"
+if ! command -v docker >/dev/null 2>&1; then
+	DOCKER_STATE="absent"
+elif ! docker info >/dev/null 2>&1; then
+	DOCKER_STATE="down"
+else
+	for cid in $(docker ps -q 2>/dev/null); do
+		info=$(docker inspect --format '{{range .Mounts}}{{.Source}}{{"\n"}}{{end}}PORTS {{range $p, $b := .NetworkSettings.Ports}}{{range $b}}{{.HostPort}} {{end}}{{end}}' "$cid" 2>/dev/null)
+		case "$NL$info" in
+			*"$NL$ROOT$NL"*|*"$NL/host_mnt$ROOT$NL"*)
+				WPENV_UP=1
+				case "$info" in *"PORTS "*"$E2E_PORT "*) WPENV_PORT_OK=1 ;; esac
+				;;
+		esac
+	done
+fi
+
+MISSING=""
+NEED_PHP=0
+[ -n "$SEL_UNIT$SEL_INTEGRATION" ] && NEED_PHP=1
+
+if [ "$DOCKER_STATE" = "absent" ]; then
+	add MISSING "Docker is not installed — the wp-env playground needs it (scripts/keel-doctor --check)"
+elif [ "$DOCKER_STATE" = "down" ]; then
+	add MISSING "the Docker daemon is not responding — start it (Docker Desktop, or 'colima start'), then: npx wp-env start"
+fi
+if [ -z "$NODE_DIR" ]; then
+	add MISSING "Node.js was not found on PATH nor under ~/.nvm, mise, volta or Homebrew — install it (scripts/keel-doctor --check)"
+fi
+if [ ! -x node_modules/.bin/wp-env ]; then
+	add MISSING "wp-env is not installed in node_modules — run: npm install"
+fi
+if [ "$DOCKER_STATE" = "ok" ] && [ "$WPENV_UP" -eq 0 ]; then
+	add MISSING "the wp-env playground of THIS repository is not running (no running container mounts $ROOT) — start it with: npx wp-env start"
+fi
+if [ "$NEED_PHP" -eq 1 ] && [ ! -f vendor/bin/phpunit ]; then
+	add MISSING "PHPUnit is not installed in vendor/ — with wp-env running: npx wp-env run cli bash -c \"cd wp-content/plugins/$PLUGIN_DIR && composer install\""
+fi
+if [ -n "$SEL_E2E" ]; then
+	if [ ! -x node_modules/.bin/playwright ]; then
+		add MISSING "Playwright is not installed in node_modules — run: npm install && npx playwright install chromium"
+	fi
+	if [ "$WPENV_UP" -eq 1 ] && [ "$WPENV_PORT_OK" -eq 0 ]; then
+		add MISSING "this repository's wp-env is not the one published on localhost:$E2E_PORT (playwright.config.js baseURL) — stop the other environment and run: npx wp-env start"
+	fi
+fi
+
+if [ -n "$MISSING" ]; then
+	echo "CANNOT RUN the selection — required environment missing:" >&2
+	printf '%s\n' "$MISSING" | sed 's/^/  - /' >&2
+	echo "$SCOPE"
+	echo "result: NOT RUN (environment missing) — this is not a pass." >&2
+	exit 3
+fi
+
+run_node() {
+	local bin="$1"
+	shift
+	PATH="$NODE_DIR:$PATH" "node_modules/.bin/$bin" "$@" </dev/null
+}
+
+# run_phpunit <wp-env container> <phpunit args> <selected files> <all files of the suite>
+run_phpunit() {
+	local container="$1" args="$2" files="$3" suite_all="$4" inner f
+	inner="cd wp-content/plugins/$PLUGIN_DIR && "
+	if [ "$files" = "$suite_all" ]; then
+		inner="${inner}vendor/bin/phpunit $args"
+	else
+		inner="${inner}rc=0;"
+		while IFS= read -r f; do
+			inner="$inner vendor/bin/phpunit $args $f || rc=1;"
+		done <<EOF
+$files
+EOF
+		inner="$inner exit \$rc"
+	fi
+	echo "\$ npx wp-env run $container bash -c \"$inner\""
+	run_node wp-env run "$container" bash -c "$inner"
+}
+
+suite_files() {
+	local f
+	for f in $1; do [ -f "$f" ] && printf '%s\n' "$f"; done | sort
+}
+
+if [ -n "$SEL_UNIT" ]; then
+	echo "== unit =="
+	run_phpunit cli "" "$SEL_UNIT" "$(suite_files 'tests/Unit/*Test.php')" || RESULT=1
+fi
+if [ -n "$SEL_INTEGRATION" ]; then
+	echo "== integration =="
+	run_phpunit tests-cli "-c phpunit-integration.xml.dist" "$SEL_INTEGRATION" "$(suite_files 'tests/Integration/*Test.php')" || RESULT=1
+fi
+if [ -n "$SEL_E2E" ]; then
+	echo "== e2e =="
+	# shellcheck disable=SC2086
+	echo "\$ npx playwright test" $SEL_E2E
+	# shellcheck disable=SC2086
+	run_node playwright test $SEL_E2E || RESULT=1
+fi
+
+echo "$SCOPE"
+if [ "$RESULT" -eq 0 ]; then
+	echo "result: GREEN"
+else
+	echo "result: RED" >&2
+fi
+exit "$RESULT"

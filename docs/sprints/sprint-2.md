@@ -30,9 +30,9 @@ slices:
     criteria: []
   - id: S-023
     title: Test selection (keel-affected-tests, pre-push hook), doctor rows, environment and driver sections of the plan
-    status: in-progress
+    status: done
     hours: 1.25
-    actual_hours: null
+    actual_hours: 0.3
     actual_source: estimated
     depends_on: [S-020]
     criteria: []
@@ -46,9 +46,9 @@ slices:
     criteria: []
   - id: S-025
     title: Documentation backfill (AC ids, flows, usage, hooks reference)
-    status: in-progress
+    status: done
     hours: 1.5
-    actual_hours: null
+    actual_hours: 0.35
     actual_source: estimated
     depends_on: [S-020]
     criteria: []
