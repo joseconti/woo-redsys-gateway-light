@@ -151,7 +151,6 @@ readme.txt | documentation
 LICENSE | documentation
 scripts/keel-* | Keel scaffolding
 .githooks/* | Keel scaffolding
-.claude/* | assistant configuration
 .agents/* | assistant configuration
 .codex/* | assistant configuration
 .gitignore | repository metadata
@@ -162,6 +161,23 @@ scripts/keel-* | Keel scaffolding
 */.DS_Store | editor metadata
 EOF
 )
+
+# Each accepted assistant's own configuration directory belongs to the same
+# list, and it is a fact of that assistant: it is read from
+# scripts/keel-tools/<tool>.doctor.sh (KEEL_TOOL_DOCTOR_PROJECT_DIR), never
+# written here (Keel references/project-state.md, "The registry is DATA").
+for _kat_file in scripts/keel-tools/*.doctor.sh; do
+	[ -f "$_kat_file" ] || continue
+	_kat_dir=$( (
+		KEEL_TOOL_DOCTOR_PROJECT_DIR=""
+		. "$_kat_file" >/dev/null 2>&1
+		printf '%s' "$KEEL_TOOL_DOCTOR_PROJECT_DIR"
+	) 2>/dev/null)
+	if [ -n "$_kat_dir" ]; then
+		NO_TESTS="$NO_TESTS
+$_kat_dir/* | assistant configuration"
+	fi
+done
 
 # ---------------------------------------------------------------------------
 # Helpers (bash 3.2: no associative arrays; lists are newline-separated).

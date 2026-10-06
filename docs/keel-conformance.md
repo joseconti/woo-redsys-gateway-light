@@ -1,14 +1,15 @@
 # Keel conformance sweep — Payment Gateway for Redsys & WooCommerce Lite
 
 - Date: 2026-10-06
-- Sweep: post-update reconciliation v5.9.0 → v6.5.0
-- Sources (exactly three): the repository's disk; `MANIFEST.md` of Keel v6.5.0 (Table 1 and Table 3); `docs/decisions.md` (D-001…D-034). `docs/PROGRESS.md` lines 1–60 were read only for the project card, phase status and open items.
-- The previous `docs/keel-conformance.md` was overwritten without being consulted.
-- Nothing in this file has been applied. Every `missing` row awaits the user's decision; `Keel baseline:` stays v5.9.0 until the reconciliation completes.
+- Sweep: post-update reconciliation v5.9.0 → v6.5.0 — second pass, after the reconciliation was applied
+- Sources (exactly three): the repository's disk as it is now; the Keel v6.5.0 manifest (Table 1 and Table 3); the decision log (D-001…D-047). The project card, phase status and open items were read from the living state file for the conditions only.
+- Every state below was re-derived from the disk in this pass. The previous version of this file was overwritten without being consulted.
+- Commands run for evidence (all read-only): the project linter, the chain check without its smoke mode, the environment doctor in check mode, a syntax check of every generated script and hook, and file comparisons of the lock and the embedded trees.
+- The sweep ran while slice S-026 was still open and the main session was editing the tree; rows that depend on a moving file say so.
 
-Project conditions used (read from the card): WordPress plugin / WooCommerce extension, released (v7.0.2); phases 1–2 adopted (as-built), 3–4 n/a, 5 in progress, 6 in progress, 7 not started, 8 n/a; `Assistant config: none … (tools: claude)` (D-008); `Client budget: no` (D-010); `User guide: declined` (D-013); `Website intent: no` (D-005); `Autonomy: automatic`, issues after-sprint, 24h (D-011); `Chaining: start` (D-015); no `Sprints:` line (so not `Sprints: off`); no `E2E:` line.
+Project conditions used (read from the card): WordPress plugin / WooCommerce extension, released (v7.0.2); phases 1–2 adopted (as-built), 3–4 n/a, 5 in progress, 6 in progress, 7 not started, 8 n/a; assistant config full for Claude Code only (D-008, D-039, D-043), CI and MCP not part of it; client budget no (D-010); user guide declined (D-013); website intent no (D-005); autonomy automatic, issues after-sprint, 24h (D-011); chaining start (D-015) with model opus (D-037); sprints on; push test scope affected; security audit required (D-040); no E2E line.
 
-States: `present` (path verified on disk, content grepped where the requirement is about content) · `missing` · `declined` (real D-entry) · `n/a` (excluding condition named).
+States: `present` (verified on disk now, evidence given) · `missing` (cites the decision and, where one exists, the slice that schedules it; a `missing` row with no decision behind it is repeated under "Unresolved") · `declined` (a recorded refusal) · `n/a` (excluding condition named).
 
 ## Table 1 — parity
 
@@ -16,170 +17,173 @@ The manifest's Table 1 carries no row ids; `T1-nn` is the row's position in the 
 
 | # | Requirement | State | Evidence / where / decision / excluding condition |
 |---|---|---|---|
-| T1-01 | `docs/PROGRESS.md` | present | `docs/PROGRESS.md` (project card, phase status, position, deferred items read) |
-| T1-02 | `docs/decisions.md` | present | `docs/decisions.md`, D-001…D-034 |
-| T1-03 | `docs/lessons-learned.md` | present | `docs/lessons-learned.md` |
-| T1-04 | `docs/sessions.md` | missing | No such file. Condition holds: the card has no `Sprints: off` |
-| T1-05 | `scripts/keel-time` | missing | `scripts/` holds only `keel-continue`, `keel-doctor`, `keel-handoff-verify`, `keel-verify` |
-| T1-06 | `docs/.keel/clock.jsonl` (machine-local, gitignored) | n/a | Not yet applicable: created by the first `scripts/keel-time start`, and `scripts/keel-time` does not exist (T1-05). `docs/.keel/` absent |
-| T1-07 | Off-machine durability | present | `git remote -v` → `origin https://github.com/joseconti/woo-redsys-gateway-light.git`; card `Durability:` line present (D-011) |
-| T1-08 | Clean working tree at every block close | present | `git status --porcelain` empty at sweep start, on `develop` (this sweep's rewrite of this file is the only change since) |
-| T1-09 | `CLAUDE.md` + `AGENTS.md` lock | present | Both stamped `KEEL:BEGIN — v6.5.0`; `cmp` reports the files identical |
-| T1-10 | `GEMINI.md` / `.gemini/settings.json` | n/a | Only if the user works with Gemini CLI — Claude Code only (D-008); neither path exists |
-| T1-11 | `.claude/skills/keel/` + `.agents/skills/keel/` | present | `diff -rq` between the two trees and against the installed v6.5.0 skill: no differences; embedded `MANIFEST.md` header v6.5.0 |
-| T1-12 | `docs/00-competitive-landscape.md` | n/a | "Unless the scan was skipped on record": skip recorded in `docs/01-discovery.md` `## Competitive scan` ("Not run … skipped for this pass"). Recorded in the discovery document, not as a D-entry |
-| T1-13 | `docs/01-discovery.md` incl. `## Environment & test drivers` | missing | File present; the `## Environment & test drivers` section (§5a preflight) is absent (headings grepped) |
-| T1-14 | `docs/estimate.md` | present | `docs/estimate.md` (adoption estimate; states no firm estimate exists for future work) |
-| T1-15 | `docs/token-ledger.md` | present | `docs/token-ledger.md`, one row per session, last row 2026-08-02 |
-| T1-16 | `docs/02-functional-spec.md` with `AC-nn` IDs | missing | File present; zero `AC-nn` identifiers. `## Acceptance criteria` says "Not reconstructed line-by-line … progressive backfill". Its `## Testing` paragraph also still says no automated suite exists (stale) |
-| T1-17 | `docs/03-technical-plan.md` (code map, change map, testing plan with drivers, `## Environment requirements`) | missing | File present with `[E]`/`[A]`/`[G]` code map, conventions, verified test commands. Missing parts: `## Environment requirements` section; driver-per-surface with headless verdict; element-addressability convention; division of labour with tags; static-analysis commands (phpcs "not verified to run cleanly"); accessibility automation; read-back duty. The change map lives in `docs/02-functional-spec.md`, not in the plan |
-| T1-18 | `docs/threat-model.md` | present | Assumptions, defended controls with delivery states (7 `IN PLACE`, 4 `TO BUILD`, 2 `MANUAL`, 3 `VERIFY` occurrences), `## Not defended` table |
-| T1-19 | `docs/flows/` | missing | Directory absent; no D-entry declines it. Flows are a list inside `docs/02-functional-spec.md` `## Features / flows` |
-| T1-20 | `docs/budget.md` | n/a | Only if `Client budget: yes` — card says `no` (D-010) |
-| T1-21 | `docs/spec-references/` | n/a | Only if the spec records any — `docs/02-functional-spec.md` has no `## Reference artifacts` section |
-| T1-22 | `docs/rubrics/` | n/a | Only if a rubric domain was accepted at Phase 2 §6a — phases 1–2 were adopted as-built, no rubric on record |
-| T1-23 | `docs/design/references/` | n/a | Only if the user holds any — phases 3–4 n/a, no design contract (D-009) |
-| T1-24 | Assistant rules containers | n/a | Only if accepted — card `Assistant config: none beyond the lock + embedded skill` (D-008); `.claude/rules/` absent |
-| T1-25 | Assistant subagents | n/a | Same condition (D-008); `.claude/agents/` absent; card `Models: n/a` |
-| T1-26 | `docs/design/DESIGN-BRIEF.md` | n/a | UI projects with a design contract only — Phase 3 n/a (card, D-009) |
-| T1-27 | `docs/design/design-handoff/` | n/a | Phase 4 n/a — no design contract |
-| T1-28 | `docs/BUILD-SPEC.md` | n/a | Phase 4 n/a — no design contract |
-| T1-29 | `docs/design/design-requests/` | n/a | "When the first Design Request appears" — none (card open items) |
-| T1-30 | `.gitignore` + `.gitattributes` with the mandatory ignore entries | missing | Both files present. `.gitignore` has `CLAUDE.local.md`, `.claude/settings.local.json`, `.keel-update-check`, `docs/continuation-prompt.md`. Missing entry: `docs/.keel/clock.jsonl` (since v6.0.0) |
-| T1-31 | `docs/sprints/` — one file per sprint, `keel.sprint/1` frontmatter | missing | Directory holds only `README.md` (old pre-frontmatter template, "No sprint has been planned yet"). No sprint file although Phase 5 slices were done (D-016…D-033) |
-| T1-32 | `docs/sprints/deferred.md` | missing | Absent. Deferred work lives only in `docs/PROGRESS.md` "Deferred items" |
-| T1-33 | `docs/.keel/plan.json` | missing | `docs/.keel/` absent |
-| T1-34 | `docs/05-test-points.md` with `Criterion`, `Coverage`, `Red first` | missing | File present with `Criterion (AC-nn)` and `Coverage` columns; the `Red first` column is absent (grepped) |
-| T1-35 | `docs/api/INDEX.md` | present | `docs/api/INDEX.md` |
-| T1-36 | `docs/keel-conformance.md` | present | This file, rewritten by this sweep (tracked in git) |
-| T1-37 | `docs/playground.md` | present | `last verified: 2026-08-01` stamp present |
-| T1-38 | `scripts/keel-verify` | present | Executable, five checks. Its missing newer checks are Table 3 rows |
-| T1-39 | `scripts/keel-affected-tests` | missing | Absent. Condition holds: automated suite exists (PHPUnit unit + integration, Playwright) |
-| T1-40 | `.githooks/pre-push` + `core.hooksPath` | missing | `.githooks/` absent; `git config --get core.hooksPath` returns nothing |
-| T1-41 | `scripts/keel-doctor` | present | Executable, `--check`/`--plan`/`--fix`/`--json`. Note: it is hand-built, not compiled from a `## Environment requirements` section (that section is missing — T1-17) |
-| T1-42 | `scripts/` build/minify script | missing | Condition holds: the plugin ships front-end CSS/JS (`assets/css/*.css`, `assets/js/frontend/`). No minify script and no `*.min.*` file in the tree. Recorded as a gap, not as a D-entry: `docs/03-technical-plan.md` "Front-end asset build contract" ("not yet applied") and `docs/04-adoption-audit.md` line 90 ("accepted as-is for now, deferred to a dedicated remediation sprint") |
-| T1-43 | `scripts/keel-handoff-verify` | present | Executable; five courier checks, lane claim on `Chaining: start`, `--release`; allow-list entry `Bash(./scripts/keel-handoff-verify:*)` in `.claude/settings.local.json` |
-| T1-44 | Single-lane lock | present | Implemented in `scripts/keel-handoff-verify`: file outside the repo at `${TMPDIR:-/tmp}/keel-locks/<sha256 of repo toplevel path>.lock`, PID + start time, baton case. Note: the location is the temp dir, not a user state dir |
-| T1-45 | `scripts/keel-tools/<tool>.sh` (one row per accepted assistant) | missing | Directory absent. Condition holds: `Chaining: start`; accepted tool list is `claude` |
-| T1-46 | `scripts/keel-continue` | present | Executable; allow-list entry present. Predates several contract points — see Table 3 (T3-5.10.3-1, T3-5.13.0-3b, T3-5.14.0-4, T3-5.20.0-1, T3-6.1.0-2) |
-| T1-47 | `scripts/keel-close` | missing | Absent; no allow-list entry |
-| T1-48 | `.githooks/post-commit` + `core.hooksPath` | missing | `.githooks/` absent; `core.hooksPath` unset |
-| T1-49 | `scripts/keel-stop-hook` + `Stop` hook registration | missing | Script absent; no `hooks` key in `.claude/settings.local.json`; `.claude/settings.json` absent; no allow-list entry |
-| T1-50 | `scripts/keel-session-pid.sh` | missing | Absent. Both existing scripts carry their own `find_owning_session_pid` copy |
-| T1-51 | `scripts/keel-chain-check` | missing | Absent; no allow-list entry. Condition holds: `Chaining: start` |
-| T1-52 | `Chaining model:` card line | missing | Not on the card (grepped). Condition holds: `Chaining: start` |
-| T1-53 | `Chain verified:` card line | missing | Not on the card. Written only by `scripts/keel-chain-check --smoke`, which does not exist |
-| T1-54 | `.githooks/pre-commit` | n/a | Only if the assistant-config package is accepted — card `Assistant config: none` (D-008) |
-| T1-55 | Permission allow-lists (`.claude/settings.json`) | n/a | Same condition (D-008). Only the machine-local `.claude/settings.local.json` exists |
-| T1-56 | CI workflow | n/a | Same condition (D-008); `.github/` absent |
-| T1-57 | MCP registration | n/a | Only if the technical plan defines dev MCP servers — none in `docs/03-technical-plan.md`; `.mcp.json` absent |
-| T1-58 | `docs/architecture.md` | present | `docs/architecture.md` |
-| T1-59 | `docs/api/`, `docs/usage/`, `docs/reference/` | missing | `docs/api/` present (INDEX only). `docs/usage/` and `docs/reference/` absent. Phase 6 is "in progress"; per-surface docs are on record as progressive backfill (`docs/api/INDEX.md`, `docs/04-adoption-audit.md`) — no D-entry |
-| T1-60 | `docs/security.md` | present | `docs/security.md` (profile `references/security/wordpress.md`, D-001) |
-| T1-61 | `docs/accessibility.md` with automated results + guided AT pass | missing | File present; both the automated pass and the assistive-technology pass are recorded as `TO BUILD — not run` |
-| T1-62 | `README.md` (repo root) | present | `README.md` |
-| T1-63 | `guide/` | declined | D-013 (end-user guide declined for now; `readme.txt` covers it) |
-| T1-64 | `guide/_theme/` + `guide/brand/` + theme meta | declined | D-013; card `Docs theme: n/a — no guide` |
-| T1-65 | `docs/07-release.md` | n/a | Required from Phase 7 — "not started" |
-| T1-66 | `docs/security-audit.md` | n/a | Required from Phase 7, and only once the card says `Security audit: required` or an audit has run. Phase 7 not started, no audit has run. The card line itself is missing — see T1-C14 |
-| T1-67 | `docs/security-audit/` in `.gitignore` | n/a | Any project on which an audit has run — none has |
-| T1-68 | `<site-docs>/` | n/a | Website intent only — `no` (D-005) |
-| T1-69 | `SPEC/art-direction.md` | n/a | Website intent only (D-005) |
-| T1-70 | `~/.keel/art-ledger.md` | n/a | Website intent only (D-005) |
-| T1-71 | `<site-docs>/launch-report.md` | n/a | Website intent only (D-005) |
-| T1-72 | `<site-docs>/operations.md` | n/a | Website intent only (D-005) |
-| T1-73 | `docs/.keel/e2e-status.json` | n/a | Only if the card carries an `E2E:` line — it does not (absent is the default) |
-| T1-74 | `docs/.keel/e2e-history.jsonl` | n/a | Same condition; optional even where `E2E:` exists |
-| T1-75 | `docs/.keel/slices/<n>.json` | n/a | Only if work is fanned out over git worktrees — not on record |
-| T1-76 | `docs/issues.md` with `Last inbound sweep:` | present | `docs/issues.md` line 5: `Last inbound sweep: 2026-08-01 17:50` |
-| T1-77 | `docs/old/` | n/a | "When archiving starts" — nothing archived yet |
-| T1-78 | `docs/04-adoption-audit.md` | present | `docs/04-adoption-audit.md` |
+| T1-01 | `docs/PROGRESS.md` | present | Project card, phase status, current position (slice S-026), open items, deferred items |
+| T1-02 | `docs/decisions.md` | present | D-001…D-047 |
+| T1-03 | `docs/lessons-learned.md` | present | L-001…L-007 |
+| T1-04 | `docs/sessions.md` | present | Fifteen-column header from the current template; zero rows yet (the first is appended when the session clock is ended); linter check 24 OK |
+| T1-05 | `scripts/keel-time` | present | Executable, syntax clean; start, slice-start, slice-end, pause, resume, end, report |
+| T1-06 | `docs/.keel/clock.jsonl` | present | On disk, two events with schema keel.clock/1 (a session-start and a slice-start for S-026), gitignored and untracked |
+| T1-07 | Off-machine durability | present | Remote origin on GitHub; card durability line; linter check 19 OK (every commit on develop is on origin/develop) |
+| T1-08 | Clean working tree at every block close | present | Work lands on develop, which tracks origin/develop with nothing ahead. The block (S-026) is still open, so the tree is not clean at this instant: the linter's check 20 reports the living state file modified, and this file is rewritten by this sweep. The requirement binds at the close of S-026 |
+| T1-09 | `CLAUDE.md` + `AGENTS.md` lock | present | Both stamped v6.5.0; the two files are byte-identical |
+| T1-10 | Gemini lock mirror | n/a | Only if the user works with Gemini CLI — Claude Code only (D-008) |
+| T1-11 | `.claude/skills/keel/` + `.agents/skills/keel/` | present | The two trees are identical to each other and to the installed v6.5.0 skill |
+| T1-12 | Competitive landscape document | declined | D-035 (the competitive scan and its document declined by the user) |
+| T1-13 | `docs/01-discovery.md` with its environment and test drivers section | present | Section "Environment & test drivers (step 5a preflight)" at line 52, recorded from a real doctor run |
+| T1-14 | `docs/estimate.md` | present | Estimate v2 re-based on the sprint plan (42.75 h, equal to the plan total; linter check 22 OK) |
+| T1-15 | `docs/token-ledger.md` | present | One row per session; the last row is 2026-08-02 — the session of 2026-10-06 has no row yet (it is still open) |
+| T1-16 | `docs/02-functional-spec.md` with stable criterion ids | present | AC-01…AC-57 in the acceptance-criteria table (57 rows counted); 26 of them recorded as as-built, unverified (D-045) |
+| T1-17 | `docs/03-technical-plan.md` (code map, change map, testing plan with drivers, environment requirements) | present | Code map, testing plan with drivers, environment requirements; the change map lives in docs/02-functional-spec.md and the plan now points to it from its own "Change map" section. |
+| T1-18 | `docs/threat-model.md` | present | Assumptions, defended controls with delivery states, "Not defended" table |
+| T1-19 | `docs/flows/` | present | Six flow files (four checkouts, notification handling, refund) |
+| T1-20 | Client budget document | n/a | Only if the card says client budget yes — it says no (D-010) |
+| T1-21 | Spec reference artifacts directory | n/a | Only if the spec records any — the functional spec has no reference-artifacts section |
+| T1-22 | Rubrics directory | n/a | Only if a rubric domain was accepted at the Phase 2 review — phases 1–2 were adopted as-built, none on record |
+| T1-23 | Design references directory | n/a | Only if the user holds any — phases 3–4 n/a, no design contract (D-009) |
+| T1-24 | Assistant rules: `.claude/rules/` | present | Three rule files (code style, docs discipline, security); accepted by D-039 |
+| T1-25 | Assistant subagents: `.claude/agents/` | present | Six agent files; model map on the card (D-043) |
+| T1-26 | Design brief | n/a | Phase 3 n/a — no design contract (D-009) |
+| T1-27 | Design handoff directory | n/a | Phase 4 n/a — no design contract |
+| T1-28 | Build spec | n/a | Phase 4 n/a — no design contract |
+| T1-29 | Design request register | n/a | When the first Design Request appears — none |
+| T1-30 | `.gitignore` + `.gitattributes` with the mandatory ignore entries | present | All five mandatory entries are in the ignore file (local instructions file, local settings file, clock file at line 56, update-check stamp, hand-off file at line 42) |
+| T1-31 | `docs/sprints/` — one file per sprint | present | Three sprint files with keel.sprint/1 frontmatter, 26 slices; linter check 22 OK |
+| T1-32 | `docs/sprints/deferred.md` | present | Two items (S-033, S-034) |
+| T1-33 | `docs/.keel/plan.json` | present | Schema keel.plan/1, generated; matches its sources (linter check 22) |
+| T1-34 | `docs/05-test-points.md` with criterion, coverage and red-first columns | present | Criterion, coverage and red-first columns exist; 31 ids are bound to rows, 26 are listed as unverified in D-045, 57 in all (linter check 16). |
+| T1-35 | `docs/api/INDEX.md` | present | Linter checks 2 and 7 OK |
+| T1-36 | `docs/keel-conformance.md` | present | This file |
+| T1-37 | `docs/playground.md` | present | Access, try-it, seed and reset instructions, stamp "last verified: 2026-08-01". The playground does not build today (D-044, L-007); restoring it is S-036 |
+| T1-38 | `scripts/keel-verify` | present | Executable, 27 checks, ran to completion in this sweep |
+| T1-39 | `scripts/keel-affected-tests` | present | Executable; base, head, run and full options; prints one scope line; linter check 25 OK |
+| T1-40 | `.githooks/pre-push` + `core.hooksPath` set | present | Hook executable; hooks path reads .githooks; skips tags and deletions |
+| T1-41 | `scripts/keel-doctor` | present | Executable; ran in check mode in this sweep; compiled from the plan's environment-requirements section |
+| T1-42 | Build/minify script for the shipped CSS/JS | missing | Scheduled S-027 (D-038). No minified pair and no minify script in the tree; linter check 11 is not applicable until then |
+| T1-43 | `scripts/keel-handoff-verify` | present | Executable; allow-list entry present in both settings files (chain check row 4) |
+| T1-44 | Single-lane lock | present | Outside the repository, under the state directory's keel-locks folder; chain check row 9 OK (reachable, held by the live session) |
+| T1-45 | `scripts/keel-tools/claude.sh` (one row per accepted assistant) | present | All nine fields plus detect and launch functions (linter check 26); the only accepted tool is claude |
+| T1-46 | `scripts/keel-continue` | present | Executable; sources the tool row; checksum matches the card's chain-verified line (chain check rows 2 and 11) |
+| T1-47 | `scripts/keel-close` | present | Executable; steps 0 to 8; allow-list entry in the committed settings file |
+| T1-48 | `.githooks/post-commit` + `core.hooksPath` set | present | Hook deletes the hand-off file and nothing else; chain check row 10b OK (installed, active, no hand-off on disk) |
+| T1-49 | `scripts/keel-stop-hook` + its `Stop` hook registration | present | Script executable; registered as the Stop hook in the committed Claude Code settings; linter check 26 confirms the registration matches the tool row. Its own allow-list entry and its recorded firing evidence are tracked in Table 3 (T3-5.15.0-1b, T3-5.15.0-1c) |
+| T1-50 | `scripts/keel-session-pid.sh` | present | One sourced function; sourced by the launcher and the hand-off verifier |
+| T1-51 | `scripts/keel-chain-check` | present | Executable; ran in this sweep: fifteen rows OK, verdict READY; allow-list entry in the committed settings file |
+| T1-52 | Chaining-model card line | present | Card: "Chaining model: opus (D-037)" |
+| T1-53 | Chain-verified card line | present | Card: dated 2026-10-06, tier start, Keel 6.5.0, launcher and row checksums; chain check row 11 says the proof is not stale |
+| T1-54 | `.githooks/pre-commit` | present | Confidential-data gate, executable, active through the hooks path; accepted by D-039; public test key recognised by hash (D-042) |
+| T1-55 | Permission allow-list: `.claude/settings.json` | present | Committed allow-list confirmed by the user (D-043) |
+| T1-56 | CI workflow | n/a | Only if accepted and the forge has CI — forge CI was not part of the package the user accepted (D-039); the card's CI line reads n/a |
+| T1-57 | MCP registration | n/a | Only if the technical plan defines development MCP servers — it defines none |
+| T1-58 | `docs/architecture.md` | present | On disk |
+| T1-59 | `docs/api/`, `docs/usage/`, `docs/reference/` | present | Index and readme under api; four usage documents; four reference documents (classes, endpoints, functions, hooks and extension points); linter checks 7 and 8 OK |
+| T1-60 | `docs/security.md` | present | On disk; profile per D-001 |
+| T1-61 | Accessibility record with automated results and the guided assistive-technology pass | missing | The file exists; both passes still read "TO BUILD — not run". Scheduled S-029 (automated) and S-030 (guided), sprint 3 created by D-040; S-029 waits on the playground (D-044) |
+| T1-62 | `README.md` | present | Repository root |
+| T1-63 | End-user guide | declined | D-013 |
+| T1-64 | Guide theme, brand layer and version marker | declined | D-013 |
+| T1-65 | Release record | n/a | Required from Phase 7 — not started (the release gate is slice S-032) |
+| T1-66 | Security-audit log | n/a | Required from Phase 7 and created by the first audit run — Phase 7 not started and no audit has run. The audit is required (card, D-040) and scheduled as S-028 |
+| T1-67 | Security-audit run directory ignored | n/a | Any project on which an audit has run — none has |
+| T1-68 | Site documentation set | n/a | Website intent only — no (D-005) |
+| T1-69 | Art-direction spec | n/a | Website intent only (D-005) |
+| T1-70 | Machine-local art ledger | n/a | Website intent only (D-005) |
+| T1-71 | Launch report | n/a | Website intent only (D-005) |
+| T1-72 | Site operations record | n/a | Website intent only (D-005) |
+| T1-73 | End-to-end status file | n/a | Only if the card carries an E2E line — it does not (absent is the default) |
+| T1-74 | End-to-end history file | n/a | Same condition; optional even where the line exists |
+| T1-75 | Worker slice reports | n/a | Only if work is fanned out over git worktrees — not on record |
+| T1-76 | `docs/issues.md` | present | Header line "Last inbound sweep: 2026-08-01 17:50" (older than the 24h interval; the sweep is due at the sprint close) |
+| T1-77 | Archive directory | n/a | When archiving starts — nothing archived yet |
+| T1-78 | `docs/04-adoption-audit.md` | present | On disk |
 
-### Project-card lines (manifest paragraph under Table 1; template in `references/project-state.md`)
+### Project-card lines (manifest paragraph under Table 1)
 
 | # | Requirement | State | Evidence / where / decision / excluding condition |
 |---|---|---|---|
-| T1-C01 | Base card lines (name, type, stack, license, docs language, security profile, accessibility, i18n, installed base, design system, website intent, durability, autonomy, branches, notify) | present | All read on the card, `docs/PROGRESS.md` lines 6–27 |
-| T1-C02 | `Keel portability:` | present | "lock + embedded v6.5.0" |
-| T1-C03 | `Assistant config:` | present | "none beyond the lock + embedded skill (tools: claude) (D-008)" |
-| T1-C04 | `Keel baseline:` | present | "v5.9.0" — the line exists; its value advances only when this reconciliation completes |
-| T1-C05 | `Client budget:` | present | "no (D-010)" |
-| T1-C06 | `User guide:` | present | "declined for now (D-013)" |
-| T1-C07 | `Docs theme:` | present | "n/a — no guide" |
-| T1-C08 | `Models:` | present | "n/a — no subagent role→model map configured" |
-| T1-C09 | `Chaining:` | present | "start (D-015)" |
-| T1-C10 | `Issue sweep interval:` (on the `Autonomy:` line) | present | "Issue sweep interval: 24h" (D-011) |
-| T1-C11 | `Test-first policy:` | missing | Not on the card; the question was never asked (no D-entry) |
-| T1-C12 | `Sprints:` | missing | Not on the card (to be written `on`, never asked) |
-| T1-C13 | `Push test scope:` | missing | Not on the card (to be written `affected`, never asked) |
-| T1-C14 | `Security audit:` | missing | Not on the card (derived from the threat model, never asked) |
-| T1-C15 | `CI runs on:` | missing | Not on the card. Template value for this project is `n/a` (no forge CI, config package not accepted). The manifest's own card-line paragraph does not list this line; the full-card template does — judgment flagged |
-| T1-C16 | `E2E:` | n/a | Absent is the default and means the feature does not exist for the project; never invented or guessed from `package.json` |
-| T1-C17 | `E2E env:` | n/a | Optional, only alongside `E2E:` |
+| T1-C01 | Base card lines (name, type, stack, license, docs language, security profile, accessibility, i18n, installed base, design system, website intent, durability, autonomy, branches, notify) | present | All read on the card |
+| T1-C02 | `Keel portability:` | present | lock + embedded v6.5.0 (D-034) |
+| T1-C03 | `Assistant config:` | present | full (tools: claude) — rules, agents, pre-commit gate, committed allow-list and Stop hook; CI not accepted (D-039, D-043) |
+| T1-C04 | `Keel baseline:` | present | The line exists and reads v5.9.0; it advances only when the reconciliation is closed |
+| T1-C05 | `Client budget:` | present | no (D-010) |
+| T1-C06 | `User guide:` | present | declined for now (D-013) |
+| T1-C07 | `Docs theme:` | present | n/a — no guide |
+| T1-C08 | `Models:` | present | orchestrator = session model, reviewer = sonnet, mechanical = haiku (D-043) |
+| T1-C09 | `Chaining:` | present | start (D-015) |
+| T1-C10 | `Issue sweep interval:` | present | 24h, on the autonomy line (D-011) |
+| T1-C11 | `Test-first policy:` | present | pure-logic (D-036) |
+| T1-C12 | `Sprints:` | present | on — the default, never asked |
+| T1-C13 | `Push test scope:` | present | affected — the default, never asked |
+| T1-C14 | `Security audit:` | present | required — money moves and the notification endpoints are reachable from outside (derived, D-040) |
+| T1-C15 | `CI runs on:` | present | n/a — no forge CI (D-039) |
+| T1-C16 | E2E card line | n/a | Absent is the default and means the feature does not exist for the project; never invented |
+| T1-C17 | E2E environment card line | n/a | Optional, only alongside the E2E line |
 
 ## Table 3 — per-version actions (v5.9.0 → v6.5.0)
 
-Ids are `T3-<version>-<manifest action number>`. Where a row asks to REGENERATE a script that does not exist on this disk, the row is `n/a` and names the `missing` row that creates that script from the current (v6.5.0) contract — so nothing is counted twice and nothing is dropped.
+Ids are `T3-<version>-<manifest action number>`; a letter suffix splits one manifest action into the artifact and its one-time verification where the two ended in different states.
 
 ### v5.10.0
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.10.0-1 | Re-ask the chaining question where the card is `Autonomy: automatic` + `Chaining: off` | n/a | Card is `Chaining: start` (D-015) |
-| T3-5.10.0-2 | Lock stamp-only refresh (this action recurs unchanged in v5.10.0–v5.20.0) | present | `CLAUDE.md` + `AGENTS.md` stamped v6.5.0 (D-034) |
+| T3-5.10.0-1 | Re-ask the chaining question where the card is automatic with chaining off | n/a | The card is chaining start (D-015) |
+| T3-5.10.0-2 | Lock stamp-only refresh (recurs unchanged in v5.10.0–v5.20.0) | present | Both lock files stamped v6.5.0 (D-034) |
 
 ### v5.10.1
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.10.1-1 | Closed list of four chain stops; close-out never asks permission | n/a | "No per-project action" — behavioural, lives in SKILL.md / references |
+| T3-5.10.1-1 | Closed list of four chain stops; the close-out never asks permission | n/a | No per-project action — behavioural |
 
 ### v5.10.2
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.10.2-1 | Chain decided by the script; live `command -v claude` re-check | n/a | "No per-project action". (The live re-check is in `scripts/keel-continue` line 133) |
+| T3-5.10.2-1 | Chain decided by the script; live re-check of the tool's command | n/a | No per-project action. (The launcher re-checks the row's command at line 185) |
 
 ### v5.10.3
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.10.3-1 | `scripts/keel-continue` contract points 6a/6b, picked up at its next regeneration | missing | 6b met (passes "Lee <handoff> y continúa.", not the file content). 6a not met: the Terminal command is an interpolated string inside a generated AppleScript (`do script "cd … && claude '…'"`), not a `chmod +x` script file run by path; and `mktemp -t keel-continue-XXXXXX.applescript` puts a literal suffix after the `X` run |
-| T3-5.10.3-2 | `env.PATH` includes the per-user installer dir as a literal absolute path | present | `.claude/settings.local.json` `env.PATH` starts with `/Users/joseconti/.local/bin` |
+| T3-5.10.3-1 | Launcher contract points 6a/6b | present | Chain check row 10: script file run by path, temp-file template ends in its X run, the hand-off's content is never an argument |
+| T3-5.10.3-2 | Declared PATH includes the per-user installer directory as a literal path | present | Local settings: the declared PATH starts with the user's local bin directory; chain check rows 6 and 8 OK |
 
 ### v5.11.0
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.11.0-1 | Ask the test-first question once; add `Test-first policy:` | missing | Never asked; no card line (T1-C11) |
-| T3-5.11.0-2 | Add `Red first` column to `docs/05-test-points.md`; existing rows `n/a — predates` | missing | Column absent (T1-34) |
-| T3-5.11.0-3 | Extend `scripts/keel-verify` with the three red checks | missing | No `Red first` handling in `scripts/keel-verify` (grepped) |
-| T3-5.11.0-4 | Bug fixes start from a failing reproduction test | n/a | Behavioural standing rule, no artifact |
-| T3-5.11.0-5 | A test derived from an `AC-nn` or a bug is never edited to pass | n/a | Behavioural standing rule, no artifact |
+| T3-5.11.0-1 | Ask the test-first question; add the card line | present | D-036; card line pure-logic |
+| T3-5.11.0-2 | Red-first column in the test-point log; existing rows take the predates value | present | Column present; 15 rows carry "n/a — predates" |
+| T3-5.11.0-3 | Three red checks in the linter | present | Linter check 17 ran: enum OK, observed rows OK, judgment list reported |
+| T3-5.11.0-4 | Bug fixes start from a failing reproduction test | n/a | Behavioural standing rule (restated in D-036) |
+| T3-5.11.0-5 | A criterion-derived test is never edited to pass | n/a | Behavioural standing rule |
 
 ### v5.12.0
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.12.0-1 | Art direction, ledger, `SPEC/art-direction.md`, blacklist, launch checks (all seven points) | n/a | Website projects only — `Website intent: no` (D-005) |
+| T3-5.12.0-1 | Art direction, ledger, art-direction spec, blacklist, launch checks | n/a | Website projects only — website intent no (D-005) |
 
 ### v5.13.0
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.13.0-1 | Generate `scripts/keel-chain-check` + allow-list entry | missing | Script and entry absent (T1-51) |
-| T3-5.13.0-2 | Run `--smoke` once | missing | Cannot have run — script absent |
-| T3-5.13.0-3 | `Chain verified:` card line | missing | Absent (T1-53) |
-| T3-5.13.0-3b | Ask `Chaining model:`; launcher passes `--model` on every fire | missing | No card line (T1-52); `scripts/keel-continue` launches `claude '<prompt>'` with no `--model` |
-| T3-5.13.0-4 | `Mode:` field in the hand-off freshness header | missing | The (gitignored, stale) `docs/continuation-prompt.md` header has no `Mode:` line; nothing on disk writes one |
-| T3-5.13.0-5 | Two run points for `keel-chain-check` (session start, before the fire) | n/a | Behavioural run points; become applicable once T3-5.13.0-1 exists |
+| T3-5.13.0-1 | Generate the chain check and its allow-list entry | present | Script on disk; entry in the committed settings file |
+| T3-5.13.0-2 | Run the smoke mode once | present | The card's chain-verified line exists (it is written only by a passing smoke run) and its checksums match the launcher and the row on disk (chain check row 11) |
+| T3-5.13.0-3 | Chain-verified card line | present | On the card, dated 2026-10-06 |
+| T3-5.13.0-3b | Ask the chaining model; the launcher passes it on every fire | present | D-037; chain check row 10a OK |
+| T3-5.13.0-4 | Mode field in the hand-off header | present | The close-out script writes it (line 381). No hand-off is on disk at the moment, which is ordinary |
+| T3-5.13.0-5 | Two run points for the chain check | n/a | Behavioural run points (session start; step 5 of the close-out script) |
 
 ### v5.14.0
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.14.0-1 | Generate `scripts/keel-close` + allow-list entry | missing | Absent (T1-47) |
-| T3-5.14.0-2 | Install `.githooks/post-commit`, set `core.hooksPath`, verify it fires on a real commit | missing | Absent / unset (T1-48) |
-| T3-5.14.0-3 | Row 10b in `keel-chain-check` | n/a | Script does not exist; generated with it under T3-5.13.0-1 |
-| T3-5.14.0-4 | `scripts/keel-continue` degrades on a bad Keel artifact (DEGRADE/TERMINAL table) instead of printing | missing | Current script prints and exits on a missing or failing hand-off; no degrade path (grepped) |
-| T3-5.14.0-5 | Notify when `keel-continue` prints on a chaining card | n/a | Behavioural session duty through the recorded channel (D-011), no artifact |
+| T3-5.14.0-1 | Generate the close-out script and its allow-list entry | present | Script on disk, steps 0 to 8; entry in the committed settings file |
+| T3-5.14.0-2a | Install the post-commit hook and set the hooks path | present | Hook executable; hooks path set; chain check row 10b OK |
+| T3-5.14.0-2b | Verify the post-commit hook fires on a real commit | present | Observed 2026-10-06: a probe hand-off existed before commit 066fdfd and was gone after it. Recorded in D-048 and in the sprint 2 row of docs/05-test-points.md. |
+| T3-5.14.0-3 | Row 10b in the chain check | present | Printed by the chain check in this sweep |
+| T3-5.14.0-4 | Launcher degrades on a bad Keel artifact instead of printing | present | Launcher lines 275–321 and 379: missing, unreadable, stale or blocked hand-off degrade onto the living state; identity and concurrency stay terminal |
+| T3-5.14.0-5 | Notify when the launcher prints on a chaining card | n/a | Behavioural session duty through the recorded channel (D-011); the launcher prints a notify line |
 
 ### v5.15.0
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.15.0-1 | Generate `scripts/keel-stop-hook`, allow-list entry, register as `Stop` hook, verify it fires | missing | Absent / unregistered (T1-49) |
+| T3-5.15.0-1a | Generate the stop hook and register it as the Stop hook | present | Script on disk; registered in the committed Claude Code settings |
+| T3-5.15.0-1b | The stop hook's own allow-list entry | declined | D-048 — the hook is invoked by the harness, not through the shell tool; the user confirmed the committed allow-list by name without it (D-043). |
+| T3-5.15.0-1c | Verify the stop hook fires by ending a turn with a dirty tree | present | Observed 2026-10-06: the hook blocked a live turn four times. Recorded in D-048 and in the sprint 2 row of docs/05-test-points.md. |
 | T3-5.15.0-2 | Re-read anti-patterns 12e–12l | n/a | Re-read duty, no project artifact |
 | T3-5.15.0-3 | Two new operating principles | n/a | Behavioural |
 | T3-5.15.0-4 | Context-discipline exceptions | n/a | Behavioural |
@@ -187,161 +191,163 @@ Ids are `T3-<version>-<manifest action number>`. Where a row asks to REGENERATE 
 ### v5.15.1
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.15.1-1 | Regenerate `scripts/keel-stop-hook` (session-scoped rule, block log keyed by repo and session) | n/a | No hook on disk to regenerate; created under T3-5.15.0-1 from the current contract |
-| T3-5.15.1-3 | Generate `scripts/keel-session-pid.sh` | missing | Absent (T1-50) |
-| T3-5.15.1-5 | Verify the hook in both directions, then observe it firing after a restart | missing | One-time verification, never run (no hook) |
+| T3-5.15.1-1 | Stop hook: session-scoped uncommitted rule, block log keyed by repository and session | present | Generated from the current contract: cede branches at lines 477–482, session-keyed ledger entry at line 430 |
+| T3-5.15.1-3 | Generate the session-identity file | present | On disk, one function, PID plus start time |
+| T3-5.15.1-5 | Verify the hook in both directions, then observe it after a session restart | missing | Both directions proven in fixtures (D-048); the observation after a full session restart is scheduled S-037 (D-048). |
 | T3-5.15.1-6 | Re-read anti-pattern 12m | n/a | Re-read duty |
 
 ### v5.15.2
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.15.2-1 | Regenerate `scripts/keel-stop-hook` (rule 2 cedes, close-out discharge, queue counted in `## Open items`, per-rule fingerprints) | n/a | No hook on disk to regenerate; created under T3-5.15.0-1 |
-| T3-5.15.2-5 | Verify both directions for every blocking rule | missing | One-time verification, never run (no hook) |
+| T3-5.15.2-1 | Stop hook: queue rule cedes, close-out discharge, queue counted in the open-items section, per-rule fingerprints | present | Lines 254–263 (open items only), 567–574 (cede and block), close-out record written by step 8 of the close-out script |
+| T3-5.15.2-5 | Verify both directions for every blocking rule | present | Every blocking rule in both directions, the cede, the close-out discharge and the plan-behind state: 35 assertions in throwaway fixtures, recorded as fixture-grade evidence in D-048. |
 | T3-5.15.2-6 | Operating principle "fix the class, not the instance" | n/a | Behavioural |
 
 ### v5.16.0
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.16.0-1 | Ask the `CI runs on:` question | n/a | Only on a project with forge CI and an accepted config package — neither (D-008; `.github/` absent). "Projects with no CI need nothing". (The card line itself: T1-C15) |
-| T3-5.16.0-5 | Regenerate the workflow's `on:` block | n/a | No CI workflow exists |
+| T3-5.16.0-1 | Ask when CI runs; record the card line | present | Card line reads n/a — no forge CI; forge CI was not part of the accepted package (D-039) |
+| T3-5.16.0-5 | Regenerate the workflow's trigger block | n/a | No CI workflow exists |
 
 ### v5.17.0
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.17.0-1 | Sprint files with `keel.sprint/1` frontmatter, `docs/sprints/deferred.md`, generated `docs/.keel/plan.json` + human index | missing | None exist (T1-31, T1-32, T1-33) |
-| T3-5.17.0-3 | `scripts/keel-verify` plan checks | missing | No plan handling in `scripts/keel-verify` (grepped) |
-| T3-5.17.0-4 | `E2E:` / `E2E env:` card lines and published result | n/a | Absent is the default; never invented. (The project does have `npm run test:e2e` — declaring it is the user's choice) |
-| T3-5.17.0-5 | Convention for machine-readable artifacts | n/a | Standing convention; no machine-readable artifact exists yet |
+| T3-5.17.0-1 | Sprint files with frontmatter, deferred backlog, generated plan file and human index | present | Three sprint files, the deferred file, the plan file and the generated index in the sprints readme (D-040) |
+| T3-5.17.0-3 | Plan checks in the linter | present | Linter check 22 OK |
+| T3-5.17.0-4 | E2E card lines and published result | n/a | Absent is the default; never invented |
+| T3-5.17.0-5 | One convention for machine-readable artifacts | present | The plan file carries schema keel.plan/1 and the clock file keel.clock/1, both under the keel data directory |
 
 ### v5.18.0
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.18.0-1 | Stop hook registered only for the tool whose schema is confirmed | n/a | No hook registered anywhere; `.codex/` holds only `config.toml` (no `hooks.json`) |
-| T3-5.18.0-2 | `keel-continue` point 4a — only the detected tool's own action, never a fallback | present | `scripts/keel-continue` lines 84–101: no `CLAUDECODE` marker → print; CLI row with no action at the card's tier → print |
-| T3-5.18.0-3 | Codex `start` row | n/a | Codex not an accepted tool (D-008) |
-| T3-5.18.0-4 | `Chaining model:` description generalised; anti-patterns 12p/12q | n/a | Wording / re-read only |
-| T3-5.18.0-6 | `CI runs on:` default reasoning for private GitHub repos | n/a | No CI (D-008) |
+| T3-5.18.0-1 | Stop hook registered only for the tool whose schema is confirmed | present | Registered for Claude Code only; the Codex directory holds a config file and no hook file |
+| T3-5.18.0-2 | Launcher point 4a — only the detected tool's own action | present | Launcher lines 157–169: no recognising row means print |
+| T3-5.18.0-3 | Codex start row | n/a | Codex is not an accepted tool (D-008) |
+| T3-5.18.0-4 | Chaining-model description generalised; anti-patterns 12p/12q | n/a | Wording and re-read only |
+| T3-5.18.0-6 | Default reasoning for CI on private GitHub repositories | n/a | No CI (D-039) |
 
 ### v5.19.0
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.19.0-1a | `Not checked:` field on any decision entry asserting an impossibility | missing | No `Not checked:` line anywhere in `docs/decisions.md`. The manifest's grep words hit D-029 (line 233, "impossible", in Alternatives rejected). Entries are append-only, so this needs the user's say on how to satisfy it |
-| T3-5.19.0-1b | Matching `scripts/keel-verify` check | missing | Not in `scripts/keel-verify` (grepped) |
+| T3-5.19.0-1a | A not-checked field on every decision asserting an impossibility | present | D-029, D-044 and D-047 carry the field; linter check 21 passes. |
+| T3-5.19.0-1b | Matching linter check | present | Linter check 21 exists and ran |
 | T3-5.19.0-2 | Re-measure when the user contradicts a recorded negative | n/a | Behavioural |
-| T3-5.19.0-3 | `Chaining: supervised` card value | n/a | Card is `start` (D-015); nothing external supervises it on record |
+| T3-5.19.0-3 | Supervised chaining value | n/a | The card is chaining start (D-015) |
 | T3-5.19.0-4 | Anti-patterns 12s/12t | n/a | Re-read duty |
 
 ### v5.19.1
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.19.1-1 | Wording of the `supervised` option | n/a | Wording only |
+| T3-5.19.1-1 | Wording of the supervised option | n/a | Wording only |
 
 ### v5.19.2
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.19.2-1 | Regenerate `scripts/keel-stop-hook` (porcelain parsing for renames) | n/a | "On any project that carries one" — none; created under T3-5.15.0-1 |
-| T3-5.19.2-2 | Same parsing rule binds the write rule | n/a | Behavioural (SKILL.md) |
+| T3-5.19.2-1 | Stop hook parses the porcelain output instead of slicing it | present | Lines 207–244: NUL-separated porcelain parsed, rename source consumed and skipped, an entry that cannot be stat-ed is not established. Its fixture verification (a rename, a path with a space) is part of T3-5.15.1-5 |
+| T3-5.19.2-2 | Same parsing rule binds the write rule | n/a | Behavioural |
 | T3-5.19.2-3 | Re-read anti-pattern 12u | n/a | Re-read duty |
 
 ### v5.20.0
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.20.0-1 | Regenerate `scripts/keel-continue` (per-session fire ledger, `degraded:` receipt) | missing | Script exists and has only the per-hand-off receipt; no `fired-` / `degraded` entries (grepped) |
-| T3-5.20.0-2 | Regenerate `scripts/keel-stop-hook` (rule 4 reads the fire ledger) | n/a | No hook on disk; created under T3-5.15.0-1 |
-| T3-5.20.0-3 | Regenerate `scripts/keel-chain-check` (rows 7a/7b, double-fire smoke) | n/a | No script on disk; created under T3-5.13.0-1 |
-| T3-5.20.0-4 | Re-run `--smoke` after regenerating the launcher | missing | One-time verification, never run |
+| T3-5.20.0-1 | Launcher: per-session fire ledger and a receipt for the degraded path | present | Launcher lines 346 and 379 |
+| T3-5.20.0-2 | Stop hook reads the fire ledger and stands down | present | Stop hook line 430; chain check row 7b OK |
+| T3-5.20.0-3 | Chain check rows 7a and 7b; the smoke fires twice | present | Rows 7a and 7b printed in this sweep; second smoke launch at line 252 |
+| T3-5.20.0-4 | Re-run the smoke after regenerating the launcher | present | The chain-verified line carries the checksum of the launcher on disk (chain check row 11) |
 | T3-5.20.0-6 | Re-read anti-pattern 12v | n/a | Re-read duty |
 
 ### v5.21.0
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.21.0-0 | Lock block TEXT refresh | present | Block rewritten from the canonical copy and stamped v6.5.0 (D-034); it names sprints as the ledger |
-| T3-5.21.0-1 | Card line `Sprints: on` | missing | Absent (T1-C12) |
-| T3-5.21.0-2 | Create the plan where none exists (sprint file, `deferred.md`, `plan.json`) from open items and work in flight, with hours, and show it | missing | None exist |
-| T3-5.21.0-3 | `actual_hours` on every `done` slice (backfilled estimate), regenerate `plan.json` | missing | No slices recorded at all |
-| T3-5.21.0-4 | Regenerate `scripts/keel-verify` with the five plan checks | missing | Not in the script |
-| T3-5.21.0-5 | Regenerate `scripts/keel-stop-hook` (plan-behind-the-work state) | n/a | No hook on disk; created under T3-5.15.0-1 |
+| T3-5.21.0-0 | Lock block text refresh | present | Block rewritten from the canonical copy, stamped v6.5.0 (D-034) |
+| T3-5.21.0-1 | Card line for sprints | present | Card: on |
+| T3-5.21.0-2 | Create the plan where none exists | present | Sprints 1 to 3 and the deferred backlog (D-040) |
+| T3-5.21.0-3 | Actual hours on every done slice | present | 17 done slices carry numeric actual hours (linter check 23) |
+| T3-5.21.0-4 | Five plan checks in the linter | present | Linter check 23: five OK lines |
+| T3-5.21.0-5 | Stop hook: plan-behind-the-work state | present | Stop hook lines 533–551. Its both-directions verification is part of T3-5.15.2-5 |
 | T3-5.21.0-6 | Every unit of work is a slice from now on | n/a | Behavioural |
-| T3-5.21.0-7 | Re-read SKILL.md "Sprints are the ledger of all work", anti-pattern 12w | n/a | Re-read duty |
+| T3-5.21.0-7 | Re-read the sprint-ledger section and anti-pattern 12w | n/a | Re-read duty |
 
 ### v6.0.0
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-6.0.0-1a | Generate `scripts/keel-time` | missing | Absent (T1-05) |
-| T3-6.0.0-1b | Create `docs/sessions.md` from its template | missing | Absent (T1-04) |
-| T3-6.0.0-1c | Add `docs/.keel/clock.jsonl` to `.gitignore` | missing | Entry absent (T1-30) |
-| T3-6.0.0-1d | Add `docs/sessions.md` to the bookkeeping-file list in `keel-verify` and `keel-stop-hook` | missing | `scripts/keel-verify` has no such list; hook absent |
-| T3-6.0.0-1e | Every session opens with `keel-time start` and closes with `keel-time end` | n/a | Behavioural; not yet applicable until T3-6.0.0-1a exists |
-| T3-6.0.0-2 | Slice field `actual_source`; mark existing `actual_hours` as `estimated` | missing | No slice data exists; applies together with T3-5.21.0-3 |
-| T3-6.0.0-3 | Regenerate `scripts/keel-close` with step 0 | n/a | No script on disk; created under T3-5.14.0-1 |
-| T3-6.0.0-4a | Card line `Push test scope: affected` | missing | Absent (T1-C13) |
-| T3-6.0.0-4b | `Test selection` line in `docs/03-technical-plan.md` §Testing | missing | Absent (grepped) |
-| T3-6.0.0-4c | Generate `scripts/keel-affected-tests` | missing | Absent (T1-39) |
-| T3-6.0.0-4d | Generate `.githooks/pre-push` | missing | Absent (T1-40) |
-| T3-6.0.0-4e | Verify both on a real diff (dependent's tests selected, red selection blocks a push, uncovered file widened) | missing | One-time verification, never run |
-| T3-6.0.0-4f | Switch non-`main` CI triggers to the affected selection | n/a | No CI |
-| T3-6.0.0-5 | Regenerate `scripts/keel-verify` with the test-selection and session-time rows | missing | Not in the script |
+| T3-6.0.0-1a | Generate the session clock script | present | On disk, executable |
+| T3-6.0.0-1b | Create the sessions ledger from its template | present | On disk |
+| T3-6.0.0-1c | Ignore the clock file | present | Ignore file line 56; the clock file is untracked (linter check 24) |
+| T3-6.0.0-1d | Sessions ledger in the bookkeeping list of the linter and the stop hook | present | Linter line 1292; stop hook line 533 |
+| T3-6.0.0-1e | Every session opens and closes with the clock | n/a | Behavioural. (The clock file shows today's session opened; it has not been closed yet) |
+| T3-6.0.0-2 | Actual-source field; existing actuals marked estimated | present | All 26 slices carry the field, all estimated (linter check 24) |
+| T3-6.0.0-3 | Close-out script runs the clock's end as step 0 | present | Close-out script line 152 |
+| T3-6.0.0-4a | Card line for push test scope | present | Card: affected |
+| T3-6.0.0-4b | Test-selection line in the technical plan | present | Plan section "Test selection" at line 152 |
+| T3-6.0.0-4c | Generate the test selector | present | On disk; widening list matches the plan (linter check 25) |
+| T3-6.0.0-4d | Generate the pre-push hook | present | On disk, executable, hooks path set |
+| T3-6.0.0-4e | Verify both on a real diff (a dependent's tests selected, a push blocked by a red selection, an uncovered file widened) | missing | A docs-only push went through the real hook at 066fdfd; a real selection through it is scheduled S-037 after S-036 (D-044, D-048). |
+| T3-6.0.0-4f | Switch non-main CI triggers to the affected selection | n/a | No CI |
+| T3-6.0.0-5 | Test-selection and session-time rows in the linter | present | Linter checks 24 and 25 |
 | T3-6.0.0-6 | Refresh the lock block | present | v6.5.0 block in both files (D-034) |
 
 ### v6.1.0
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-6.1.0-1 | Generate `scripts/keel-tools/<tool>.sh` for each accepted tool (here: `claude`) | missing | Directory absent (T1-45) |
-| T3-6.1.0-2 | Move every per-tool fact out of the shared scripts into the row | missing | `scripts/keel-continue` and `scripts/keel-handoff-verify` carry tool names on executable lines (`claude-vscode`, `claude-cli`, `claude '<prompt>'`, the `*[Cc]laude*` process match) |
-| T3-6.1.0-3 | Regenerate `scripts/keel-verify` with the four registry rows | missing | Not in the script |
-| T3-6.1.0-4 | Run the fourth check (hook file mentions the stop hook iff the row says `yes`) on the existing tree first | missing | Not run as a check (the check does not exist). By direct inspection there is no stop-hook registration in any tool container, so nothing would need removing |
-| T3-6.1.0-5 | Re-run `scripts/keel-chain-check --smoke` | missing | One-time verification, never run |
+| T3-6.1.0-1 | One row file per accepted tool | present | The claude row file, complete (linter check 26) |
+| T3-6.1.0-2 | Move every per-tool fact out of the shared scripts | present | Linter check 26 at the final run of this sweep: no shared keel script names a registry tool outside a comment (11 scripts). The doctor's and the selector's Claude Code facts sit in a companion file beside the row, not yet committed |
+| T3-6.1.0-3 | Four registry rows in the linter | present | Linter check 26 carries all four |
+| T3-6.1.0-4 | Run the hook-registration check on the existing tree first | present | Linter check 26: the row says the stop hook is the tool's own, and the tool's hook file mentions it |
+| T3-6.1.0-5 | Re-run the smoke | present | The chain-verified line carries the row's checksum beside the launcher's |
 | T3-6.1.0-6 | Restamp the lock | present | v6.5.0 |
 
 ### v6.2.0
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-6.2.0-1 | Regenerate `scripts/keel-tools/codex.sh` with the new flags; re-run smoke | n/a | Only on a project that accepted Codex — not accepted (D-008). Note: a tracked `.codex/config.toml` exists (sets `PATH` only) |
+| T3-6.2.0-1 | Regenerate the Codex row with the new flags | n/a | Only on a project that accepted Codex — not accepted (D-008) |
 | T3-6.2.0-2 | Restamp the lock | present | v6.5.0 |
 
 ### v6.3.0
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-6.3.0-1 | Derive and write the `Security audit:` card line | missing | Absent (T1-C14). By the manifest's criteria it derives to `required` (money moves; externally reachable notification endpoints `?wc-api=WC_Gateway_<id>` in `docs/threat-model.md`) |
+| T3-6.3.0-1 | Derive and write the security-audit card line | present | Card: required (D-040) |
 | T3-6.3.0-2 | Nothing is created until an audit runs | n/a | No audit has run |
-| T3-6.3.0-3 | On a `required` project, tell the user now that the next release gate needs an audit covering its candidate, or a D-entry declining it | missing | Not yet stated or recorded; the card's next action is a release |
+| T3-6.3.0-3 | Say now that the next release gate needs an audit covering its candidate, or a decision declining it | present | Stated in D-040 and scheduled as S-028 in sprint 3, ahead of the release gate S-032 |
 | T3-6.3.0-4 | Restamp the lock | present | v6.5.0 |
 
 ### v6.4.0
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-6.4.0-1 | Regenerate `scripts/keel-time` | n/a | No script on disk; created under T3-6.0.0-1a from the current contract |
-| T3-6.4.0-2 | Extend the `plan.json` generator with `pace_factor`, `projected_remaining_hours` | n/a | No generator on disk; created under T3-5.17.0-1 |
-| T3-6.4.0-3 | Add `Active h`, `Pace factor`, `Projected left h` to `docs/sessions.md` | n/a | No file on disk; created under T3-6.0.0-1b from the current template |
-| T3-6.4.0-4a | Regenerate `scripts/keel-verify` with the arithmetic, data-eligibility and ledger checks | missing | Not in the script |
-| T3-6.4.0-4b | Exercise the timing report in the three named cases | missing | One-time verification, never run |
+| T3-6.4.0-1 | Session clock: active and planned hours, deviation, baseline remaining, pace projection | present | Clock script lines 378–401 and 562–600 |
+| T3-6.4.0-2 | Plan generator: pace factor and projected remaining hours | present | Generator and plan file carry both fields (null: no measured completed slice yet) |
+| T3-6.4.0-3 | Three new columns in the sessions ledger | present | Header carries active hours, pace factor and projected left hours |
+| T3-6.4.0-4a | Arithmetic, data-eligibility and ledger checks in the linter | present | Linter check 24: five OK lines |
+| T3-6.4.0-4b | Exercise the timing report in the three named cases | missing | Exercised in a scratch copy only; reading it over a real multi-session slice in this repository is scheduled S-037 (D-048). |
 | T3-6.4.0-5 | Restamp the lock | present | v6.5.0 |
 
 ### v6.5.0
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-6.5.0-1 | Cap local Playwright workers with the `PW_WORKERS` expression and record the cap in the plan's testing block | missing | `playwright.config.js` has a fixed `workers: 1` (already capped, stricter than the default of 2, but not the mandated expression); the cap is not recorded in `docs/03-technical-plan.md` (grepped) |
-| T3-6.5.0-2 | Browser MCP registered repo-level only with `--headless --isolated` | n/a | Only where the assistant drives the browser through an MCP server — none on record for this project; `.mcp.json` absent. User-level registrations were not inspected (outside the three sources) |
-| T3-6.5.0-3 | Regenerate `scripts/keel-doctor` with the three advisory browser-MCP rows | missing | No MCP / orphaned-browser rows in `scripts/keel-doctor` (grepped) |
+| T3-6.5.0-1 | Cap local Playwright workers through an environment variable and record the cap in the plan | present | The Playwright config reads the worker count from PW_WORKERS with a default of 1; the plan's run-mode block records the cap and why this project keeps 1 everywhere and no separate CI branch (one shared site, no forge CI). Unexercised until the playground builds (D-044) |
+| T3-6.5.0-2 | Browser MCP registered at repository level only | n/a | Only where the assistant drives the browser through an MCP server — none is registered for this project; the doctor reports no user-level registration |
+| T3-6.5.0-3 | Three advisory browser rows in the doctor | present | Doctor output in this sweep: MCP scope, MCP flags, orphaned Playwright browsers |
 | T3-6.5.0-4 | Restamp the lock | present | v6.5.0 |
 
 ## Totals
 
+Counted from the tables above.
+
 | Table | present | missing | declined | n/a | Rows |
 |---|---|---|---|---|---|
-| Table 1 — paths (T1-01…T1-78) | 23 | 24 | 2 | 29 | 78 |
-| Table 1 — card lines (T1-C01…T1-C17) | 10 | 5 | 0 | 2 | 17 |
-| Table 1 — total | 33 | 29 | 2 | 31 | 95 |
-| Table 3 — v5.10.0…v6.5.0 | 10 | 48 | 0 | 46 | 104 |
+| Table 1 — paths (T1-01…T1-78) | 50 | 2 | 3 | 23 | 78 |
+| Table 1 — card lines (T1-C01…T1-C17) | 15 | 0 | 0 | 2 | 17 |
+| Table 1 — total | 65 | 2 | 3 | 25 | 95 |
+| Table 3 — v5.10.0…v6.5.0 | 71 | 3 | 1 | 32 | 107 |
 
-## Pending decisions
+## Still missing, with the decision that schedules it
 
-None of the rows below has been applied. Each awaits the user's decision (apply / trim / defer / decline — a refusal becomes a `declined` row with its D-entry).
+- T1-42 — front-end minification: S-027 (D-038).
+- T1-61 — accessibility passes: S-029 and S-030 (sprint 3, D-040; S-029 waits on S-036, D-044).
+- T3-5.15.1-5 — the Stop hook observed after a full session restart: S-037 (D-048).
+- T3-6.0.0-4e — a real selection through the pre-push hook: S-037 after S-036 (D-044, D-048).
+- T3-6.4.0-4b — the timing report over a real multi-session slice: S-037 (D-048).
 
-- Table 1, paths: T1-04, T1-05, T1-13, T1-16, T1-17, T1-19, T1-30, T1-31, T1-32, T1-33, T1-34, T1-39, T1-40, T1-42, T1-45, T1-47, T1-48, T1-49, T1-50, T1-51, T1-52, T1-53, T1-59, T1-61.
-- Table 1, card lines: T1-C11, T1-C12, T1-C13, T1-C14, T1-C15.
-- Table 3: T3-5.10.3-1; T3-5.11.0-1, -2, -3; T3-5.13.0-1, -2, -3, -3b, -4; T3-5.14.0-1, -2, -4; T3-5.15.0-1; T3-5.15.1-3, -5; T3-5.15.2-5; T3-5.17.0-1, -3; T3-5.19.0-1a, -1b; T3-5.20.0-1, -4; T3-5.21.0-1, -2, -3, -4; T3-6.0.0-1a, -1b, -1c, -1d, -2, -4a, -4b, -4c, -4d, -4e, -5; T3-6.1.0-1, -2, -3, -4, -5; T3-6.3.0-1, -3; T3-6.4.0-4a, -4b; T3-6.5.0-1, -3.
+## Unresolved
 
-Many Table 3 rows are the per-version view of a Table 1 row (for example T3-6.0.0-1a and T1-05 are both `scripts/keel-time`); they are listed in both tables because the manifest lists them in both.
-
-Judgments recorded for the user's review: T1-12 (scan skip recorded in the discovery document, not as a D-entry); T1-24/25/54/55/56 (`n/a` rests on the card's `Assistant config: none`; D-008 records "Claude Code only" rather than an explicit refusal of the Claude package); T1-42 (deferral recorded in the adoption audit, not as a D-entry, so it is `missing`, not `declined`); T1-16, T1-19, T1-59, T1-61 (adoption's progressive-backfill rule is on record in the docs but no D-entry declines them); T1-44 (lane lives under the temp dir); T1-C15; T3-5.19.0-1a (append-only log); T3-6.5.0-1 and -2.
+None. Every `missing` row above is scheduled as a named slice by a recorded decision.

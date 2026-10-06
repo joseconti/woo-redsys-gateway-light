@@ -41,7 +41,8 @@
 #   13. No orphan document under docs/.
 #   14. Code-map `[E]` markers in docs/03-technical-plan.md match the disk.
 #   15. docs/keel-conformance.md is complete (states, decisions, paths, rows).
-#   16. Every acceptance criterion is covered by ID; `Coverage` is in its enum.
+#   16. Every acceptance criterion is covered by ID, or listed on a decision's
+#       `- Unverified ids:` line (reported); `Coverage` is in its enum.
 #   17. `Red first` column: enum, evidence for `observed`, judgment list.
 #   18. Interactive elements carry their test identifiers.
 #   19. Nothing is stranded on this machine (remote, upstream, branch).
@@ -940,18 +941,49 @@ else:
         if spec_text is None or not ids:
             na("%s defines no `AC-nn` criterion — nothing to match rows against" % SPEC)
         else:
-            lacking = [i for i in ids if i not in covered]
+            # A criterion with no automated proof may be left without a row
+            # only by a recorded decision that lists it on a line starting
+            # `- Unverified ids:`. Such ids are REPORTED, never passed in
+            # silence; an id in neither place fails, and so does an id in
+            # both (a listed id that has a row makes the list stale).
+            unverified, entry = {}, None
+            for dline, text in enumerate(decisions_text.split("\n"), 1):
+                head = re.match(r"^## (D-\d+)\b", text)
+                if head:
+                    entry = head.group(1)
+                elif entry and re.match(r"^\s*[-*]\s*Unverified ids:", text):
+                    for name in re.findall(r"\bAC-\d+\b", text):
+                        unverified.setdefault(name, (entry, dline))
+            lacking = [i for i in ids if i not in covered and i not in unverified]
             if lacking:
-                fail("%s: %d of %d acceptance criteria from %s have no row naming them in the Criterion column: %s"
-                     % (TESTPOINTS, len(lacking), len(ids), SPEC, ", ".join(lacking)))
+                fail("%s: %d of %d acceptance criteria from %s have no row naming them in the Criterion column "
+                     "and are on no `- Unverified ids:` line of a decision in %s: %s"
+                     % (TESTPOINTS, len(lacking), len(ids), SPEC, DECISIONS, ", ".join(lacking)))
                 bad += 1
+            for name in ids:
+                if name in covered and name in unverified:
+                    fail("%s:%d %s lists %s as unverified, but %s has a row naming it — the list is stale"
+                         % (DECISIONS, unverified[name][1], unverified[name][0], name, TESTPOINTS))
+                    bad += 1
+            for name in sorted(set(unverified) - set(ids)):
+                fail("%s:%d %s lists %s as unverified, which %s does not define"
+                     % (DECISIONS, unverified[name][1], unverified[name][0], name, SPEC))
+                bad += 1
+            by_decision = {}
+            for name in ids:
+                if name in unverified and name not in covered:
+                    by_decision.setdefault(unverified[name][0], []).append(name)
+            for decision in sorted(by_decision):
+                info("%d of %d acceptance criteria have NO test-point row by recorded decision %s "
+                     "(as-built, unverified): %s" % (len(by_decision[decision]), len(ids), decision,
+                                                     ", ".join(by_decision[decision])))
             unknown = sorted(covered - set(ids))
             for name in unknown:
                 fail("%s names %s, which %s does not define" % (TESTPOINTS, name, SPEC))
                 bad += 1
         if not bad:
-            ok("%d rows: every Coverage cell is in the enum, tagged rows carry steps, every AC-nn has a row"
-               % len(good_rows))
+            ok("%d rows: every Coverage cell is in the enum, tagged rows carry steps, and every AC-nn either "
+               "has a row or is listed as unverified by a recorded decision" % len(good_rows))
 
 # === 17. Red first ===========================================================
 section("Red first column")
@@ -1638,7 +1670,11 @@ else:
             rows[tool] = path
         else:
             fail("accepted tool '%s' (card `Assistant config:`) has no row file %s" % (tool, path))
+    # A row is <tool>.sh. <tool>.doctor.sh is that tool's companion data for
+    # the doctor and the selector: not a row, so no field list applies to it.
     for path in sorted(glob.glob(TOOLS_DIR + "/*.sh")):
+        if path.endswith(".doctor.sh"):
+            continue
         rows.setdefault(os.path.basename(path)[:-3], path)
     names = set(card_tools)
     for tool, path in sorted(rows.items()):

@@ -273,27 +273,68 @@ else
 	add_row "PHP (local, for phpcs)" "absent" ">=7.4 recommended" "MISSING" "optional" "install PHP locally to run phpcs outside Docker (not required — wp-env's own containers carry PHP)"
 fi
 
-# --- Permission mode (advisory, per Keel test-automation.md) -----------
-# OK when .claude/settings.local.json sets a permissions.defaultMode other
-# than `manual`. A mode passed on the command line (`--permission-mode`) is
-# not visible to a script, so "no file" reads as manual-or-unset.
-PERM_MODE=""
-if [ -f ".claude/settings.local.json" ]; then
-	if command -v python3 >/dev/null 2>&1; then
-		PERM_MODE=$(python3 -c 'import json,sys
-try:
-    d=json.load(open(".claude/settings.local.json"))
-    print((d.get("permissions") or {}).get("defaultMode") or "")
-except Exception:
-    print("")' 2>/dev/null)
-	else
-		PERM_MODE=$(grep -oE '"defaultMode"[[:space:]]*:[[:space:]]*"[A-Za-z]+"' .claude/settings.local.json 2>/dev/null | sed -E 's/.*"([A-Za-z]+)"$/\1/' | head -1)
+# --- The assistant's own facts come from its row, never from this file -----
+# Keel references/project-state.md, "The registry is DATA": a shared script
+# carries no tool name on an executable line. The row is
+# scripts/keel-tools/<tool>.sh (the DETECTED tool's; run from a plain
+# terminal, the first row whose evidence is VERIFIED — the same rule
+# scripts/keel-chain-check applies). What the doctor needs beyond the row's
+# own fields is in the companion scripts/keel-tools/<tool>.doctor.sh.
+TOOL_ROW=""
+for _row in scripts/keel-tools/*.sh; do
+	[ -f "$_row" ] || continue
+	case "$_row" in *.doctor.sh) continue ;; esac
+	_name=$( (
+		. "$_row" >/dev/null 2>&1
+		keel_tool_detect 2>/dev/null
+	) 2>/dev/null)
+	if [ -n "$_name" ]; then
+		TOOL_ROW="$_row"
+		break
 	fi
+done
+if [ -z "$TOOL_ROW" ]; then
+	for _row in scripts/keel-tools/*.sh; do
+		[ -f "$_row" ] || continue
+		case "$_row" in *.doctor.sh) continue ;; esac
+		_ev=$( (
+			. "$_row" >/dev/null 2>&1
+			printf '%s' "${KEEL_TOOL_EVIDENCE:-}"
+		) 2>/dev/null)
+		if [ "$_ev" = "VERIFIED" ]; then
+			TOOL_ROW="$_row"
+			break
+		fi
+	done
+fi
+KEEL_TOOL_DOCTOR_PERMISSION_FIX=""
+KEEL_TOOL_DOCTOR_USER_MCP_FILE=""
+KEEL_TOOL_DOCTOR_USER_SETTINGS_FILE=""
+KEEL_TOOL_DOCTOR_USER_PLUGINS_DIR=""
+KEEL_TOOL_DOCTOR_MCP_REMOVE=""
+if [ -n "$TOOL_ROW" ]; then
+	# shellcheck disable=SC1090
+	. "$TOOL_ROW" >/dev/null 2>&1
+	if [ -f "${TOOL_ROW%.sh}.doctor.sh" ]; then
+		# shellcheck disable=SC1090
+		. "${TOOL_ROW%.sh}.doctor.sh" >/dev/null 2>&1
+	fi
+fi
+
+# --- Permission mode (advisory, per Keel test-automation.md) -----------
+# OK when the assistant's machine-local settings set a permission mode other
+# than `manual`; the row's keel_tool_permission_mode knows where that lives.
+# A mode passed on the command line (`--permission-mode`) is not visible to
+# a script, so "no file" reads as manual-or-unset.
+PERM_FIX_GENERIC="set a permission mode other than manual in the machine-local settings of the assistant in use; no file in scripts/keel-tools/ says where"
+PERM_MODE=""
+if [ -n "$TOOL_ROW" ] && type keel_tool_permission_mode >/dev/null 2>&1; then
+	PERM_MODE=$(keel_tool_permission_mode "$ROOT" 2>/dev/null)
 fi
 if [ -n "$PERM_MODE" ] && [ "$PERM_MODE" != "manual" ] && [ "$PERM_MODE" != "default" ]; then
 	add_row "Permission mode" "$PERM_MODE" "not manual" "OK" "advisory" "—"
 else
-	add_row "Permission mode" "${PERM_MODE:-manual (or unset)}" "not manual" "MISSING" "advisory" "write .claude/settings.local.json (permissions.defaultMode: \"auto\"), or start with --permission-mode auto"
+	add_row "Permission mode" "${PERM_MODE:-manual (or unset)}" "not manual" "MISSING" "advisory" "${KEEL_TOOL_DOCTOR_PERMISSION_FIX:-$PERM_FIX_GENERIC}"
 fi
 
 # --- Browser MCP: three advisory rows ------------------------------------
@@ -306,10 +347,18 @@ fi
 
 # Scope — every user-level container the accepted tools use.
 if command -v python3 >/dev/null 2>&1; then
-	MCP_SCOPE=$(python3 - <<'PY' 2>/dev/null
+	# The scan is a function so that its here-document is parsed as one: bash 3.2
+	# reads a here-document inside a command substitution character by character.
+	mcp_scope_scan() {
+		python3 - <<'PY'
 import json, os, re, glob
 
 home = os.path.expanduser("~")
+# User-level containers of the running assistant, read from its doctor file.
+# Paths are relative to the home directory, and empty when no row resolved.
+user_mcp_file = os.environ.get("KEEL_DOCTOR_USER_MCP_FILE", "")
+user_settings_file = os.environ.get("KEEL_DOCTOR_USER_SETTINGS_FILE", "")
+user_plugins_dir = os.environ.get("KEEL_DOCTOR_USER_PLUGINS_DIR", "")
 hits = []
 
 def is_playwright(name, spec):
@@ -330,9 +379,10 @@ def scan_json(path, label, key="mcpServers"):
             if is_playwright(name, spec):
                 hits.append("`%s` in %s" % (name, label))
 
-# Top-level mcpServers only: the per-project entries of ~/.claude.json are
+# Top-level mcpServers only: the per-project entries of that file are
 # local scope and bind one checkout.
-scan_json(os.path.join(home, ".claude.json"), "~/.claude.json mcpServers")
+if user_mcp_file:
+    scan_json(os.path.join(home, *user_mcp_file.split("/")), "~/%s mcpServers" % user_mcp_file)
 scan_json(os.path.join(home, ".cursor", "mcp.json"), "~/.cursor/mcp.json")
 scan_json(os.path.join(home, ".gemini", "settings.json"), "~/.gemini/settings.json")
 
@@ -353,14 +403,16 @@ except Exception:
 # Plugins enabled at user level that bundle the server.
 enabled = set()
 try:
-    with open(os.path.join(home, ".claude", "settings.json")) as fh:
+    if not user_settings_file:
+        raise IOError("no user settings file declared")
+    with open(os.path.join(home, *user_settings_file.split("/"))) as fh:
         for key, on in (json.load(fh).get("enabledPlugins") or {}).items():
             if on:
                 enabled.add(key.split("@")[0])
 except Exception:
     pass
-if enabled:
-    for path in glob.glob(os.path.join(home, ".claude", "plugins", "**", ".mcp.json"), recursive=True):
+if enabled and user_plugins_dir:
+    for path in glob.glob(os.path.join(home, *(user_plugins_dir.split("/") + ["**", ".mcp.json"])), recursive=True):
         parts = path.split(os.sep)
         plugin = next((p for p in parts if p in enabled), None)
         if not plugin:
@@ -377,12 +429,13 @@ if enabled:
 
 print("; ".join(sorted(set(hits))))
 PY
-)
+	}
+	MCP_SCOPE=$(KEEL_DOCTOR_USER_MCP_FILE="$KEEL_TOOL_DOCTOR_USER_MCP_FILE" KEEL_DOCTOR_USER_SETTINGS_FILE="$KEEL_TOOL_DOCTOR_USER_SETTINGS_FILE" KEEL_DOCTOR_USER_PLUGINS_DIR="$KEEL_TOOL_DOCTOR_USER_PLUGINS_DIR" mcp_scope_scan 2>/dev/null)
 	if [ -z "$MCP_SCOPE" ]; then
 		add_row "Browser MCP scope" "no user-level registration" "project .mcp.json only" "OK" "advisory" "—"
 	else
-		add_row "Browser MCP scope" "$MCP_SCOPE" "project .mcp.json only" "MISSING" "advisory" "claude mcp remove -s user playwright (or delete the entry from the file named); register it in this project's .mcp.json instead"
-		MANUAL_CMDS+=("claude mcp remove -s user playwright   # your machine-wide config: $MCP_SCOPE")
+		add_row "Browser MCP scope" "$MCP_SCOPE" "project .mcp.json only" "MISSING" "advisory" "${KEEL_TOOL_DOCTOR_MCP_REMOVE:-remove the user-level registration} (or delete the entry from the file named); register it in this project's .mcp.json instead"
+		MANUAL_CMDS+=("${KEEL_TOOL_DOCTOR_MCP_REMOVE:-remove the user-level registration}   # your machine-wide config: $MCP_SCOPE")
 	fi
 else
 	add_row "Browser MCP scope" "python3 absent — user-level MCP files not read" "project .mcp.json only" "NOT OPERATIONAL" "advisory" "install python3 (Xcode Command Line Tools), then re-run"

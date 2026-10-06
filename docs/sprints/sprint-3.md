@@ -68,6 +68,14 @@ slices:
     actual_source: estimated
     depends_on: [S-036]
     criteria: []
+  - id: S-038
+    title: Issue 112 — cancel URL sent to Redsys is HTML-escaped and re-cancels an already cancelled order
+    status: not-started
+    hours: 1
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-036]
+    criteria: []
   - id: S-032
     title: Phase 7 release gate on the candidate (full suite, version proposed to the user, package hygiene)
     status: not-started

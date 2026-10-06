@@ -2,11 +2,12 @@
 
 > Living log of forge issues (GitHub, `joseconti/woo-redsys-gateway-light`). Inventory first, one entry per issue worked.
 > Updated the moment an issue is triaged, worked, or closed.
-> Last inbound sweep: 2026-08-01 17:50 (full triage — every issue's body/comments read, current code checked against each report)
+> Last inbound sweep: 2026-10-06 17:20 (sprint 2 close — inventory compared with the forge; one new issue, #112, read and triaged; no new comments on the open issues since 2026-08-01; #93, #34 and #21 are now closed on the forge, not by Keel)
 
 ## Inventory
 | # | Title | Type | Priority | Status | Entry |
 |---|-------|------|----------|--------|-------|
+| 112 | Mensaje "Your order can no longer be cancelled" al cancelar el usuario el pago en Redsys | bug | medium | triaged — scheduled S-038 (sprint 3); reported 2026-09-16: `DS_MERCHANT_URLKO` is built with `get_cancel_order_url()` (HTML-escaped ampersands) and sends the customer back to a cancel URL for an order Redsys has already cancelled; not reproduced yet (playground down, D-044); no reply published | — |
 | 93 | wc_enqueue_js() deprecada desde WooCommerce 10.4 (avisos en la página de pago) | bug | medium | resolved (fix implemented, unreleased) | E-001 |
 | 34 | Falta el text domain | bug | low | resolved (moot — file rewritten since) | — |
 | 21 | Posible error en string | bug | low | won't fix (dead code, not used in Lite) | — |
