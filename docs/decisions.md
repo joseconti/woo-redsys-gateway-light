@@ -617,3 +617,13 @@
 - Test selection: the About page's two files now map to the new spec in `scripts/keel-affected-tests` (they had no test).
 - Not checked: a current WooCommerce and WordPress, another theme, the Spanish locale, a narrow viewport, high-contrast or dark schemes; the checkout's error states, the order-received page and the test-mode banners; the 21 About-page nodes whose contrast axe could not compute.
 - Supersedes: the `TO BUILD` state of "Accessibility automation" in `docs/03-technical-plan.md` and of the automated pass in `docs/accessibility.md`.
+
+## D-068 — Release gate, first part (S-032): the package boundary is corrected and checked; version 7.1.0 is proposed, not set
+- Date / phase: 2026-10-06 / sprint 3, slice S-032 (in progress)
+- Found by building the archive: `git archive` carried development files — `tests/`, the playground's HTTP stub directory (`.wp-env-mu-plugins/`, which D-029 says never ships), `.agents/`, `.codex/`, `.githooks/`, `composer.json`, `composer.lock`, both PHPUnit configurations and `playwright.config.js`. The security audit had noticed the gap (D-056).
+- Fixed: those ten paths are `export-ignore` in `.gitattributes`. The archive is now 71 files under ten runtime entries, listed in `docs/07-release.md`.
+- Check added, `scripts/keel-verify` check 29: the archive's top level must be exactly the closed list of runtime entries; a new top-level path fails until it is marked `export-ignore` or added to the list as runtime. Seen failing against the previous `.gitattributes` (ten entries).
+- Version: 7.1.0 is PROPOSED, with its reasoning in `docs/07-release.md`. No touchpoint was changed and no `@since` tag written; that waits for the user's explicit approval.
+- Why the slice stops here: everything left in the gate either needs the approved number (the suite and the real-environment pass run on the exact distributable) or is the user's (the three `needs_validation` items, D-053, the release-note wording, the guided accessibility pass).
+- Not checked: how the owner builds what is committed to WordPress.org. If it is not this archive, the boundary above does not protect that package.
+- Supersedes: none.

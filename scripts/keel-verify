@@ -58,6 +58,7 @@
 #   27. Suppression count (reported, compared with the last sprint close).
 #   28. Every `file:line` reference in docs/reference/ sits on a line that
 #       names the symbol the document names beside it (S-054).
+#   29. Package boundary: `git archive` ships runtime files only (S-032).
 #
 # Exits 0 when no check FAILED, 1 otherwise. Every failure is printed with
 # the file and line, never just "something's wrong".
@@ -254,14 +255,14 @@ rm -f /tmp/keel-verify-links.$$
 end_check
 
 # ---------------------------------------------------------------------------
-# Checks 6-28 — python3, standard library only. The program reads the
+# Checks 6-29 — python3, standard library only. The program reads the
 # repository and prints; it writes nothing inside it. Temporary files (the
 # i18n dry run, the selector's synthetic repository) live under $TMPDIR and
 # are removed before it returns.
 # ---------------------------------------------------------------------------
 if ! command -v python3 >/dev/null 2>&1; then
 	echo
-	fail "python3 is not on PATH — checks 6-28 did not run"
+	fail "python3 is not on PATH — checks 6-29 did not run"
 else
 	python3 - "$PWD" "$SUMMARY" <<'KEEL_PY'
 import glob
@@ -1892,6 +1893,28 @@ if not ref_docs or not ref_total:
     na("no `file:line` reference in docs/reference/ — nothing to check")
 elif not ref_bad:
     ok("%d line references in %d documents each sit on a line that names their symbol" % (ref_total, len(ref_docs)))
+
+# === 29. Package boundary ====================================================
+# S-032: the archive `git archive` builds is the distributable. Its top level
+# is a closed list; anything else is a development file that would ship
+# (tests, the playground's HTTP stub, tool configuration).
+section("Package boundary (git archive ships runtime files only)")
+PACKAGE_TOP = {"about-redsys.php", "assets", "classes", "includes", "index.php", "languages", "LICENSE",
+               "readme.txt", "woocommerce-redsys.php", "wpml-config.xml"}
+code, listing, err = run(["sh", "-c", "git archive --worktree-attributes --format=tar HEAD | tar -tf -"])
+packaged = set(line.split("/")[0] for line in listing.split("\n") if line)
+if code != 0 or not packaged:
+    fail("could not list the archive: %s" % (err.strip()[:200] or "empty listing"))
+else:
+    extra = sorted(packaged - PACKAGE_TOP)
+    gone = sorted(PACKAGE_TOP - packaged)
+    for name in extra:
+        fail("%s would ship in the package — mark it export-ignore in .gitattributes, or add it to this check's "
+             "list if it is a runtime file" % name)
+    for name in gone:
+        fail("%s is a runtime path and is missing from the package" % name)
+    if not extra and not gone:
+        ok("the package's top level is exactly the %d runtime entries" % len(PACKAGE_TOP))
 
 flush()
 sys.exit(1 if STATE["failed"] else 0)

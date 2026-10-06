@@ -182,10 +182,10 @@ slices:
     criteria: []
   - id: S-032
     title: Phase 7 release gate on the candidate (full suite, version proposed to the user, package hygiene)
-    status: not-started
+    status: in-progress
     hours: 2
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.0386
+    actual_source: measured
     depends_on: [S-036, S-027, S-028, S-029, S-031, S-035, S-039, S-052, S-054, S-056]
     criteria: []
 ---
@@ -208,4 +208,6 @@ slices:
 - S-054 (done 2026-10-06, D-066): 64 of the 96 `file:line` references in `docs/reference/` no longer pointed at their symbol; all re-resolved. `scripts/keel-verify` check 28 fails a reference whose line does not name the symbol written beside it (seen failing on a reference moved by one line). Done inside the waits of S-052, so its 0 h measured is inside S-052's figure.
 - S-029 (done 2026-10-06, D-067): `tests/e2e/accessibility.spec.js`, 14 axe scans limited to what the plugin renders. Checkout rows, payment forms, Blocks options and settings forms: no violation. About page: 32 contrast nodes (S-056). Admin notices: 4 contrast nodes from WooCommerce's stylesheet, recorded and deferred (S-057). `axe-core` declared as a development dependency; doctor row and selector mapping added. The guided script for S-030 is written.
 - S-056 (done 2026-10-06, D-067): four colour values of the About page darkened; the scan that failed passes. Whole suite green: unit 34, integration 193, e2e 22.
+- S-032 (in progress, D-068): the archive carried development files (tests, the playground's HTTP stub, tool configuration); ten paths are now `export-ignore` and `scripts/keel-verify` check 29 holds the boundary. `docs/07-release.md` records every gate item with its real state. Version 7.1.0 proposed, not set. Stopped at the owner.
+- S-037 (open): two of its three observations were made this session without starting the slice's clock. A real push went through `.githooks/pre-push` with a real selection (commit `388bda8`: `scope: affected — 120 of 120 tests`, GREEN; it printed `scripts/keel-affected-tests: line 221: printf: write error: Broken pipe` twice, harmless to the result, cause not looked at). The timing report was read here over several sessions (`scripts/keel-time report`: cumulative figures over 20 measured slices). Not observed: the Stop hook after a full session restart — a session cannot watch its own turn end; and no slice has yet spanned two sessions (S-032 will).
 - Records fix after the last slice (commit `a6b8623`): four bookkeeping lines `scripts/keel-verify` rejected at the session close — two index rows, D-045's list, the estimate's Phase 5 sum, one test-point row without its scope line. No code.

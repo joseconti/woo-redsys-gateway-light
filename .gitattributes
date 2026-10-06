@@ -31,3 +31,14 @@ docs/ export-ignore
 scripts/ export-ignore
 .wp-env.json export-ignore
 README.md export-ignore
+.agents/ export-ignore
+.codex/ export-ignore
+.githooks/ export-ignore
+# Development and test files (S-032): the HTTP stub of the playground must never ship (D-029)
+.wp-env-mu-plugins/ export-ignore
+tests/ export-ignore
+composer.json export-ignore
+composer.lock export-ignore
+phpunit.xml.dist export-ignore
+phpunit-integration.xml.dist export-ignore
+playwright.config.js export-ignore
