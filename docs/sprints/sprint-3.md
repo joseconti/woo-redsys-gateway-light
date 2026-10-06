@@ -300,6 +300,30 @@ slices:
     actual_source: measured
     depends_on: [S-070]
     criteria: []
+  - id: S-076
+    title: Gate checks on the current tree that need no owner — S-072's change read by an auditor that did not write it (and the class swept: every notification field used before the signature is compared), and the whole-tree confidential-data check
+    status: done
+    hours: 0.5
+    actual_hours: 0.05
+    actual_source: measured
+    depends_on: [S-072]
+    criteria: []
+  - id: S-077
+    title: The facts S-066's question needs — Inespay in the Blocks checkout for a customer outside ES, PT and IT, on the floor and on the ceiling, and whether such an order can be placed; no shipped code changed
+    status: in-progress
+    hours: 0.75
+    actual_hours: null
+    actual_source: estimated
+    depends_on: []
+    criteria: []
+  - id: S-078
+    title: A notification whose Ds_MerchantParameters is not a string (sent as an array) raises an "Array to string conversion" notice or warning in the card, Bizum and Google Pay handlers before any signature is compared — found by S-076's sweep; reproduce with a failing test, fix in the one shared sanitiser
+    status: in-progress
+    hours: 0.5
+    actual_hours: 0.0114
+    actual_source: measured
+    depends_on: [S-076]
+    criteria: []
 ---
 
 # Sprint 3 — Release preparation for the unreleased security and correctness fixes
@@ -349,3 +373,8 @@ slices:
 - S-075 (done 2026-10-06, D-081): the six documented hooks no test named are driven — `OK (10 tests, 45 assertions)`; self-audit answer 5 closed. Lesson L-014 recorded (two instances at once; Docker Desktop restarted again).
 - Suppression count: 145 (D-081; four more, all in the new test file).
 - Session close, 2026-10-06 night: no inbound issue sweep — the last one was at 21:52, inside the 24-hour interval; token ledger and session row written. Nothing is left that the assistant can advance alone: S-032 and S-030 wait for the owner, S-037 for an observation a session cannot make of itself.
+- Session of 2026-10-06, 23:10 — the work that does not wait for the owner; stopped by the owner at about 23:20. Three slices added: S-076 and S-077 at the start, S-078 when S-076 found it.
+- S-076 (done 2026-10-06, D-082): S-072's change read by an auditor that did not write it — it holds on its four questions; a second auditor swept the class (every request value used before the signature is compared, four gateways and the order-received fallback): one new candidate (S-078), two items already on record raised again (SA-13; the signature transient deleted on a failed comparison, S-053). Whole-tree confidential-data check: clean.
+- S-077 (in progress, D-082): the floor is observed — a guest in the US sees Inespay in the Blocks checkout and the Store API refuses the order (HTTP 400); a guest who types a Spanish address there sees it with the fallback label and no icon and can place the order. The ceiling is not observed. Worked without its clock while S-076's agents ran: its time is in the session row.
+- S-078 (in progress, nothing written): located by reading only — `RedsysLiteAPI::sanitize_merchant_parameters()` casts its argument to a string. No test, no code change.
+- Session close, 2026-10-06 at about 23:25, asked for by the owner: no inbound issue sweep — the last one was at 21:52, inside the 24-hour interval (`gh issue list` at 23:10 showed the same six open issues, none updated since). The next chat is not chained: the owner opens it.
