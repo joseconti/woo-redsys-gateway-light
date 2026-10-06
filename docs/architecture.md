@@ -24,7 +24,7 @@ woocommerce-redsys.php  (bootstrap)
         └── includes/class-redsys-lite-apps-plugins.php        (admin upsell widget — no payment logic)
 ```
 
-Front-end: `resources/js/frontend/index.js` (source) → built by `@wordpress/scripts`/webpack → `assets/js/frontend/blocks.js` + `.asset.php` (the runtime bundle WooCommerce Blocks loads for the checkout payment-method registration of all four gateways).
+Front-end: `resources/js/frontend/index.js` (source) → built by `@wordpress/scripts`/webpack → `assets/js/frontend/blocks.js` and `blocks.min.js`, each with its `.asset.php` (the runtime bundle WooCommerce Blocks loads for the checkout payment-method registration of all four gateways).
 
 ## Request/response flow (representative — Redsys card gateway; Bizum and Google/Apple Pay redirection follow the same shape, Inespay uses its own `handle_callback`)
 

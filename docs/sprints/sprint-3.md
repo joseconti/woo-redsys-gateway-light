@@ -78,10 +78,10 @@ slices:
     criteria: []
   - id: S-039
     title: Build toolchain on current Node — major upgrade of @wordpress/scripts and the WooCommerce dependency-extraction plugin (clears the remaining build-tool audit findings)
-    status: not-started
+    status: done
     hours: 1
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.0681
+    actual_source: measured
     depends_on: [S-036]
     criteria: []
   - id: S-032
@@ -105,3 +105,4 @@ slices:
 - S-035 (done 2026-10-06, D-052): the six candidate defects reproduced from failing tests and fixed, plus two the tests uncovered; 20 new tests; `AC-24`, `AC-33` revised and bound, `AC-58` to `AC-61` added. Two visible behaviour changes for the release notes: Google Pay is now offered in test mode, and a Bizum total equal to the limit is allowed.
 - S-038 (done 2026-10-06, D-053): issue 112 reproduced in both halves and fixed — the cancel URL sent to Redsys is a plain URL, and a return to an order Redsys already cancelled shows WooCommerce's cancelled notice instead of an error. 11 integration tests and one e2e spec; `AC-62`, `AC-63` added. The way the second half was solved is the assistant's choice and is to be confirmed by the user before the release. S-042 deferred.
 - S-027 (done 2026-10-06, D-054): every stylesheet and the Blocks script ship as a source plus a minified pair; production loads the minified file, `SCRIPT_DEBUG` the readable one. The minified script is byte-identical to the one shipped today. Linter check 11 now compares against a rebuild. Conformance row T1-42 is `present`.
+- S-039 (done 2026-10-06, D-055): `@wordpress/scripts` 36 and the WooCommerce dependency-extraction plugin 5.1; the build runs on Node 24 without the OpenSSL workaround; `npm audit` 115 → 45. The upgrade's default would have made the Blocks script depend on a handle WordPress older than 6.6 does not have; the source now compiles JSX against `wp-element`.

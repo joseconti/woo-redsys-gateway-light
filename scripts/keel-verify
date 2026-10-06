@@ -682,10 +682,7 @@ else:
         fail("CSS: %s" % (err.strip() or out.strip()))
     tmp = tempfile.mkdtemp(prefix="keel-verify-js-")
     try:
-        env = dict(os.environ)
-        # The current toolchain's md4 hash needs this on Node 17+ (D-050); S-039 removes the need.
-        env["NODE_OPTIONS"] = (env.get("NODE_OPTIONS", "") + " --openssl-legacy-provider").strip()
-        rc, out, err = run(["npx", "wp-scripts", "build", "--output-path", tmp], env=env)
+        rc, out, err = run(["npx", "wp-scripts", "build", "--output-path", tmp])
         if rc != 0:
             fail("JS: `wp-scripts build` failed, so the built scripts cannot be compared with their source: %s"
                  % (err.strip() or out.strip()).splitlines()[-1])

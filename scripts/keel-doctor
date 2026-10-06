@@ -116,15 +116,15 @@ NODE_DIR=""
 if [ -n "$NODE_BIN" ]; then
 	NODE_DIR=$(dirname "$NODE_BIN")
 	NODE_V=$("$NODE_BIN" -p "process.versions.node" 2>/dev/null || echo "")
-	if [ -n "$NODE_V" ] && version_ge "$NODE_V" "18.0.0"; then
-		add_row "Node.js" "$NODE_V$(where node "$NODE_BIN")" ">=18" "OK" "blocking" "—"
+	if [ -n "$NODE_V" ] && version_ge "$NODE_V" "22.22.2"; then
+		add_row "Node.js" "$NODE_V$(where node "$NODE_BIN")" ">=22.22.2" "OK" "blocking" "—"
 	elif [ -n "$NODE_V" ]; then
-		add_row "Node.js" "$NODE_V$(where node "$NODE_BIN")" ">=18" "TOO OLD" "blocking" "mise use -g node@lts (or nvm install --lts)"
+		add_row "Node.js" "$NODE_V$(where node "$NODE_BIN")" ">=22.22.2" "TOO OLD" "blocking" "mise use -g node@lts (or nvm install --lts)"
 	else
-		add_row "Node.js" "present, version unreadable" ">=18" "NOT OPERATIONAL" "blocking" "reinstall Node.js (nvm/mise/nodejs.org)"
+		add_row "Node.js" "present, version unreadable" ">=22.22.2" "NOT OPERATIONAL" "blocking" "reinstall Node.js (nvm/mise/nodejs.org)"
 	fi
 else
-	add_row "Node.js" "absent" ">=18" "MISSING" "blocking" "install via nvm/mise, or https://nodejs.org/"
+	add_row "Node.js" "absent" ">=22.22.2" "MISSING" "blocking" "install via nvm/mise, or https://nodejs.org/"
 fi
 
 # node_run <tool> <args...> — run a Node-based tool with Node resolvable,

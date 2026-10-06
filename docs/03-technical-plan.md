@@ -7,7 +7,7 @@
 - WordPress — `Tested up to: 7.0`
 - WooCommerce — `WC requires at least: 7.4`, `WC tested up to: 10.9`
 - Composer — **dev-only**: `composer.json` requires `phpunit/phpunit ^9.6` and `yoast/phpunit-polyfills ^2.0` under `require-dev` (added with the first test suites, D-016/D-018). No runtime PHP dependency is installed or shipped; `vendor/` is gitignored
-- Front-end build: `@wordpress/scripts` (`^30.20.0`) + webpack (`webpack-cli ^4.10.0`), `@woocommerce/dependency-extraction-webpack-plugin ^1.7.0`, `cross-env`
+- Front-end build: `@wordpress/scripts` (`^36.0.0`, webpack 5 inside it), `@woocommerce/dependency-extraction-webpack-plugin` (`^5.1.0`), `cssnano` + `postcss` for the stylesheets (D-055). The Blocks script's JSX is compiled to `createElement()` from `@wordpress/element` so the built script depends on the `wp-element` handle, never on `react-jsx-runtime` (WordPress 6.6+ only).
 - Coding standard: `phpcs.xml` — `WooCommerce-Core` + `WordPress-Extra` ruleset, `testVersion 5.6-`, `minimum_supported_wp_version 4.7`
 
 ## Code map (as-built)
@@ -184,7 +184,7 @@ One machine plays all three roles here — the user's Mac holds the repository a
 
 | Requirement | Required version/state | Severity | How it is installed on macOS / Windows / Linux |
 |---|---|---|---|
-| Node.js | >= 18 | blocking | `nvm install --lts` or `mise use node@lts` (macOS/Linux); `fnm`/`volta` (Windows). Never a silent global version change |
+| Node.js | `^22.22.2 \|\| ^24.15.0 \|\| >=26.0.0` (what `@wordpress/scripts` 36 declares; `package.json` `engines`) | blocking | `nvm install --lts` or `mise use node@lts` (macOS/Linux); `fnm`/`volta` (Windows). Never a silent global version change |
 | npm, npx | any (ship with Node.js) | blocking | with Node.js |
 | Docker CLI | any | blocking | Docker Desktop (macOS/Windows) or Docker Engine (Linux). **Licence:** Docker Desktop needs a paid subscription for organisations with 250+ employees or over $10M revenue — Colima (MIT) on macOS/Linux is the drop-in alternative. **Privilege:** adding a user to the `docker` group on Linux is effectively granting root |
 | Docker daemon | running — "installed but stopped" is `NOT OPERATIONAL`, not `MISSING` | blocking | start Docker Desktop, `colima start`, or `systemctl start docker` |
@@ -207,7 +207,7 @@ One machine plays all three roles here — the user's Mac holds the repository a
 **Not probed by the doctor:** the notification channel (card `Notify:`). A shell script cannot probe the assistant's own notification tool, so the session records that probe; the doctor does not claim it.
 
 ## Build/lint commands (verified from `package.json`)
-- `npm run build:assets` — `wp-scripts build` (compiles `resources/js/frontend/index.js` → `assets/js/frontend/blocks.js`, `blocks.min.js` and their `.asset.php` files), then `npm run build:css` (`node bin/build-assets.js`: every `assets/css/<name>.css` → `<name>.min.css`). On Node 17 or newer the current toolchain needs `NODE_OPTIONS=--openssl-legacy-provider` for the `wp-scripts` half (D-050; S-039 removes the need).
+- `npm run build:assets` — `wp-scripts build` (compiles `resources/js/frontend/index.js` → `assets/js/frontend/blocks.js`, `blocks.min.js` and their `.asset.php` files), then `npm run build:css` (`node bin/build-assets.js`: every `assets/css/<name>.css` → `<name>.min.css`).
 - `npm run check:css` — exits 1 when a minified stylesheet is missing or stale; `scripts/keel-verify` check 11 runs it and also rebuilds the script into a temporary directory to compare.
 - `npm run build` — `npm run build:assets`, then `npm run i18n:build`
 - `npm run start` — `wp-scripts start` (watch mode)
@@ -229,4 +229,4 @@ One machine plays all three roles here — the user's Mac holds the repository a
 GPL-2.0-or-later (D-003). No Composer/npm runtime dependencies are bundled into the shipped plugin (`package.json` deps are dev-only build tooling); no license-compatibility conflict identified.
 
 ## Front-end asset build contract
-Keel's "source first, minified for production" contract (`SKILL.md`) is applied since S-027 (D-054): edit the source, run `npm run build:assets` locally before committing, commit source and output together. No CI or forge action builds them. `scripts/keel-verify` check 11 fails on a missing pair, a stale minified stylesheet, or built script files that differ from a fresh build. The minifier (`cssnano`, `postcss`) is reached through `@wordpress/scripts`' dependency tree, not declared by this project — to be declared when S-039 rewrites the lockfile.
+Keel's "source first, minified for production" contract (`SKILL.md`) is applied since S-027 (D-054): edit the source, run `npm run build:assets` locally before committing, commit source and output together. No CI or forge action builds them. `scripts/keel-verify` check 11 fails on a missing pair, a stale minified stylesheet, or built script files that differ from a fresh build. The minifier (`cssnano`, `postcss`) is a declared dev dependency (D-055).

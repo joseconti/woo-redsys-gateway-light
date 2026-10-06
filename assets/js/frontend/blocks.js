@@ -1,75 +1,8 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
-/******/ 	var __webpack_modules__ = ({
 
-/***/ 20
-(__unused_webpack_module, exports, __webpack_require__) {
-
-var __webpack_unused_export__;
-/**
- * @license React
- * react-jsx-runtime.production.min.js
- *
- * Copyright (c) Facebook, Inc. and its affiliates.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-var f=__webpack_require__(609),k=Symbol.for("react.element"),l=Symbol.for("react.fragment"),m=Object.prototype.hasOwnProperty,n=f.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentOwner,p={key:!0,ref:!0,__self:!0,__source:!0};
-function q(c,a,g){var b,d={},e=null,h=null;void 0!==g&&(e=""+g);void 0!==a.key&&(e=""+a.key);void 0!==a.ref&&(h=a.ref);for(b in a)m.call(a,b)&&!p.hasOwnProperty(b)&&(d[b]=a[b]);if(c&&c.defaultProps)for(b in a=c.defaultProps,a)void 0===d[b]&&(d[b]=a[b]);return{$$typeof:k,type:c,key:e,ref:h,props:d,_owner:n.current}}__webpack_unused_export__=l;exports.jsx=q;exports.jsxs=q;
-
-
-/***/ },
-
-/***/ 848
-(module, __unused_webpack_exports, __webpack_require__) {
-
-
-
-if (true) {
-  module.exports = __webpack_require__(20);
-} else // removed by dead control flow
-{}
-
-
-/***/ },
-
-/***/ 609
-(module) {
-
-module.exports = window["React"];
-
-/***/ }
-
-/******/ 	});
-/************************************************************************/
-/******/ 	// The module cache
-/******/ 	var __webpack_module_cache__ = {};
-/******/ 	
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/ 		// Check if module is in cache
-/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
-/******/ 		if (cachedModule !== undefined) {
-/******/ 			return cachedModule.exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			// no module.id needed
-/******/ 			// no module.loaded needed
-/******/ 			exports: {}
-/******/ 		};
-/******/ 	
-/******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
-/******/ 	
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/ 	
-/************************************************************************/
-var __webpack_exports__ = {};
-
+;// external ["wp","element"]
+const external_wp_element_namespaceObject = window["wp"]["element"];
 ;// external ["wp","i18n"]
 const external_wp_i18n_namespaceObject = window["wp"]["i18n"];
 ;// external ["wc","wcBlocksRegistry"]
@@ -78,9 +11,19 @@ const external_wc_wcBlocksRegistry_namespaceObject = window["wc"]["wcBlocksRegis
 const external_wp_htmlEntities_namespaceObject = window["wp"]["htmlEntities"];
 ;// external ["wc","wcSettings"]
 const external_wc_wcSettings_namespaceObject = window["wc"]["wcSettings"];
-// EXTERNAL MODULE: ./node_modules/react/jsx-runtime.js
-var jsx_runtime = __webpack_require__(848);
 ;// ./resources/js/frontend/index.js
+/**
+ * JSX is compiled to createElement() from @wordpress/element on purpose.
+ *
+ * The build tools' default (the automatic JSX runtime) makes the script
+ * depend on the `react-jsx-runtime` handle, which WordPress only registers
+ * from 6.6 on: on an older WordPress the script would not load and the
+ * gateways would vanish from the Blocks checkout. `wp-element` exists on
+ * every WordPress that has blocks and uses the site's own React.
+ *
+ * @jsxRuntime classic
+ * @jsx createElement
+ */
 
 
 
@@ -123,88 +66,84 @@ const Label = props => {
     PaymentMethodLabel
   } = props.components;
   const icon = settings.icon;
-  return /*#__PURE__*/(0,jsx_runtime.jsxs)("div", {
+  return (0,external_wp_element_namespaceObject.createElement)("div", {
     style: {
       display: 'flex',
       alignItems: 'center'
-    },
-    children: [/*#__PURE__*/(0,jsx_runtime.jsx)(PaymentMethodLabel, {
-      text: label
-    }), icon && /*#__PURE__*/(0,jsx_runtime.jsx)("img", {
-      src: icon,
-      alt: label,
-      style: {
-        marginLeft: '8px',
-        maxHeight: '24px'
-      }
-    })]
-  });
+    }
+  }, (0,external_wp_element_namespaceObject.createElement)(PaymentMethodLabel, {
+    text: label
+  }), icon && (0,external_wp_element_namespaceObject.createElement)("img", {
+    src: icon,
+    alt: label,
+    style: {
+      marginLeft: '8px',
+      maxHeight: '24px'
+    }
+  }));
 };
 const Labelbizum = props => {
   const {
     PaymentMethodLabel
   } = props.components;
   const icon = settingsbizumredsys.icon;
-  return /*#__PURE__*/(0,jsx_runtime.jsxs)("div", {
+  return (0,external_wp_element_namespaceObject.createElement)("div", {
     style: {
       display: 'flex',
       alignItems: 'center'
-    },
-    children: [/*#__PURE__*/(0,jsx_runtime.jsx)(PaymentMethodLabel, {
-      text: labelbizum
-    }), icon && /*#__PURE__*/(0,jsx_runtime.jsx)("img", {
-      src: icon,
-      alt: labelbizum,
-      style: {
-        marginLeft: '8px',
-        maxHeight: '24px'
-      }
-    })]
-  });
+    }
+  }, (0,external_wp_element_namespaceObject.createElement)(PaymentMethodLabel, {
+    text: labelbizum
+  }), icon && (0,external_wp_element_namespaceObject.createElement)("img", {
+    src: icon,
+    alt: labelbizum,
+    style: {
+      marginLeft: '8px',
+      maxHeight: '24px'
+    }
+  }));
 };
 const Labelgpayred = props => {
   const {
     PaymentMethodLabel
   } = props.components;
   const icon = settingsgpayredsys.icon;
-  return /*#__PURE__*/(0,jsx_runtime.jsxs)("div", {
+  return (0,external_wp_element_namespaceObject.createElement)("div", {
     style: {
       display: 'flex',
       alignItems: 'center'
-    },
-    children: [/*#__PURE__*/(0,jsx_runtime.jsx)(PaymentMethodLabel, {
-      text: labelgpayred
-    }), icon && /*#__PURE__*/(0,jsx_runtime.jsx)("img", {
-      src: icon,
-      alt: labelgpayred,
-      style: {
-        marginLeft: '8px',
-        maxHeight: '24px'
-      }
-    })]
-  });
+    }
+  }, (0,external_wp_element_namespaceObject.createElement)(PaymentMethodLabel, {
+    text: labelgpayred
+  }), icon && (0,external_wp_element_namespaceObject.createElement)("img", {
+    src: icon,
+    alt: labelgpayred,
+    style: {
+      marginLeft: '8px',
+      maxHeight: '24px'
+    }
+  }));
 };
 const Labelinespay = props => {
   const {
     PaymentMethodLabel
   } = props.components;
   const icon = settingsinespayredsys.icon;
-  return /*#__PURE__*/(0,jsx_runtime.jsxs)("div", {
+  return (0,external_wp_element_namespaceObject.createElement)("div", {
     style: {
       display: 'flex',
       alignItems: 'center'
-    },
-    children: [/*#__PURE__*/(0,jsx_runtime.jsx)(PaymentMethodLabel, {
-      text: labelinespay
-    }), icon && /*#__PURE__*/(0,jsx_runtime.jsx)("img", {
-      src: icon,
-      alt: labelinespay,
-      style: {
-        marginLeft: '8px',
-        maxHeight: '24px'
-      }
-    })]
-  });
+    }
+  }, (0,external_wp_element_namespaceObject.createElement)(PaymentMethodLabel, {
+    text: labelinespay
+  }), icon && (0,external_wp_element_namespaceObject.createElement)("img", {
+    src: icon,
+    alt: labelinespay,
+    style: {
+      marginLeft: '8px',
+      maxHeight: '24px'
+    }
+  }));
 };
 
 /**
@@ -212,9 +151,9 @@ const Labelinespay = props => {
  */
 const Redsys = {
   name: "redsys",
-  label: /*#__PURE__*/(0,jsx_runtime.jsx)(Label, {}),
-  content: /*#__PURE__*/(0,jsx_runtime.jsx)(Content, {}),
-  edit: /*#__PURE__*/(0,jsx_runtime.jsx)(Content, {}),
+  label: (0,external_wp_element_namespaceObject.createElement)(Label, null),
+  content: (0,external_wp_element_namespaceObject.createElement)(Content, null),
+  edit: (0,external_wp_element_namespaceObject.createElement)(Content, null),
   canMakePayment: () => true,
   ariaLabel: label,
   supports: {
@@ -223,9 +162,9 @@ const Redsys = {
 };
 const Bizum = {
   name: "bizumredsys",
-  label: /*#__PURE__*/(0,jsx_runtime.jsx)(Labelbizum, {}),
-  content: /*#__PURE__*/(0,jsx_runtime.jsx)(Contentbizum, {}),
-  edit: /*#__PURE__*/(0,jsx_runtime.jsx)(Contentbizum, {}),
+  label: (0,external_wp_element_namespaceObject.createElement)(Labelbizum, null),
+  content: (0,external_wp_element_namespaceObject.createElement)(Contentbizum, null),
+  edit: (0,external_wp_element_namespaceObject.createElement)(Contentbizum, null),
   canMakePayment: () => true,
   ariaLabel: labelbizum,
   supports: {
@@ -234,9 +173,9 @@ const Bizum = {
 };
 const GPayRed = {
   name: "googlepayredirecredsys",
-  label: /*#__PURE__*/(0,jsx_runtime.jsx)(Labelgpayred, {}),
-  content: /*#__PURE__*/(0,jsx_runtime.jsx)(Contengpayred, {}),
-  edit: /*#__PURE__*/(0,jsx_runtime.jsx)(Contengpayred, {}),
+  label: (0,external_wp_element_namespaceObject.createElement)(Labelgpayred, null),
+  content: (0,external_wp_element_namespaceObject.createElement)(Contengpayred, null),
+  edit: (0,external_wp_element_namespaceObject.createElement)(Contengpayred, null),
   canMakePayment: () => true,
   ariaLabel: labelgpayred,
   supports: {
@@ -245,9 +184,9 @@ const GPayRed = {
 };
 const Inespay = {
   name: "inespayredsys",
-  label: /*#__PURE__*/(0,jsx_runtime.jsx)(Labelinespay, {}),
-  content: /*#__PURE__*/(0,jsx_runtime.jsx)(Contentinespay, {}),
-  edit: /*#__PURE__*/(0,jsx_runtime.jsx)(Contentinespay, {}),
+  label: (0,external_wp_element_namespaceObject.createElement)(Labelinespay, null),
+  content: (0,external_wp_element_namespaceObject.createElement)(Contentinespay, null),
+  edit: (0,external_wp_element_namespaceObject.createElement)(Contentinespay, null),
   canMakePayment: () => true,
   ariaLabel: labelinespay,
   supports: {

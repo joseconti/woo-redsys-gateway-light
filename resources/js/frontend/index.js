@@ -1,4 +1,17 @@
 
+/**
+ * JSX is compiled to createElement() from @wordpress/element on purpose.
+ *
+ * The build tools' default (the automatic JSX runtime) makes the script
+ * depend on the `react-jsx-runtime` handle, which WordPress only registers
+ * from 6.6 on: on an older WordPress the script would not load and the
+ * gateways would vanish from the Blocks checkout. `wp-element` exists on
+ * every WordPress that has blocks and uses the site's own React.
+ *
+ * @jsxRuntime classic
+ * @jsx createElement
+ */
+import { createElement } from '@wordpress/element';
 import { sprintf, __ } from '@wordpress/i18n';
 import { registerPaymentMethod } from '@woocommerce/blocks-registry';
 import { decodeEntities } from '@wordpress/html-entities';
