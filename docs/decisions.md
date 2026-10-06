@@ -710,3 +710,12 @@
 - No shipped code changed. Editing `scripts/keel-affected-tests` widens the push selection to the entire suite, by its own rule.
 - Supersedes: none.
 
+
+## D-077 — The line numbers of `docs/flows/` are repaired and checked; the test map is checked by the linter (S-068)
+- Date / phase: 2026-10-06 / sprint 3, slice S-068
+- Decision: (1) The "Source files" lists of the six files of `docs/flows/` name the line that defines each function again: 76 of their 87 line numbers were behind the code (every gateway class, the shared class, the API class and the main file had grown above them). The numbers were re-resolved from the source by the function's name, never typed. (2) `scripts/keel-verify` check 28 now reads `docs/flows/` as well: a bullet that opens with a tracked file and lists `symbol()` with a number must have, on that line, the definition of that function. (3) Check 25 runs `scripts/keel-affected-tests --check-map`, which D-076 found nothing was running.
+- Seen failing first: check 28 on the tree before the repair — 76 `FAIL` lines, the first `docs/flows/checkout-bizum.md:81 — classes/class-wc-gateway-bizum-redsys.php line 416 does not define init_form_fields()`; after, `87 line references in 6 flow documents each sit on the line that defines their function`. The map check on a test file renamed for the purpose: `test file is in no DIRECT/MODULES row … tests/Unit/ZzProbeTest.php`, and the row that named the old path; the rename was undone and the tree checked.
+- The flow format is stricter than the one of `docs/reference/` on purpose: there a reference may sit on a call or a hook; here every number is said to be where the function is defined, so only the definition passes.
+- Not checked: line numbers written in running prose inside `docs/flows/` (a grep for a number after "line" or a colon outside the "Source files" bullets found none); `docs/usage/`, `docs/architecture.md` and the other documents, which this check does not read.
+- No shipped code changed.
+- Supersedes: none.

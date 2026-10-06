@@ -252,6 +252,38 @@ slices:
     actual_source: measured
     depends_on: [S-060]
     criteria: []
+  - id: S-068
+    title: The line numbers in the "Source files" lists of docs/flows/ are behind the code (docs/flows/refund.md names ask_for_refund() at 1091, it is at 1137); repair them and extend keel-verify's check 28, which reads docs/reference/ only, to docs/flows/
+    status: done
+    hours: 0.5
+    actual_hours: 0.0381
+    actual_source: measured
+    depends_on: [S-067]
+    criteria: []
+  - id: S-069
+    title: Gate security read, second pass — an independent verifier for the unverified candidates of the read at e89356b (G-4 to G-7 and the reader's notes on is_paid() and replay), and a read of what that pass did not cover (the shipped diff since e89356b, the PSD2 and global classes, the refund request bodies)
+    status: in-progress
+    hours: 1.5
+    actual_hours: 0.0133
+    actual_source: measured
+    depends_on: [S-061]
+    criteria: []
+  - id: S-070
+    title: Self-audit answers that need no owner — the test-point row without a command (7), the suppression count justified or reduced (8), the two test-modifying commits read diff by diff (16), failing cases for the older linter checks (17c); docs/07-release.md brought up to the tree
+    status: not-started
+    hours: 0.75
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-061]
+    criteria: []
+  - id: S-071
+    title: The whole suite on the ceiling instance at the current tree — the tests of S-060 and S-064 to S-067 have never run on WordPress 7.0.7, WooCommerce 10.9.4 and PHP 8.3
+    status: not-started
+    hours: 0.5
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-060]
+    criteria: []
 ---
 
 # Sprint 3 — Release preparation for the unreleased security and correctness fixes
@@ -290,3 +322,5 @@ slices:
 - S-060 (done 2026-10-06, D-075): the last nine criteria bound — AC-15 and AC-16 (test-mode warning, currency rule), AC-47 (settings fields of the four gateways against `docs/usage/configuration.md`), AC-49 (About page, who may open it, its six filters), AC-50 and AC-52 (refund request, wait and failures), AC-55, AC-56 and AC-57 (admin order details, order-received text, High-Performance Order Storage declaration). Five integration classes (66 tests) and one browser spec (11 tests); whole integration suite `OK (309 tests, 1977 assertions)`. The session read the gateway classes without being refused. No shipped code changed. Only AC-48 is left on D-045's list, and it is S-030's. Two drifts found on the way are S-067. Not run on the ceiling instance, which is still stopped.
 - S-067 (done 2026-10-06, D-076): the refund flag's lifetime corrected in `docs/usage/configuration.md`; the test map has a row for every test file again (`--check-map` OK, 38 test files). A third drift found while doing it — stale line numbers in `docs/flows/` — is S-068, deferred.
 - Session close, 2026-10-06 evening: inbound issue sweep at 21:52 (`gh issue list`: six open issues, none new, no new comment); token ledger and session row written.
+- S-068 (done 2026-10-06, D-077; promoted from `deferred.md` at the session start): 76 of the 87 line numbers in the "Source files" lists of `docs/flows/` were behind the code and are re-resolved; check 28 reads `docs/flows/` and check 25 runs the test-map check, each seen failing first.
+- Added at the 22:00 session start, with S-068: S-069 (second pass of the gate security read, 1.5 h), S-070 (self-audit answers that need no owner, 0.75 h), S-071 (the whole suite on the ceiling instance at the current tree, 0.5 h).

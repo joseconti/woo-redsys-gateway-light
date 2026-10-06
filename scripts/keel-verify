@@ -57,7 +57,9 @@
 #   26. The tool registry is data, complete, and nowhere else.
 #   27. Suppression count (reported, compared with the last sprint close).
 #   28. Every `file:line` reference in docs/reference/ sits on a line that
-#       names the symbol the document names beside it (S-054).
+#       names the symbol the document names beside it (S-054); every
+#       `symbol()` line number in docs/flows/ is that function's definition
+#       (S-068).
 #   29. Package boundary: `git archive` ships runtime files only (S-032).
 #
 # Exits 0 when no check FAILED, 1 otherwise. Every failure is printed with
@@ -1684,6 +1686,19 @@ if selector_text is not None:
                      % (synthetic, scope or out.strip().split("\n")[-1][:160]))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+# S-068: a test file in no row of the map is selected by nothing; the selector
+# can say so, and until now nothing asked it (D-076).
+if os.path.isfile(SELECTOR):
+    rc, out, err = run(["/bin/bash", SELECTOR, "--check-map"])
+    last = ((out + err).strip().split("\n") or [""])[-1][:200]
+    if rc == 0:
+        ok("test map: %s" % last)
+    else:
+        for line in (out + err).strip().split("\n"):
+            if line.startswith("FAIL"):
+                fail("test map: %s" % line[:240])
+        if "FAIL" not in out + err:
+            fail("test map: %s --check-map exited %d — %s" % (SELECTOR, rc, last))
 
 # === 26. Tool registry =======================================================
 section("The tool registry is data, complete, and nowhere else")
@@ -1893,6 +1908,39 @@ if not ref_docs or not ref_total:
     na("no `file:line` reference in docs/reference/ — nothing to check")
 elif not ref_bad:
     ok("%d line references in %d documents each sit on a line that names their symbol" % (ref_total, len(ref_docs)))
+
+# S-068: docs/flows/ writes its references another way — a "Source files"
+# bullet that opens with the file and lists `symbol()` with a line number
+# after each. Each number must be the line that defines that function.
+FLOW_FILE = re.compile(r"- `([^`]+\.(?:php|js))`")
+FLOW_PAIR = re.compile(r"`([A-Za-z_][A-Za-z0-9_]*)\(\)`(?: line)? (\d+)")
+flow_docs = sorted(p for p in TRACKED if p.startswith("docs/flows/") and p.endswith(".md"))
+flow_total = 0
+flow_bad = []
+for doc in flow_docs:
+    for number, line in enumerate(read(doc).split("\n"), 1):
+        opened = FLOW_FILE.match(line)
+        if not opened:
+            continue
+        pairs = FLOW_PAIR.findall(line)
+        if not pairs:
+            continue
+        if opened.group(1) not in TRACKED:
+            flow_bad.append("%s:%d — %s is not a tracked file" % (doc, number, opened.group(1)))
+            continue
+        source = read(opened.group(1)).split("\n")
+        for name, target in pairs:
+            flow_total += 1
+            target = int(target)
+            if target > len(source) or not re.search(r"function\s+" + re.escape(name) + r"\s*\(", source[target - 1]):
+                flow_bad.append("%s:%d — %s line %d does not define %s()"
+                                % (doc, number, opened.group(1), target, name))
+for item in flow_bad:
+    fail(item)
+if not flow_docs or not flow_total:
+    na("no `symbol()` line reference in docs/flows/ — nothing to check")
+elif not flow_bad:
+    ok("%d line references in %d flow documents each sit on the line that defines their function" % (flow_total, len(flow_docs)))
 
 # === 29. Package boundary ====================================================
 # S-032: the archive `git archive` builds is the distributable. Its top level

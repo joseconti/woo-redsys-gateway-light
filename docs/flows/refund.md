@@ -129,8 +129,8 @@ sequenceDiagram
 `AC-50`, `AC-51`, `AC-52` (part A); `AC-53`, `AC-54` (part B).
 
 ## Source files
-- `classes/class-wc-gateway-redsys.php` — `get_redsys_url_gateway_rest()` line 315, `ask_for_refund()` 1091, `check_redsys_refund()` 1244, `process_refund()` 1269; refund branch of `successful_request()` 914.
-- `classes/class-wc-gateway-bizum-redsys.php` — `ask_for_refund()` line 1449, `check_redsys_refund()` 1586, `process_refund()` 1613.
-- `classes/class-wc-gateway-googlepay-redirection-redsys.php` — `ask_for_refund()` line 1275, `check_redsys_refund()` 1418, `process_refund()` 1444.
-- `classes/class-wc-gateway-inespay-redsys.php` — `process_refund()` line 670, `get_api_url()` 751.
-- `classes/class-wc-gateway-redsys-global-lite.php` — `get_order_meta()` line 189, `prepare_order_number()` 1141, `redsys_amount_format()` 1161.
+- `classes/class-wc-gateway-redsys.php` — `get_redsys_url_gateway_rest()` line 318, `ask_for_refund()` 1137, `check_redsys_refund()` 1304, `process_refund()` 1329; refund branch of `successful_request()` 960.
+- `classes/class-wc-gateway-bizum-redsys.php` — `ask_for_refund()` line 1554, `check_redsys_refund()` 1705, `process_refund()` 1732.
+- `classes/class-wc-gateway-googlepay-redirection-redsys.php` — `ask_for_refund()` line 1327, `check_redsys_refund()` 1484, `process_refund()` 1510.
+- `classes/class-wc-gateway-inespay-redsys.php` — `process_refund()` line 729, `get_api_url()` 810.
+- `classes/class-wc-gateway-redsys-global-lite.php` — `get_order_meta()` line 189, `prepare_order_number()` 1148, `redsys_amount_format()` 1168.
