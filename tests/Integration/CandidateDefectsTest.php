@@ -240,6 +240,50 @@ class CandidateDefectsTest extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * S-044: the third path of the same control. Building the payment form
+	 * with debug on must not write the signing secret either. Every gateway
+	 * that signs a Redsys request is driven, not only the one that failed.
+	 *
+	 * @dataProvider gateways_that_build_a_signed_form
+	 * @param string $gateway_class Gateway class name.
+	 */
+	public function test_debug_logging_of_the_payment_form_never_writes_the_signing_secret( $gateway_class ) {
+		$order = wc_create_order();
+		$order->set_total( 12.34 );
+		$order->save();
+
+		$gateway               = new $gateway_class();
+		$gateway->secretsha256 = $this->secret;
+		$gateway->testmode     = 'no';
+		$gateway->debug        = 'yes';
+		$gateway->log          = new Redsyslite_Test_Recording_Logger();
+
+		if ( 'WC_Gateway_GooglePay_Redirection_Redsys' === $gateway_class ) {
+			// Pre-existing and deferred (S-042): this class reads the billing name through the generic meta API.
+			$this->setExpectedIncorrectUsage( 'is_internal_meta_key' );
+		}
+
+		$args = $gateway->get_redsys_args( $order );
+
+		$this->transients[] = 'redsys_signature_' . WCRedL()->prepare_order_number( $order->get_id() );
+
+		$this->assertNotEmpty( $args['Ds_Signature'], 'The form must have been built and signed for this test to prove anything.' );
+		$this->assertNotEmpty( $gateway->log->lines, 'The form path is expected to log when debug is on.' );
+		foreach ( $gateway->log->lines as $line ) {
+			$this->assertStringNotContainsString( $this->secret, $line, 'The signing secret must never be written to the debug log.' );
+			$this->assertStringNotContainsString( base64_decode( $this->secret ), $line, 'Nor its decoded bytes.' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode
+		}
+	}
+
+	public function gateways_that_build_a_signed_form() {
+		return array(
+			'card'       => array( 'WC_Gateway_redsys' ),
+			'Bizum'      => array( 'WC_Gateway_Bizum_Redsys' ),
+			'Google Pay' => array( 'WC_Gateway_GooglePay_Redirection_Redsys' ),
+		);
+	}
+
 	public function gateways_that_logged_the_secret() {
 		return array(
 			'Bizum'      => array( 'WC_Gateway_Bizum_Redsys', '000000000501' ),

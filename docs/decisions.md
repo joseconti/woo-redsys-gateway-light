@@ -497,3 +497,14 @@
 - Not checked: PHP 8.x and PHP 7.0 to 7.3 (the playground is 7.4; the changed lines were read for 7.0 syntax). `successful_request()` was not called directly with such a payload: before the fix it reaches `exit` and would end the test run; it uses the same method.
 - Disclosure: this repository is public, and the fix and its tests are readable on `develop` before the release. The audit log keeps counts only until the release, as D-056 set.
 - Supersedes: the `TO BUILD` state D-056 gave the signature-verification row of `docs/threat-model.md`.
+
+## D-058 — The Google Pay debug log no longer writes the signing secret when the payment form is built (S-044, audit finding SA-03)
+- Date / phase: 2026-10-06 / sprint 3, slice S-044
+- Reproduced before the change (D-036): with debug on, `get_redsys_args()` of the Google Pay gateway printed the whole array it builds the form from, and that array carries the signing secret. The card and Bizum form paths were driven by the same test and did not log it.
+- Fixed: that one line prints the array without the secret. Nothing else changes; the log keeps every other field.
+- Why D-052 missed it (L-009): its tests drove the notification and refund paths, and the control was declared for the class. The test now drives the form path of the three gateways, and the threat-model row names the three paths its evidence covers.
+- Sweep of the class: every logger call that prints an array or names a secret was listed by search, and an independent read went through the 90 call sites that print a variable. No other line writes a signing secret or the Inespay API key. Read, not executed, for the paths that have no test.
+- Driven in the playground: a Google Pay checkout with debug on, then the gateway log read back — the form line is there, the configured secret is not.
+- For the release notes: a store that has had Google Pay debug logging on holds its signing secret in existing log files (`wp-content/uploads/wc-logs/`, name starting with the gateway id). The fix stops new lines; it does not clean old files. Whether to tell merchants to delete those logs, or to rotate the key, is the user's wording to decide when the version is proposed.
+- Left as it is: the secret kept in the `redsys_signature_<order>` transient (the D-025 family, hardening notes, S-053); the inbound signature and raw notification data in the log (S-040).
+- Supersedes: the `TO BUILD` state D-056 gave the debug-log row of `docs/threat-model.md`.

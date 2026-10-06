@@ -106,7 +106,7 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 * Fix: The cancel URL sent to Redsys for the card, Bizum and Google Pay gateways contained HTML-escaped separators, so a customer returning from a cancelled or refused payment did not have the cancellation processed. It is now sent as a plain URL.
 * Fix: A customer returning from a payment that Redsys had already cancelled was shown "Your order can no longer be cancelled"; the return is now treated as the cancellation it is.
 * Fix: A refund explicitly requested for 0 through the Redsys, Bizum or Google Pay gateways is now refused instead of being sent to Redsys as a refund of the full order total.
-* Fix: Debug logs of the Bizum, Google Pay and Redsys gateways no longer contain the signing secret or the locally computed signature.
+* Fix: Debug logs of the Bizum, Google Pay and Redsys gateways no longer contain the signing secret or the locally computed signature, including the Google Pay log line written when the payment form is built.
 * Fix: With debug logging on, a refund request that could not reach Redsys caused a fatal error; it now reports the error message.
 * Fix: A repeated payment notification for a Google Pay order that is already paid is now ignored, as in the other gateways.
 * Fix: Returning to the order-received page with a still unpaid Google Pay order stopped the page with an error; the payment is now verified and completed there.

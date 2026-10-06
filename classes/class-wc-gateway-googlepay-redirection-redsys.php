@@ -661,7 +661,8 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'googlepayredirecredsys', ' ' );
-			$this->log->add( 'googlepayredirecredsys', 'Data sent to GPay, $gpay_data_send: ' . print_r( $gpay_data_send, true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
+			// The signing secret travels in this array and must never reach the log.
+			$this->log->add( 'googlepayredirecredsys', 'Data sent to GPay, $gpay_data_send: ' . print_r( array_diff_key( $gpay_data_send, array( 'secretsha256' => '' ) ), true ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_print_r
 			$this->log->add( 'googlepayredirecredsys', ' ' );
 		}
 
