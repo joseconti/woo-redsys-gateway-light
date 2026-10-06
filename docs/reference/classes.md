@@ -98,7 +98,7 @@ A plain class with no WordPress dependency except `wp_json_encode()`. It holds o
 | `create_merchant_parameters` | `()` | `string` | Base64 of the JSON of all parameters. |
 | `create_merchant_signature` | `( string $key )` | `string` | Request signature, Base64. `$key` is the Base64 merchant secret. Needs `DS_MERCHANT_ORDER` set. |
 | `decode_merchant_parameters` | `( string $datos )` | `string` | Decodes Base64URL and loads the fields; returns the decoded JSON text. |
-| `create_merchant_signature_notif` | `( string $key, string $datos )` | `string` | Notification signature, Base64URL, for comparison with `Ds_Signature`. |
+| `create_merchant_signature_notif` | `( string $key, string $datos )` | `string` | Notification signature, Base64URL, for comparison with `Ds_Signature`. When `$datos` names no order (no `Ds_Order`, an empty one, or data that is not JSON) or `$key` is empty, the notification cannot be authenticated and the method returns the encoding of 32 fresh random bytes: never empty, different on every call, so no comparison can succeed. Always compare with `hash_equals()`. |
 | `sanitize_merchant_parameters` | `static ( string $raw )` | `string` | Restores `+` and strips everything outside the Base64/Base64URL alphabet. |
 | `mac256` | `( string $ent, string $key )` | `string` | Raw HMAC-SHA256. |
 | `encrypt_3des` | `( string $message, string $key )` | `string` | Key diversification (3DES-CBC, zero IV, zero padding). |

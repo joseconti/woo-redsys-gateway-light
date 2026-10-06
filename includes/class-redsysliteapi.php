@@ -262,10 +262,50 @@ class RedsysLiteAPI {
 		return $decodec;
 	}
 	/**
+	 * Raw signature for a notification that cannot be authenticated.
+	 *
+	 * Fresh random bytes: never empty and never the same twice, so no value
+	 * a caller presents can match it.
+	 *
+	 * @return string 32 bytes.
+	 */
+	private function unmatchable_signature() {
+		try {
+			return random_bytes( 32 );
+		} catch ( Exception $e ) {
+			// No entropy source. Still secret-dependent on nothing a caller can see.
+			return hash( 'sha256', uniqid( '', true ) . mt_rand() . microtime( true ), true );
+		}
+	}
+	/**
+	 * Diversify the merchant key with the order number of a notification.
+	 *
+	 * The key that signs a notification is the merchant secret encrypted
+	 * over the order number. With no order number, or no secret, that key
+	 * has zero bytes, and an HMAC under an empty key can be computed by
+	 * anyone. This is the one place that decides it: the three notification
+	 * signature methods use the unmatchable signature when it returns ''.
+	 * Redsys always sends an order number, so a genuine notification is
+	 * never of that shape.
+	 *
+	 * @param mixed  $order Order number named by the notification.
+	 * @param string $key   Merchant secret, already Base64-decoded.
+	 * @return string The diversified key, or '' when the notification cannot be authenticated.
+	 */
+	private function diversify_notif_key( $order, $key ) {
+		if ( ! is_scalar( $order ) || empty( $order ) || '' === (string) $key ) {
+			return '';
+		}
+		return (string) $this->encrypt_3des( (string) $order, $key );
+	}
+	/**
 	 * Crear firma del comercio para Notif, URLOK y URLKO.
 	 *
 	 * @param string $key   Clave para cifrar.
 	 * @param string $datos Datos a firmar.
+	 * @return string Base64URL signature to compare with Ds_Signature using hash_equals().
+	 *                Random, and different on every call, when the notification names
+	 *                no order or the key is empty.
 	 */
 	public function create_merchant_signature_notif( $key, $datos ) {
 		// Se decodifica la clave Base64.
@@ -275,7 +315,19 @@ class RedsysLiteAPI {
 		// Los datos decodificados se pasan al array de datos.
 		$this->string_to_array( $decodec );
 		// Se diversifica la clave con el Número de Pedido.
-		$key = $this->encrypt_3des( $this->get_order_notif(), $key );
+		$order = '';
+		if ( is_array( $this->vars_pay ) ) {
+			if ( ! empty( $this->vars_pay['Ds_Order'] ) ) {
+				$order = $this->vars_pay['Ds_Order'];
+			} elseif ( ! empty( $this->vars_pay['DS_ORDER'] ) ) {
+				$order = $this->vars_pay['DS_ORDER'];
+			}
+		}
+		$key = $this->diversify_notif_key( $order, $key );
+		// A notification that names no order cannot be authenticated.
+		if ( '' === $key ) {
+			return $this->base64_url_encode( $this->unmatchable_signature() );
+		}
 		// MAC256 del parámetro Ds_Parameters que envía Redsys.
 		$res = $this->mac256( $datos, $key );
 		// Se codifican los datos Base64.
@@ -293,7 +345,11 @@ class RedsysLiteAPI {
 		// Se obtienen los datos del Request.
 		$datos = $this->get_request_notif_soap( $datos );
 		// Se diversifica la clave con el Número de Pedido.
-		$key = $this->encrypt_3des( $this->get_order_notif_soap( $datos ), $key );
+		$key = $this->diversify_notif_key( $this->get_order_notif_soap( $datos ), $key );
+		// A notification that names no order cannot be authenticated.
+		if ( '' === $key ) {
+			return $this->encode_base64( $this->unmatchable_signature() );
+		}
 		// MAC256 del parámetro Ds_Parameters que envía Redsys.
 		$res = $this->mac256( $datos, $key );
 		// Se codifican los datos Base64.
@@ -312,7 +368,11 @@ class RedsysLiteAPI {
 		// Se obtienen los datos del Request.
 		$datos = $this->get_response_notif_soap( $datos );
 		// Se diversifica la clave con el Número de Pedido.
-		$key = $this->encrypt_3des( $num_pedido, $key );
+		$key = $this->diversify_notif_key( $num_pedido, $key );
+		// A notification that names no order cannot be authenticated.
+		if ( '' === $key ) {
+			return $this->encode_base64( $this->unmatchable_signature() );
+		}
 		// MAC256 del parámetro Ds_Parameters que envía Redsys.
 		$res = $this->mac256( $datos, $key );
 		// Se codifican los datos Base64.

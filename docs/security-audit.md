@@ -4,7 +4,7 @@
 
 | Date | Audited commit | Scope | Profiles | Verification | Confirmed (by severity) | Needs validation | Rejected | Confirmed still open |
 |---|---|---|---|---|---|---|---|---|
-| 2026-10-06 | `e50ab39` | full — 25 units (16 with candidates, 8 covered with none, 1 n/a) | `references/security/wordpress.md` | subagent — every candidate decided by a verifier that did not hunt it; one reproduced by its verifier in the playground | 9 — critical 0, high 0, medium 3, low 6 | 2 | 8 | 9 (slices S-043 to S-051) |
+| 2026-10-06 | `e50ab39` | full — 25 units (16 with candidates, 8 covered with none, 1 n/a) | `references/security/wordpress.md` | subagent — every candidate decided by a verifier that did not hunt it; one reproduced by its verifier in the playground | 9 — critical 0, high 0, medium 3, low 6 | 2 | 8 | 8 (slices S-044 to S-051); 1 fixed on `develop`, unreleased (S-043) |
 
 ## Findings disclosed after their fix shipped
 

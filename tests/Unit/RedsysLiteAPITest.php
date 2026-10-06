@@ -137,6 +137,126 @@ class RedsysLiteAPITest extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
+	 * Payloads that name no order. The signing key is diversified by the
+	 * order number, so each of these derives a key of zero bytes.
+	 *
+	 * @return array[]
+	 */
+	public function payloads_without_an_order() {
+		return array(
+			'Ds_Order absent'     => array( '{"Ds_Response":"0000","Ds_Amount":"100"}' ),
+			'Ds_Order empty'      => array( '{"Ds_Order":"","Ds_Response":"0000","Ds_Amount":"100"}' ),
+			'Ds_Order null'       => array( '{"Ds_Order":null,"Ds_Response":"0000"}' ),
+			'Ds_Order zero'       => array( '{"Ds_Order":0,"Ds_Response":"0000"}' ),
+			'Ds_Order "0"'        => array( '{"Ds_Order":"0","Ds_Response":"0000"}' ),
+			'Ds_Order false'      => array( '{"Ds_Order":false,"Ds_Response":"0000"}' ),
+			'Ds_Order array'      => array( '{"Ds_Order":["x"],"Ds_Response":"0000"}' ),
+			'JSON scalar'         => array( '5' ),
+			'not JSON'            => array( 'this is not JSON' ),
+			'empty parameters'    => array( '' ),
+		);
+	}
+
+	/**
+	 * S-043: a notification signature must never be computable without the
+	 * merchant secret. For a payload that names no order the derived key is
+	 * empty, and an HMAC with an empty key is something any caller can
+	 * compute.
+	 *
+	 * @dataProvider payloads_without_an_order
+	 * @param string $decoded The decoded Ds_MerchantParameters content.
+	 */
+	public function test_notif_signature_for_a_payload_without_an_order_cannot_be_computed_without_the_secret( $decoded ) {
+		$param = strtr( base64_encode( $decoded ), '+/', '-_' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+
+		// What a caller who does not hold the secret can compute.
+		$secretless = strtr( base64_encode( hash_hmac( 'sha256', $param, '', true ) ), '+/', '-_' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+
+		$api    = new RedsysLiteAPI();
+		$actual = $api->create_merchant_signature_notif( $this->fixture_secret(), $param );
+
+		$this->assertNotSame( $secretless, $actual, 'The signature of a payload without an order does not depend on the merchant secret.' );
+		$this->assertNotSame( '', $actual, 'An empty expected signature would match an empty Ds_Signature.' );
+
+		// It must not be a fixed value either: nothing a caller sees once can be replayed.
+		$again = ( new RedsysLiteAPI() )->create_merchant_signature_notif( $this->fixture_secret(), $param );
+		$this->assertNotSame( $actual, $again );
+	}
+
+	/**
+	 * S-043: a merchant secret that decodes to nothing signs nothing either,
+	 * even for a real order number.
+	 *
+	 * @dataProvider secrets_that_decode_to_nothing
+	 * @param string $secret A Base64 merchant secret with no bytes in it.
+	 */
+	public function test_notif_signature_under_an_empty_secret_is_unmatchable( $secret ) {
+		$param = strtr( base64_encode( '{"Ds_Order":"000123456","Ds_Response":"0000"}' ), '+/', '-_' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+
+		$first  = ( new RedsysLiteAPI() )->create_merchant_signature_notif( $secret, $param );
+		$second = ( new RedsysLiteAPI() )->create_merchant_signature_notif( $secret, $param );
+
+		$this->assertNotSame( '', $first );
+		$this->assertNotSame( $first, $second, 'A signature that does not depend on a secret must not be a fixed value.' );
+	}
+
+	/**
+	 * @return array[]
+	 */
+	public function secrets_that_decode_to_nothing() {
+		return array(
+			'empty'          => array( '' ),
+			'blank'          => array( '   ' ),
+			'not Base64'     => array( '!!!' ),
+		);
+	}
+
+	/**
+	 * S-043: the same rule for the SOAP response variant, which receives the
+	 * order number as an argument.
+	 *
+	 * @dataProvider empty_order_numbers
+	 * @param mixed $order An order number that names no order.
+	 */
+	public function test_soap_response_signature_without_an_order_cannot_be_computed_without_the_secret( $order ) {
+		$datos = '<Response Ds_Version="0.0"><Ds_Response_Merchant>OK</Ds_Response_Merchant></Response>';
+
+		$secretless = base64_encode( hash_hmac( 'sha256', $datos, '', true ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+		$actual     = ( new RedsysLiteAPI() )->create_merchant_signature_notif_soap_response( $this->fixture_secret(), $datos, $order );
+
+		$this->assertNotSame( $secretless, $actual );
+		$this->assertNotSame( '', $actual );
+		$this->assertNotSame( $actual, ( new RedsysLiteAPI() )->create_merchant_signature_notif_soap_response( $this->fixture_secret(), $datos, $order ) );
+	}
+
+	/**
+	 * @return array[]
+	 */
+	public function empty_order_numbers() {
+		return array(
+			'empty string' => array( '' ),
+			'null'         => array( null ),
+			'false'        => array( false ),
+			'zero'         => array( 0 ),
+			'"0"'          => array( '0' ),
+			'array'        => array( array() ),
+		);
+	}
+
+	/**
+	 * S-043, the other side: a notification that names its order through the
+	 * upper-case key keeps its documented, secret-dependent signature.
+	 */
+	public function test_notif_signature_for_an_upper_case_order_key_matches_the_documented_algorithm() {
+		$decoded = '{"DS_ORDER":"000123456","Ds_Response":"0000"}';
+		$param   = strtr( base64_encode( $decoded ), '+/', '-_' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+
+		$expected = strtr( base64_encode( $this->reference_signature( $this->fixture_secret(), '000123456', $param ) ), '+/', '-_' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+
+		$this->assertSame( $expected, ( new RedsysLiteAPI() )->create_merchant_signature_notif( $this->fixture_secret(), $param ) );
+	}
+
+	/**
 	 * @dataProvider provide_sanitize_merchant_parameters_cases
 	 */
 	public function test_sanitize_merchant_parameters( $raw, $expected ) {

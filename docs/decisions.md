@@ -486,3 +486,14 @@
 - Not a public issue: a confirmed finding is never filed on the public tracker, whatever `Issue capture:` says.
 - Supersedes: none. Discharges the audit D-040 scheduled; the gate itself stays open until S-052.
 
+
+## D-057 — A notification that names no order never verifies (S-043, audit finding SA-01)
+- Date / phase: 2026-10-06 / sprint 3, slice S-043
+- Reproduced before any change (D-036): for a payload with no order number the key that signs a notification had zero bytes, so the expected signature was the HMAC of the parameters under an empty key and did not depend on the merchant secret. 8 unit cases and 12 gateway cases (card, Bizum, Google Pay) failed. Such a notification resolves to no order, so no order, money or status was reachable; what did not hold was the gate itself, and the `valid_<gateway>_standard_ipn_request` action fired.
+- Fixed in one place rather than at the six comparison sites: `RedsysLiteAPI::diversify_notif_key()` (private) derives the key for the three notification-signature methods. With no order number, a non-scalar one, or a secret that decodes to nothing, the methods return the encoding of 32 fresh random bytes. The call sites and their `hash_equals()` are unchanged, and third-party code calling the public method is covered too. Not taken: returning an empty string or `false` (an empty `Ds_Signature` would match the first; the second is a type error in `hash_equals()` on PHP 8).
+- Behaviour kept: a notification with a real order number produces the same signature byte for byte (existing tests, plus one for the upper-case `DS_ORDER` key). An order number of `"0"` counts as no order, as it already did in `get_order_notif()`.
+- The audit report said `Ds_Order` `"0"` was not forgeable. The test showed it was: `empty( '0' )` is true, so it took the same path. Covered by the fix.
+- Review: an independent security read and an independent code read. Applied: the single helper (the first version repeated the rule three times), English comments, the `random_bytes()` fallback, no error silencers in the unit test, and the cases for an array order, a JSON scalar, an empty secret, the SOAP response variant and a positive control. No `@since` tag was written: the version number is the user's decision at the release gate.
+- Not checked: PHP 8.x and PHP 7.0 to 7.3 (the playground is 7.4; the changed lines were read for 7.0 syntax). `successful_request()` was not called directly with such a payload: before the fix it reaches `exit` and would end the test run; it uses the same method.
+- Disclosure: this repository is public, and the fix and its tests are readable on `develop` before the release. The audit log keeps counts only until the release, as D-056 set.
+- Supersedes: the `TO BUILD` state D-056 gave the signature-verification row of `docs/threat-model.md`.

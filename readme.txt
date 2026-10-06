@@ -101,6 +101,7 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == Unreleased ==
 
+* Security Fix: A payment notification that names no order is now always rejected by the Redsys, Bizum and Google Pay gateways. Such a notification could not reach any order, but it passed the signature check.
 * Tweak: The plugin's stylesheets and its Blocks checkout script are now loaded minified. The readable files are still included and are loaded when SCRIPT_DEBUG is on.
 * Fix: The cancel URL sent to Redsys for the card, Bizum and Google Pay gateways contained HTML-escaped separators, so a customer returning from a cancelled or refused payment did not have the cancellation processed. It is now sent as a plain URL.
 * Fix: A customer returning from a payment that Redsys had already cancelled was shown "Your order can no longer be cancelled"; the return is now treated as the cancellation it is.
