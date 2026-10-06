@@ -75,7 +75,7 @@ sequenceDiagram
 `AC-25`, `AC-33`, `AC-46`; the notification half is `AC-26` to `AC-32`.
 
 ## Source files
-- `classes/class-wc-gateway-googlepay-redirection-redsys.php` — `__construct()` line 190, `init_form_fields()` 308, `check_user_test_mode()` 402, `get_redsys_url_gateway()` 491, `get_redsys_sha256()` 564, `get_redsys_args()` 615, `generate_redsys_form()` 734, `process_payment()` 788, `receipt_page()` 801, `warning_checkout_test_mode_bizum()` 1617, `check_user_show_payment_method()` 1638, `show_payment_method()` 1674.
-- `classes/class-wc-gateway-redsys-global-lite.php` — `prepare_order_number()` line 1148, `get_redsys_option()` 51.
+- `classes/class-wc-gateway-googlepay-redirection-redsys.php` — `__construct()` line 190, `init_form_fields()` 308, `check_user_test_mode()` 402, `get_redsys_url_gateway()` 491, `get_redsys_sha256()` 564, `get_redsys_args()` 615, `generate_redsys_form()` 734, `process_payment()` 788, `receipt_page()` 801, `warning_checkout_test_mode_bizum()` 1621, `check_user_show_payment_method()` 1642, `show_payment_method()` 1678.
+- `classes/class-wc-gateway-redsys-global-lite.php` — `prepare_order_number()` line 1154, `get_redsys_option()` 51.
 - `includes/class-redsysliteapi.php` — request encoding and signature.
 - `includes/blocks/class-wc-gateway-googlepay-redirection-redsys-support.php` — Blocks registration.

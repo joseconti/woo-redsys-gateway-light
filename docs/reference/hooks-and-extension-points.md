@@ -14,10 +14,10 @@ Every example is ordinary WordPress code. Put it in a small plugin of your own o
 | # | Hook | Kind | Fired from |
 |---|------|------|------------|
 | 1 | `valid_redsys_standard_ipn_request` | action | `classes/class-wc-gateway-redsys.php:920` |
-| 2 | `valid_bizumredsys_standard_ipn_request` | action | `classes/class-wc-gateway-bizum-redsys.php:1168` |
-| 3 | `valid_googlepayredirecredsys_standard_ipn_request` | action | `classes/class-wc-gateway-googlepay-redirection-redsys.php:927` |
-| 4 | `googlepayredirecredsys_post_payment_complete` | action | `classes/class-wc-gateway-googlepay-redirection-redsys.php:1266` |
-| 5 | `googlepayredirecredsys_post_payment_error` | action | `classes/class-wc-gateway-googlepay-redirection-redsys.php:1316` |
+| 2 | `valid_bizumredsys_standard_ipn_request` | action | `classes/class-wc-gateway-bizum-redsys.php:1172` |
+| 3 | `valid_googlepayredirecredsys_standard_ipn_request` | action | `classes/class-wc-gateway-googlepay-redirection-redsys.php:931` |
+| 4 | `googlepayredirecredsys_post_payment_complete` | action | `classes/class-wc-gateway-googlepay-redirection-redsys.php:1270` |
+| 5 | `googlepayredirecredsys_post_payment_error` | action | `classes/class-wc-gateway-googlepay-redirection-redsys.php:1320` |
 | 6 | `inespay_post_payment_complete` | action | `classes/class-wc-gateway-inespay-redsys.php:687` |
 | 7 | `woocommerce_redsys_args` | filter | `classes/class-wc-gateway-redsys.php:701`, `classes/class-wc-gateway-bizum-redsys.php:909` |
 | 8 | `woocommerce_googlepayredirecredsys_args` | filter | `classes/class-wc-gateway-googlepay-redirection-redsys.php:724` |
@@ -33,7 +33,7 @@ Every example is ordinary WordPress code. Put it in a small plugin of your own o
 | 18 | `redsys_lite_apps_plugins_skills` | filter | `includes/class-redsys-lite-apps-plugins.php:634` |
 | 19 | `redsys_lite_apps_plugins_profiles` | filter | `includes/class-redsys-lite-apps-plugins.php:674` |
 | 20 | `woocommerce_ajax_loader_url` (WooCommerce's own) | filter | `classes/class-wc-gateway-redsys.php:738`, `:777`; `classes/class-wc-gateway-bizum-redsys.php:942`; `classes/class-wc-gateway-googlepay-redirection-redsys.php:757` |
-| 21 | `woocommerce_redsys_refund_confirmation_attempts`, `woocommerce_bizumredsys_refund_confirmation_attempts`, `woocommerce_googlepayredirecredsys_refund_confirmation_attempts` | filter | `classes/class-wc-gateway-redsys.php:1384`; `classes/class-wc-gateway-bizum-redsys.php:1783`; `classes/class-wc-gateway-googlepay-redirection-redsys.php:1561` |
+| 21 | `woocommerce_redsys_refund_confirmation_attempts`, `woocommerce_bizumredsys_refund_confirmation_attempts`, `woocommerce_googlepayredirecredsys_refund_confirmation_attempts` | filter | `classes/class-wc-gateway-redsys.php:1384`; `classes/class-wc-gateway-bizum-redsys.php:1787`; `classes/class-wc-gateway-googlepay-redirection-redsys.php:1565` |
 
 Five of these names are built at run time from the gateway ID (`'valid_' . $this->id . '_standard_ipn_request'`, `'woocommerce_' . $this->id . '_icon'`, `'woocommerce_' . $this->id . '_args'`, `$this->id . '_post_payment_complete'`, `$this->id . '_post_payment_error'`). The names above are the resolved ones; searching the code for the full string does not find those call sites.
 
@@ -48,7 +48,7 @@ All hooks predate the project's adoption into Keel, so none has an introducing s
 `valid_redsys_standard_ipn_request`, `valid_bizumredsys_standard_ipn_request`, `valid_googlepayredirecredsys_standard_ipn_request`
 
 - **Kind:** action.
-- **Fired from:** `check_ipn_response()` — `classes/class-wc-gateway-redsys.php:920`, `classes/class-wc-gateway-bizum-redsys.php:1168` (since 2.0.0), `classes/class-wc-gateway-googlepay-redirection-redsys.php:927` (since 1.0.0).
+- **Fired from:** `check_ipn_response()` — `classes/class-wc-gateway-redsys.php:920`, `classes/class-wc-gateway-bizum-redsys.php:1172` (since 2.0.0), `classes/class-wc-gateway-googlepay-redirection-redsys.php:931` (since 1.0.0).
 - **Parameters:**
   - `$post` (`array`) — the notification's `POST` fields after `stripslashes_deep()`, not otherwise sanitized. Expected keys: `Ds_SignatureVersion`, `Ds_MerchantParameters` (Base64 JSON), `Ds_Signature`.
 - **When:** each time a Redsys notification for that gateway passes signature validation, immediately after the `200` status header is sent. It fires for payment notifications and for refund notifications alike, and before the order has been updated.
@@ -82,7 +82,7 @@ add_action(
 ### 4. `googlepayredirecredsys_post_payment_complete`
 
 - **Kind:** action. **Since:** 2.0.0.
-- **Fired from:** `successful_request()` — `classes/class-wc-gateway-googlepay-redirection-redsys.php:1266`.
+- **Fired from:** `successful_request()` — `classes/class-wc-gateway-googlepay-redirection-redsys.php:1270`.
 - **Parameters:**
   - `$order_id` (`int`) — the WooCommerce order ID.
 - **When:** after an authorised Google Pay notification whose amount matched: the payment meta is saved, the notes are added and `payment_complete()` has run.
@@ -102,7 +102,7 @@ add_action(
 ### 5. `googlepayredirecredsys_post_payment_error`
 
 - **Kind:** action. **Since:** 2.0.0.
-- **Fired from:** `successful_request()` — `classes/class-wc-gateway-googlepay-redirection-redsys.php:1316`.
+- **Fired from:** `successful_request()` — `classes/class-wc-gateway-googlepay-redirection-redsys.php:1320`.
 - **Parameters:**
   - `$order_id` (`int`) — the WooCommerce order ID.
   - `$error` (`string`) — the Redsys response text and the Redsys error text joined by a space; either part can be empty.

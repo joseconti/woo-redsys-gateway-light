@@ -68,18 +68,23 @@ npx wp-env start --config .wp-env.ceiling.json
 WP_ENV_CONFIG=.wp-env.ceiling.json scripts/playground-setup
 npx wp-env run --config .wp-env.ceiling.json cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && vendor/bin/phpunit"
 npx wp-env run --config .wp-env.ceiling.json tests-cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && vendor/bin/phpunit -c phpunit-integration.xml.dist"
-PLAYGROUND_URL=http://localhost:8890 npx playwright test
+WP_ENV_CONFIG=.wp-env.ceiling.json PLAYGROUND_URL=http://localhost:8890 npx playwright test
 ```
+
+The browser suite needs both variables: `PLAYGROUND_URL` is where the browser goes, and `WP_ENV_CONFIG` is where the specs that prepare an order through `wp-env run` prepare it (three specs since S-059 and S-060). With the first alone they create their orders in the pinned instance and fail here (seen on 2026-10-06, S-071: 18 failed).
 
 Run `scripts/playground-setup` again after the integration suite and before
 the browser suite: the integration suite leaves the tests site with no
 plugin active. `scripts/keel-affected-tests` and the pre-push hook drive the
 pinned instance only; the ceiling is run by hand, at the release gate.
 
-Last run, 2026-10-06 (D-069): unit `OK (34 tests, 71 assertions)`,
-integration `OK (193 tests, 1372 assertions)`, browser `18 passed, 4 failed`
-— the four are the settings-form accessibility scans, on WooCommerce's own
-help-tip markup (`docs/accessibility.md`).
+Last run, 2026-10-06 at the tree of S-072 (D-079): unit `OK (34 tests, 71
+assertions)`, integration `OK (344 tests, 2012 assertions)`, browser `42
+passed, 5 failed` — four are the settings-form accessibility scans, on
+WooCommerce's own help-tip markup (`docs/accessibility.md`), and one is the
+Inespay case of `checkout-blocks-other-gateways.spec.js`, which fails about
+one run in four here: the country it sets through the classic checkout does
+not always reach the Blocks page.
 
 The PHP version (8.3) is the assistant's pick and was not asked. WordPress
 7.1.3 and WooCommerce 11.1.2 were current on that day and are NOT covered:

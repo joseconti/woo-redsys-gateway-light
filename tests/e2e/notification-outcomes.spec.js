@@ -1,5 +1,10 @@
 // @ts-check
 const { test, expect } = require( '@playwright/test' );
+
+// The classic cart page says it with a full stop, the Blocks cart page of a
+// current WooCommerce with an exclamation mark (seen on the ceiling instance,
+// S-071).
+const EMPTY_CART = /Your cart is currently empty[.!]/;
 const { execFileSync } = require( 'child_process' );
 
 /**
@@ -66,7 +71,7 @@ async function notify( request, gatewayId, made ) {
 async function fillCart( page ) {
 	await page.goto( '/?add-to-cart=10' );
 	await page.goto( '/cart/' );
-	await expect( page.getByText( 'Your cart is currently empty.' ) ).toHaveCount( 0 );
+	await expect( page.getByText( EMPTY_CART ) ).toHaveCount( 0 );
 	await expect( page.locator( '.woocommerce-cart-form, .wc-block-cart' ).first() ).toBeVisible();
 }
 
@@ -125,7 +130,7 @@ test.describe( 'card gateway (redsys)', () => {
 		expect( after.notes ).toContain( 'Order cancelled by Redsys' );
 		expect( after.date_paid ).toBeNull();
 		await page.goto( '/cart/' );
-		await expect( page.getByText( 'Your cart is currently empty.' ) ).toBeVisible();
+		await expect( page.getByText( EMPTY_CART ) ).toBeVisible();
 	} );
 
 	test( 'AC-11: the boundary — response 99 is authorised, response 100 is refused', async ( { request } ) => {
@@ -168,7 +173,7 @@ for ( const [ gatewayId, criterion, cancelNote ] of [
 			expect( after.notes ).toContain( cancelNote );
 			expect( after.date_paid ).toBeNull();
 			await page.goto( '/cart/' );
-			await expect( page.getByText( 'Your cart is currently empty.' ) ).toBeVisible();
+			await expect( page.getByText( EMPTY_CART ) ).toBeVisible();
 		} );
 
 		if ( 'bizumredsys' === gatewayId ) {

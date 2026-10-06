@@ -1091,7 +1091,13 @@ class WC_Gateway_Redsys_Global_Lite {
 	 * @return string The cleaned order number.
 	 */
 	public function clean_order_number( $ordernumber ) {
-		$real_order = get_transient( 'redys_order_temp_' . $ordernumber );
+		// Callers pass what a notification carried, before its signature is
+		// verified. Anything that is not an order number names no order.
+		if ( ! is_string( $ordernumber ) && ! is_int( $ordernumber ) ) {
+			return '';
+		}
+		$ordernumber = (string) $ordernumber;
+		$real_order  = get_transient( 'redys_order_temp_' . $ordernumber );
 		if ( $real_order ) {
 			return $real_order;
 		}

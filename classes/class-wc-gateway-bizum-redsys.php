@@ -1048,7 +1048,10 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	 * @return string
 	 */
 	private function resolve_notification_secret( $mi_obj ) {
-		$order_id          = (string) $mi_obj->get_parameter( 'Ds_Order' );
+		// The payload is the caller's until its signature is verified: an order
+		// number that is not a string names no order.
+		$order_id          = $mi_obj->get_parameter( 'Ds_Order' );
+		$order_id          = is_string( $order_id ) ? $order_id : '';
 		$secretsha256      = get_transient( 'redsys_signature_' . sanitize_title( $order_id ) );
 		$order2            = WCRedL()->clean_order_number( $order_id );
 		$secretsha256_meta = WCRedL()->get_order_meta( $order2, '_redsys_secretsha256', true );
@@ -1114,7 +1117,8 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			}
 			$mi_obj          = new RedsysLiteAPI();
 			$decodec         = $mi_obj->decode_merchant_parameters( $data );
-			$order_id        = (string) $mi_obj->get_parameter( 'Ds_Order' );
+			$order_id        = $mi_obj->get_parameter( 'Ds_Order' );
+			$order_id        = is_string( $order_id ) ? $order_id : '';
 			$usesecretsha256 = $this->resolve_notification_secret( $mi_obj );
 
 			if ( 'yes' === $this->debug ) {

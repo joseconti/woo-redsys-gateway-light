@@ -157,7 +157,7 @@ Documented:
 | `is_paid` | `( int $order_id )` | `bool` | False when the order does not exist or its status is in the unpaid list. |
 | `is_gateway_enabled` | `( string $gateway )` | `bool` | The `enabled` setting equals `yes`. |
 | `prepare_order_number` | `( int $order_id )` | `string` | 12-character Redsys order number; stores the mapping transient for one hour. |
-| `clean_order_number` | `( string $ordernumber )` | `string` | The order ID for a Redsys order number. |
+| `clean_order_number` | `( string $ordernumber )` | `string` | The order ID for a Redsys order number. A value that is neither a string nor an integer returns an empty string (S-072): callers pass what a notification carried before its signature is verified. |
 | `get_order_id_by_redsys_order_number` | `( string $ordernumber )` | `int\|false` | Looks the number up in order meta. |
 | `redsys_amount_format` | `( float $total )` | `string` | Amount in minor units, no separators. |
 | `product_description` | `( WC_Order $order, string $gateway )` | `string\|null` | Description sent to Redsys; null for an order that is not a Redsys-type order. |

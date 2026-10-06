@@ -224,8 +224,11 @@ test.describe( 'AC-55 and AC-56: a paid card order', () => {
 	test( 'AC-56: the order-received page lists the site, merchant code, authorisation number, store name, date and hour', async ( { page } ) => {
 		await page.goto( urls.received );
 
-		const text = page.locator( '.woocommerce-thankyou-order-received' );
-		await expect( text ).toContainText( 'Thanks for your purchase, the details of your transaction are:' );
+		// By what it says, not by its class: the classic page marks the
+		// paragraph `woocommerce-thankyou-order-received`, the order
+		// confirmation block of a current WooCommerce does not (S-071).
+		const text = page.locator( 'p', { hasText: 'Thanks for your purchase, the details of your transaction are:' } );
+		await expect( text ).toHaveCount( 1 );
 		await expect( text ).toContainText( `Website: ${ urls.site }` );
 		await expect( text ).toContainText( 'FUC: 999008881' );
 		await expect( text ).toContainText( 'Authorization Number: 123456' );
@@ -240,9 +243,9 @@ test.describe( 'AC-55 and AC-56: a paid card order', () => {
 
 		await page.goto( pendingUrls.received );
 
-		const text = page.locator( '.woocommerce-thankyou-order-received' );
-		await expect( text ).toBeVisible();
-		await expect( text ).not.toContainText( 'the details of your transaction are' );
-		await expect( text ).not.toContainText( 'FUC:' );
+		await expect( page.locator( 'p', { hasText: 'Your order has been received' } ) ).toBeVisible();
+		const body = page.locator( 'body' );
+		await expect( body ).not.toContainText( 'the details of your transaction are' );
+		await expect( body ).not.toContainText( 'FUC:' );
 	} );
 } );

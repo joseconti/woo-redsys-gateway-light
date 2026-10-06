@@ -46,7 +46,7 @@ items:
     status: not-started
     hours: 2
     target: null
-    reason: D-056 — none has an affected principal; triage with the user after the confirmed findings are fixed. D-065 — the scoped re-audit added 18 notes (local report of the `476d52e` run); one of them, an uncaught error on PHP 8 for a Bizum notification posted without its signature-version field, is the first to look at
+    reason: D-056 — none has an affected principal; triage with the user after the confirmed findings are fixed. D-065 — the scoped re-audit added 18 notes (local report of the `476d52e` run); one of them, an uncaught error on PHP 8 for a Bizum notification posted without its signature-version field, was fixed as S-064. D-078 — the second pass of the gate read added four (the signature transient deleted before verification; currency, merchant code and terminal of a signed notification not compared; an undefined variable in a debug line of process_refund(); maybe_unserialize() on an option), in the local run of `5e31697`
     depends_on: []
     criteria: []
   - id: S-057
@@ -79,6 +79,22 @@ items:
     hours: 1
     target: null
     reason: D-074 — found while driving AC-46 (S-060); the classic checkout hides it for the same customer; not checked on a current WooCommerce nor whether such an order can be placed; older than this release
+    depends_on: []
+    criteria: []
+  - id: S-073
+    title: Escape the translated strings of the three redirect forms (the redirect message inside the inline script, the two button labels) and pass the Google Pay form through wp_kses like its siblings
+    status: not-started
+    hours: 1
+    target: null
+    reason: D-078 — hardening, needs a hostile translation file; the forms are what every customer sees on the way to Redsys, so the change wants its own tests and the owner's word on whether it rides in this release; one label carries an intentional entity
+    depends_on: []
+    criteria: []
+  - id: S-074
+    title: ABSPATH guard in woocommerce-redsys.php and includes/class-redsysliteapi.php (the unit suite loads the second without WordPress, so its bootstrap changes with it); decide the generated asset and translation files
+    status: not-started
+    hours: 0.5
+    target: null
+    reason: D-078 — the project's own rule says every PHP file; no exploit, a direct request is a PHP error or nothing; older than this release
     depends_on: []
     criteria: []
 ---

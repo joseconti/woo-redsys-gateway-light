@@ -78,7 +78,7 @@ sequenceDiagram
 
 ## Source files
 - `classes/class-wc-gateway-redsys.php` — `__construct()` line 238, `is_valid_for_use()` 331, `get_redsys_args()` 572, `generate_redsys_form()` 710, `process_payment()` 808, `receipt_page()` 820, `warning_checkout_test_mode()` 1433.
-- `classes/class-wc-gateway-redsys-global-lite.php` — `prepare_order_number()` line 1148.
+- `classes/class-wc-gateway-redsys-global-lite.php` — `prepare_order_number()` line 1154.
 - `classes/class-wc-gateway-redsys-psd2-light.php` — `get_acctinfo()` line 571.
 - `includes/class-redsysliteapi.php` — `create_merchant_parameters()` line 172, `create_merchant_signature()` 185.
 - `includes/blocks/class-wc-gateway-redsys-lite-support.php` — Blocks registration.

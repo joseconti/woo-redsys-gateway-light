@@ -262,7 +262,7 @@ slices:
     criteria: []
   - id: S-069
     title: Gate security read, second pass — an independent verifier for the unverified candidates of the read at e89356b (G-4 to G-7 and the reader's notes on is_paid() and replay), and a read of what that pass did not cover (the shipped diff since e89356b, the PSD2 and global classes, the refund request bodies)
-    status: in-progress
+    status: done
     hours: 1.5
     actual_hours: 0.0133
     actual_source: measured
@@ -270,19 +270,35 @@ slices:
     criteria: []
   - id: S-070
     title: Self-audit answers that need no owner — the test-point row without a command (7), the suppression count justified or reduced (8), the two test-modifying commits read diff by diff (16), failing cases for the older linter checks (17c); docs/07-release.md brought up to the tree
-    status: not-started
+    status: done
     hours: 0.75
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.0003
+    actual_source: measured
     depends_on: [S-061]
     criteria: []
   - id: S-071
     title: The whole suite on the ceiling instance at the current tree — the tests of S-060 and S-064 to S-067 have never run on WordPress 7.0.7, WooCommerce 10.9.4 and PHP 8.3
+    status: done
+    hours: 0.5
+    actual_hours: 0.7761
+    actual_source: measured
+    depends_on: [S-060]
+    criteria: []
+  - id: S-072
+    title: A Google Pay notification whose Ds_Order is not a string ends in an uncaught error on PHP 8, and a Bizum one in a warning (found by the second pass of the gate security read, S-069; the sibling S-064 left)
+    status: done
+    hours: 0.5
+    actual_hours: 0.0003
+    actual_source: measured
+    depends_on: [S-069]
+    criteria: []
+  - id: S-075
+    title: Tests for the six documented hooks no test names (redsys_status_pending, the three valid_*_standard_ipn_request actions, woocommerce_redsys_args, woocommerce_googlepayredirecredsys_args) — self-audit answer 5
     status: not-started
     hours: 0.5
     actual_hours: null
     actual_source: estimated
-    depends_on: [S-060]
+    depends_on: [S-070]
     criteria: []
 ---
 
@@ -324,3 +340,9 @@ slices:
 - Session close, 2026-10-06 evening: inbound issue sweep at 21:52 (`gh issue list`: six open issues, none new, no new comment); token ledger and session row written.
 - S-068 (done 2026-10-06, D-077; promoted from `deferred.md` at the session start): 76 of the 87 line numbers in the "Source files" lists of `docs/flows/` were behind the code and are re-resolved; check 28 reads `docs/flows/` and check 25 runs the test-map check, each seen failing first.
 - Added at the 22:00 session start, with S-068: S-069 (second pass of the gate security read, 1.5 h), S-070 (self-audit answers that need no owner, 0.75 h), S-071 (the whole suite on the ceiling instance at the current tree, 0.5 h).
+- S-069 (done 2026-10-06, D-078): the second pass of the gate security read — three agents in one block; one new defect (S-072), one claim refuted, two items for the owner, hardening notes to S-053 and two new deferred slices (S-073, S-074). The threat model's escaping row no longer says the whole tree was scanned.
+- S-072 (done 2026-10-06, D-078; added when S-069 found it, 0.5 h): a Google Pay notification whose order number is not a string no longer ends in a PHP 8 error, nor a Bizum one in a warning. Red on both instances, green on both; pinned selection `176 of 187`, GREEN.
+- S-071 (done 2026-10-06, D-079): the ceiling at the current tree — unit 34, integration 344 green; browser 42 of 47 (four known scans, one intermittent test preparation). Three browser assertions made instance-independent; the ceiling recipe corrected.
+- S-070 (done 2026-10-06, D-080): self-audit answers 7, 8, 16 and 17c closed; 5 is S-075; 1 and 18 stay with the owner.
+- Suppression count: 141 (justified in D-080; 98 at the close of sprint 2).
+- Clock, this session: S-069, S-070, S-071 and S-072 were worked interleaved while agents and suites ran, and the clock holds one slice at a time — most of the four slices' time is on S-071's line. Their sum is measured; the split between them is not.
