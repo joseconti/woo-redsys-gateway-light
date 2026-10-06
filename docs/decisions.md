@@ -283,3 +283,36 @@
 - Why: the user's call ("no hace falta mirar competencia"). The plugin is already released and in production as the Lite edition of the user's own commercial plugin; its scope is set by that relationship, not by a market scan.
 - Consequence: those rows are `declined` (this entry) in `docs/keel-conformance.md`, never `missing`. Re-offered only if the user asks.
 - Supersedes: none.
+
+## D-036 — Test-first policy: pure-logic
+- Date / phase: 2026-10-06 / post-update reconciliation (question introduced by Keel v5.11.0, never asked here)
+- Decision: the user chose `pure-logic`, Keel's default. Pure functions of their inputs — signature computation and verification, order-number preparation and recovery, amount handling, validators — get their test written and seen failing before their code. Not retroactive.
+- Holds at every value regardless: a bug fix starts from a test that reproduces the bug and fails, and a test derived from an `AC-nn` or a reproduced bug is never edited to make it pass.
+- Alternatives rejected: `pure-logic + acceptance` (slower, not chosen); `none`.
+- Supersedes: none.
+
+## D-037 — Chaining model: opus
+- Date / phase: 2026-10-06 / post-update reconciliation (question introduced by Keel v5.13.0, never asked here)
+- Decision: every chat that the close-out chains launches with the model `opus`, passed on the launch line. Asked, not inferred.
+- Why: long unattended stretches on payment code; the user's explicit choice over `sonnet` and `fable`.
+- Supersedes: none. Extends D-015 (`Chaining: start`), which stands.
+
+## D-038 — Front-end minification scheduled as its own slice (S-027), not applied inside the reconciliation
+- Date / phase: 2026-10-06 / post-update reconciliation
+- Decision: Keel's build-assets contract (source plus minified pair, minified served unless `SCRIPT_DEBUG`) is NOT met today and is not applied by the reconciliation. The user scheduled it as slice S-027 in sprint 3, before the next release.
+- Why: applying it changes enqueue code that reaches production stores; it deserves its own slice with its own verification rather than riding a scaffolding change.
+- Consequence: the conformance row stays `missing`, scheduled (S-027), by this decision. It is neither declined nor forgotten.
+- Supersedes: none.
+
+## D-039 — Native Claude Code config package accepted in full
+- Date / phase: 2026-10-06 / post-update reconciliation
+- Decision: the question D-008 never explicitly put — whether the project carries Keel's native assistant config for its one accepted tool — was asked and the user accepted the full package for Claude Code: path-scoped rules (`.claude/rules/`), reviewer and security-auditor subagents (`.claude/agents/`), the confidential-data pre-commit gate (`.githooks/pre-commit`) and a committed permission allow-list (`.claude/settings.json`), the last one confirmed by the user separately before it is written.
+- Why: a payment gateway handles merchant signing secrets; a mechanical gate against committing them is cheap, and reviewers bound to the project's own recorded decisions keep later sessions from re-deriving them.
+- Not included: forge CI workflows and MCP registration were not part of what the user accepted; `CI runs on: n/a`.
+- Supersedes: the card's `Assistant config: none`. Extends D-008 (Claude Code remains the only accepted tool).
+
+## D-040 — Sprint plan created; Security audit derived as required
+- Date / phase: 2026-10-06 / post-update reconciliation
+- Decision: (1) `docs/sprints/` now holds the plan Keel v5.21.0 requires in every phase: sprint 1 backfills the work done before the plan existed (hours estimated, labelled as such), sprint 2 is this reconciliation, sprint 3 is the release preparation built from the open items, and `docs/sprints/deferred.md` holds D-025 and the L-004 follow-up. `Sprints: on` and `Push test scope: affected` are defaults written on the card, not questions. (2) `Security audit: required` is derived, not asked: the plugin moves money and exposes IPN/callback endpoints reachable from outside. The next release gate therefore needs an active audit covering the candidate (scheduled as S-028) or a decision entry declining it.
+- Why: (1) the instruction in D-014's scaffold — do not invent a sprint file until one is planned with the user — was correct under v5.9.0; the user ordered the full reconciliation, which is that planning. (2) per `references/security-audit.md`.
+- Supersedes: none. Extends D-014.

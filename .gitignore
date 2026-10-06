@@ -53,3 +53,4 @@ docs/continuation-prompt.md
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+docs/.keel/clock.jsonl

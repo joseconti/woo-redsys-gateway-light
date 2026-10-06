@@ -1,0 +1,812 @@
+#!/usr/bin/env bash
+#
+# keel-time — the only thing that reads the clock, per Keel's
+# references/project-state.md ("Session time — scripts/keel-time and
+# docs/sessions.md"). A model does not know the time and cannot feel how long
+# a slice took, so NO subcommand accepts a typed time: each one runs
+# `date -u +%Y-%m-%dT%H:%M:%SZ` itself and appends ONE line per event to
+# docs/.keel/clock.jsonl (gitignored; schema `keel.clock/1`).
+#
+# Subcommands:
+#   start [--plan S-030,S-031]
+#       Closes any session this log left open, at its LAST recorded event
+#       (never at "now"), writes its partial slice hours and its row in
+#       docs/sessions.md marked `unterminated`, then opens the new session and
+#       prints the start block. Without --plan, the planned slices are the
+#       open slices in queue order up to the first one named under
+#       "## Current position" in docs/PROGRESS.md; when that section names no
+#       open slice, they are the `in-progress` slices, or failing that the
+#       first open slice.
+#   slice-start <id>
+#       Opens an interval for the slice. A slice already open in this session
+#       is closed first, as in-progress. Writes only the clock log.
+#   slice-end <id> --status done|in-progress|blocked
+#       Closes the interval and writes the slice's cumulative `actual_hours`
+#       (what the sprint file already holds + this interval, minus pauses) and
+#       `actual_source` into its sprint file's frontmatter, changing only that
+#       slice's `status` / `actual_hours` / `actual_source` lines. Prints
+#       estimated vs measured. `blocked` is recorded in the clock log and the
+#       session row; the frontmatter status enum has no such value, so the
+#       slice stays `in-progress` there.
+#   pause <reason>      Opens a wait on the person.
+#   resume              Closes it. Paused time is subtracted from the session
+#                       and from any slice interval it falls inside.
+#   end
+#       Closes open intervals as in-progress (writing their partial hours),
+#       runs `scripts/keel-plan build`, appends the session's row to
+#       docs/sessions.md, and prints the mandatory session report.
+#   report
+#       Prints the report for the session so far (or for the last recorded
+#       session when none is open). Writes nothing.
+#
+# Measured vs estimated: a slice whose sprint file already carries a numeric
+# `actual_hours` labelled `actual_source: estimated` keeps that label when
+# clock time is added to it — an estimated figure is never relabelled as
+# measured. A slice whose `actual_hours` was null, or already measured, is
+# written as `measured`.
+#
+# The plan arithmetic (hours left, pace factor, projection) is NOT
+# re-implemented here: it is read from `scripts/keel-plan json`, which lives
+# next to this script.
+#
+# Exit codes: 0 ok · 2 usage error or a command that does not fit the log's
+# state (no open session, slice not open, already paused, unknown slice id…),
+# in which case nothing is written.
+#
+# Timestamps are UTC in the clock log, local time with its UTC offset in
+# docs/sessions.md, and local time in everything printed. Every hour figure
+# is AI working time plus supervision.
+#
+# Repository root: `git rev-parse --show-toplevel`, or the directory named by
+# the environment variable KEEL_ROOT when it is set (used by tests to run
+# against a scratch copy).
+#
+# Requires: bash 3.2+, python3 (standard library only), scripts/keel-plan.
+
+set -u
+
+if [ -n "${KEEL_ROOT:-}" ]; then
+  ROOT="$KEEL_ROOT"
+else
+  ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+fi
+if [ -z "$ROOT" ] || [ ! -d "$ROOT" ]; then
+  echo "keel-time: no repository root (not inside a git repository and KEEL_ROOT is not set)" >&2
+  exit 2
+fi
+
+SELF_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ ! -f "$SELF_DIR/keel-plan" ]; then
+  echo "keel-time: scripts/keel-plan not found next to this script" >&2
+  exit 2
+fi
+
+command -v python3 >/dev/null 2>&1 || { echo "keel-time: python3 not found" >&2; exit 2; }
+
+exec python3 - "$ROOT" "$SELF_DIR/keel-plan" "$@" <<'PY'
+# -*- coding: utf-8 -*-
+import calendar
+import io
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+from datetime import datetime
+
+ROOT = sys.argv[1]
+KEEL_PLAN = sys.argv[2]
+ARGS = sys.argv[3:]
+
+CLOCK = os.path.join(ROOT, "docs", ".keel", "clock.jsonl")
+SESSIONS = os.path.join(ROOT, "docs", "sessions.md")
+PROGRESS = os.path.join(ROOT, "docs", "PROGRESS.md")
+SPRINTS_DIR = os.path.join(ROOT, "docs", "sprints")
+
+USAGE = """usage: scripts/keel-time start [--plan S-030,S-031]
+       scripts/keel-time slice-start <id>
+       scripts/keel-time slice-end <id> --status done|in-progress|blocked
+       scripts/keel-time pause <reason>
+       scripts/keel-time resume
+       scripts/keel-time end
+       scripts/keel-time report
+"""
+END_STATUSES = ("done", "in-progress", "blocked")
+MINUS = u"\u2212"
+DASH = u"\u2014"
+ARROW = u"\u2192"
+DOT = u"\u00b7"
+UNAVAILABLE = "unavailable %s no measured completed work" % DASH
+SESSIONS_HEADER = (
+    "| Start | End | Wall-clock h | Paused h | Planned (slices, est. h) | Done | Est. h | Actual h | "
+    "Deviation h | Not finished (h spent) | Left after h | Active h | Pace factor | Projected left h | Notes |\n"
+    "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n")
+
+
+class Refuse(Exception):
+    pass
+
+
+def out(text):
+    sys.stdout.buffer.write(text.encode("utf-8"))
+    sys.stdout.flush()
+
+
+def read(path):
+    with io.open(path, "r", encoding="utf-8", newline="") as fh:
+        return fh.read()
+
+
+def write(path, text):
+    folder = os.path.dirname(path)
+    if not os.path.isdir(folder):
+        os.makedirs(folder)
+    temp = path + ".tmp"
+    with io.open(temp, "w", encoding="utf-8", newline="") as fh:
+        fh.write(text)
+    if os.path.exists(path):
+        os.chmod(temp, os.stat(path).st_mode & 0o7777)
+    os.rename(temp, path)
+
+
+# --- the clock ---------------------------------------------------------------
+
+def now_utc():
+    """The system clock, read the way the contract names it. Never an argument."""
+    stamp = subprocess.check_output(["date", "-u", "+%Y-%m-%dT%H:%M:%SZ"]).decode("ascii").strip()
+    if not re.match(r"^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$", stamp):
+        raise Refuse("the system clock returned an unusable value: %r" % stamp)
+    return stamp
+
+
+def epoch(stamp):
+    return calendar.timegm(time.strptime(stamp, "%Y-%m-%dT%H:%M:%SZ"))
+
+
+def local(stamp):
+    return datetime.fromtimestamp(epoch(stamp)).astimezone()
+
+
+def local_iso(stamp):
+    text = local(stamp).strftime("%Y-%m-%dT%H:%M:%S%z")
+    return text[:-2] + ":" + text[-2:]
+
+
+def duration(seconds):
+    seconds = int(round(seconds))
+    if seconds < 60:
+        return "%d s" % seconds
+    minutes = int(round(seconds / 60.0))
+    if minutes < 60:
+        return "%d min" % minutes
+    return "%d h %d min" % (minutes // 60, minutes % 60)
+
+
+def h(x, places=2):
+    x = round(float(x), places)
+    if x == 0:
+        x = 0.0
+    text = ("%." + str(places) + "f") % x
+    text = text.rstrip("0").rstrip(".") if "." in text else text
+    return text.replace("-", MINUS)
+
+
+def signed(x, places=2):
+    text = h(x, places)
+    return text if text.startswith(MINUS) else "+" + text
+
+
+def plural(n, word):
+    return "%d %s%s" % (n, word, "" if n == 1 else "s")
+
+
+# --- the clock log -----------------------------------------------------------
+
+def load_log():
+    events = []
+    if not os.path.isfile(CLOCK):
+        return events
+    for number, line in enumerate(read(CLOCK).split("\n"), start=1):
+        if not line.strip():
+            continue
+        try:
+            event = json.loads(line)
+        except ValueError:
+            raise Refuse("docs/.keel/clock.jsonl line %d is not valid JSON" % number)
+        if isinstance(event, dict) and event.get("event") and event.get("at") and event.get("session"):
+            events.append(event)
+    return events
+
+
+def append(kind, at, session, extra=None):
+    pairs = [("schema", "keel.clock/1"), ("event", kind), ("at", at), ("session", session)]
+    pairs += extra or []
+    event = {}
+    for key, val in pairs:
+        event[key] = val
+    folder = os.path.dirname(CLOCK)
+    if not os.path.isdir(folder):
+        os.makedirs(folder)
+    with io.open(CLOCK, "a", encoding="utf-8", newline="") as fh:
+        fh.write(json.dumps(event, separators=(",", ":"), ensure_ascii=False) + "\n")
+    return event
+
+
+def last_session(events):
+    """Events of the newest session in the log, or []."""
+    ident = None
+    for event in events:
+        if event["event"] == "session-start":
+            ident = event["session"]
+    return [e for e in events if e["session"] == ident] if ident else []
+
+
+def is_open(session):
+    return bool(session) and not any(e["event"] == "session-end" for e in session)
+
+
+def overlap(a0, a1, b0, b1):
+    return max(0, min(a1, b1) - max(a0, b0))
+
+
+def analyse(session, until):
+    """Everything the session's events say, with open intervals cut at `until` (epoch)."""
+    start_event = session[0]
+    start = epoch(start_event["at"])
+    ended = [e for e in session if e["event"] == "session-end"]
+    stop = epoch(ended[-1]["at"]) if ended else until
+    pauses, pending_pause = [], None
+    for event in session:
+        if event["event"] == "pause" and pending_pause is None:
+            pending_pause = epoch(event["at"])
+        elif event["event"] == "resume" and pending_pause is not None:
+            pauses.append((pending_pause, epoch(event["at"])))
+            pending_pause = None
+    paused_now = pending_pause is not None and not ended
+    if pending_pause is not None:
+        pauses.append((pending_pause, stop))
+    order, intervals, final, opened = [], {}, {}, {}
+    for event in session:
+        ident = event.get("slice")
+        if event["event"] == "slice-start":
+            if ident not in order:
+                order.append(ident)
+            opened[ident] = epoch(event["at"])
+            final[ident] = "open"
+        elif event["event"] == "slice-end" and ident in opened:
+            intervals.setdefault(ident, []).append((opened.pop(ident), epoch(event["at"])))
+            final[ident] = event.get("status", "in-progress")
+    open_slices = list(opened.keys())
+    for ident, begun in opened.items():
+        intervals.setdefault(ident, []).append((begun, stop))
+
+    def active(a0, a1):
+        return max(0, (a1 - a0) - sum(overlap(a0, a1, p0, p1) for p0, p1 in pauses))
+
+    spent = {}
+    for ident, spans in intervals.items():
+        spent[ident] = sum(active(a0, a1) for a0, a1 in spans)
+    wall = max(0, stop - start)
+    paused = sum(overlap(start, stop, p0, p1) for p0, p1 in pauses)
+    return {
+        "id": start_event["session"],
+        "start": start, "stop": stop,
+        "start_stamp": start_event["at"],
+        "stop_stamp": ended[-1]["at"] if ended else None,
+        "closed": bool(ended),
+        "unterminated": bool(ended and ended[-1].get("unterminated")),
+        "planned": list(start_event.get("planned") or []),
+        "planned_hours": start_event.get("planned_hours") or 0,
+        "wall": wall, "paused": paused, "active": max(0, wall - paused),
+        "paused_now": paused_now,
+        "order": order, "final": final, "spent": spent,
+        "open_slices": open_slices, "opened": opened,
+        "active_between": active,
+    }
+
+
+# --- the plan (one implementation: scripts/keel-plan) -------------------------
+
+def plan_now():
+    env = dict(os.environ)
+    env["KEEL_ROOT"] = ROOT
+    proc = subprocess.Popen(["bash", KEEL_PLAN, "json"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+    stdout, stderr = proc.communicate()
+    if proc.returncode != 0:
+        raise Refuse("scripts/keel-plan json failed: %s" % stderr.decode("utf-8", "replace").strip())
+    return json.loads(stdout.decode("utf-8"))
+
+
+def plan_build():
+    env = dict(os.environ)
+    env["KEEL_ROOT"] = ROOT
+    proc = subprocess.Popen(["bash", KEEL_PLAN, "build"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+    stdout, stderr = proc.communicate()
+    if proc.returncode != 0:
+        raise Refuse("scripts/keel-plan build failed: %s" % stderr.decode("utf-8", "replace").strip())
+
+
+def slices_by_id(plan):
+    found = {}
+    for sprint in plan["sprints"]:
+        for item in sprint["slices"]:
+            found[item["id"]] = dict(item, sprint=sprint["sprint"], file=sprint["file"])
+    return found
+
+
+def queue(plan):
+    return [x for s in plan["sprints"] for x in s["slices"] if x["status"] not in ("done", "dropped")]
+
+
+def default_plan(plan):
+    pending = queue(plan)
+    ids = [x["id"] for x in pending]
+    named = []
+    if os.path.isfile(PROGRESS):
+        match = re.search(r"^## Current position[^\n]*\n(.*?)(?=^## |\Z)", read(PROGRESS).replace("\r\n", "\n"),
+                          re.S | re.M)
+        if match:
+            named = [i for i in re.findall(r"\bS-\d+\b", match.group(1)) if i in ids]
+    if named:
+        return ids[:ids.index(named[0]) + 1]
+    working = [x["id"] for x in pending if x["status"] == "in-progress"]
+    return working or ids[:1]
+
+
+def left_line(plan):
+    """`sprint 4 — 2 slices, 3.5 h · sprint 5 — 6 h · total 9.5 h`"""
+    parts, first = [], True
+    for sprint in plan["sprints"]:
+        if sprint["slices_pending"] == 0:
+            continue
+        if first:
+            first = False
+            parts.append("sprint %d %s %s, %s h" % (sprint["sprint"], DASH,
+                                                     plural(sprint["slices_pending"], "slice"),
+                                                     h(sprint["remaining_hours"])))
+        else:
+            parts.append("sprint %d %s %s h" % (sprint["sprint"], DASH, h(sprint["remaining_hours"])))
+    parts.append("total %s h" % h(plan["totals"]["remaining_hours"]))
+    return (" %s " % DOT).join(parts)
+
+
+def projection_line(plan):
+    totals = plan["totals"]
+    if totals["remaining_hours"] == 0:
+        return "0 h (no work remains)"
+    if totals["pace_factor"] is None:
+        return UNAVAILABLE
+    parts, first = [], True
+    for sprint in plan["sprints"]:
+        if sprint["slices_pending"] == 0:
+            continue
+        if first:
+            first = False
+            parts.append("sprint %d %s %s h" % (sprint["sprint"], DASH, h(sprint["projected_remaining_hours"])))
+    parts.append("total %s h" % h(totals["projected_remaining_hours"]))
+    text = (" %s " % DOT).join(parts)
+    if totals["pace_sample"]["provisional"]:
+        text += " (provisional sample)"
+    return text
+
+
+def cumulative_line(plan):
+    totals = plan["totals"]
+    sample = totals["pace_sample"]
+    if totals["pace_factor"] is None:
+        return UNAVAILABLE
+    return "estimated %s h %s measured %s h (%s %%, factor %s; %s)" % (
+        h(sample["estimated_hours"]), ARROW, h(sample["actual_hours"]),
+        signed(sample["deviation_percent"], 1), h(totals["pace_factor"], 4),
+        plural(sample["slices"], "slice"))
+
+
+# --- surgical frontmatter edit ------------------------------------------------
+
+def fmt_hours(x):
+    text = "%.4f" % round(float(x), 4)
+    return text.rstrip("0").rstrip(".") or "0"
+
+
+def edit_slice(rel_file, ident, add_seconds, status):
+    """Add seconds to the slice's actual_hours; touch only its three lines.
+
+    Returns (cumulative hours, source written)."""
+    path = os.path.join(ROOT, rel_file)
+    lines = read(path).split("\n")
+    head = None
+    for i, line in enumerate(lines):
+        if i > 0 and line.strip() == "---":
+            break
+        if re.match(r"^\s*-\s+id:\s*%s\s*(#.*)?\r?$" % re.escape(ident), line):
+            head = i
+            break
+    if head is None:
+        raise Refuse("%s: slice %s not found in the frontmatter" % (rel_file, ident))
+    tail = len(lines)
+    for i in range(head + 1, len(lines)):
+        if lines[i].strip() == "---" or re.match(r"^\s*-\s+id:", lines[i]):
+            tail = i
+            break
+    field = re.compile(r"^(\s*)(status|hours|actual_hours|actual_source)(:[ \t]*)([^\s#]*)(.*)$")
+    where = {}
+    for i in range(head + 1, tail):
+        match = field.match(lines[i])
+        if match and match.group(2) not in where:
+            where[match.group(2)] = (i, match)
+    old_hours, old_source = None, None
+    if "actual_hours" in where:
+        try:
+            old_hours = float(where["actual_hours"][1].group(4))
+        except ValueError:
+            old_hours = None
+    if "actual_source" in where:
+        old_source = where["actual_source"][1].group(4)
+    total = (old_hours or 0.0) + add_seconds / 3600.0
+    source = "estimated" if (old_hours is not None and old_source == "estimated") else "measured"
+
+    def put(name, text, after):
+        if name in where:
+            i, m = where[name]
+            lines[i] = m.group(1) + m.group(2) + m.group(3) + text + m.group(5)
+            return
+        anchor = where.get(after)
+        if anchor is None:
+            raise Refuse("%s: slice %s has no '%s:' line to anchor '%s:' to" % (rel_file, ident, after, name))
+        i, m = anchor
+        ending = "\r" if lines[i].endswith("\r") else ""
+        lines.insert(i + 1, "%s%s: %s%s" % (m.group(1), name, text, ending))
+        for key in list(where.keys()):
+            j, mm = where[key]
+            if j > i:
+                where[key] = (j + 1, mm)
+        where[name] = (i + 1, field.match(lines[i + 1]))
+
+    put("actual_hours", fmt_hours(total), "hours")
+    put("actual_source", source, "actual_hours")
+    if status is not None and "status" in where:
+        i, m = where["status"]
+        lines[i] = m.group(1) + m.group(2) + m.group(3) + status + m.group(5)
+    write(path, "\n".join(lines))
+    return float(fmt_hours(total)), source
+
+
+def file_status(end_status):
+    return "done" if end_status == "done" else "in-progress"
+
+
+# --- report ------------------------------------------------------------------
+
+def describe(session, plan):
+    """Sort the session's slices into the report's sections. Hours, not seconds."""
+    known = slices_by_id(plan)
+    touched = session["order"]
+    rows = {"done": [], "unfinished": [], "unplanned": []}
+
+    def entry(ident):
+        item = known.get(ident)
+        final = session["final"].get(ident)
+        if item is None:
+            return {"id": ident, "title": "(no longer in the plan)", "hours": 0, "lifetime": 0,
+                    "done": False, "blocked": final == "blocked", "source": None}
+        lifetime = item["actual_hours"] or 0
+        if ident in session["open_slices"] and not session["closed"]:
+            # still open: its running interval is not in the sprint file yet
+            lifetime += session["active_between"](session["opened"][ident], session["stop"]) / 3600.0
+        return {"id": ident, "title": item["title"], "hours": item["hours"], "lifetime": lifetime,
+                "done": final == "done" and item["status"] == "done",
+                "blocked": final == "blocked", "source": item["actual_source"]}
+
+    for ident in session["planned"]:
+        item = known.get(ident)
+        if ident in touched:
+            e = entry(ident)
+            rows["done" if e["done"] else "unfinished"].append(e)
+        elif item is None or item["status"] not in ("done", "dropped"):
+            rows["unfinished"].append(entry(ident))
+    for ident in touched:
+        if ident not in session["planned"]:
+            rows["unplanned"].append(entry(ident))
+    finished = rows["done"] + [e for e in rows["unplanned"] if e["done"]]
+    not_finished = rows["unfinished"] + [e for e in rows["unplanned"] if not e["done"]]
+    return rows, finished, not_finished
+
+
+def slice_line(e):
+    if e["done"]:
+        word = "measured" if e["source"] == "measured" else "actual (part estimated)"
+        return "  %s %s %s estimated %s h, %s %s h (%s h)" % (
+            e["id"], e["title"], DASH, h(e["hours"]), word, h(e["lifetime"]), signed(e["lifetime"] - e["hours"]))
+    return "  %s %s %s estimated %s h, %s h spent so far%s" % (
+        e["id"], e["title"], DASH, h(e["hours"]), h(e["lifetime"]), " (blocked)" if e["blocked"] else "")
+
+
+def report_text(session, plan):
+    lines = []
+    if session is None:
+        lines.append("Session %s none recorded (docs/.keel/clock.jsonl has no session)" % DASH)
+        lines.append("Planned at start: unavailable %s no session was started" % DASH)
+        lines.append("Done:\n  none")
+        lines.append("Not finished:\n  none")
+        lines.append("Unplanned, added this session:\n  none")
+        lines.append("Deviation on finished work: unavailable %s no session was started" % DASH)
+    else:
+        rows, finished, _ = describe(session, plan)
+        begin = datetime.fromtimestamp(session["start"]).astimezone()
+        finish = datetime.fromtimestamp(session["stop"]).astimezone()
+        state = ""
+        if not session["closed"]:
+            state = ", still open" + (", paused" if session["paused_now"] else "")
+        elif session["unterminated"]:
+            state = ", unterminated"
+        lines.append("Session %s %s %s %s %s (%s wall-clock, %s paused, %s active%s)" % (
+            DASH, begin.strftime("%H:%M"), ARROW, finish.strftime("%H:%M"), finish.strftime("%Z"),
+            duration(session["wall"]), duration(session["paused"]), duration(session["active"]), state))
+        lines.append("Planned at start: %s %s %s h of AI working time plus supervision" % (
+            ", ".join(session["planned"]) or "nothing", DASH, h(session["planned_hours"])))
+        for title, key in (("Done:", "done"), ("Not finished:", "unfinished"),
+                           ("Unplanned, added this session:", "unplanned")):
+            lines.append(title)
+            lines.extend([slice_line(e) for e in rows[key]] or ["  none"])
+        if finished:
+            est = sum(e["hours"] for e in finished)
+            act = sum(e["lifetime"] for e in finished)
+            pct = (", %s %%" % signed((act - est) / float(est) * 100, 1)) if est else ""
+            lines.append("Deviation on finished work: estimated %s h %s measured %s h (%s h%s)" % (
+                h(est), ARROW, h(act), signed(act - est), pct))
+        else:
+            lines.append("Deviation on finished work: unavailable %s no slice finished this session" % DASH)
+    lines.append("Left according to plan: " + left_line(plan))
+    lines.append("Cumulative measured finished work: " + cumulative_line(plan))
+    lines.append("Projection if the observed pace continues: " + projection_line(plan))
+    return "\n".join(lines) + "\n"
+
+
+def project_name():
+    if os.path.isfile(PROGRESS):
+        match = re.search(r"^# PROGRESS\s*[%s-]\s*(.+)$" % DASH, read(PROGRESS), re.M)
+        if match:
+            return match.group(1).strip()
+    return os.path.basename(os.path.abspath(ROOT))
+
+
+def append_row(session, plan):
+    rows, finished, not_finished = describe(session, plan)
+    totals = plan["totals"]
+    notes = []
+    if session["unterminated"]:
+        notes.append("unterminated")
+    est = sum(e["hours"] for e in finished)
+    act = sum(e["lifetime"] for e in finished)
+    if any(e["source"] != "measured" for e in finished):
+        notes.append("estimated %s no clock (part of the actual of %s)" % (
+            DASH, ", ".join(e["id"] for e in finished if e["source"] != "measured")))
+    blocked = [e["id"] for e in not_finished if e["blocked"]]
+    if blocked:
+        notes.append("blocked: " + ", ".join(blocked))
+    if totals["pace_factor"] is None:
+        factor = DASH
+        if totals["remaining_hours"] == 0:
+            projected = "0"
+            notes.append("pace factor %s; projection 0, no work remains" % UNAVAILABLE)
+        else:
+            projected = DASH
+            notes.append("projection %s" % UNAVAILABLE)
+    else:
+        factor = h(totals["pace_factor"], 4)
+        projected = h(totals["projected_remaining_hours"])
+        if totals["pace_sample"]["provisional"]:
+            notes.append("provisional sample (%s)" % plural(totals["pace_sample"]["slices"], "measured slice"))
+    cells = [
+        local_iso(session["start_stamp"]),
+        local_iso(session["stop_stamp"]),
+        h(session["wall"] / 3600.0),
+        h(session["paused"] / 3600.0),
+        "%s (%s)" % (", ".join(session["planned"]) or DASH, h(session["planned_hours"])),
+        ", ".join(e["id"] for e in finished) or DASH,
+        h(est), h(act), h(act - est).replace(MINUS, "-"),
+        ", ".join("%s (%s)" % (e["id"], h(e["lifetime"])) for e in not_finished) or DASH,
+        h(totals["remaining_hours"]),
+        h(session["active"] / 3600.0),
+        factor, projected,
+        "; ".join(notes),
+    ]
+    row = "| " + " | ".join(c.replace("|", "\\|") for c in cells) + " |\n"
+    if os.path.isfile(SESSIONS):
+        text = read(SESSIONS)
+        if not text.endswith("\n"):
+            text += "\n"
+    else:
+        text = ("# Sessions %s %s\n\n"
+                "> One row per working session, appended by `scripts/keel-time end`. Times come from the "
+                "system clock,\n> never from the model. Hours are AI working time plus supervision.\n\n%s"
+                % (DASH, project_name(), SESSIONS_HEADER))
+    write(SESSIONS, text + row)
+
+
+# --- closing -----------------------------------------------------------------
+
+def close_session(session_events, at, unterminated):
+    """Close every open interval at `at`, write partial hours, append session-end."""
+    ident = session_events[0]["session"]
+    state = analyse(session_events, epoch(at))
+    plan = plan_now()
+    known = slices_by_id(plan)
+    for open_id in state["open_slices"]:
+        seconds = state["active_between"](state["opened"][open_id], epoch(at))
+        append("slice-end", at, ident, [("slice", open_id), ("status", "in-progress")])
+        if open_id in known:
+            edit_slice(known[open_id]["file"], open_id, seconds, file_status("in-progress"))
+    append("session-end", at, ident, [("unterminated", True)] if unterminated else [])
+
+
+def require_open():
+    events = load_log()
+    session = last_session(events)
+    if not is_open(session):
+        raise Refuse("no session is open %s run scripts/keel-time start first" % DASH)
+    return session
+
+
+# --- subcommands -------------------------------------------------------------
+
+def cmd_start(args):
+    planned = None
+    if args:
+        if len(args) != 2 or args[0] != "--plan":
+            raise Refuse(USAGE)
+        planned = [p.strip() for p in args[1].split(",") if p.strip()]
+        if not planned:
+            raise Refuse("--plan needs at least one slice id")
+    plan = plan_now()
+    known = slices_by_id(plan)
+    if planned is not None:
+        unknown = [p for p in planned if p not in known]
+        if unknown:
+            raise Refuse("--plan names ids that are in no sprint file: %s (add the slice to the plan first)"
+                         % ", ".join(unknown))
+    previous = last_session(load_log())
+    if is_open(previous):
+        at = previous[-1]["at"]
+        close_session(previous, at, True)
+        plan_build()
+        plan = plan_now()
+        closed = analyse(last_session(load_log()), epoch(at))
+        append_row(closed, plan)
+        out("Previous session (started %s) was left open: closed at its last recorded event, %s, "
+            "and recorded in docs/sessions.md as unterminated.\n"
+            % (local(closed["start_stamp"]).strftime("%a %d %b %Y, %H:%M %Z"),
+               local(at).strftime("%a %d %b %Y, %H:%M %Z")))
+        known = slices_by_id(plan)
+    if planned is None:
+        planned = default_plan(plan)
+    planned_hours = sum(known[p]["hours"] for p in planned)
+    planned_hours = int(planned_hours) if planned_hours == int(planned_hours) else round(planned_hours, 4)
+    at = now_utc()
+    append("session-start", at, at, [("planned", planned), ("planned_hours", planned_hours)])
+    lines = ["Session start %s %s (system clock)" % (DASH, local(at).strftime("%a %d %b %Y, %H:%M %Z")),
+             "Left: " + left_line(plan),
+             "This session plans:"]
+    for p in planned:
+        lines.append("  %s %s %s %s h" % (p, known[p]["title"], DASH, h(known[p]["hours"])))
+    if not planned:
+        lines.append("  nothing (no open slice in the plan)")
+    lines.append("  Planned: %s h of AI working time plus supervision" % h(planned_hours))
+    out("\n".join(lines) + "\n")
+
+
+def cmd_slice_start(args):
+    if len(args) != 1:
+        raise Refuse(USAGE)
+    ident = args[0]
+    session = require_open()
+    plan = plan_now()
+    known = slices_by_id(plan)
+    if ident not in known:
+        deferred = [d["id"] for d in plan["deferred"]]
+        if ident in deferred:
+            raise Refuse("%s is in docs/sprints/deferred.md %s move it into a sprint file first" % (ident, DASH))
+        raise Refuse("%s is in no sprint file %s add the slice to the plan first" % (ident, DASH))
+    at = now_utc()
+    state = analyse(session, epoch(at))
+    for open_id in state["open_slices"]:
+        seconds = state["active_between"](state["opened"][open_id], epoch(at))
+        append("slice-end", at, state["id"], [("slice", open_id), ("status", "in-progress")])
+        if open_id in known:
+            total, _ = edit_slice(known[open_id]["file"], open_id, seconds, file_status("in-progress"))
+            out("%s was open: closed as in-progress, %s h spent so far\n" % (open_id, h(total)))
+    append("slice-start", at, state["id"], [("slice", ident)])
+    out("%s %s %s started %s (estimated %s h)\n" % (
+        ident, known[ident]["title"], DASH, local(at).strftime("%H:%M %Z"), h(known[ident]["hours"])))
+
+
+def cmd_slice_end(args):
+    if len(args) != 3 or args[1] != "--status" or args[2] not in END_STATUSES:
+        raise Refuse(USAGE)
+    ident, status = args[0], args[2]
+    session = require_open()
+    known = slices_by_id(plan_now())
+    if ident not in known:
+        raise Refuse("%s is in no sprint file" % ident)
+    at = now_utc()
+    state = analyse(session, epoch(at))
+    if ident not in state["open_slices"]:
+        raise Refuse("%s is not open in this session %s run scripts/keel-time slice-start %s first"
+                     % (ident, DASH, ident))
+    seconds = state["active_between"](state["opened"][ident], epoch(at))
+    append("slice-end", at, state["id"], [("slice", ident), ("status", status)])
+    total, source = edit_slice(known[ident]["file"], ident, seconds, file_status(status))
+    item = known[ident]
+    if status == "done":
+        word = "measured" if source == "measured" else "actual (part estimated, source kept as estimated)"
+        out("%s %s %s estimated %s h, %s %s h (%s h)\n" % (
+            ident, item["title"], DASH, h(item["hours"]), word, h(total), signed(total - item["hours"])))
+    else:
+        out("%s %s %s estimated %s h, %s h spent so far (%s)\n" % (
+            ident, item["title"], DASH, h(item["hours"]), h(total), status))
+
+
+def cmd_pause(args):
+    reason = " ".join(args).strip()
+    if not reason:
+        raise Refuse("pause needs a reason\n" + USAGE)
+    session = require_open()
+    at = now_utc()
+    state = analyse(session, epoch(at))
+    if state["paused_now"]:
+        raise Refuse("the session is already paused %s run scripts/keel-time resume first" % DASH)
+    append("pause", at, state["id"], [("reason", reason)])
+    out("Paused %s %s %s\n" % (local(at).strftime("%H:%M %Z"), DASH, reason))
+
+
+def cmd_resume(args):
+    if args:
+        raise Refuse(USAGE)
+    session = require_open()
+    at = now_utc()
+    state = analyse(session, epoch(at))
+    if not state["paused_now"]:
+        raise Refuse("the session is not paused")
+    append("resume", at, state["id"])
+    out("Resumed %s\n" % local(at).strftime("%H:%M %Z"))
+
+
+def cmd_end(args):
+    if args:
+        raise Refuse(USAGE)
+    session = require_open()
+    at = now_utc()
+    close_session(session, at, False)
+    plan_build()
+    plan = plan_now()
+    closed = analyse(last_session(load_log()), epoch(at))
+    append_row(closed, plan)
+    out(report_text(closed, plan))
+
+
+def cmd_report(args):
+    if args:
+        raise Refuse(USAGE)
+    session = last_session(load_log())
+    plan = plan_now()
+    if not session:
+        out(report_text(None, plan))
+        return
+    out(report_text(analyse(session, epoch(now_utc())), plan))
+
+
+COMMANDS = {
+    "start": cmd_start, "slice-start": cmd_slice_start, "slice-end": cmd_slice_end,
+    "pause": cmd_pause, "resume": cmd_resume, "end": cmd_end, "report": cmd_report,
+}
+
+if not ARGS or ARGS[0] not in COMMANDS:
+    sys.stderr.write(USAGE)
+    sys.exit(2)
+try:
+    COMMANDS[ARGS[0]](ARGS[1:])
+except Refuse as error:
+    sys.stderr.write("keel-time: %s\n" % str(error).rstrip("\n"))
+    sys.exit(2)
+PY

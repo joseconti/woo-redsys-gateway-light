@@ -26,6 +26,12 @@
 - Branches: integration branch `develop` (created 2026-07-31 from `master`, published to `origin`); current work: adoption on `develop`; nothing yet queued for `master`
 - Notify: `PushNotification` tool (desktop + phone via Remote Control) — delivers (D-011)
 - Chaining: start (D-015) — a clean close-out opens and submits a fresh Claude Code CLI session automatically via `osascript`/Terminal.app; verified end-to-end on macOS with `claude` on PATH at `~/.local/bin/claude`
+- Chaining model: opus (D-037) — every chained chat launches with `claude --model opus`
+- Test-first policy: pure-logic (D-036)
+- Push test scope: affected — the default, never asked
+- Sprints: on — the default, never asked
+- Security audit: required — money moves, and the IPN/callback endpoints (`?wc-api=WC_Gateway_<id>`) are reachable from outside (derived, D-040)
+- CI runs on: n/a — no forge CI
 
 ## Phase status
 | Phase | Status | Key artifacts |

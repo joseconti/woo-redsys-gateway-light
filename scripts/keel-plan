@@ -1,0 +1,654 @@
+#!/usr/bin/env bash
+#
+# keel-plan — generator for the DERIVED layer of the sprint plan, per Keel's
+# references/project-state.md ("The sprint plan — one plan, three layers, one
+# job each").
+#
+# Layers:
+#   1. Authority  docs/sprints/sprint-<N>.md  (frontmatter `keel.sprint/1`)
+#   2. Backlog    docs/sprints/deferred.md    (frontmatter `keel.deferred/1`)
+#   3. Derived    docs/.keel/plan.json        (this script writes it; nobody
+#                                              edits it by hand)
+#      plus the human index table in docs/sprints/README.md, regenerated in
+#      the same pass between the two marker comments
+#      `<!-- keel-plan:index:begin -->` / `<!-- keel-plan:index:end -->`.
+#
+# Commands:
+#   build   Parse every sprint file and deferred.md, write docs/.keel/plan.json
+#           and the README index table. Files are rewritten only when their
+#           content changes. Exit 0.
+#   check   Exit 1, naming every difference, if plan.json or the README index
+#           table is not what `build` would produce right now. Writes nothing.
+#           Exit 0 when both match.
+#   left    Print the fixed "what is left" block, computed from the SOURCES
+#           (never from a possibly stale plan.json). Writes nothing.
+#   json    Print to stdout exactly what `build` would write to plan.json.
+#           Writes nothing. (scripts/keel-time uses this, so the plan
+#           arithmetic has ONE implementation.)
+#
+# Exit codes: 0 ok · 1 drift (`check` only) · 2 usage error, unreadable or
+# invalid source (bad frontmatter, status outside the closed enum, non-numeric
+# hours, duplicate id), or no repository root.
+#
+# What is computed (never stored in the sources), per sprint and plan-wide:
+#   estimated_hours            hours of every slice not `dropped`
+#   done_hours                 hours of `done` slices
+#   actual_hours               actual_hours of `done` slices
+#   remaining_hours            hours of slices neither `done` nor `dropped`
+#   deviation_hours            actual_hours - done_hours
+#   pace_factor                PLAN-WIDE: sum(actual)/sum(hours) over slices
+#                              that are done + actual_source: measured +
+#                              hours > 0 + numeric actual_hours >= 0; null
+#                              when there is no such slice
+#   projected_remaining_hours  remaining_hours x pace_factor; 0 when nothing
+#                              remains; null when work remains and no factor
+#   percent_done               done_hours / estimated_hours x 100
+#   unit                       the label every rendered duration must carry
+# deferred.md and any contingency are excluded from all of them.
+#
+# Determinism: plan.json carries NO timestamp and nothing machine-specific,
+# so two runs over unchanged sources are byte-identical. Arithmetic is done
+# on unrounded values; stored figures are rounded only at output (hours to
+# 4 decimals, pace_factor to 6, percentages to 2).
+#
+# Repository root: `git rev-parse --show-toplevel`, or the directory named by
+# the environment variable KEEL_ROOT when it is set (used by tests to run
+# against a scratch copy).
+#
+# Requires: bash 3.2+, python3 (standard library only).
+
+set -u
+
+usage() {
+  echo "usage: scripts/keel-plan build | check | left | json" >&2
+  exit 2
+}
+
+[ $# -eq 1 ] || usage
+case "$1" in
+  build|check|left|json) ;;
+  *) usage ;;
+esac
+
+if [ -n "${KEEL_ROOT:-}" ]; then
+  ROOT="$KEEL_ROOT"
+else
+  ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+fi
+if [ -z "$ROOT" ] || [ ! -d "$ROOT" ]; then
+  echo "keel-plan: no repository root (not inside a git repository and KEEL_ROOT is not set)" >&2
+  exit 2
+fi
+
+command -v python3 >/dev/null 2>&1 || { echo "keel-plan: python3 not found" >&2; exit 2; }
+
+exec python3 - "$ROOT" "$1" <<'PY'
+# -*- coding: utf-8 -*-
+import glob
+import io
+import json
+import os
+import re
+import sys
+
+ROOT = sys.argv[1]
+CMD = sys.argv[2]
+
+SPRINTS_DIR = os.path.join(ROOT, "docs", "sprints")
+DEFERRED = os.path.join(SPRINTS_DIR, "deferred.md")
+README = os.path.join(SPRINTS_DIR, "README.md")
+PLAN = os.path.join(ROOT, "docs", ".keel", "plan.json")
+
+UNIT = "hours of AI working time plus supervision"
+STATUSES = ("not-started", "in-progress", "done", "dropped")
+SOURCES = ("measured", "estimated")
+BEGIN = "<!-- keel-plan:index:begin -->"
+END = "<!-- keel-plan:index:end -->"
+PROVISIONAL_BELOW = 4  # fewer eligible slices than this = "provisional sample"
+MINUS = u"−"
+DASH = u"—"
+
+
+class PlanError(Exception):
+    pass
+
+
+def out(text):
+    # Bytes, so the output is UTF-8 whatever the caller's locale is.
+    sys.stdout.buffer.write(text.encode("utf-8"))
+    sys.stdout.flush()
+
+
+def read(path):
+    with io.open(path, "r", encoding="utf-8", newline="") as fh:
+        return fh.read()
+
+
+def rel(path):
+    return os.path.relpath(path, ROOT).replace(os.sep, "/")
+
+
+# --- frontmatter: the closed subset of YAML the sprint schema uses -----------
+
+def strip_comment(text):
+    """Drop a trailing ` # comment` that is outside quotes."""
+    quote = None
+    for i, ch in enumerate(text):
+        if quote:
+            if ch == quote:
+                quote = None
+        elif ch in "\"'":
+            quote = ch
+        elif ch == "#" and (i == 0 or text[i - 1] in " \t"):
+            return text[:i].rstrip()
+    return text.rstrip()
+
+
+def scalar(text):
+    text = text.strip()
+    if text == "" or text in ("null", "~", "Null", "NULL"):
+        return None
+    if len(text) >= 2 and text[0] == text[-1] and text[0] in "\"'":
+        return text[1:-1]
+    if text in ("true", "True"):
+        return True
+    if text in ("false", "False"):
+        return False
+    if re.match(r"^[+-]?\d+$", text):
+        return int(text)
+    if re.match(r"^[+-]?(\d+\.\d*|\.\d+)$", text):
+        return float(text)
+    return text
+
+
+def value(text):
+    text = strip_comment(text).strip()
+    if text.startswith("[") and text.endswith("]"):
+        inner = text[1:-1].strip()
+        if not inner:
+            return []
+        return [scalar(part) for part in inner.split(",")]
+    return scalar(text)
+
+
+def frontmatter(path):
+    """Return (top-level dict, list of item dicts) from a file's frontmatter."""
+    lines = read(path).replace("\r\n", "\n").split("\n")
+    if not lines or lines[0].strip() != "---":
+        raise PlanError("%s: no frontmatter (first line is not ---)" % rel(path))
+    try:
+        close = next(i for i in range(1, len(lines)) if lines[i].strip() == "---")
+    except StopIteration:
+        raise PlanError("%s: frontmatter is never closed" % rel(path))
+    top, items, current, in_list = {}, [], None, False
+    for number, raw in enumerate(lines[1:close], start=2):
+        if not raw.strip() or raw.lstrip().startswith("#"):
+            continue
+        indent = len(raw) - len(raw.lstrip(" "))
+        body = raw.strip()
+        if indent == 0:
+            match = re.match(r"^([A-Za-z_][\w-]*):(.*)$", body)
+            if not match:
+                raise PlanError("%s:%d: cannot parse '%s'" % (rel(path), number, body))
+            key, rest = match.group(1), match.group(2)
+            in_list = key in ("slices", "items")
+            current = None
+            if in_list:
+                if strip_comment(rest).strip() not in ("", "[]"):
+                    raise PlanError("%s:%d: '%s:' must be a block list" % (rel(path), number, key))
+            else:
+                top[key] = value(rest)
+            continue
+        if not in_list:
+            raise PlanError("%s:%d: unexpected indented line '%s'" % (rel(path), number, body))
+        if body.startswith("- "):
+            current = {"_line": number}
+            items.append(current)
+            body = body[2:].strip()
+        if current is None:
+            raise PlanError("%s:%d: field outside a list item" % (rel(path), number))
+        match = re.match(r"^([A-Za-z_][\w-]*):(.*)$", body)
+        if not match:
+            raise PlanError("%s:%d: cannot parse '%s'" % (rel(path), number, body))
+        current[match.group(1)] = value(match.group(2))
+    return top, items
+
+
+def is_number(thing):
+    return isinstance(thing, (int, float)) and not isinstance(thing, bool)
+
+
+def clean_item(path, item, deferred):
+    where = "%s:%d" % (rel(path), item["_line"])
+    ident = item.get("id")
+    if not isinstance(ident, str) or not ident:
+        raise PlanError("%s: list item has no id" % where)
+    where = "%s (%s)" % (where, ident)
+    status = item.get("status")
+    if status not in STATUSES:
+        raise PlanError("%s: status '%s' is not one of %s" % (where, status, " | ".join(STATUSES)))
+    hours = item.get("hours")
+    if not is_number(hours) or hours < 0:
+        raise PlanError("%s: hours '%s' is not a non-negative number" % (where, hours))
+    actual = item.get("actual_hours")
+    if actual is not None and not is_number(actual):
+        raise PlanError("%s: actual_hours '%s' is neither a number nor null" % (where, actual))
+    source = item.get("actual_source")
+    if source is not None and source not in SOURCES:
+        raise PlanError("%s: actual_source '%s' is not one of %s" % (where, source, " | ".join(SOURCES)))
+    depends = item.get("depends_on") or []
+    criteria = item.get("criteria") or []
+    if not isinstance(depends, list) or not isinstance(criteria, list):
+        raise PlanError("%s: depends_on and criteria must be inline lists" % where)
+    result = {
+        "id": ident,
+        "title": "" if item.get("title") is None else str(item.get("title")),
+        "status": status,
+        "hours": hours,
+    }
+    if deferred:
+        result["target"] = item.get("target")
+        result["reason"] = item.get("reason")
+    else:
+        result["actual_hours"] = actual
+        result["actual_source"] = source
+    result["depends_on"] = [str(x) for x in depends]
+    result["criteria"] = [str(x) for x in criteria]
+    return result
+
+
+def load():
+    sprints = []
+    for path in glob.glob(os.path.join(SPRINTS_DIR, "sprint-*.md")):
+        top, items = frontmatter(path)
+        if top.get("schema") != "keel.sprint/1":
+            raise PlanError("%s: schema is '%s', expected keel.sprint/1" % (rel(path), top.get("schema")))
+        number = top.get("sprint")
+        if not isinstance(number, int) or isinstance(number, bool):
+            raise PlanError("%s: 'sprint:' is not an integer" % rel(path))
+        if top.get("status") not in STATUSES:
+            raise PlanError("%s: sprint status '%s' is not one of %s"
+                            % (rel(path), top.get("status"), " | ".join(STATUSES)))
+        sprints.append({
+            "sprint": number,
+            "goal": "" if top.get("goal") is None else str(top.get("goal")),
+            "status": top.get("status"),
+            "file": rel(path),
+            "slices": [clean_item(path, item, False) for item in items],
+        })
+    if not sprints:
+        raise PlanError("no docs/sprints/sprint-<N>.md file found under %s" % ROOT)
+    sprints.sort(key=lambda s: (s["sprint"], s["file"]))
+    numbers = [s["sprint"] for s in sprints]
+    if len(set(numbers)) != len(numbers):
+        raise PlanError("two sprint files declare the same sprint number")
+    deferred = []
+    if os.path.isfile(DEFERRED):
+        top, items = frontmatter(DEFERRED)
+        if top.get("schema") != "keel.deferred/1":
+            raise PlanError("%s: schema is '%s', expected keel.deferred/1" % (rel(DEFERRED), top.get("schema")))
+        deferred = [clean_item(DEFERRED, item, True) for item in items]
+    seen = {}
+    for sprint in sprints:
+        for item in sprint["slices"]:
+            if item["id"] in seen:
+                raise PlanError("id %s appears twice (%s and %s)" % (item["id"], seen[item["id"]], sprint["file"]))
+            seen[item["id"]] = sprint["file"]
+    for item in deferred:
+        if item["id"] in seen:
+            raise PlanError("id %s appears twice (%s and %s)" % (item["id"], seen[item["id"]], rel(DEFERRED)))
+        seen[item["id"]] = rel(DEFERRED)
+    return sprints, deferred
+
+
+# --- arithmetic --------------------------------------------------------------
+
+def eligible(item):
+    return (item["status"] == "done" and item["actual_source"] == "measured"
+            and item["hours"] > 0 and is_number(item["actual_hours"]) and item["actual_hours"] >= 0)
+
+
+def raw_totals(slices):
+    live = [s for s in slices if s["status"] != "dropped"]
+    done = [s for s in slices if s["status"] == "done"]
+    pending = [s for s in slices if s["status"] not in ("done", "dropped")]
+    return {
+        "estimated": sum(s["hours"] for s in live),
+        "done": sum(s["hours"] for s in done),
+        "actual": sum(s["actual_hours"] for s in done if is_number(s["actual_hours"])),
+        "remaining": sum(s["hours"] for s in pending),
+        "spent_unfinished": sum(s["actual_hours"] for s in pending if is_number(s["actual_hours"])),
+        "n_total": len(slices),
+        "n_done": len(done),
+        "n_pending": len(pending),
+        "n_dropped": len(slices) - len(live),
+    }
+
+
+def num(x, places=4):
+    if x is None:
+        return None
+    x = round(float(x), places)
+    return int(x) if x == int(x) else x
+
+
+def block(raw, factor):
+    remaining = raw["remaining"]
+    if remaining == 0:
+        projected = 0
+    elif factor is None:
+        projected = None
+    else:
+        projected = remaining * factor
+    percent = None if raw["estimated"] == 0 else raw["done"] / float(raw["estimated"]) * 100
+    return [
+        ("estimated_hours", num(raw["estimated"])),
+        ("done_hours", num(raw["done"])),
+        ("actual_hours", num(raw["actual"])),
+        ("remaining_hours", num(remaining)),
+        ("deviation_hours", num(raw["actual"] - raw["done"])),
+        ("pace_factor", num(factor, 6)),
+        ("projected_remaining_hours", num(projected)),
+        ("percent_done", num(percent, 2)),
+        ("unit", UNIT),
+        ("spent_unfinished_hours", num(raw["spent_unfinished"])),
+        ("slices_total", raw["n_total"]),
+        ("slices_done", raw["n_done"]),
+        ("slices_pending", raw["n_pending"]),
+        ("slices_dropped", raw["n_dropped"]),
+    ]
+
+
+def ordered(pairs):
+    # Python 3.7+ dicts keep insertion order; json.dumps then emits it.
+    result = {}
+    for key, val in pairs:
+        result[key] = val
+    return result
+
+
+def compute(sprints, deferred):
+    every = [s for sprint in sprints for s in sprint["slices"]]
+    sample = [s for s in every if eligible(s)]
+    sample_est = sum(s["hours"] for s in sample)
+    sample_act = sum(s["actual_hours"] for s in sample)
+    factor = (sample_act / float(sample_est)) if sample else None
+    current = None
+    out_sprints = []
+    for sprint in sprints:
+        raw = raw_totals(sprint["slices"])
+        if current is None and raw["n_pending"] > 0:
+            current = sprint["sprint"]
+        pairs = [("sprint", sprint["sprint"]), ("goal", sprint["goal"]),
+                 ("status", sprint["status"]), ("file", sprint["file"])]
+        pairs += block(raw, factor)
+        pairs.append(("slices", [ordered([
+            ("id", s["id"]), ("title", s["title"]), ("status", s["status"]),
+            ("hours", num(s["hours"])), ("actual_hours", num(s["actual_hours"])),
+            ("actual_source", s["actual_source"]),
+            ("depends_on", s["depends_on"]), ("criteria", s["criteria"]),
+        ]) for s in sprint["slices"]]))
+        out_sprints.append(ordered(pairs))
+    totals = block(raw_totals(every), factor)
+    totals.append(("pace_sample", ordered([
+        ("slices", len(sample)),
+        ("estimated_hours", num(sample_est)),
+        ("actual_hours", num(sample_act)),
+        ("deviation_hours", num(sample_act - sample_est)),
+        ("deviation_percent", num((factor - 1) * 100, 2) if factor is not None else None),
+        ("provisional", bool(sample) and len(sample) < PROVISIONAL_BELOW),
+    ])))
+    sources = [s["file"] for s in sprints]
+    if os.path.isfile(DEFERRED):
+        sources.append(rel(DEFERRED))
+    return ordered([
+        ("schema", "keel.plan/1"),
+        ("generator", "scripts/keel-plan"),
+        ("unit", UNIT),
+        ("sources", sources),
+        ("current_sprint", current),
+        ("totals", ordered(totals)),
+        ("sprints", out_sprints),
+        ("deferred", [ordered([
+            ("id", d["id"]), ("title", d["title"]), ("status", d["status"]),
+            ("hours", num(d["hours"])), ("target", d["target"]), ("reason", d["reason"]),
+            ("depends_on", d["depends_on"]), ("criteria", d["criteria"]),
+        ]) for d in deferred]),
+    ])
+
+
+def serialise(plan):
+    return json.dumps(plan, indent=2, ensure_ascii=False) + "\n"
+
+
+# --- display -----------------------------------------------------------------
+
+def h(x, places=2):
+    """A number for display: rounded, no trailing zeros."""
+    x = round(float(x), places)
+    if x == 0:
+        x = 0.0
+    text = ("%." + str(places) + "f") % x
+    text = text.rstrip("0").rstrip(".") if "." in text else text
+    return text.replace("-", MINUS)
+
+
+def signed(x, places=2):
+    text = h(x, places)
+    return text if text.startswith(MINUS) else "+" + text
+
+
+def plural(n, word):
+    return "%d %s%s" % (n, word, "" if n == 1 else "s")
+
+
+def cell(text):
+    return str(text).replace("|", "\\|")
+
+
+def index_table(plan):
+    t = plan["totals"]
+
+    def opt(x, places=2):
+        return DASH if x is None else h(x, places)
+
+    lines = [
+        BEGIN,
+        "<!-- Generated by scripts/keel-plan build from the sprint frontmatter. Do not edit between the markers. -->",
+        "",
+        "| Sprint | Goal | Status | Slices done | Est. h | Done h | Actual h | Left h | Projected left h | % done |",
+        "|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    for s in plan["sprints"]:
+        lines.append("| [%d](sprint-%d.md) | %s | %s | %d / %d | %s | %s | %s | %s | %s | %s |" % (
+            s["sprint"], s["sprint"], cell(s["goal"]), s["status"],
+            s["slices_done"], s["slices_total"] - s["slices_dropped"],
+            h(s["estimated_hours"]), h(s["done_hours"]), h(s["actual_hours"]),
+            h(s["remaining_hours"]), opt(s["projected_remaining_hours"]), opt(s["percent_done"], 1)))
+    lines.append("| **Total** | | | %d / %d | %s | %s | %s | %s | %s | %s |" % (
+        t["slices_done"], t["slices_total"] - t["slices_dropped"],
+        h(t["estimated_hours"]), h(t["done_hours"]), h(t["actual_hours"]),
+        h(t["remaining_hours"]), opt(t["projected_remaining_hours"]), opt(t["percent_done"], 1)))
+    lines.append("")
+    sample = t["pace_sample"]
+    if t["pace_factor"] is None:
+        pace = "Pace factor: unavailable %s no measured completed work." % DASH
+    else:
+        pace = "Pace factor: %s (%s%s)." % (
+            h(t["pace_factor"], 4), plural(sample["slices"], "measured slice"),
+            ", provisional sample" if sample["provisional"] else "")
+    deferred_hours = sum(d["hours"] for d in plan["deferred"])
+    lines.append(
+        "All figures are %s. Contingency is not included, and neither is the backlog in "
+        "[`deferred.md`](deferred.md) (%s, %s h). %s"
+        % (UNIT, plural(len(plan["deferred"]), "item"), h(deferred_hours), pace))
+    lines.append(END)
+    return "\n".join(lines)
+
+
+def readme_with_table(plan):
+    table = index_table(plan)
+    text = read(README).replace("\r\n", "\n") if os.path.isfile(README) else "# Sprints\n"
+    start, stop = text.find(BEGIN), text.find(END)
+    if start != -1 and stop != -1 and stop > start:
+        return text[:start] + table + text[stop + len(END):]
+    if not text.endswith("\n"):
+        text += "\n"
+    return text + "\n" + table + "\n"
+
+
+def left_block(plan):
+    t = plan["totals"]
+    lines = []
+    first = True
+    for s in plan["sprints"]:
+        pending = [x for x in s["slices"] if x["status"] not in ("done", "dropped")]
+        if not pending:
+            continue
+        if first:
+            first = False
+            lines.append("Sprint %d %s %s: %s pending, %s h left" % (
+                s["sprint"], DASH, s["goal"], plural(len(pending), "slice"), h(s["remaining_hours"])))
+            for x in pending:
+                spent = ""
+                if x["actual_hours"] is not None:
+                    spent = " (%s h spent so far)" % h(x["actual_hours"])
+                lines.append("  %s %s %s %s h%s" % (x["id"], x["title"], DASH, h(x["hours"]), spent))
+        else:
+            lines.append("Sprint %d %s %s: %s h" % (s["sprint"], DASH, s["goal"], h(s["remaining_hours"])))
+    lines.append("Total left: %s h of AI working time plus supervision (contingency not included)"
+                 % h(t["remaining_hours"]))
+    if t["done_hours"]:
+        pct = ", %s %%" % signed(t["deviation_hours"] / float(t["done_hours"]) * 100, 1)
+    else:
+        pct = ""
+    lines.append("So far: %s done, %s h estimated, %s h actual (%s h%s)" % (
+        plural(t["slices_done"], "slice"), h(t["done_hours"]), h(t["actual_hours"]),
+        signed(t["deviation_hours"]), pct))
+    sample = t["pace_sample"]
+    if t["remaining_hours"] == 0:
+        tail = "0 h left"
+        if t["pace_factor"] is not None:
+            tail += " (factor %s; %s)" % (h(t["pace_factor"], 4), plural(sample["slices"], "measured slice"))
+    elif t["pace_factor"] is None:
+        tail = "unavailable %s no measured completed work" % DASH
+    else:
+        tail = "%s h left (factor %s; %s%s)" % (
+            h(t["projected_remaining_hours"]), h(t["pace_factor"], 4),
+            plural(sample["slices"], "measured slice"),
+            ", provisional sample" if sample["provisional"] else "")
+    lines.append("Projection if the observed pace continues: " + tail)
+    return "\n".join(lines) + "\n"
+
+
+# --- check -------------------------------------------------------------------
+
+def differences(want, have, path="", found=None):
+    found = [] if found is None else found
+    if isinstance(want, dict) and isinstance(have, dict):
+        for key in want:
+            if key not in have:
+                found.append("%s/%s: missing in plan.json (sources give %s)"
+                             % (path, key, json.dumps(want[key], ensure_ascii=False)[:80]))
+            else:
+                differences(want[key], have[key], "%s/%s" % (path, key), found)
+        for key in have:
+            if key not in want:
+                found.append("%s/%s: in plan.json but not produced by the sources" % (path, key))
+    elif isinstance(want, list) and isinstance(have, list):
+        if len(want) != len(have):
+            found.append("%s: plan.json has %d entries, sources give %d" % (path, len(have), len(want)))
+        for i in range(min(len(want), len(have))):
+            label = want[i].get("id", want[i].get("sprint", i)) if isinstance(want[i], dict) else i
+            differences(want[i], have[i], "%s[%s]" % (path, label), found)
+    elif want != have or type(want) != type(have):
+        found.append("%s: plan.json has %s, sources give %s"
+                     % (path, json.dumps(have, ensure_ascii=False), json.dumps(want, ensure_ascii=False)))
+    return found
+
+
+def write_if_changed(path, text):
+    if os.path.isfile(path) and read(path) == text:
+        return False
+    folder = os.path.dirname(path)
+    if not os.path.isdir(folder):
+        os.makedirs(folder)
+    temp = path + ".tmp"
+    with io.open(temp, "w", encoding="utf-8", newline="") as fh:
+        fh.write(text)
+    os.rename(temp, path)
+    return True
+
+
+def main():
+    sprints, deferred = load()
+    plan = compute(sprints, deferred)
+    text = serialise(plan)
+
+    if CMD == "json":
+        out(text)
+        return 0
+
+    if CMD == "left":
+        out(left_block(plan))
+        return 0
+
+    if CMD == "build":
+        changed_plan = write_if_changed(PLAN, text)
+        changed_readme = write_if_changed(README, readme_with_table(plan))
+        t = plan["totals"]
+        out("keel-plan: %s %s (%d sprints, %d slices, %s h estimated, %s h left)\n" % (
+            rel(PLAN), "written" if changed_plan else "unchanged", len(plan["sprints"]),
+            t["slices_total"], h(t["estimated_hours"]), h(t["remaining_hours"])))
+        out("keel-plan: %s index table %s\n" % (rel(README), "written" if changed_readme else "unchanged"))
+        return 0
+
+    # check
+    problems = []
+    if not os.path.isfile(PLAN):
+        problems.append("%s does not exist" % rel(PLAN))
+    else:
+        current = read(PLAN)
+        if current != text:
+            try:
+                found = differences(plan, json.loads(current))
+            except ValueError as error:
+                found = ["%s is not valid JSON (%s)" % (rel(PLAN), error)]
+            if not found:
+                found = ["%s differs from the generated output in formatting only" % rel(PLAN)]
+            problems.extend("%s %s" % (rel(PLAN), item) if item.startswith("/") else item for item in found)
+    if not os.path.isfile(README):
+        problems.append("%s does not exist" % rel(README))
+    else:
+        current = read(README).replace("\r\n", "\n")
+        if BEGIN not in current or END not in current:
+            problems.append("%s has no keel-plan index markers" % rel(README))
+        elif current != readme_with_table(plan):
+            want = index_table(plan).split("\n")
+            have = current[current.find(BEGIN):current.find(END) + len(END)].split("\n")
+            named = False
+            for i in range(max(len(want), len(have))):
+                a = want[i] if i < len(want) else "(no line)"
+                b = have[i] if i < len(have) else "(no line)"
+                if a != b:
+                    problems.append("%s index table line %d: has '%s', sources give '%s'"
+                                    % (rel(README), i + 1, b, a))
+                    named = True
+                    break
+            if not named:
+                problems.append("%s index table differs from the generated output" % rel(README))
+    if problems:
+        for item in problems:
+            out("DRIFT: %s\n" % item)
+        out("keel-plan check: FAIL %s run scripts/keel-plan build\n" % DASH)
+        return 1
+    out("keel-plan check: OK %s %s and the index table match the sources\n" % (DASH, rel(PLAN)))
+    return 0
+
+
+try:
+    sys.exit(main())
+except PlanError as error:
+    sys.stderr.write("keel-plan: %s\n" % error)
+    sys.exit(2)
+PY

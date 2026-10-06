@@ -14,9 +14,9 @@ slices:
     criteria: []
   - id: S-021
     title: Session clock and sprint plan tooling (keel-time, keel-plan, sessions.md, plan.json, sprint 1 backfill)
-    status: in-progress
+    status: done
     hours: 1.5
-    actual_hours: null
+    actual_hours: 0.2
     actual_source: estimated
     depends_on: [S-020]
     criteria: []
