@@ -947,7 +947,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		// Verify cryptographic signature to prevent payment forgery.
 		if ( ! hash_equals( $localsecret, $remote_sign ) ) {
 			if ( 'yes' === $this->debug ) {
-				$this->log->add( 'redsys', 'Signature verification failed in successful_request. Local: ' . $localsecret . ' Remote: ' . $remote_sign );
+				$this->log->add( 'redsys', 'Signature verification failed in successful_request.' );
 			}
 			return;
 		}
@@ -1153,7 +1153,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'redsys', __( 'Authorization Date : ', 'woo-redsys-gateway-light' ) . $autorization_date );
 			$this->log->add( 'redsys', __( 'Currency Codey : ', 'woo-redsys-gateway-light' ) . $currencycode );
 			$this->log->add( 'redsys', __( 'Terminal : ', 'woo-redsys-gateway-light' ) . $terminal );
-			$this->log->add( 'redsys', __( 'SHA256 : ', 'woo-redsys-gateway-light' ) . $secretsha256_meta );
+			$this->log->add( 'redsys', __( 'SHA256 : ', 'woo-redsys-gateway-light' ) . ( $secretsha256_meta ? 'set' : 'empty' ) );
 		}
 
 		if ( ! empty( $currencycode ) ) {
@@ -1230,7 +1230,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				$this->log->add( 'redsys', __( 'There is an error', 'woo-redsys-gateway-light' ) );
 				$this->log->add( 'redsys', '*********************************' );
 				$this->log->add( 'redsys', ' ' );
-				$this->log->add( 'redsys', __( 'The error is : ', 'woo-redsys-gateway-light' ) . $post_arg );
+				$this->log->add( 'redsys', __( 'The error is : ', 'woo-redsys-gateway-light' ) . $post_arg->get_error_message() );
 			}
 			return $post_arg;
 		}
@@ -1271,6 +1271,12 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		// Do your refund here. Refund $amount for the order with ID $order_id _transaction_id.
 		set_time_limit( 0 );
 		$order = wc_get_order( $order_id );
+
+		// An explicit amount of zero is not "no amount given": refunding the
+		// whole order for it would move money nobody asked to move.
+		if ( null !== $amount && '' !== $amount && round( (float) $amount, 2 ) <= 0 ) {
+			return new WP_Error( 'error', __( 'The refund amount must be greater than zero.', 'woo-redsys-gateway-light' ) );
+		}
 
 		$transaction_id = WCRedL()->get_order_meta( $order_id, '_payment_order_number_redsys', true );
 		if ( ! $amount ) {

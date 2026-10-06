@@ -43,7 +43,7 @@ Two different shapes exist: a synchronous wait for a notification (A), and a sin
 | No notification within the wait | Refund fails. If Redsys did process it, the notification that arrives later still sets the transient and adds the note, but no WooCommerce refund record is created *(unverified)*. |
 
 ### Branches and conditions
-- **Amount of zero:** `if ( ! $amount )` treats `0` like "not given" and refunds the full total, in all three classes (`classes/class-wc-gateway-redsys.php` line 1276, `classes/class-wc-gateway-bizum-redsys.php` line 1622, `classes/class-wc-gateway-googlepay-redirection-redsys.php` line 1453). The Inespay class was corrected for exactly this (part B); these three were not *(unverified — read from the code)*.
+- **Amount of zero:** an explicit amount of zero (or one that rounds to zero cents, or a negative one) returns an error and sends nothing to Redsys, in all three classes; no amount at all still means the full order total (`AC-58`; corrected in S-035, D-052). Inespay sends the explicit `0` instead (`AC-53`).
 - **Currency:** the order meta `_corruncy_code_redsys` when present, otherwise the store currency. The card gateway never writes that meta, so it always uses the store currency.
 - **Test or live:** the same mode logic as the checkout request.
 

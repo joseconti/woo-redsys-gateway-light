@@ -17,6 +17,22 @@ items:
     reason: L-004 — low severity, works today; revisit when the success path of handle_callback() is next touched
     depends_on: []
     criteria: []
+  - id: S-040
+    title: Redact the inbound signature and raw notification data from the gateways' debug logs
+    status: not-started
+    hours: 1
+    target: null
+    reason: D-052 — request data, lower risk than the secret; a debug log exists to show it, so what to keep is a product choice
+    depends_on: []
+    criteria: []
+  - id: S-041
+    title: Low-severity findings of D-041 item 7 (Inespay absent from redsys-types, on-hold counted as paid, refund URL difference, stray wpml-config key)
+    status: not-started
+    hours: 1.5
+    target: null
+    reason: D-052 — triaged only; none blocks the release of the pending fixes
+    depends_on: []
+    criteria: []
 ---
 
 # Deferred — wanted, not in the current plan

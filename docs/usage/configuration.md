@@ -91,7 +91,7 @@ The code reads these keys from the stored settings, but the Lite settings screen
 
 | Key | Gateway | Read by | Effect when present |
 |-----|---------|---------|---------------------|
-| `testshowgateway` | Google Pay | `check_user_show_payment_method()` | In test mode, who sees the gateway: a list of user IDs, or a list with one empty string for "everyone". **When absent, Google Pay is hidden on the front end for as long as test mode is on.** |
+| `testshowgateway` | Google Pay | `check_user_show_payment_method()` | In test mode, who sees the gateway: a list of user IDs restricts it to those users. When absent or empty, Google Pay is offered to everyone. |
 | `testforuser`, `testforuserid` | Bizum | `check_user_test_mode()` | Per-user test mode in a live store. |
 | `buttoncheckout`, `butonbgcolor`, `butontextcolor` | Bizum | constructor only | Read into properties and used nowhere else in the plugin. |
 | `secret`, `hashtype` | Card | constructor only | Read into properties and used nowhere else in the plugin. |
@@ -141,7 +141,7 @@ With `debug` set to `yes`, each gateway writes to the WooCommerce log (WooCommer
 
 The Bizum field's own help text names the file `bizum-{date}-{number}.log`; the source the code writes to is `bizumredsys`.
 
-**Treat these logs as confidential.** They contain the full request and notification data, and some entries include the signing secret and computed signatures in clear (the "SHA256 Settings" and "SHA256 Transcient" lines at `classes/class-wc-gateway-bizum-redsys.php:1203` and `classes/class-wc-gateway-googlepay-redirection-redsys.php:1023`, and the "Signature verification failed… Local: … Remote: …" lines of all three Redsys-protocol gateways). Turn `debug` off when you are done, and remove the secret from any log before sharing it.
+**Treat these logs as confidential.** They contain the full request and notification data, including the signature Redsys sent with each notification. They no longer contain the signing secret or the signature the store computes (`AC-61`, S-035). Turn `debug` off when you are done.
 
 `WC_Gateway_Redsys_Global_Lite::debug()` also writes to a `redsys-global` source, only when `WP_DEBUG` is on.
 

@@ -101,6 +101,13 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == Unreleased ==
 
+* Fix: A refund explicitly requested for 0 through the Redsys, Bizum or Google Pay gateways is now refused instead of being sent to Redsys as a refund of the full order total.
+* Fix: Debug logs of the Bizum, Google Pay and Redsys gateways no longer contain the signing secret or the locally computed signature.
+* Fix: With debug logging on, a refund request that could not reach Redsys caused a fatal error; it now reports the error message.
+* Fix: A repeated payment notification for a Google Pay order that is already paid is now ignored, as in the other gateways.
+* Fix: Returning to the order-received page with a still unpaid Google Pay order stopped the page with an error; the payment is now verified and completed there.
+* Fix: Google Pay was hidden from every customer while test mode was on; it is now offered in test mode like the other gateways.
+* Fix: Bizum's transaction-limit check no longer drops the decimals of the limit and of the cart total, and a cart total equal to the limit is now allowed.
 * Security Fix: The Google Pay redirection gateway's notification check now fails closed when no SHA-256 secret is configured, matching the Redsys and Bizum gateways (it previously accepted the notification in that case).
 * Fix: The final signature check on the order-received page (successful_request()) was verifying test-mode payments against the wrong secret for Bizum and Google Pay, so a genuinely valid test-mode payment could be left unmarked as paid with no error shown.
 * Fix: Removed an unauthenticated, repeatable 5-second delay on the order-received page; it is now rate-limited per order.

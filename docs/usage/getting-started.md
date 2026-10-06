@@ -83,7 +83,7 @@ For each gateway you use:
 ## The other gateways
 
 - **Bizum:** same steps on the "Bizum Lite" screen, with its own merchant code, terminal and secrets. Optional: a transaction limit.
-- **Google Pay redirection:** same steps on its own screen. **In test mode it does not appear at checkout** unless the stored setting `testshowgateway` has been written by hand, because the settings screen has no field for it — see `docs/usage/configuration.md` ("Stored keys with no field on the settings screen") and `docs/playground.md` for the command the playground uses.
+- **Google Pay redirection:** same steps on its own screen.
 - **Inespay:** enter the API key and API token, keep test mode on for the sandbox. It is offered only to customers in Spain, Portugal or Italy. Orders must be in EUR: a confirmed payment for an order in another currency is put on hold instead of completed. Check a payment by the order note "Inespay payment completed. ID: …, Status: …".
 
 ## Without any credentials: the local playground

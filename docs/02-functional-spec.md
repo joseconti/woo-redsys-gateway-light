@@ -113,7 +113,7 @@ Reading the tables:
 | AC-21 | `successful_request()` verifies against the same resolved secret as the validity check (per-order meta, then the checkout transient, then the settings secret for the active mode) and completes the order when the notification is signed with the test-mode secret. | `Integration/GatewayBizumIpnTest.php::test_successful_request_completes_the_order_when_signed_with_the_test_mode_secret` |
 | AC-22 | A notification that names an order that does not exist is rejected without a fatal error. | `Integration/GatewayBizumIpnTest.php::test_does_not_crash_on_a_notification_referencing_a_nonexistent_order` |
 | AC-23 | An amount mismatch sets the order `on-hold`; `Ds_Response` above 99 sets it `cancelled`, stores the Redsys error text in `_redsys_error_payment_ds_response_value` and empties the cart; a notification for an already-paid order changes nothing. | uncovered |
-| AC-24 | With a `transactionlimit` set, Bizum is removed from the checkout when the cart total reaches the limit. Both values are compared as integers. | uncovered |
+| AC-24 | With a `transactionlimit` set, Bizum is removed from the checkout when the cart total is above the limit, compared as decimals, and stays available when the total equals the limit or is below it. (Revised in S-035, D-052: the as-built text described the integer comparison, which was the defect.) | `Integration/CandidateDefectsTest.php::test_bizum_transaction_limit_compares_real_amounts` |
 
 ### F3 — Google Pay via redirection (`googlepayredirecredsys`)
 
@@ -127,7 +127,10 @@ Reading the tables:
 | AC-30 | A notification that names an order that does not exist is rejected without a fatal error. | `Integration/GatewayGooglePayIpnTest.php::test_does_not_crash_on_a_notification_referencing_a_nonexistent_order` |
 | AC-31 | An amount mismatch sets the order `on-hold`; `Ds_Response` above 99 sets it `cancelled`, stores the Redsys error text in order meta and empties the cart. | uncovered |
 | AC-32 | `googlepayredirecredsys_post_payment_complete` fires with the order ID after a completed payment, and `googlepayredirecredsys_post_payment_error` fires with the order ID and the error text after a denied one. | uncovered |
-| AC-33 | In test mode the gateway is offered only to the user IDs listed in the stored `testshowgateway` setting, to everyone when that setting holds a single empty string, and to nobody when the setting is absent; outside test mode it is offered to everyone. | uncovered |
+| AC-33 | In test mode the gateway is offered only to the user IDs listed in the stored `testshowgateway` setting, and to everyone when that setting is absent or holds no usable entry; outside test mode it is offered to everyone. (Revised in S-035, D-052: it used to be hidden from everyone when the setting was absent.) | `Integration/CandidateDefectsTest.php::test_googlepay_in_test_mode_is_offered_when_no_user_list_exists`, `::test_googlepay_in_test_mode_still_honours_a_user_list` |
+| AC-59 | A Google Pay payment notification for an order that is already paid changes nothing. | `Integration/CandidateDefectsTest.php::test_googlepay_ignores_a_notification_for_an_order_that_is_already_paid` |
+| AC-60 | Returning to the order-received page with a correctly signed Redsys return completes a still unpaid Google Pay order; the signature version is passed to the gateway with the other two parameters. | `Integration/CandidateDefectsTest.php::test_thank_you_fallback_passes_the_signature_version_to_the_gateway` |
+| AC-61 | With debug logging on, neither the signing secret nor the locally computed signature is written to the log, on the notification path (Bizum, Google Pay) or on the refund path (Redsys, Bizum, Google Pay). | `Integration/CandidateDefectsTest.php::test_debug_logging_never_writes_the_signing_secret`, `::test_debug_logging_of_a_refund_never_writes_the_signing_secret` |
 
 ### F4 — Inespay bank transfer (`inespayredsys`)
 
@@ -174,6 +177,7 @@ Reading the tables:
 | AC-52 | For those three gateways the refund returns an error when the order has no stored Redsys order number or the request to Redsys fails, and returns failure when no refund notification arrives in time. | uncovered |
 | AC-53 | An Inespay refund with an explicit amount of `0` requests `0`, not the order total; a refund with no amount requests the full order total. | `Integration/GatewayInespayIpnTest.php::test_process_refund_with_an_explicit_zero_amount_does_not_refund_the_full_total`, `::test_process_refund_with_no_amount_given_refunds_the_full_total` |
 | AC-54 | An Inespay refund returns an error when the order has no pay-in ID, the API call fails, or the API does not answer with status `200`; on success it adds an order note with the amount and the pay-in ID. | uncovered |
+| AC-58 | For Redsys, Bizum and Google Pay, a refund with an explicit amount of zero returns an error and sends no request to Redsys; a refund with an amount, or with none, still sends one. | `Integration/CandidateDefectsTest.php::test_a_refund_of_zero_never_asks_redsys_for_anything`, `::test_a_refund_with_an_amount_or_without_one_still_asks_redsys` |
 
 ### F9 — Order payment details and platform declarations
 
@@ -184,15 +188,15 @@ Reading the tables:
 | AC-57 | The plugin declares compatibility with WooCommerce High-Performance Order Storage. | uncovered |
 
 ### Coverage summary
-57 criteria, `AC-01` to `AC-57`. 31 are proven by a named automated test; 26 are `uncovered`:
-`AC-09`, `AC-10`, `AC-11`, `AC-12`, `AC-13`, `AC-15`, `AC-16`, `AC-23`, `AC-24`, `AC-31`, `AC-32`, `AC-33`, `AC-35`, `AC-41`, `AC-42`, `AC-43`, `AC-46`, `AC-47`, `AC-48`, `AC-49`, `AC-50`, `AC-52`, `AC-54`, `AC-55`, `AC-56`, `AC-57`.
+61 criteria, `AC-01` to `AC-61`. 37 are proven by a named automated test; 24 are `uncovered`:
+`AC-09`, `AC-10`, `AC-11`, `AC-12`, `AC-13`, `AC-15`, `AC-16`, `AC-23`, `AC-31`, `AC-32`, `AC-35`, `AC-41`, `AC-42`, `AC-43`, `AC-46`, `AC-47`, `AC-48`, `AC-49`, `AC-50`, `AC-52`, `AC-54`, `AC-55`, `AC-56`, `AC-57`.
 
 The largest gap is the order-status half of the three Redsys-protocol gateways: signature validation is proven for all of them, but what the card gateway does with an accepted notification (`AC-09` to `AC-12`) has no test at all, and the mismatch and denial branches of Bizum and Google Pay (`AC-23`, `AC-31`) have none either.
 
 ## Testing
 An automated suite exists (built after adoption, D-016 to D-033). Counted in the source tree on 2026-10-06 — counted, not executed, in the slice that wrote this paragraph:
 - **Unit** (`phpunit.xml.dist`, `tests/Unit/`): 1 class, 6 test methods, 8 tests when run (one method runs a 3-case data provider) — `RedsysLiteAPI` only, no WordPress bootstrap.
-- **Integration** (`phpunit-integration.xml.dist`, `tests/Integration/`): 7 classes, 36 test methods — the four gateways' notification handling, order-number mapping, refunds and the thank-you rate limit, on a booted WordPress + WooCommerce.
+- **Integration** (`phpunit-integration.xml.dist`, `tests/Integration/`): 8 classes, 45 test methods (59 tests when run, with data providers) — the four gateways' notification handling, order-number mapping, refunds and the thank-you rate limit, on a booted WordPress + WooCommerce.
 - **End-to-end** (`playwright.config.js`, `tests/e2e/`): 6 spec files, 7 tests — the four classic checkout flows, the Blocks checkout for the Redsys gateway and the Inespay transaction limit.
 
 Commands and the last recorded runs are in `docs/03-technical-plan.md` (Testing) and `docs/05-test-points.md`. The criteria still without an automated test are listed under "Coverage summary" above. No JavaScript unit-test tooling exists, by decision (D-031).

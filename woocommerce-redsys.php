@@ -433,6 +433,7 @@ function redsyslite_mark_order_as_paid( $order_id ) {
 			$params          = array(
 				'Ds_MerchantParameters' => sanitize_text_field( wp_unslash( $_GET['Ds_MerchantParameters'] ) ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				'Ds_Signature'          => isset( $_GET['Ds_Signature'] ) ? sanitize_text_field( wp_unslash( $_GET['Ds_Signature'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				'Ds_SignatureVersion'   => isset( $_GET['Ds_SignatureVersion'] ) ? sanitize_text_field( wp_unslash( $_GET['Ds_SignatureVersion'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			);
 			$payment_method  = $order->get_payment_method();
 			$payment_gateway = WC_Payment_Gateways::instance()->payment_gateways()[ $payment_method ];

@@ -35,10 +35,10 @@ A customer chooses the payment method with ID `googlepayredirecredsys` on the Wo
 | `pending` | accepted notification, denied | `cancelled`; action `googlepayredirecredsys_post_payment_error` fires (`AC-31`, `AC-32`) |
 | `pending` | notification rejected, or none arrives | stays `pending` |
 
-This gateway has no `orderdo` setting. Its code tests `$this->orderdo` after `payment_complete()`, but the property is never assigned, so the order is never forced to `completed` here *(unverified)*.
+This gateway has no `orderdo` setting. The property is read from the stored settings, where the settings screen never writes it, so the order is not forced to `completed` here unless the key was stored by other means.
 
 ## Branches and conditions
-- **Visibility in test mode (`show_payment_method()` / `check_user_show_payment_method()`):** outside test mode the gateway is shown to everyone. In test mode it reads the stored setting `testshowgateway`: a list of user IDs shows it only to those logged-in users; a list holding one empty string shows it to everyone; when the key is absent it is shown to nobody on the front end. The Lite settings screen has no field for this key, so a store that only uses the settings screen has the gateway hidden for as long as test mode is on (`AC-33`, *unverified*; the playground seeds the key by hand — see `docs/playground.md`).
+- **Visibility in test mode (`show_payment_method()` / `check_user_show_payment_method()`):** outside test mode the gateway is shown to everyone. In test mode it reads the stored setting `testshowgateway`: a list of user IDs shows it only to those logged-in users; when the key is absent or holds no usable entry it is shown to everyone. The Lite settings screen has no field for this key, so on a store configured through the settings screen the gateway is offered in test mode like the other gateways (`AC-33`; corrected in S-035, D-052 — it used to be hidden from everyone).
 - **Signing secret (`get_redsys_sha256()`):** in test mode, `customtestsha256` when filled in, otherwise a generic Redsys test secret built into the class; in live mode, `secretsha256`.
 - **Per-user test mode:** `check_user_test_mode()` always returns `false` in this class.
 - **Blocks checkout:** registered by `WC_Gateway_GooglePay_Redirection_Redsys_Support` (`AC-46`, *unverified*).
@@ -47,7 +47,7 @@ This gateway has no `orderdo` setting. Its code tests `$this->orderdo` after `pa
 ## Failure paths and recovery
 - **Customer abandons or the wallet payment is refused:** return to the cancel-order URL; a denied notification cancels the order, stores the Redsys error text, empties the cart and fires `googlepayredirecredsys_post_payment_error`.
 - **Notification rejected:** the `redsys_signature_<number>` transient is deleted and the order stays `pending`.
-- **Return to the order-received page while the order is still unpaid:** the shared fallback calls this gateway's `successful_request()` with only `Ds_MerchantParameters` and `Ds_Signature`. This class stops with `wp_die()` when `Ds_SignatureVersion` is missing (line 941), so the fallback ends the page instead of processing the payment *(unverified — read from the code, not reproduced)*. `docs/flows/notification-handling.md`, part C, describes the fallback.
+- **Return to the order-received page while the order is still unpaid:** the shared fallback calls this gateway's `successful_request()` with `Ds_SignatureVersion`, `Ds_MerchantParameters` and `Ds_Signature` taken from the return URL. A correctly signed return completes the payment; anything else leaves the order unchanged (`AC-60`; corrected in S-035, D-052 — the signature version used not to be forwarded and this class stopped the page).
 
 ## Diagram
 

@@ -42,7 +42,7 @@ A `POST` to `?wc-api=WC_Gateway_<gateway id>` with `Ds_SignatureVersion`, `Ds_Me
 |---|---|---|
 | `Ds_TransactionType` is `3` and `Ds_Response` is `900` | Sets the transient `<order id>_redsys_refund` to `yes`, adds a "refunded" note, returns. The order status is not changed here. | `AC-50` |
 | `Ds_TransactionType` is `3`, any other response | Adds the note "There was an error refunding" and ends the request. | `AC-52` |
-| The order is already paid (`WCRedL()->is_paid()`) — `redsys` and `bizumredsys` only | Ends the request; nothing changes. | `AC-12`, `AC-23` |
+| The order is already paid (`WCRedL()->is_paid()`) | Ends the request; nothing changes. | `AC-12`, `AC-23`, `AC-59` |
 | `Ds_Response` is 0–99 and `Ds_Amount` differs from the order total | Order `on-hold` with a note showing both amounts; ends the request. | `AC-10`, `AC-23`, `AC-31` |
 | `Ds_Response` is 0–99 and the amount matches | Saves the payment meta, adds the notes "HTTP Notification received - payment completed" and "Authorization code: …", calls `payment_complete()`, then `completed` when `orderdo` is `completed`. Google Pay then fires `googlepayredirecredsys_post_payment_complete`. | `AC-09`, `AC-21`, `AC-29`, `AC-32` |
 | `Ds_Response` is above 99 | Order `cancelled` with a note; the cart is emptied. Bizum and Google Pay also store the Redsys error text in `_redsys_error_payment_ds_response_value`; Google Pay then fires `googlepayredirecredsys_post_payment_error`. | `AC-11`, `AC-23`, `AC-31`, `AC-32` |
@@ -68,7 +68,7 @@ The last row is the known, deliberately deferred finding D-025 (`docs/decisions.
 ### Failure paths and recovery
 - **No secret, bad signature, tampered payload:** `wp_die()`; the order is untouched. Redsys treats the notification as failed. Recovery is on the merchant side: fix the secret, then reconcile the order by hand.
 - **Order number cannot be mapped:** the legacy rule strips the first three characters and the leading zeros. In `redsys`, an ID that matches no order makes `new WC_Order()` throw inside `successful_request()` *(unverified — no test covers the card gateway past the signature check)*.
-- **Duplicate notification:** ignored by the already-paid check in `redsys` and `bizumredsys`. In `googlepayredirecredsys` it is processed again *(unverified)*.
+- **Duplicate notification:** ignored by the already-paid check in all three classes (Google Pay since S-035, `AC-59`).
 
 ### Diagram
 

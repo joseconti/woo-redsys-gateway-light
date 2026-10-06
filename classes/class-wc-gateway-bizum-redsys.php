@@ -634,8 +634,10 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	public function disable_bizum( $available_gateways ) {
 
 		if ( ! is_admin() && is_checkout() ) {
-			$total = (int) WC()->cart->total;
-			$limit = (int) $this->transactionlimit;
+			// Compare as floats: integer casts cut the cents off both values,
+			// which shrank a limit like 200.50 to 200.
+			$total = (float) WC()->cart->total;
+			$limit = (float) $this->transactionlimit;
 			if ( ! empty( $limit ) && $limit > 0 ) {
 				$result = $limit - $total;
 				if ( 'yes' === $this->debug ) {
@@ -645,7 +647,8 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 					$this->log->add( 'bizumredsys', '$result: ' . $result );
 					$this->log->add( 'bizumredsys', ' ' );
 				}
-				if ( $result > 0 ) {
+				// A total equal to the limit is still within it.
+				if ( $result >= 0 ) {
 					return $available_gateways;
 				} else {
 					unset( $available_gateways['bizumredsys'] );
@@ -1167,7 +1170,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		// Verify cryptographic signature to prevent payment forgery.
 		if ( ! hash_equals( $localsecret, $remote_sign ) ) {
 			if ( 'yes' === $this->debug ) {
-				$this->log->add( 'bizumredsys', 'Signature verification failed in successful_request. Local: ' . $localsecret . ' Remote: ' . $remote_sign );
+				$this->log->add( 'bizumredsys', 'Signature verification failed in successful_request.' );
 			}
 			return;
 		}
@@ -1200,10 +1203,10 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		$is_paid           = WCRedL()->is_paid( $order->get_id() );
 
 		if ( 'yes' === $this->debug ) {
-			$this->log->add( 'bizumredsys', 'SHA256 Settings: ' . $usesecretsha256 );
-			$this->log->add( 'bizumredsys', 'SHA256 Transcient: ' . $secretsha256 );
+			// Presence only: the signing secret itself never goes to the log.
+			$this->log->add( 'bizumredsys', 'SHA256 Settings: ' . ( $usesecretsha256 ? 'set' : 'empty' ) );
+			$this->log->add( 'bizumredsys', 'SHA256 Transcient: ' . ( $secretsha256 ? 'set' : 'empty' ) );
 			$this->log->add( 'bizumredsys', 'decode_merchant_parameters: ' . $decodedata );
-			$this->log->add( 'bizumredsys', 'create_merchant_signature_notif: ' . $localsecret );
 			$this->log->add( 'bizumredsys', 'Ds_Amount: ' . $total );
 			$this->log->add( 'bizumredsys', 'Ds_Order: ' . $ordermi );
 			$this->log->add( 'bizumredsys', '$order_id: ' . $order2 );
@@ -1379,7 +1382,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			if ( ! empty( $secretsha256 ) ) {
 				WCRedL()->update_order_meta( $order->get_id(), '_redsys_secretsha256', $secretsha256 );
 				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', '_redsys_secretsha256 saved: ' . $secretsha256 );
+					$this->log->add( 'bizumredsys', '_redsys_secretsha256 saved' );
 				}
 			} elseif ( 'yes' === $this->debug ) {
 				$this->log->add( 'bizumredsys', ' ' );
@@ -1471,11 +1474,11 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			$secretsha256 = $secretsha256_meta;
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'bizumredsys', __( 'Using meta for SHA256', 'woo-redsys-gateway-light' ) );
-				$this->log->add( 'bizumredsys', __( 'The SHA256 Meta is: ', 'woo-redsys-gateway-light' ) . $secretsha256 );
+				$this->log->add( 'bizumredsys', __( 'The SHA256 Meta is: ', 'woo-redsys-gateway-light' ) . ( $secretsha256 ? 'set' : 'empty' ) );
 			}
 		} elseif ( 'yes' === $this->debug ) {
 			$this->log->add( 'bizumredsys', __( 'Using settings for SHA256', 'woo-redsys-gateway-light' ) );
-			$this->log->add( 'bizumredsys', __( 'The SHA256 settings is: ', 'woo-redsys-gateway-light' ) . $secretsha256 );
+			$this->log->add( 'bizumredsys', __( 'The SHA256 settings is: ', 'woo-redsys-gateway-light' ) . ( $secretsha256 ? 'set' : 'empty' ) );
 		}
 		if ( 'yes' === $this->not_use_https ) {
 			$final_notify_url = $this->notify_url_not_https;
@@ -1499,7 +1502,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'bizumredsys', __( 'Authorization Date : ', 'woo-redsys-gateway-light' ) . $autorization_date );
 			$this->log->add( 'bizumredsys', __( 'Currency Codey : ', 'woo-redsys-gateway-light' ) . $currencycode );
 			$this->log->add( 'bizumredsys', __( 'Terminal : ', 'woo-redsys-gateway-light' ) . $terminal );
-			$this->log->add( 'bizumredsys', __( 'SHA256 : ', 'woo-redsys-gateway-light' ) . $secretsha256_meta );
+			$this->log->add( 'bizumredsys', __( 'SHA256 : ', 'woo-redsys-gateway-light' ) . ( $secretsha256_meta ? 'set' : 'empty' ) );
 
 		}
 
@@ -1572,7 +1575,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				$this->log->add( 'bizumredsys', __( 'There is an error', 'woo-redsys-gateway-light' ) );
 				$this->log->add( 'bizumredsys', '*********************************' );
 				$this->log->add( 'bizumredsys', ' ' );
-				$this->log->add( 'bizumredsys', __( 'The error is : ', 'woo-redsys-gateway-light' ) . $post_arg );
+				$this->log->add( 'bizumredsys', __( 'The error is : ', 'woo-redsys-gateway-light' ) . $post_arg->get_error_message() );
 			}
 			return $post_arg;
 		}
@@ -1614,6 +1617,12 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		// Do your refund here. Refund $amount for the order with ID $order_id _transaction_id.
 		set_time_limit( 0 );
 		$order = wc_get_order( $order_id );
+
+		// An explicit amount of zero is not "no amount given": refunding the
+		// whole order for it would move money nobody asked to move.
+		if ( null !== $amount && '' !== $amount && round( (float) $amount, 2 ) <= 0 ) {
+			return new WP_Error( 'error', __( 'The refund amount must be greater than zero.', 'woo-redsys-gateway-light' ) );
+		}
 
 		$transaction_id = WCRedL()->get_order_meta( $order_id, '_payment_order_number_redsys', true );
 		if ( 'yes' === $this->debug ) {

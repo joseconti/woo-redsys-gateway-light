@@ -359,7 +359,8 @@
 ## D-045 — Acceptance criteria were backfilled as-built: the 26 with no automated proof carry no test-point row until a slice drives them
 - Date / phase: 2026-10-06 / post-update reconciliation, slices S-025 and S-026
 - Decision: `docs/02-functional-spec.md` now carries `AC-01` to `AC-57`, written from the code as it is (adoption, as-built). 31 are proven by a named existing test and are bound (29 to the rows of the slices that wrote those tests, and AC-05 and AC-51 to a row backfilled for the D-033 slice) to the test-point rows of the slices that wrote those tests. The other 26 are recorded in the spec as `as-built, unverified`; they get NO row in `docs/05-test-points.md` now, because a row is evidence of something driven and nothing was driven. Each gets its row in the slice that first drives it. `scripts/keel-verify` reads the list from this entry and reports those ids instead of failing on them; an id that is neither bound to a row nor listed here still fails.
-- Unverified ids: AC-09, AC-10, AC-11, AC-12, AC-13, AC-15, AC-16, AC-23, AC-24, AC-31, AC-32, AC-33, AC-35, AC-41, AC-42, AC-43, AC-46, AC-47, AC-48, AC-49, AC-50, AC-52, AC-54, AC-55, AC-56, AC-57.
+- Unverified ids: AC-09, AC-10, AC-11, AC-12, AC-13, AC-15, AC-16, AC-23, AC-31, AC-32, AC-35, AC-41, AC-42, AC-43, AC-46, AC-47, AC-48, AC-49, AC-50, AC-52, AC-54, AC-55, AC-56, AC-57.
+- Removed from the list on 2026-10-06 (S-035, D-052): AC-24 and AC-33, now bound to tests.
 - Why: this is adoption's progressive-backfill rule applied to criteria. Inventing 26 rows, or tagging them as delegated to the user, would turn an honest gap into false evidence. Several of these ids are exactly where D-041's candidate defects sit (the card gateway past the signature check, Google Pay's duplicate handling, the refund paths), so S-035 is expected to bind a good part of them.
 - Consequence: the gap is visible and counted, not hidden — the release gate (S-032) reads this list.
 - Supersedes: none.
@@ -419,4 +420,21 @@
 - wp-env 11 prints deprecation warnings for `clean` (now `reset`) and for the combined development-and-tests configuration this project uses. Both still work; not changed here.
 - Not checked: PHP 8.x. The suite has only ever run on 7.4, so nothing here says the plugin works on the PHP versions most stores run. Whether to add a second playground on a current PHP is a separate question for the user.
 - Supersedes: the "why not fix it now" and "not checked" lines of D-044. Unblocks S-027, S-029, S-035, S-037, S-038, S-039.
+
+## D-052 — The candidate defects of D-041 were reproduced and fixed (S-035); what changed in behaviour, and what was left
+- Date / phase: 2026-10-06 / sprint 3, slice S-035
+- Each of items 1 to 6 of D-041 was reproduced by a failing test in `tests/Integration/CandidateDefectsTest.php` before its fix (D-036). All were real.
+- Fixed, with the behaviour chosen:
+  1. Thank-you fallback: `redsyslite_mark_order_as_paid()` now forwards `Ds_SignatureVersion` with the other two return parameters. The gateway still verifies the signature itself.
+  2. Google Pay: a notification for an order that is already paid returns without changing anything. The guard sits after signature verification and after the refund branch, and uses `return` where the card and Bizum classes use `exit`.
+  3. Refund of zero (card, Bizum, Google Pay): an explicit amount that rounds to zero cents or less returns a `WP_Error` and sends nothing to Redsys. This differs on purpose from Inespay (D-026), which sends the explicit `0`: a zero refund request to Redsys would be followed by up to 100 seconds of polling for a confirmation that cannot arrive. A missing amount still means the full total. One new translatable string, added to the `es_ES` files.
+  4. Bizum limit: decimals compared, and a total EQUAL to the limit is now allowed, as in Inespay. This is a visible change for a store whose customers pay exactly the limit.
+  5. Debug logs: no line writes the signing secret or the locally computed signature any more. The tests found four more such lines per gateway than D-041 had listed (the "saved" line and three on the refund path, one of them in the card gateway).
+  6. Google Pay in test mode: an absent or empty `testshowgateway` list now means "offered to everyone". This is the larger behaviour change: a store that has Google Pay enabled in test mode will start showing it to customers, as the card and Bizum gateways already do in test mode.
+- Also found and fixed: with debug on, a refund request that failed at the HTTP level concatenated the `WP_Error` object into a log line, a fatal error (three classes). `$orderdo` was an undeclared property in the Google Pay class; it is declared and read from the stored settings, where nothing writes it.
+- `AC-24` and `AC-33` were revised in place rather than withdrawn: both had been written as-built from the defective behaviour (D-045). They are now bound to tests and leave D-045's unverified list. `AC-58` to `AC-61` are new.
+- Review: an independent security read and an independent code read of the diff. Applied from them: the locally computed signature no longer logged; the zero guard rounds to cents; the user-list filter ignores non-scalar entries; the tests reset the gateway registry and the cart.
+- Left as it is: the inbound `Ds_Signature` and the raw notification data are still written to the debug log. They are request data, and a debug log exists to show them; redacting them is deferred as S-040. Item 7 of D-041 (Inespay missing from `redsys-types.php`, `on-hold` counted as paid, refund URL difference, stray `wpml-config.xml` key) was triaged only and is deferred as S-041.
+- Not checked: a real refund or a real duplicate notification against Redsys's test environment (no merchant credentials, `CREDENTIAL`); PHP 7.0 to 7.3, which the header declares and the playground cannot run — the changed lines were read for 7.0 syntax, not executed on it.
+- Supersedes: the "unverified" readings of D-041 items 1 to 6.
 

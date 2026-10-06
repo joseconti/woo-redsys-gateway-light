@@ -54,10 +54,10 @@ slices:
     criteria: []
   - id: S-035
     title: Reproduce and fix the candidate defects surfaced by the documentation backfill (Google Pay fallback and paid guard, zero-amount refunds, Bizum limit casts, secret in debug logs)
-    status: not-started
+    status: done
     hours: 2.5
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.1303
+    actual_source: measured
     depends_on: [S-036]
     criteria: []
   - id: S-037
@@ -102,3 +102,4 @@ slices:
 - Close-out:
 - S-031 (done 2026-10-06, D-050): the two unused `dependencies` removed, `package.json` version synced to 7.0.2 and now checked by `scripts/keel-verify`, non-breaking audit fixes applied. `npm audit` 147 → 115; everything left hangs on two major upgrades — `@wordpress/scripts` 36 (new slice S-039) and `@wordpress/env` 11 (belongs to S-036, it is the playground tool). Not pushed: the pre-push selection for a lockfile change is the entire suite, which needs S-036.
 - S-036 (done 2026-10-06, D-051, L-008): playground rebuilt from nothing on `@wordpress/env` 11 with PHP 7.4 unchanged; setup scripted in `scripts/playground-setup`; automatic updater off; whole suite green, 49 of 49. The S-031 commit was pushed with it, through the pre-push hook.
+- S-035 (done 2026-10-06, D-052): the six candidate defects reproduced from failing tests and fixed, plus two the tests uncovered; 20 new tests; `AC-24`, `AC-33` revised and bound, `AC-58` to `AC-61` added. Two visible behaviour changes for the release notes: Google Pay is now offered in test mode, and a Bizum total equal to the limit is allowed.
