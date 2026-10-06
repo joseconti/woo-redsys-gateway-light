@@ -355,3 +355,24 @@
 - Why not fix it now: the realistic fix moves the playground off PHP 7.4, which reverses a recorded pin and changes what "tested on" means for the next release. That is a decision, not a repair.
 - Not checked: whether an older `@wordpress/env` release, a pinned image digest, or pointing apt at Debian's archive mirror would let the PHP 7.4 image build unchanged; none of the three was tried.
 - Supersedes: none.
+
+## D-045 — Acceptance criteria were backfilled as-built: the 26 with no automated proof carry no test-point row until a slice drives them
+- Date / phase: 2026-10-06 / post-update reconciliation, slices S-025 and S-026
+- Decision: `docs/02-functional-spec.md` now carries `AC-01` to `AC-57`, written from the code as it is (adoption, as-built). 31 are proven by a named existing test and are bound to the test-point rows of the slices that wrote those tests. The other 26 are recorded in the spec as `as-built, unverified`; they get NO row in `docs/05-test-points.md` now, because a row is evidence of something driven and nothing was driven. Each gets its row in the slice that first drives it. `scripts/keel-verify` reads the list from this entry and reports those ids instead of failing on them; an id that is neither bound to a row nor listed here still fails.
+- Unverified ids: AC-09, AC-10, AC-11, AC-12, AC-13, AC-15, AC-16, AC-23, AC-24, AC-31, AC-32, AC-33, AC-35, AC-41, AC-42, AC-43, AC-46, AC-47, AC-48, AC-49, AC-50, AC-52, AC-54, AC-55, AC-56, AC-57.
+- Why: this is adoption's progressive-backfill rule applied to criteria. Inventing 26 rows, or tagging them as delegated to the user, would turn an honest gap into false evidence. Several of these ids are exactly where D-041's candidate defects sit (the card gateway past the signature check, Google Pay's duplicate handling, the refund paths), so S-035 is expected to bind a good part of them.
+- Consequence: the gap is visible and counted, not hidden — the release gate (S-032) reads this list.
+- Supersedes: none.
+
+## D-046 — keel-verify enforces newest-first order in the readme.txt changelog
+- Date / phase: 2026-10-06 / post-update reconciliation, slice S-026
+- Decision: the regenerated `scripts/keel-verify` checks that `readme.txt`'s changelog runs newest entry first, with `== Unreleased ==` allowed only at the top. Keel's phase reference words the check as oldest to newest; this project keeps the WordPress.org convention, which is what the existing version-touchpoint check ("top changelog entry") already relied on.
+- Why: reversing a released plugin's changelog to satisfy a checker would be the code adapting to the tool.
+- Supersedes: none.
+
+## D-047 — The reconciliation commits are pushed past the pre-push hook, once, with the user's approval
+- Date / phase: 2026-10-06 / post-update reconciliation
+- Decision: the commits of this reconciliation are pushed to `develop` with the pre-push hook bypassed. The user approved it explicitly, for these commits, after being told why: the hook's selection for them is the entire suite (they touch `playwright.config.js` and the selector itself), and the suite cannot run because the playground does not build (D-044).
+- What this does and does not cover: it covers the commits of sprint 2 only, none of which touches plugin code. It is not a standing permission. The next push that reaches product code goes through the hook, which needs S-036 first.
+- Why: the alternative was leaving the work on one machine, which is the state Keel's durability rule exists to eliminate; the hook's remedy was one the session could not perform.
+- Supersedes: none.

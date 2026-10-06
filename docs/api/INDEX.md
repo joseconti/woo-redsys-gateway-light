@@ -4,6 +4,8 @@
 > Hooks, endpoints and settings are documented in full (S-025, 2026-10-06). Classes and functions are backfilled progressively (adoption rule): `docs/reference/classes.md` and `docs/reference/functions.md` say, per class and per file, which members are documented and which are only listed by name.
 > The `Doc` column is a path from the repository root.
 
+See [`README.md`](README.md) for how this reference is organised.
+
 | Surface | Kind | Code file | Doc | Purpose (one line) |
 |---------|------|-----------|-----|--------------------|
 | `valid_redsys_standard_ipn_request` | action | classes/class-wc-gateway-redsys.php | docs/reference/hooks-and-extension-points.md | Fires after a Redsys card-gateway notification passes signature verification |
