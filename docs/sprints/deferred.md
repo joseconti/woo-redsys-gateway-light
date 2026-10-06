@@ -49,6 +49,14 @@ items:
     reason: D-056 — none has an affected principal; triage with the user after the confirmed findings are fixed. D-065 — the scoped re-audit added 18 notes (local report of the `476d52e` run); one of them, an uncaught error on PHP 8 for a Bizum notification posted without its signature-version field, is the first to look at
     depends_on: []
     criteria: []
+  - id: S-057
+    title: Admin notices — the four link buttons take WooCommerce's colours for a primary button inside a WooCommerce message, which axe measures below 4.5:1 on WooCommerce 7.4
+    status: not-started
+    hours: 0.5
+    target: null
+    reason: D-067 — the colours are WooCommerce's stylesheet, not this plugin's; giving the buttons colours of their own is a visual decision for the user, and the result on a current WooCommerce has not been observed
+    depends_on: []
+    criteria: []
   - id: S-055
     title: Order-received fallback follow-ups — successful_request() of the three gateways to verify through is_valid_return() (one verification instead of two), and an atomic claim of the per-order attempt
     status: not-started

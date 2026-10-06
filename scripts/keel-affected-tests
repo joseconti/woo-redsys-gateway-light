@@ -84,6 +84,8 @@ classes/class-wc-gateway-inespay-redsys.php | tests/Integration/GatewayInespayIp
 classes/class-wc-gateway-redsys-global-lite.php | tests/Integration/GlobalLiteOrderNumberTest.php tests/Integration/RefundOrderNumberTransientTest.php tests/Integration/GatewayBizumIpnTest.php tests/Integration/GatewayGooglePayIpnTest.php | WC_Gateway_Redsys_Global_Lite via WCRedL()
 woocommerce-redsys.php | tests/Integration/MarkOrderAsPaidRateLimitTest.php tests/e2e/*.spec.js | plugin bootstrap: redsyslite_mark_order_as_paid() + gateway and Blocks registration, which only the e2e flows exercise
 includes/blocks/class-wc-gateway-redsys-lite-support.php | tests/e2e/checkout-blocks-redsys.spec.js | Blocks checkout support, Redsys
+includes/class-redsys-lite-apps-plugins.php | tests/e2e/accessibility.spec.js | About page content: the axe scan is its only test
+about-redsys.php | tests/e2e/accessibility.spec.js | About page shell
 resources/js/frontend/index.js | tests/e2e/checkout-blocks-redsys.spec.js | webpack source of the Blocks bundle
 assets/js/frontend/blocks.js | tests/e2e/checkout-blocks-redsys.spec.js | built Blocks bundle
 assets/js/frontend/blocks.asset.php | tests/e2e/checkout-blocks-redsys.spec.js | built Blocks bundle manifest

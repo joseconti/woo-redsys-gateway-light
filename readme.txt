@@ -101,6 +101,7 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == Unreleased ==
 
+* Tweak: Several text colours of the About page did not reach the 4.5:1 contrast of WCAG 2.2 AA; they are darker now.
 * Fix: With WooCommerce removed or deactivated while this plugin was still active, every front-end page ended in a fatal error. The plugin now does nothing in that case.
 * Fix: The transaction limit of the Bizum and Inespay gateways now also applies when an order is paid from the order-pay page or through the Blocks checkout, and an order above the limit is refused when the payment is started.
 * Fix: A refund through the Redsys, Bizum or Google Pay gateways could be reported as done when Redsys had not confirmed it, if a confirmation of an earlier refund of the same order had been left behind. Each refund now waits for its own confirmation.

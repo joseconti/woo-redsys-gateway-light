@@ -166,7 +166,7 @@ Reading the tables:
 | ID | Criterion | Proof |
 |----|-----------|-------|
 | AC-47 | Each gateway shows its fields under WooCommerce → Settings → Payments and saves them in the option `woocommerce_<gateway id>_settings`, with the keys and defaults listed in `docs/usage/configuration.md`. | uncovered |
-| AC-48 | Accessibility conditions for the UI the plugin renders — settings fields, admin notices, the order-pay form and its buttons, the test-mode banners and the gateway rows at checkout: operable by keyboard and assistive technology, name/role/state exposed, contrast met, focus visible, errors not identified by color alone, adequate target size, user preferences honored (D-007). | uncovered — no automated or assistive-technology pass has been run; state `TO BUILD` in `docs/accessibility.md` |
+| AC-48 | Accessibility conditions for the UI the plugin renders — settings fields, admin notices, the order-pay form and its buttons, the test-mode banners and the gateway rows at checkout: operable by keyboard and assistive technology, name/role/state exposed, contrast met, focus visible, errors not identified by color alone, adequate target size, user preferences honored (D-007). | partly — the automated pass ran on 2026-10-06 (`tests/e2e/accessibility.spec.js`, S-029): contrast, names, labels and target size hold in the regions and states listed in `docs/accessibility.md`, with one recorded exception (S-057). Keyboard operation, visible focus in use and what assistive technology announces are unverified until the guided pass (S-030); the test-mode banners are not scanned |
 
 ### F7 — Cross-sell page
 

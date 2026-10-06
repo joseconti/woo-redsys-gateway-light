@@ -77,7 +77,7 @@ The manifest's Table 1 carries no row ids; `T1-nn` is the row's position in the 
 | T1-58 | `docs/architecture.md` | present | On disk |
 | T1-59 | `docs/api/`, `docs/usage/`, `docs/reference/` | present | Index and readme under api; four usage documents; four reference documents (classes, endpoints, functions, hooks and extension points); linter checks 7 and 8 OK |
 | T1-60 | `docs/security.md` | present | On disk; profile per D-001 |
-| T1-61 | Accessibility record with automated results and the guided assistive-technology pass | missing | The file exists; both passes still read "TO BUILD — not run". Scheduled S-029 (automated) and S-030 (guided), sprint 3 created by D-040; S-029 waits on the playground (D-044) |
+| T1-61 | Accessibility record with automated results and the guided assistive-technology pass | missing | The automated pass is built, run and recorded (S-029, D-067: `tests/e2e/accessibility.spec.js`, results in `docs/accessibility.md`). The guided pass is still not run: it needs a person with a screen reader (S-030); its script is written |
 | T1-62 | `README.md` | present | Repository root |
 | T1-63 | End-user guide | declined | D-013 |
 | T1-64 | Guide theme, brand layer and version marker | declined | D-013 |
@@ -343,7 +343,7 @@ Counted from the tables above.
 ## Still missing, with the decision that schedules it
 
 
-- T1-61 — accessibility passes: S-029 and S-030 (sprint 3, D-040; S-029 waits on S-036, D-044).
+- T1-61 — accessibility passes: the automated one is done (S-029, D-067); the guided one is S-030 (sprint 3) and needs the user.
 - T3-5.15.1-5 — the Stop hook observed after a full session restart: S-037 (D-048).
 - T3-6.0.0-4e — a real selection through the pre-push hook: S-037 after S-036 (D-044, D-048).
 - T3-6.4.0-4b — the timing report over a real multi-session slice: S-037 (D-048).

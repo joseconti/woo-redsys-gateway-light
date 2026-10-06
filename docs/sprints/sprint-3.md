@@ -30,10 +30,10 @@ slices:
     criteria: []
   - id: S-029
     title: Automated accessibility pass on the settings screens and the checkout surfaces
-    status: not-started
+    status: done
     hours: 1
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.0672
+    actual_source: measured
     depends_on: [S-036]
     criteria: []
   - id: S-030
@@ -172,13 +172,21 @@ slices:
     actual_source: measured
     depends_on: [S-043, S-044, S-045, S-046, S-047, S-048, S-049, S-050, S-051]
     criteria: []
+  - id: S-056
+    title: About page — text colours below the 4.5:1 contrast of WCAG 2.2 AA (found by the automated pass, S-029)
+    status: done
+    hours: 0.25
+    actual_hours: 0.1061
+    actual_source: measured
+    depends_on: [S-029]
+    criteria: []
   - id: S-032
     title: Phase 7 release gate on the candidate (full suite, version proposed to the user, package hygiene)
     status: not-started
     hours: 2
     actual_hours: null
     actual_source: estimated
-    depends_on: [S-036, S-027, S-028, S-029, S-031, S-035, S-039, S-052, S-054]
+    depends_on: [S-036, S-027, S-028, S-029, S-031, S-035, S-039, S-052, S-054, S-056]
     criteria: []
 ---
 
@@ -198,4 +206,6 @@ slices:
 - S-043 to S-051 (done 2026-10-06, D-057 to D-064): the nine confirmed findings of the audit, each reproduced by a failing test, fixed, reviewed by an independent read and pushed. S-043: a notification that names no order never verifies. S-044: the Google Pay form-path debug line no longer writes the signing secret. S-045: the Logo setting is a URL, validated on save and escaped where used. S-046: the order-received fallback checks gateway, order and signature before its wait, and a return must name the order in the URL. S-047 and S-048: the two admin notices and the welcome redirect check the user. S-049: a refund waits for its own confirmation. S-050: the Bizum and Inespay transaction limit holds on every route to a payment. S-051: no fatal error on the front end without WooCommerce. Four reviews found something the first fix had missed (S-046 twice, S-048, S-050); each was reproduced by a test before being closed. Added on the way: S-054 (line references in `docs/reference/`), and S-055 in `deferred.md`. Whole suite at the last slice: unit 34, integration 193, e2e 8, all green. S-051 shows 0 h measured because its reproduction and fix were done while S-050 waited for its review; the time is inside S-050's figure.
 - S-052 (done 2026-10-06, D-065): scoped re-audit at `476d52e`. The nine confirmed findings each went back to a verifier that had not hunted them and saw neither the fixes' records nor the earlier verdicts: nine `rejected`, each with the control located on every path, siblings included. Four hunters over the shipped-code diff (three, then one more for the gap the coverage check found): no candidate. One variant noticed by a verifier was raised as SA-20 and decided by another verifier: `needs_validation`, a fact about Redsys the source cannot show. Nothing was executed in the run. 18 hardening notes join S-053.
 - S-054 (done 2026-10-06, D-066): 64 of the 96 `file:line` references in `docs/reference/` no longer pointed at their symbol; all re-resolved. `scripts/keel-verify` check 28 fails a reference whose line does not name the symbol written beside it (seen failing on a reference moved by one line). Done inside the waits of S-052, so its 0 h measured is inside S-052's figure.
+- S-029 (done 2026-10-06, D-067): `tests/e2e/accessibility.spec.js`, 14 axe scans limited to what the plugin renders. Checkout rows, payment forms, Blocks options and settings forms: no violation. About page: 32 contrast nodes (S-056). Admin notices: 4 contrast nodes from WooCommerce's stylesheet, recorded and deferred (S-057). `axe-core` declared as a development dependency; doctor row and selector mapping added. The guided script for S-030 is written.
+- S-056 (done 2026-10-06, D-067): four colour values of the About page darkened; the scan that failed passes. Whole suite green: unit 34, integration 193, e2e 22.
 - Records fix after the last slice (commit `a6b8623`): four bookkeeping lines `scripts/keel-verify` rejected at the session close — two index rows, D-045's list, the estimate's Phase 5 sum, one test-point row without its scope line. No code.

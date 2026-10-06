@@ -149,7 +149,7 @@ Run at every test point on the changed files, and over the whole tree at the rel
 - `scripts/keel-verify` — cheap, runs whole, always.
 
 ### Accessibility automation
-**`TO BUILD`** — `@axe-core/playwright` is not a dependency and no spec runs an axe scan; no driven keyboard/focus-order pass exists. The mechanism, when built: axe inside the existing e2e specs, per state (payment method unselected / selected / the generated payment form), tagged to WCAG 2.2 AA (D-007). `docs/accessibility.md` holds the same honest status.
+**Built (S-029, D-067)** — `tests/e2e/accessibility.spec.js` injects `axe-core` (a development dependency; `@axe-core/playwright` is not used) into the page through Playwright and scans, per screen and per state, only the region this plugin renders: each gateway's row on the classic checkout with that gateway selected, the generated payment form of the three Redsys gateways, the payment options of the Blocks checkout with each selected in turn, the four settings forms, the plugin's admin notices and its About page. Rules tagged WCAG 2.0, 2.1 and 2.2, levels A and AA (D-007). Raw results go to `test-results/a11y/`. One recorded exception is listed in the spec by rule and selector (S-057). **`TO BUILD`**: a driven keyboard and focus-order pass; the states the spec does not reach are listed in `docs/accessibility.md`, which also holds the results and the script of the guided pass.
 
 ### Read-back duty
 - **WordPress log — in place:** `.wp-env.json` sets `WP_DEBUG` and `WP_DEBUG_LOG` for both environments; the log is read at every test point with `npx wp-env run cli tail -n 100 wp-content/debug.log` (`docs/playground.md`, "Reading the WordPress debug log"). A flow that passes while the log gained a fatal or a notice has not passed.
@@ -192,6 +192,7 @@ One machine plays all three roles here — the user's Mac holds the repository a
 | wp-env playground of THIS repository | running, for any test run — a state, not an install; another project's wp-env is not it | optional | `npx wp-env start` |
 | PHPUnit + `yoast/phpunit-polyfills` | `^9.6` / `^2.0`, in `vendor/` | blocking | with the playground running: `npx wp-env run cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && composer install"` |
 | `@playwright/test` | `^1.62.1`, project-local | blocking | `npm install` |
+| `axe-core` | `^4.14`, project-local | blocking | `npm install` |
 | Playwright Chromium | the revision the installed `@playwright/test` pins | blocking | `npx playwright install chromium` — a download of a few hundred MB |
 | PHP on the host | >= 7.4 recommended | optional — only for `php -l` outside Docker | Homebrew / the OS package manager |
 | python3 | any | optional — the doctor reads the MCP and settings JSON with it | Xcode Command Line Tools / the OS package manager |
@@ -200,7 +201,7 @@ One machine plays all three roles here — the user's Mac holds the repository a
 | Browser MCP flags | `--headless` + `--isolated`, or `--cdp-endpoint` | advisory | add the flags in `.mcp.json` |
 | Orphaned Playwright browsers | 0 with parent PID 1 | advisory | `kill <the listed PIDs>` — never `pkill -f ms-playwright` |
 
-**Not in the table because they do not exist yet** (see "Static analysis and sniffers"): phpcs with the WooCommerce/WordPress standards, PHPStan, Plugin Check, `@axe-core/playwright`. Each gets a row here — and so a row in the doctor — in the slice that installs it.
+**Not in the table because they do not exist yet** (see "Static analysis and sniffers"): phpcs with the WooCommerce/WordPress standards, PHPStan, Plugin Check. Each gets a row here — and so a row in the doctor — in the slice that installs it.
 
 **Nothing in this project is impossible on this machine:** no Apple, Android or native-desktop surface exists.
 

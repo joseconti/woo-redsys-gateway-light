@@ -227,6 +227,14 @@ else
 	NEED_NPM_INSTALL=1
 fi
 
+# --- axe-core (the rules engine of tests/e2e/accessibility.spec.js) -----
+if [ -f "node_modules/axe-core/axe.min.js" ]; then
+	add_row "axe-core" "installed (node_modules/axe-core)" "^4.14" "OK" "blocking" "—"
+else
+	add_row "axe-core" "absent" "^4.14" "MISSING" "blocking" "npm install"
+	NEED_NPM_INSTALL=1
+fi
+
 # The revision this project's Playwright wants is only known once
 # node_modules exists (playwright-core/browsers.json). A cached build of
 # some other revision is not this project's browser, and a directory is
