@@ -54,3 +54,6 @@ docs/continuation-prompt.md
 /blob-report/
 /playwright/.cache/
 docs/.keel/clock.jsonl
+
+# Security audit runs: findings stay out of Git while any is open (Keel security-audit)
+docs/security-audit/

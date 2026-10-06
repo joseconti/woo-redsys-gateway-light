@@ -22,7 +22,7 @@ slices:
     criteria: []
   - id: S-028
     title: Active security audit of the release candidate (Security audit is required)
-    status: not-started
+    status: in-progress
     hours: 2
     actual_hours: null
     actual_source: estimated
