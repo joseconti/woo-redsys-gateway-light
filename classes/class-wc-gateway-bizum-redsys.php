@@ -1121,6 +1121,41 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		}
 	}
 	/**
+	 * Tell whether a return or notification carries a signature made with this gateway's secret.
+	 *
+	 * Verifies and nothing else: no order is changed and nothing waits. The
+	 * order-received fallback asks this before it spends its five-second wait
+	 * on a request (redsyslite_mark_order_as_paid()). successful_request()
+	 * still verifies on its own.
+	 *
+	 * @param array $params Ds_MerchantParameters and Ds_Signature, as received.
+	 * @return bool
+	 */
+	public function is_valid_return( $params ) {
+		if ( ! is_array( $params ) || empty( $params['Ds_MerchantParameters'] ) || empty( $params['Ds_Signature'] ) ) {
+			return false;
+		}
+		if ( 'yes' === $this->testmode ) {
+			$usesecretsha256 = ! empty( $this->customtestsha256 ) ? $this->customtestsha256 : $this->secretsha256;
+		} else {
+			$usesecretsha256 = $this->secretsha256;
+		}
+		// Fail closed: without a secret there is nothing to verify against.
+		if ( empty( $usesecretsha256 ) ) {
+			return false;
+		}
+		$data        = RedsysLiteAPI::sanitize_merchant_parameters( wp_unslash( $params['Ds_MerchantParameters'] ) );
+		$remote_sign = sanitize_text_field( wp_unslash( $params['Ds_Signature'] ) );
+		$mi_obj      = new RedsysLiteAPI();
+		// The secret that signed it can be the order's own (per-user test mode): same resolution as successful_request().
+		$mi_obj->decode_merchant_parameters( $data );
+		$usesecretsha256 = $this->resolve_notification_secret( $mi_obj );
+		if ( empty( $usesecretsha256 ) ) {
+			return false;
+		}
+		return hash_equals( $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data ), $remote_sign );
+	}
+	/**
 	 * Successful Payment!
 	 *
 	 * @param array $params Post data successsful request.

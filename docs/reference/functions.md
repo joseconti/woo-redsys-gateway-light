@@ -63,9 +63,9 @@ $script = plugin_url_redsys() . '/assets/js/frontend/blocks.js';
 ## Payment handling
 
 ### `redsyslite_mark_order_as_paid( $order_id )`
-- **Signature:** `redsyslite_mark_order_as_paid( int $order_id ): void` (`woocommerce-redsys.php:401`).
-- **What it does:** the fallback behind the order-received page (`docs/flows/notification-handling.md`, part C). Stops if it already ran for this order in the last 30 seconds or if the order is already paid; otherwise waits 5 seconds, and if the order belongs to one of the three Redsys-protocol gateways and is still unpaid, hands `Ds_MerchantParameters` and `Ds_Signature` from the query string to the gateway's `successful_request()`.
-- **Side effects:** sets the transient `redsyslite_mark_paid_attempt_<order id>` for 30 seconds; clears the order caches; blocks for 5 seconds; may update the order.
+- **Signature:** `redsyslite_mark_order_as_paid( int $order_id ): void` (`woocommerce-redsys.php:423`).
+- **What it does:** the fallback behind the order-received page (`docs/flows/notification-handling.md`, part C). In this order, and stopping at the first that fails: the query string has `Ds_MerchantParameters`; the function has not processed a signed return for this order in the last 30 seconds; the order exists, belongs to one of the three Redsys-protocol gateways and is unpaid; the gateway's `is_valid_return()` accepts the signature. Only then does it wait 5 seconds, and if the order is still unpaid it hands `Ds_MerchantParameters`, `Ds_Signature` and `Ds_SignatureVersion` to the gateway's `successful_request()`.
+- **Side effects:** clears the order caches. For a return with a valid signature only: sets the transient `redsyslite_mark_paid_attempt_<order id>` for 30 seconds, blocks for 5 seconds, and may update the order. A request without a valid signature costs no wait and does not use up the order's attempt (S-046, D-060).
 - **Errors:** none returned. It reads `$_GET` directly, so it only does something useful in the request it was written for.
 
 ```php
@@ -74,7 +74,7 @@ redsyslite_mark_order_as_paid( $order_id );
 ```
 
 ### `redsyslite_force_mark_order_as_paid_on_thankyou_page()`
-- **Signature:** `(): void` (`woocommerce-redsys.php:457`), attached to `wp_head`.
+- **Signature:** `(): void` (`woocommerce-redsys.php:516`), attached to `wp_head`.
 - **What it does:** on the order-received page, when the query string has `key` and `Ds_MerchantParameters`, resolves the order from the key and calls `redsyslite_mark_order_as_paid()`.
 
 ### `redsyslite_allow_cancel_return_for_cancelled_order( $statuses, $order )`

@@ -39,6 +39,7 @@
 | `receipt_page` | `( WC_Order $order )` | `void` | Prints the message and the form. Card and Bizum pass the form through `wp_kses()`; Google Pay prints it as built. |
 | `check_ipn_request_is_valid` | `()` | `bool` | Reads `$_POST`; true only for a correctly signed notification. |
 | `check_ipn_response` | `()` | `void` | The `wc-api` handler. Fires `valid_<id>_standard_ipn_request` or calls `wp_die()`. |
+| `is_valid_return` | `( array $params )` | `bool` | Verifies and nothing else: true when `Ds_MerchantParameters` and `Ds_Signature` in `$params` carry a signature made with the secret this gateway would verify a notification against (live or test mode; for Bizum and Google Pay, the order's own secret when it has one). False for a missing field or when no secret is configured. Changes no order and never waits. Used by `redsyslite_mark_order_as_paid()` before its wait. |
 | `successful_request` | `( array\|null $params = null )` | `void` | Re-verifies and updates the order; with `null` it reads `$_POST`. Some branches end the request with `exit`. |
 | `ask_for_refund` | `( int $order_id, string $transaction_id, string $amount )` | `true\|WP_Error` | Sends the refund request; `$amount` is in minor units. |
 | `check_redsys_refund` | `( int $order_id )` | `bool` | True when the refund-confirmed transient exists. |
@@ -96,7 +97,7 @@ A plain class with no WordPress dependency except `wp_json_encode()`. It holds o
 | Method | Signature | Returns | Notes |
 |--------|-----------|---------|-------|
 | `set_parameter` | `( string $key, mixed $value )` | `void` | Adds a request parameter. |
-| `get_parameter` | `( string $key )` | `mixed\|null` | Reads a parameter, including those loaded by a decode. |
+| `get_parameter` | `( string $key )` | `mixed\|null` | Reads a parameter, including those loaded by a decode. `null` when the key is absent or the decoded data was not a JSON object. |
 | `create_merchant_parameters` | `()` | `string` | Base64 of the JSON of all parameters. |
 | `create_merchant_signature` | `( string $key )` | `string` | Request signature, Base64. `$key` is the Base64 merchant secret. Needs `DS_MERCHANT_ORDER` set. |
 | `decode_merchant_parameters` | `( string $datos )` | `string` | Decodes Base64URL and loads the fields; returns the decoded JSON text. |
@@ -122,6 +123,19 @@ if ( hash_equals( $expected, $received_signature ) ) {
 ```
 
 `$merchant_secret` is the value of the gateway's secret setting; read it from the settings, never hard-code it.
+
+To ask a gateway whether a return is genuine, without touching the order:
+
+```php
+$gateways = WC()->payment_gateways()->payment_gateways();
+$params   = array(
+	'Ds_MerchantParameters' => $received_parameters,
+	'Ds_Signature'          => $received_signature,
+);
+if ( isset( $gateways['redsys'] ) && $gateways['redsys']->is_valid_return( $params ) ) {
+	// The parameters were signed with this store's secret.
+}
+```
 
 ## `WC_Gateway_Redsys_Global_Lite`
 

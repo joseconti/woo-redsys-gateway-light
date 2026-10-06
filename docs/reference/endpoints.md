@@ -88,19 +88,19 @@ The `wc-api` value is matched by WooCommerce, which fires the action `woocommerc
 ### 5. Return to the order-received page
 
 - **URL:** WooCommerce's order-received URL, which the plugin gives Redsys as `DS_MERCHANT_URLOK` with `utm_nooverride=1` added. Redsys appends its own result parameters when it sends the customer back.
-- **Handler:** `redsyslite_force_mark_order_as_paid_on_thankyou_page()` on `wp_head` (`woocommerce-redsys.php:457`), which calls `redsyslite_mark_order_as_paid()` (`:401`).
+- **Handler:** `redsyslite_force_mark_order_as_paid_on_thankyou_page()` on `wp_head` (`woocommerce-redsys.php:516`), which calls `redsyslite_mark_order_as_paid()` (`:423`).
 - **Parameters** (query string):
 
   | Name | Type | Required | Description |
   |------|------|----------|-------------|
   | `key` | string | yes | The WooCommerce order key; identifies the order. |
   | `Ds_MerchantParameters` | string | yes | As in entry points 1–3. |
-  | `Ds_Signature` | string | no | As in entry points 1–3; an absent value is passed on as an empty string and fails verification. |
+  | `Ds_Signature` | string | no | As in entry points 1–3; an absent value fails verification, before any wait. |
 
-- **Behavior:** nothing is printed by the handler itself. At most once every 30 seconds per order, and only when the order was paid with `redsys`, `bizumredsys` or `googlepayredirecredsys` and is still unpaid after a 5-second wait, the parameters are handed to the gateway's `successful_request()`, which verifies the signature before changing the order.
-- **Authentication:** possession of the order key gets as far as the wait; only a valid Redsys signature changes anything.
-- **Errors:** an unknown key, an order of another gateway, or an already-paid order end silently. See `docs/flows/notification-handling.md`, part C, for the Google Pay case.
-- **Example:** not runnable by hand without a signature made by Redsys. The rate limit and the early exit are exercised by `tests/Integration/MarkOrderAsPaidRateLimitTest.php`.
+- **Behavior:** nothing is printed by the handler itself. The order must have been placed with `redsys`, `bizumredsys` or `googlepayredirecredsys` and be unpaid, and the signature must verify (`is_valid_return()`); a request that fails any of these ends at once. A signed return is handled at most once every 30 seconds per order: the handler waits 5 seconds for the server-to-server notification and, if the order is still unpaid, hands the parameters to the gateway's `successful_request()`, which verifies the signature again before changing the order.
+- **Authentication:** possession of the order key gets as far as the signature check; only a valid Redsys signature reaches the wait or changes anything.
+- **Errors:** an unknown key, an order of another gateway, an already-paid order, or a missing or invalid signature end silently.
+- **Example:** not runnable by hand without a signature made by Redsys. The rate limit and the early exits are exercised by `tests/Integration/MarkOrderAsPaidRateLimitTest.php` and `tests/Integration/MarkOrderAsPaidUnsignedReturnTest.php`.
 
 ### 6–7. Admin notice dismissal
 

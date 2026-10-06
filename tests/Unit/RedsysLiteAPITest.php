@@ -284,4 +284,31 @@ class RedsysLiteAPITest extends PHPUnit\Framework\TestCase {
 		$raw = "abc\0def";
 		$this->assertSame( 'abcdef', RedsysLiteAPI::sanitize_merchant_parameters( $raw ) );
 	}
+
+	/**
+	 * S-046: reading a parameter after decoding something that is not a JSON
+	 * object answers null, on every PHP version, instead of raising.
+	 *
+	 * @dataProvider payloads_that_are_not_an_object
+	 * @param string $decoded The decoded Ds_MerchantParameters content.
+	 */
+	public function test_get_parameter_after_decoding_a_non_object_is_null( $decoded ) {
+		$api = new RedsysLiteAPI();
+		$api->decode_merchant_parameters( strtr( base64_encode( $decoded ), '+/', '-_' ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+
+		$this->assertNull( $api->get_parameter( 'Ds_Order' ) );
+	}
+
+	/**
+	 * @return array[]
+	 */
+	public function payloads_that_are_not_an_object() {
+		return array(
+			'not JSON'    => array( 'this is not JSON' ),
+			'JSON null'   => array( 'null' ),
+			'JSON number' => array( '5' ),
+			'JSON string' => array( '"Ds_Order"' ),
+			'empty'       => array( '' ),
+		);
+	}
 }

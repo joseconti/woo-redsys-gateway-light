@@ -53,7 +53,8 @@ class RedsysLiteAPI {
 	 * @return mixed
 	 */
 	public function get_parameter( $key ) {
-		return array_key_exists( $key, $this->vars_pay ) ? $this->vars_pay[ $key ] : null;
+		// Decoded data that is not a JSON object leaves no parameters to read.
+		return is_array( $this->vars_pay ) && array_key_exists( $key, $this->vars_pay ) ? $this->vars_pay[ $key ] : null;
 	}
 	/**
 	 * FUNCIONES AUXILIARES:

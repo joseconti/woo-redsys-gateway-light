@@ -42,6 +42,7 @@ See [`README.md`](README.md) for how this reference is organised.
 | `WC_Gateway_Redsys_Global_Lite` | class | classes/class-wc-gateway-redsys-global-lite.php | docs/reference/classes.md | Shared helpers (orders, order numbers, paid status, settings, the raw cancel URL `get_cancel_url_raw()`); partly documented |
 | `WC_Gateway_Redsys_PSD2_Light` | class | classes/class-wc-gateway-redsys-psd2-light.php | docs/reference/classes.md | PSD2 / 3-D Secure data block; listed, not yet documented method by method |
 | `RedsysLiteAPI` | class | includes/class-redsysliteapi.php | docs/reference/classes.md | Redsys request encoding and HMAC signatures |
+| `WC_Gateway_Redsys::is_valid_return()` (also Bizum and Google Pay) | method | classes/class-wc-gateway-redsys.php, -bizum-redsys.php, -googlepay-redirection-redsys.php | docs/reference/classes.md | Verifies the signature of a return or notification without changing the order |
 | `WC_Gateway_Redsys_Lite_Support` / `WC_Gateway_Bizum_Lite_Support` / `WC_Gateway_GooglePay_Redirection_Redsys_Support` / `WC_Gateway_Inespay_Lite_Support` | class | includes/blocks/ | docs/reference/classes.md | WooCommerce Blocks checkout integrations, one per gateway |
 | `Redsys_Lite_Apps_Plugins` | class | includes/class-redsys-lite-apps-plugins.php | docs/reference/classes.md | Renders the About page (`render()`) |
 | `WCRedL()` | function | woocommerce-redsys.php | docs/reference/functions.md | Returns a new `WC_Gateway_Redsys_Global_Lite` |

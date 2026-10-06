@@ -49,6 +49,14 @@ items:
     reason: D-056 — none has an affected principal; triage with the user after the confirmed findings are fixed
     depends_on: []
     criteria: []
+  - id: S-055
+    title: Order-received fallback follow-ups — successful_request() of the three gateways to verify through is_valid_return() (one verification instead of two), and an atomic claim of the per-order attempt
+    status: not-started
+    hours: 1
+    target: null
+    reason: D-060 — both need a valid signature to matter; refactoring the verification head of successful_request() is not a security-fix change
+    depends_on: []
+    criteria: []
 ---
 
 # Deferred — wanted, not in the current plan

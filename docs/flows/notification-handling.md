@@ -153,14 +153,15 @@ The customer's browser lands on the WooCommerce order-received page with both `k
 ### Steps
 
 1. **Store:** resolves the order ID from `key` with `wc_get_order_id_by_order_key()`; stops if there is none.
-2. **Store (rate limit):** `redsyslite_mark_order_as_paid()` stops if the transient `redsyslite_mark_paid_attempt_<order id>` exists; otherwise sets it for 30 seconds (`AC-14`).
-3. **Store:** clears the order caches and stops if the order is already paid — the usual case, because the notification normally arrives first (`AC-14`).
-4. **Store:** waits 5 seconds, clears the caches again and re-reads the order.
-5. **Store:** if the order exists, was paid with `redsys`, `bizumredsys` or `googlepayredirecredsys`, and is still unpaid, calls that gateway's `successful_request()` with `Ds_MerchantParameters` and `Ds_Signature` taken from the URL. From there the flow is part A from step 7, so the signature is verified before anything changes (`AC-13`, *unverified*).
+2. **Store (rate limit):** `redsyslite_mark_order_as_paid()` stops if the transient `redsyslite_mark_paid_attempt_<order id>` exists (`AC-14`).
+3. **Store:** clears the order caches and stops unless the order exists, was placed with `redsys`, `bizumredsys` or `googlepayredirecredsys`, and is unpaid — it usually is paid already, because the notification normally arrives first (`AC-14`).
+4. **Store (verify):** asks the gateway's `is_valid_return()` whether `Ds_MerchantParameters` and `Ds_Signature` from the URL carry a valid signature, and stops if not. Nothing has waited and the order's 30-second attempt is not used up (`AC-66`).
+5. **Store:** sets the transient for 30 seconds, waits 5 seconds, clears the caches again and stops if the order has been paid in the meantime.
+6. **Store:** calls the gateway's `successful_request()` with `Ds_MerchantParameters`, `Ds_Signature` and `Ds_SignatureVersion`. From there the flow is part A from step 7: the signature is verified a second time before anything changes (`AC-13`).
 
 ### Conditions and failure paths
-- Inespay orders never enter step 5: `inespayredsys` is not in `redsys_return_types()`.
-- The fallback does not pass `Ds_SignatureVersion`. `redsys` and `bizumredsys` tolerate that; `googlepayredirecredsys` calls `wp_die()` when the field is missing (`classes/class-wc-gateway-googlepay-redirection-redsys.php` line 941), which stops the order-received page while it is being rendered *(unverified — read from the code, not reproduced)*.
+- Inespay orders stop at step 3: `inespayredsys` is not in `redsys_return_types()`.
+- `Ds_SignatureVersion` is passed on with the other two parameters (D-052), as an empty string when the URL lacks it, so the Google Pay gateway no longer stops the page for a missing field.
 - Branches of `successful_request()` that end the request (amount mismatch, refund error) also end the page render when they are reached through this fallback *(unverified)*.
 
 ---
@@ -176,4 +177,4 @@ Part A: `AC-03` to `AC-12`, `AC-18` to `AC-23`, `AC-26` to `AC-32`, and the refu
 - `classes/class-wc-gateway-redsys-global-lite.php` — `get_status_pending()` line 865, `is_paid()` 879, `clean_order_number()` 1093, `get_order_id_by_redsys_order_number()` 1111.
 - `includes/class-redsysliteapi.php` — `sanitize_merchant_parameters()` line 139, `decode_merchant_parameters()` 257, `create_merchant_signature_notif()` 310 (key derivation in `diversify_notif_key()`: a notification that names no order never verifies, `AC-64`).
 - `includes/data/redsys-status-paid.php`, `includes/data/redsys-types.php` — the unpaid-status list and the gateway list.
-- `woocommerce-redsys.php` — `redsyslite_bust_order_cache()` line 384, `redsyslite_mark_order_as_paid()` 401, `redsyslite_force_mark_order_as_paid_on_thankyou_page()` 457.
+- `woocommerce-redsys.php` — `redsyslite_bust_order_cache()` line 397, `redsyslite_mark_order_as_paid()` 423, `redsyslite_force_mark_order_as_paid_on_thankyou_page()` 516.

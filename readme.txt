@@ -101,6 +101,7 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == Unreleased ==
 
+* Security Fix: A return to the order-received page is now checked (gateway, order status and Redsys signature) before the plugin waits for the payment notification. A request without a valid signature no longer holds the page for five seconds.
 * Security Fix: The Logo setting of the Redsys, Bizum and Inespay gateways is now saved as a URL and escaped where the checkout prints it. A value that was not a plain URL could add markup to the checkout page; only a user allowed to change the gateway settings could enter one.
 * Security Fix: A payment notification that names no order is now always rejected by the Redsys, Bizum and Google Pay gateways. Such a notification could not reach any order, but it passed the signature check.
 * Tweak: The plugin's stylesheets and its Blocks checkout script are now loaded minified. The readable files are still included and are loaded when SCRIPT_DEBUG is on.

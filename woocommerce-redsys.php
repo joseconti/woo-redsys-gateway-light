@@ -409,52 +409,85 @@ function redsyslite_bust_order_cache( $order_id ) {
 /**
  * Mark order as paid.
  *
+ * Fallback for the order-received page: when the customer comes back from
+ * Redsys with a signed return and the server-to-server notification has not
+ * arrived, the return itself completes the order.
+ *
+ * Everything that costs nothing is checked before the five-second wait, and
+ * the wait is spent only on a return that carries a valid signature. An
+ * unsigned request must not be able to hold a PHP worker, whatever order it
+ * names and however many orders its sender has. See docs/threat-model.md.
+ *
  * @param int $order_id Order ID.
  */
 function redsyslite_mark_order_as_paid( $order_id ) {
 
-	// Rate-limit: without this, an unauthenticated visitor who has (or
-	// leaks) a valid order key could repeat this endpoint indefinitely,
-	// each call costing a blocking 5s server-side — a cheap, repeatable
-	// resource-exhaustion vector. See docs/threat-model.md.
+	if ( ! isset( $_GET['Ds_MerchantParameters'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return;
+	}
+
+	// One attempt per order every 30 seconds.
 	$attempt_guard = 'redsyslite_mark_paid_attempt_' . $order_id;
 	if ( get_transient( $attempt_guard ) ) {
 		return;
 	}
+
+	// Only an unpaid order of one of these gateways has anything to wait for.
+	redsyslite_bust_order_cache( $order_id );
+	$order = wc_get_order( $order_id );
+	if ( ! $order || ! WCRedL()->is_redsys_order( $order_id ) || WCRedL()->is_paid( $order_id ) ) {
+		return;
+	}
+
+	$params = array(
+		'Ds_MerchantParameters' => sanitize_text_field( wp_unslash( $_GET['Ds_MerchantParameters'] ) ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		'Ds_Signature'          => isset( $_GET['Ds_Signature'] ) ? sanitize_text_field( wp_unslash( $_GET['Ds_Signature'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		'Ds_SignatureVersion'   => isset( $_GET['Ds_SignatureVersion'] ) ? sanitize_text_field( wp_unslash( $_GET['Ds_SignatureVersion'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	);
+
+	$gateways        = WC_Payment_Gateways::instance()->payment_gateways();
+	$payment_method  = $order->get_payment_method();
+	$payment_gateway = isset( $gateways[ $payment_method ] ) ? $gateways[ $payment_method ] : null;
+	if ( ! $payment_gateway || ! method_exists( $payment_gateway, 'successful_request' ) || ! method_exists( $payment_gateway, 'is_valid_return' ) ) {
+		return;
+	}
+
+	// The return has to be this order's own. The order number it names is
+	// looked up in the mapping kept since the payment form was built; when
+	// that says another order, nothing else is worth doing.
+	$api = new RedsysLiteAPI();
+	$api->decode_merchant_parameters( RedsysLiteAPI::sanitize_merchant_parameters( $params['Ds_MerchantParameters'] ) );
+	$ds_order = $api->get_parameter( 'Ds_Order' );
+	if ( ! is_string( $ds_order ) || '' === $ds_order ) {
+		return;
+	}
+	$mapped_order = get_transient( 'redys_order_temp_' . $ds_order );
+	if ( $mapped_order && (int) $mapped_order !== (int) $order_id ) {
+		return;
+	}
+
+	// The signature comes before the wait. A request that fails it does not
+	// use up the order's attempt either: the genuine return may be next.
+	if ( ! $payment_gateway->is_valid_return( $params ) ) {
+		return;
+	}
+
+	// Signed, but the mapping had expired: resolve it the way the notification
+	// handler does. One genuine return must not buy a wait on another order.
+	if ( ! $mapped_order && (int) WCRedL()->clean_order_number( $ds_order ) !== (int) $order_id ) {
+		return;
+	}
 	set_transient( $attempt_guard, 1, 30 );
 
-	// Cheap early exit before the blocking sleep below: an already-resolved
-	// order has nothing to wait for, which is the common case on a repeat
-	// visit to the thank-you page.
+	// Give the server-to-server notification time to arrive and be processed first.
+	sleep( 5 );
+
 	redsyslite_bust_order_cache( $order_id );
 	if ( WCRedL()->is_paid( $order_id ) ) {
 		return;
 	}
 
-	// Este sleep es para evitar que se ejecute el código antes de que se haya procesado el pago en el caso en que llegue la notificación IPN.
-	sleep( 5 );
-
-	redsyslite_bust_order_cache( $order_id );
-
-	$is_redsys_order = WCRedL()->is_redsys_order( $order_id );
-	$is_paid         = WCRedL()->is_paid( $order_id );
-	$order           = wc_get_order( $order_id );
-
-	if ( ( $order && $is_redsys_order && ! $is_paid ) ) {
-		// Check the Redsys URL.
-		if ( isset( $_GET['Ds_MerchantParameters'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$params          = array(
-				'Ds_MerchantParameters' => sanitize_text_field( wp_unslash( $_GET['Ds_MerchantParameters'] ) ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				'Ds_Signature'          => isset( $_GET['Ds_Signature'] ) ? sanitize_text_field( wp_unslash( $_GET['Ds_Signature'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				'Ds_SignatureVersion'   => isset( $_GET['Ds_SignatureVersion'] ) ? sanitize_text_field( wp_unslash( $_GET['Ds_SignatureVersion'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			);
-			$payment_method  = $order->get_payment_method();
-			$payment_gateway = WC_Payment_Gateways::instance()->payment_gateways()[ $payment_method ];
-			if ( $payment_gateway && method_exists( $payment_gateway, 'successful_request' ) ) {
-				$payment_gateway->successful_request( $params );
-			}
-		}
-	}
+	$payment_gateway->successful_request( $params );
 }
 
 /**
