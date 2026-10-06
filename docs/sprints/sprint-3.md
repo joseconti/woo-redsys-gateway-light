@@ -22,10 +22,10 @@ slices:
     criteria: []
   - id: S-028
     title: Active security audit of the release candidate (Security audit is required)
-    status: in-progress
+    status: done
     hours: 2
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.2872
+    actual_source: measured
     depends_on: []
     criteria: []
   - id: S-029
@@ -84,13 +84,93 @@ slices:
     actual_source: measured
     depends_on: [S-036]
     criteria: []
+  - id: S-043
+    title: Security fix SA-01 from the 2026-10-06 audit
+    status: not-started
+    hours: 0.5
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-036]
+    criteria: []
+  - id: S-044
+    title: Security fix SA-03 from the 2026-10-06 audit
+    status: not-started
+    hours: 0.25
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-036]
+    criteria: []
+  - id: S-045
+    title: Security fix SA-17 from the 2026-10-06 audit
+    status: not-started
+    hours: 0.5
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-036]
+    criteria: []
+  - id: S-046
+    title: Security fix SA-07 from the 2026-10-06 audit
+    status: not-started
+    hours: 0.5
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-036]
+    criteria: []
+  - id: S-047
+    title: Security fix SA-08 from the 2026-10-06 audit
+    status: not-started
+    hours: 0.25
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-036]
+    criteria: []
+  - id: S-048
+    title: Security fix SA-09 from the 2026-10-06 audit
+    status: not-started
+    hours: 0.25
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-036]
+    criteria: []
+  - id: S-049
+    title: Security fix SA-05 from the 2026-10-06 audit
+    status: not-started
+    hours: 0.75
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-036]
+    criteria: []
+  - id: S-050
+    title: Security fix SA-16 from the 2026-10-06 audit
+    status: not-started
+    hours: 0.5
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-036]
+    criteria: []
+  - id: S-051
+    title: Security fix SA-19 from the 2026-10-06 audit
+    status: not-started
+    hours: 0.25
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-036]
+    criteria: []
+  - id: S-052
+    title: Scoped security re-audit of the fixes (each verifier re-run against the candidate; diff since e50ab39)
+    status: not-started
+    hours: 0.5
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-043, S-044, S-045, S-046, S-047, S-048, S-049, S-050, S-051]
+    criteria: []
   - id: S-032
     title: Phase 7 release gate on the candidate (full suite, version proposed to the user, package hygiene)
     status: not-started
     hours: 2
     actual_hours: null
     actual_source: estimated
-    depends_on: [S-036, S-027, S-028, S-029, S-031, S-035, S-039]
+    depends_on: [S-036, S-027, S-028, S-029, S-031, S-035, S-039, S-052]
     criteria: []
 ---
 
@@ -106,3 +186,4 @@ slices:
 - S-038 (done 2026-10-06, D-053): issue 112 reproduced in both halves and fixed — the cancel URL sent to Redsys is a plain URL, and a return to an order Redsys already cancelled shows WooCommerce's cancelled notice instead of an error. 11 integration tests and one e2e spec; `AC-62`, `AC-63` added. The way the second half was solved is the assistant's choice and is to be confirmed by the user before the release. S-042 deferred.
 - S-027 (done 2026-10-06, D-054): every stylesheet and the Blocks script ship as a source plus a minified pair; production loads the minified file, `SCRIPT_DEBUG` the readable one. The minified script is byte-identical to the one shipped today. Linter check 11 now compares against a rebuild. Conformance row T1-42 is `present`.
 - S-039 (done 2026-10-06, D-055): `@wordpress/scripts` 36 and the WooCommerce dependency-extraction plugin 5.1; the build runs on Node 24 without the OpenSSL workaround; `npm audit` 115 → 45. The upgrade's default would have made the Blocks script depend on a handle WordPress older than 6.6 does not have; the source now compiles JSX against `wp-element`.
+- S-028 (done 2026-10-06, D-056): full active audit at `e50ab39` — 25 units, 19 candidates, each decided by a verifier that did not hunt it. 9 confirmed (3 medium, 6 low), 2 need a fact only the owner can observe, 8 rejected; no critical or high. The run is local and gitignored (`docs/security-audit/2026-10-06-e50ab39/`); the committed record is the counts-only row in `docs/security-audit.md`. The confirmed findings are slices S-043 to S-051, and S-052 is the scoped re-audit the release gate needs. Titles stay neutral while the findings are open.

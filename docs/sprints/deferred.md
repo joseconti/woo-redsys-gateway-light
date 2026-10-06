@@ -41,6 +41,14 @@ items:
     reason: D-053 — found while testing S-038; the value is still read correctly, only a notice is raised under WP_DEBUG; same class as L-004
     depends_on: []
     criteria: []
+  - id: S-053
+    title: Hardening notes of the 2026-10-06 security audit (non-findings listed in the local audit report)
+    status: not-started
+    hours: 2
+    target: null
+    reason: D-056 — none has an affected principal; triage with the user after the confirmed findings are fixed
+    depends_on: []
+    criteria: []
 ---
 
 # Deferred — wanted, not in the current plan

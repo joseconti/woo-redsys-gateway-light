@@ -69,3 +69,11 @@
 - Check added: the script itself is the check for the setup — it is the only supported way to prepare an instance. No mechanical check exists yet that the running WordPress equals the pinned one; `scripts/keel-doctor` would be the place.
 - Rule for next time: an environment recipe is verified by destroying the environment and following the recipe, not by the environment still working. Do it whenever the recipe or the tool under it changes.
 
+## L-009 — Two controls were declared in place on evidence that covered only part of them
+- Where: sprint 3, slice S-028 (2026-10-06), the active security audit.
+- What failed first: nothing automated. The audit's "Declared controls" units compared each `IN PLACE` row of `docs/threat-model.md` with the code, path by path, and two rows did not hold everywhere: one whose tests drove two of the three code paths the claim covers, and one recorded as fixed whose fix closed the reported variant only.
+- Cause: the row was written from the slice that built the control. The slice's tests named the paths it touched; the row claimed the whole class.
+- Fix: both rows are back to `TO BUILD` with a slice (D-056).
+- Check added: none mechanical yet. The regression tests of the two fix slices assert the claim on every path, which is what makes the row true.
+- Rule for next time: a row may say `IN PLACE` only for the paths its evidence names. When a control is a class ("never logs X", "no blocking call before verification"), list every site of the class with a grep before writing the row, and write the test over that list — not over the sites the slice happened to change.
+
