@@ -2,7 +2,7 @@
 schema: keel.sprint/1
 sprint: 3
 goal: Release preparation for the unreleased security and correctness fixes
-status: not-started
+status: in-progress
 slices:
   - id: S-036
     title: Restore the playground on this machine (PHP 7.4 base image no longer builds; plugin activation order under the current wp-env)
@@ -46,10 +46,10 @@ slices:
     criteria: []
   - id: S-031
     title: Dependabot alerts triage, stale wp-scripts dependency, package.json version sync
-    status: not-started
+    status: done
     hours: 1.5
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.0936
+    actual_source: measured
     depends_on: []
     criteria: []
   - id: S-035
@@ -76,13 +76,21 @@ slices:
     actual_source: estimated
     depends_on: [S-036]
     criteria: []
+  - id: S-039
+    title: Build toolchain on current Node — major upgrade of @wordpress/scripts and the WooCommerce dependency-extraction plugin (clears the remaining build-tool audit findings)
+    status: not-started
+    hours: 1
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-036]
+    criteria: []
   - id: S-032
     title: Phase 7 release gate on the candidate (full suite, version proposed to the user, package hygiene)
     status: not-started
     hours: 2
     actual_hours: null
     actual_source: estimated
-    depends_on: [S-036, S-027, S-028, S-029, S-031, S-035]
+    depends_on: [S-036, S-027, S-028, S-029, S-031, S-035, S-039]
     criteria: []
 ---
 
@@ -92,3 +100,4 @@ slices:
 - Notes: built from `docs/PROGRESS.md` open items on 2026-10-06 during the reconciliation. S-027 was scheduled here by the user rather than applied inside the reconciliation, because it changes code that reaches production stores. Hours are AI working time plus supervision.
 - Candidate defects (S-035), read from code during S-025 and NOT yet reproduced — each starts from a failing test per D-036: (1) the order-received fallback passes no `Ds_SignatureVersion`, and the Google Pay gateway calls `wp_die()` without it; (2) Google Pay `successful_request()` has no already-paid guard; (3) a refund amount of `0` refunds the full total in the Redsys, Bizum and Google Pay gateways (fixed for Inespay only in D-026); (4) the Bizum transaction limit still truncates with integer casts (fixed for Inespay in D-026/D-030); (5) debug logging in Bizum and Google Pay writes the signing secret in clear — not covered by D-025, to be added to `docs/threat-model.md`; (6) Google Pay is hidden for everyone in test mode because `testshowgateway` has no settings field. The full list with file:line is in the S-025 hand-back recorded in `docs/decisions.md` D-041.
 - Close-out:
+- S-031 (done 2026-10-06, D-050): the two unused `dependencies` removed, `package.json` version synced to 7.0.2 and now checked by `scripts/keel-verify`, non-breaking audit fixes applied. `npm audit` 147 → 115; everything left hangs on two major upgrades — `@wordpress/scripts` 36 (new slice S-039) and `@wordpress/env` 11 (belongs to S-036, it is the playground tool). Not pushed: the pre-push selection for a lockfile change is the entire suite, which needs S-036.

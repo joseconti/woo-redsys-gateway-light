@@ -1,7 +1,7 @@
 {
 	"name": "woo-redsys-gateway-light",
 	"title": "WooCommerce Redsys Gateway Ligh",
-	"version": "4.0.0",
+	"version": "7.0.2",
 	"author": "José Conti",
 	"license": "GPL-2.0-or-later",
 	"keywords": [],
@@ -26,9 +26,5 @@
 		"i18n:json": "$(which wp) i18n make-json languages --no-purge",
 		"check-engines": "wp-scripts check-engines",
 		"test:e2e": "playwright test"
-	},
-	"dependencies": {
-		"react-scripts": "^5.0.1",
-		"wp-scripts": "^0.0.1-security"
 	}
 }

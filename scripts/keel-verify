@@ -18,9 +18,8 @@
 # Checks:
 #    1. Version touchpoints agree: woocommerce-redsys.php header `Version:`,
 #       the REDSYS_WOOCOMMERCE_VERSION constant, readme.txt `Stable tag:`,
-#       and readme.txt's top changelog entry. package.json is DELIBERATELY
-#       excluded — it is a recorded, accepted drift (docs/PROGRESS.md
-#       "Deferred items"), not a bug this check should re-discover every run.
+#       readme.txt's top changelog entry, and package.json `version`
+#       (synced in S-031, D-050 — it drifted for years while unchecked).
 #    2. Every docs/api/INDEX.md row's surface name actually exists in the
 #       source tree (grep-check, not a claim).
 #    3. docs/keel-conformance.md exists.
@@ -113,7 +112,14 @@ if [ -n "$HEADER_VERSION" ] && [ -n "$CONST_VERSION" ] && [ -n "$STABLE_TAG" ] &
 		fail "version touchpoints disagree: $MAIN_FILE Version=$HEADER_VERSION, REDSYS_WOOCOMMERCE_VERSION=$CONST_VERSION, readme.txt Stable tag=$STABLE_TAG, changelog top=$CHANGELOG_TOP"
 	fi
 fi
-echo "(package.json version is intentionally NOT checked here — recorded gap, docs/PROGRESS.md 'Deferred items')"
+PKG_VERSION=$(grep -m1 -oE '^[[:space:]]*"version":[[:space:]]*"[0-9][0-9A-Za-z.\-]*' package.json | sed -E 's/.*"([0-9][0-9A-Za-z.\-]*)$/\1/')
+if [ -z "$PKG_VERSION" ]; then
+	fail "package.json: could not find \"version\""
+elif [ -n "$HEADER_VERSION" ] && [ "$PKG_VERSION" != "$HEADER_VERSION" ]; then
+	fail "package.json version=$PKG_VERSION disagrees with $MAIN_FILE Version=$HEADER_VERSION"
+else
+	ok "package.json version agrees: $PKG_VERSION"
+fi
 
 echo
 begin 2 "docs/api/INDEX.md rows point at real surfaces"
