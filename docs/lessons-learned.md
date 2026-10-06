@@ -85,3 +85,11 @@
 - Fix: the ten paths are `export-ignore` (D-068).
 - Check added: `scripts/keel-verify` check 29 — the archive's top level is a closed list.
 - Rule for next time: a new top-level path is a packaging decision at the moment it is created. The check now forces it; do not answer its failure by adding the path to the runtime list without reading what the path is.
+
+## L-011 — "WC tested up to: 10.9" had been declared for months and never run
+- Where: sprint 3, slice S-058 (2026-10-06), the first run of the suite on the declared ceiling.
+- What failed first: the integration suite on WooCommerce 10.9.4 and PHP 8.3 — 13 failures and 20 risky tests on a tree that was green on the pinned instance minutes earlier. Then the browser suite, 19 of 22, for reasons that were all the environment's (a Blocks checkout page by default, the store in "coming soon" mode, the tests site left with no plugin active).
+- Cause: the playground was pinned to the floor on purpose (D-014) and nothing ever ran the other end. Every fix of this cycle was verified on WooCommerce 7.4 and PHP 7.4 only, including D-033's order lookup, which uses a query newer WooCommerce reports as unsupported.
+- Fix: `.wp-env.ceiling.json` and the two fixes of D-070.
+- Check added: none mechanical — the ceiling run is a manual gate step (`docs/playground.md`). A `scripts/keel-verify` check that the release record carries a ceiling run for the declared versions would be the place.
+- Rule for next time: a declared "tested up to" is a claim with an environment behind it or it is not a claim. When the header changes, the ceiling instance changes with it and the suite runs there before the number is written.

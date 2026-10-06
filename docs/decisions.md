@@ -627,3 +627,23 @@
 - Why the slice stops here: everything left in the gate either needs the approved number (the suite and the real-environment pass run on the exact distributable) or is the user's (the three `needs_validation` items, D-053, the release-note wording, the guided accessibility pass).
 - Not checked: how the owner builds what is committed to WordPress.org. If it is not this archive, the boundary above does not protect that package.
 - Supersedes: none.
+
+## D-069 — Support-matrix ceiling: a second wp-env instance on what the plugin declares (S-058)
+- Date / phase: 2026-10-06 / sprint 3, slice S-058
+- Decision: `.wp-env.ceiling.json` (export-ignored) defines a second instance beside the pinned one: WordPress 7.0.7, WooCommerce 10.9.4, PHP 8.3, ports 8890/8891. The pinned instance (D-014, D-051) is unchanged. `scripts/playground-setup` takes `WP_ENV_CONFIG` and `playwright.config.js` takes `PLAYGROUND_URL`; without them both behave as before.
+- The PHP version is the assistant's pick, not asked: D-051 left "a second playground on a current PHP" as a question for the owner. It is answered here only as far as the gate needs an environment; changing the number is one line.
+- `scripts/playground-setup` now also activates WooCommerce before the plugin, sets the checkout page to the shortcode and switches "coming soon" off. All three change nothing on WooCommerce 7.4 and are what a WooCommerce 10.9 site needs for the classic-checkout specs.
+- Result: unit 34 and integration 193 green on both ends; browser 22 of 22 on the floor and 18 of 22 on the ceiling (four settings accessibility scans, WooCommerce's help-tip markup, `docs/accessibility.md`). The development site of the ceiling uses the High-Performance Order Storage, so the browser suite ran on it; the order lookup of S-062 was also driven there by hand (`wp eval-file`: found, and `false` for an unknown number).
+- Found by the first ceiling run: 13 integration failures, two causes in shipped code (D-070) and one in a test. One browser spec selected a button by a label that WooCommerce 10.9 prints twice; it now selects by name.
+- Not checked: WordPress 7.1.3 and WooCommerce 11.1.2, current on this date and above what the plugin declares. Whether to test and declare them for this release is the owner's.
+- Not wired: `scripts/keel-affected-tests` and the pre-push hook drive the pinned instance only.
+- Supersedes: the "Not checked: PHP 8.x" line of D-051.
+
+## D-070 — Two defects the ceiling run found in shipped code (S-062, S-063)
+- Date / phase: 2026-10-06 / sprint 3, slices S-062 and S-063
+- S-062: `get_order_id_by_redsys_order_number()` (D-033's reverse lookup) passed `meta_query` to `wc_get_orders()`. WooCommerce 9.2+ reports that argument as unsupported on the legacy order storage (`wc_doing_it_wrong`), on every lookup. The lookup still returned the right order; what failed is that it relied on something WooCommerce says it does not support there. Now: `meta_query` when the High-Performance Order Storage is in use, WP_Query's `meta_key`/`meta_value` otherwise. Red: 13 integration tests on the ceiling (`Unexpected incorrect usage notice for WC_Order_Data_Store_CPT::query`). Green: 193 on both ends.
+- The premium plugin (`woocommerce-gateway-redsys` 32.2.0) has the same query in `class-wc-gateway-redsys-global.php`. Not touched; reported to the owner.
+- S-063: the notification handlers of the card, Bizum and Google Pay gateways passed a possibly absent `Ds_Date`/`Ds_Hour` to `htmlspecialchars_decode()`, deprecated since PHP 8.1. Cast to string; the value is unchanged on every PHP version. One test set a property the card and Google Pay classes do not declare; it now sets it only where it exists.
+- Not checked: the High-Performance Order Storage branch of the lookup in the PHPUnit suite (the tests site uses the legacy storage). It was driven by hand on the ceiling's development site (D-069).
+- Consequence for the gate: shipped code changed after the scoped security re-audit (`476d52e`) in four files; the gate's audit coverage has to include this diff.
+- Supersedes: none.

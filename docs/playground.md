@@ -53,6 +53,38 @@ testable against a current WooCommerce.
 the development site updated itself from 7.0 to 7.1.2 within minutes of
 starting, so the "pinned" environment was not the one being tested (L-008).
 
+## The ceiling instance (the other end of the support matrix)
+
+`.wp-env.ceiling.json` is a second, independent instance: WordPress 7.0.7
+(the newest 7.0.x, the plugin's `Tested up to`), WooCommerce 10.9.4 (the
+newest 10.9.x, its `WC tested up to`) and PHP 8.3, on ports 8890 and 8891.
+It runs beside the pinned one; neither replaces the other. A fresh
+WooCommerce 10.9 store uses the High-Performance Order Storage on the
+development site, and the tests site (PHPUnit) uses the legacy storage, so
+the two suites cover both.
+
+```
+npx wp-env start --config .wp-env.ceiling.json
+WP_ENV_CONFIG=.wp-env.ceiling.json scripts/playground-setup
+npx wp-env run --config .wp-env.ceiling.json cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && vendor/bin/phpunit"
+npx wp-env run --config .wp-env.ceiling.json tests-cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && vendor/bin/phpunit -c phpunit-integration.xml.dist"
+PLAYGROUND_URL=http://localhost:8890 npx playwright test
+```
+
+Run `scripts/playground-setup` again after the integration suite and before
+the browser suite: the integration suite leaves the tests site with no
+plugin active. `scripts/keel-affected-tests` and the pre-push hook drive the
+pinned instance only; the ceiling is run by hand, at the release gate.
+
+Last run, 2026-10-06 (D-069): unit `OK (34 tests, 71 assertions)`,
+integration `OK (193 tests, 1372 assertions)`, browser `18 passed, 4 failed`
+— the four are the settings-form accessibility scans, on WooCommerce's own
+help-tip markup (`docs/accessibility.md`).
+
+The PHP version (8.3) is the assistant's pick and was not asked. WordPress
+7.1.3 and WooCommerce 11.1.2 were current on that day and are NOT covered:
+the instance tests what the plugin declares, not what is newest.
+
 ## What you get
 
 - **Site URL:** http://localhost:8888

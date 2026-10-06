@@ -1004,8 +1004,8 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$currency_code     = $mi_obj->get_parameter( 'Ds_Currency' );
 		$response          = $mi_obj->get_parameter( 'Ds_Response' );
 		$id_trans          = $mi_obj->get_parameter( 'Ds_AuthorisationCode' );
-		$dsdate            = htmlspecialchars_decode( $mi_obj->get_parameter( 'Ds_Date' ) );
-		$dshour            = htmlspecialchars_decode( $mi_obj->get_parameter( 'Ds_Hour' ) );
+		$dsdate            = htmlspecialchars_decode( (string) $mi_obj->get_parameter( 'Ds_Date' ) );
+		$dshour            = htmlspecialchars_decode( (string) $mi_obj->get_parameter( 'Ds_Hour' ) );
 		$dstermnal         = $mi_obj->get_parameter( 'Ds_Terminal' );
 		$dssucurepayment   = $mi_obj->get_parameter( 'Ds_SecurePayment' );
 		$dscardcountry     = $mi_obj->get_parameter( 'Ds_Card_Country' );

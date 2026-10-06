@@ -42,3 +42,4 @@ composer.lock export-ignore
 phpunit.xml.dist export-ignore
 phpunit-integration.xml.dist export-ignore
 playwright.config.js export-ignore
+.wp-env.ceiling.json export-ignore

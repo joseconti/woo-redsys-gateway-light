@@ -1113,20 +1113,27 @@ class WC_Gateway_Redsys_Global_Lite {
 		if ( '' === $ordernumber ) {
 			return false;
 		}
-		$orders = wc_get_orders(
-			array(
-				'limit'      => 1,
-				'return'     => 'ids',
-				'status'     => 'any',
-				'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-					array(
-						'key'     => '_payment_order_number_redsys',
-						'value'   => $ordernumber,
-						'compare' => '=',
-					),
-				),
-			)
+		$args = array(
+			'limit'  => 1,
+			'return' => 'ids',
+			'status' => 'any',
 		);
+		// WooCommerce 9.2+ reports `meta_query` as unsupported on the legacy
+		// (posts) order storage; there the lookup goes through WP_Query's own
+		// meta_key/meta_value instead.
+		if ( class_exists( 'Automattic\\WooCommerce\\Utilities\\OrderUtil' ) && \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled() ) {
+			$args['meta_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				array(
+					'key'     => '_payment_order_number_redsys',
+					'value'   => $ordernumber,
+					'compare' => '=',
+				),
+			);
+		} else {
+			$args['meta_key']   = '_payment_order_number_redsys'; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+			$args['meta_value'] = $ordernumber; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+		}
+		$orders = wc_get_orders( $args );
 		if ( ! empty( $orders ) ) {
 			return (int) $orders[0];
 		}

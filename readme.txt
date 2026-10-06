@@ -101,6 +101,8 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == Unreleased ==
 
+* Fix: On WooCommerce 9.2 or newer with the legacy order storage, recovering an order from its Redsys order number (refund notifications, late notifications) wrote a "not supported on the current order datastore" notice to the debug log. The lookup no longer uses that query there.
+* Fix: On PHP 8.1 or newer, a notification without a date or an hour wrote two deprecation notices to the debug log (Redsys, Bizum and Google Pay gateways).
 * Tweak: Several text colours of the About page did not reach the 4.5:1 contrast of WCAG 2.2 AA; they are darker now.
 * Fix: With WooCommerce removed or deactivated while this plugin was still active, every front-end page ended in a fatal error. The plugin now does nothing in that case.
 * Fix: The transaction limit of the Bizum and Inespay gateways now also applies when an order is paid from the order-pay page or through the Blocks checkout, and an order above the limit is refused when the payment is started.

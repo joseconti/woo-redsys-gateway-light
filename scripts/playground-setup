@@ -9,18 +9,22 @@ set -u
 PLUGIN="woo-redsys-gateway-light"
 TEST_KEY="sq7HjrUOBfKmC576ILgskD5srU870gJ7"
 
-wp() { npx wp-env run cli wp "$@" 2>/dev/null; }
+# WP_ENV_CONFIG selects another instance (the ceiling one, docs/playground.md).
+wpenv_run() { if [ -n "${WP_ENV_CONFIG:-}" ]; then npx wp-env run --config "$WP_ENV_CONFIG" "$@"; else npx wp-env run "$@"; fi; }
+wp() { wpenv_run cli wp "$@" 2>/dev/null; }
 step() { echo "playground-setup: $*"; }
 die() { echo "playground-setup: FAILED — $*" >&2; exit 1; }
 
 # wp-env does not reliably activate this plugin itself (L-002).
 for env in cli tests-cli; do
-	npx wp-env run "$env" wp plugin activate "$PLUGIN" >/dev/null 2>&1 || die "could not activate $PLUGIN in $env (is wp-env running?)"
+	# WooCommerce first: the plugin's `Requires Plugins` header refuses otherwise
+	# (the integration suite leaves the tests site with nothing active).
+	wpenv_run "$env" wp plugin activate woocommerce "$PLUGIN" >/dev/null 2>&1 || die "could not activate $PLUGIN in $env (is wp-env running?)"
 done
 step "plugin active in both environments"
 
 if [ ! -x vendor/bin/phpunit ]; then
-	npx wp-env run cli bash -c "cd wp-content/plugins/$PLUGIN && composer install --no-interaction" >/dev/null 2>&1 || die "composer install"
+	wpenv_run cli bash -c "cd wp-content/plugins/$PLUGIN && composer install --no-interaction" >/dev/null 2>&1 || die "composer install"
 	step "PHPUnit installed in vendor/"
 fi
 
@@ -51,6 +55,16 @@ else
 	wp post update "$BLOCKS_ID" --post_content="$BLOCKS_CONTENT" >/dev/null || die "Blocks checkout page"
 fi
 step "limit product and Blocks checkout page present"
+
+# Current WooCommerce creates the checkout page with the Checkout block and
+# starts the store in "coming soon" mode; the classic-checkout specs need the
+# shortcode page and a store guests can reach. Both lines change nothing on
+# the pinned WooCommerce 7.4.
+CHECKOUT_ID=$(wp option get woocommerce_checkout_page_id | tr -d '[:space:]')
+[ -n "$CHECKOUT_ID" ] || die "no checkout page"
+wp post update "$CHECKOUT_ID" --post_content='<!-- wp:shortcode -->[woocommerce_checkout]<!-- /wp:shortcode -->' >/dev/null || die "classic checkout page"
+wp option update woocommerce_coming_soon no >/dev/null
+step "classic checkout page set; store open to guests"
 
 wp option update woocommerce_redsys_settings --format=json \
 	'{"enabled":"yes","title":"Redsys","description":"Pay with card via Redsys","customer":"999008881","commercename":"Test Shop","payoptions":"T","terminal":"1","not_use_https":"no","lwvactive":"no","orderdo":"processing","secretsha256":"'"$TEST_KEY"'","customtestsha256":"","redsyslanguage":"002","testmode":"yes","debug":"no"}' >/dev/null || die "redsys settings"

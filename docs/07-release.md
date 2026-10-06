@@ -34,10 +34,11 @@ The `== Unreleased ==` section of `readme.txt`, newest first as this project's c
 | `scripts/keel-verify` | clean except the session row, which the session close writes | 29 checks |
 | Minified assets | in sync | `npm run build:assets` on the candidate changed no file |
 | Debug logging default | off | every gateway's `debug` field has `default => 'no'` |
-| Conformance sweep | not re-run for this gate | `docs/keel-conformance.md`; T1-61 is `missing` until the guided accessibility pass |
+| Conformance sweep | re-run 2026-10-06 from the disk, the manifest and the decisions (S-061) | 173 rows: 101 present, 5 missing, 5 declined, 62 n/a. Missing, each with its decision: T1-61 (guided accessibility pass, S-030), T1-65 (this file, until the gate closes), and the three one-time observations of S-037. To be re-run on the final candidate |
 | Acceptance criteria | 23 still on D-045's unverified list | to be walked at the gate |
-| Real-environment verification on the exact distributable (install, configure, uninstall, reinstall; upgrade from 7.0.2; floor and ceiling of the support matrix) | **not run** | needs the versioned package. The playground runs the floor (WooCommerce 7.4, PHP 7.4, WordPress 7.0); the ceiling (WooCommerce 10.9) has never been exercised, so "Tested up to" is unproven at that end |
-| `security-auditor` on the final tree | not run for this gate | the scoped re-audit of the same day read the whole diff (below) |
+| Support matrix, both ends, on the development tree | run 2026-10-06 (S-058, D-069); **to be run again on the final candidate** | Floor (WordPress 7.0, WooCommerce 7.4.0, PHP 7.4.33): unit 34, integration 193, browser 22, all green. Ceiling (`.wp-env.ceiling.json`: WordPress 7.0.7, WooCommerce 10.9.4, PHP 8.3.35): unit 34 and integration 193 green; browser 18 of 22 — the four failures are the settings accessibility scans, on WooCommerce's help-tip markup. The first ceiling run failed 13 integration tests; two defects in shipped code were fixed (S-062, S-063, D-070). WordPress 7.1.3 and WooCommerce 11.1.2 are current and not declared, not tested |
+| Real-environment verification on the exact distributable (install, configure, uninstall, reinstall; upgrade from 7.0.2) | **not run** | needs the versioned package; a rehearsal on the unversioned archive is slice S-059 |
+| `security-auditor` on the tree | read at `e89356b`, 2026-10-06 (S-061); **not closed** | 7 candidates raised (1 medium, 1 low-medium, 5 low), none verified by a second reader yet; they are in the local run directory, not here. The shipped code changed after the read (S-062, S-063), so the final tree needs its own read |
 
 ## Self-audit results
 Not run yet. `references/anti-patterns.md`, answer by answer, on the final candidate.

@@ -70,7 +70,9 @@ class NotificationWithoutOrderTest extends WP_UnitTestCase {
 		$gateway->secretsha256 = $this->secret;
 		$gateway->testmode     = 'no';
 		$gateway->debug        = 'no';
-		$gateway->testforuser  = 'no';
+		if ( property_exists( $gateway, 'testforuser' ) ) {
+			$gateway->testforuser = 'no';
+		}
 		return $gateway;
 	}
 

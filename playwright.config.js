@@ -22,7 +22,7 @@ module.exports = defineConfig( {
 	workers: Number( process.env.PW_WORKERS ?? 1 ),
 	reporter: 'list',
 	use: {
-		baseURL: 'http://localhost:8888',
+		baseURL: process.env.PLAYGROUND_URL || 'http://localhost:8888',
 		trace: 'retain-on-failure',
 	},
 	projects: [

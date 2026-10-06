@@ -190,27 +190,51 @@ slices:
     criteria: []
   - id: S-058
     title: Support-matrix ceiling — a second wp-env instance on the declared WooCommerce ceiling and a current PHP, and the entire suite run on it
-    status: not-started
+    status: done
     hours: 1
+    actual_hours: 0.1092
+    actual_source: measured
     depends_on: [S-036]
     criteria: []
   - id: S-059
     title: Lifecycle rehearsal on the built archive — install, configure, uninstall, reinstall, and the upgrade from 7.0.2 (unversioned candidate; repeated on the versioned package at the gate)
     status: not-started
     hours: 1
+    actual_hours: null
+    actual_source: estimated
     depends_on: [S-032]
     criteria: []
   - id: S-060
     title: Driven tests for the as-built acceptance criteria still on D-045's unverified list
     status: not-started
     hours: 2
+    actual_hours: null
+    actual_source: estimated
     depends_on: [S-036]
     criteria: [AC-09, AC-10, AC-11, AC-12, AC-15, AC-16, AC-23, AC-31, AC-32, AC-35, AC-41, AC-42, AC-43, AC-46, AC-47, AC-49, AC-50, AC-52, AC-54, AC-55, AC-56, AC-57]
   - id: S-061
     title: Gate checks that do not need the version number — whole-tree confidential-data check, conformance sweep, self-audit, threat model, code map and change map, security-auditor and docs-verifier on the tree
-    status: not-started
+    status: in-progress
     hours: 1
+    actual_hours: 0.0164
+    actual_source: measured
     depends_on: [S-052]
+    criteria: []
+  - id: S-062
+    title: The reverse lookup of an order by its Redsys order number uses a query WooCommerce 9.2+ reports as unsupported on the legacy order storage (found by the ceiling run, S-058)
+    status: done
+    hours: 0.5
+    actual_hours: 0.3425
+    actual_source: measured
+    depends_on: [S-058]
+    criteria: []
+  - id: S-063
+    title: PHP 8.1+ deprecation notices from the notification handlers (null passed to htmlspecialchars_decode) and a dynamic property set by one test (found by the ceiling run, S-058)
+    status: done
+    hours: 0.25
+    actual_hours: 0.0003
+    actual_source: measured
+    depends_on: [S-058]
     criteria: []
 ---
 
@@ -236,3 +260,7 @@ slices:
 - S-037 (open): two of its three observations were made this session without starting the slice's clock. A real push went through `.githooks/pre-push` with a real selection (commit `388bda8`: `scope: affected — 120 of 120 tests`, GREEN; it printed `scripts/keel-affected-tests: line 221: printf: write error: Broken pipe` twice, harmless to the result, cause not looked at). The timing report was read here over several sessions (`scripts/keel-time report`: cumulative figures over 20 measured slices). Not observed: the Stop hook after a full session restart — a session cannot watch its own turn end; and no slice has yet spanned two sessions (S-032 will).
 - Session close of 2026-10-06, evening (commit `48e49a3`): lesson L-010 (the archive shipped development files), the issue sweep (six open, none new, #112 unanswered), the token-ledger row and the session row. No slice changed state in it.
 - Records fix after the last slice (commit `a6b8623`): four bookkeeping lines `scripts/keel-verify` rejected at the session close — two index rows, D-045's list, the estimate's Phase 5 sum, one test-point row without its scope line. No code.
+- Session of 2026-10-06, night — the work that does not wait for the owner. Six slices added: S-058 to S-061 at the start, S-062 and S-063 when the ceiling run found them.
+- S-058 (done, D-069, L-011): a second wp-env instance on the declared ceiling (WordPress 7.0.7, WooCommerce 10.9.4, PHP 8.3) and the entire suite on it. First run: 13 integration failures and 19 of 22 browser specs. After the two fixes and three setup changes: unit 34, integration 193, browser 18 of 22 (four settings accessibility scans, WooCommerce's help-tip markup). The clock gives S-058 0.11 h and S-062 0.34 h; most of S-062's figure is S-058's work, because the clock holds one slice at a time and the ceiling runs continued after S-062 was opened.
+- S-062 and S-063 (done, D-070): the order lookup by Redsys order number no longer uses a query WooCommerce 9.2+ reports as unsupported on the legacy order storage; no PHP 8.1+ deprecation from the notification handlers.
+- S-061 (in progress): conformance sweep regenerated (173 rows, 5 missing, each with its decision); `docs-verifier` found one missing index row (`validate_logo_field()`, added); `security-auditor` read the tree at `e89356b` and raised 7 candidates, none verified yet (local run directory); the self-audit ran — 21 pass, 11 fail, 3 unverified, 5 not applicable.

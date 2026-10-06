@@ -1,353 +1,254 @@
 # Keel conformance sweep — Payment Gateway for Redsys & WooCommerce Lite
 
 - Date: 2026-10-06
-- Sweep: post-update reconciliation v5.9.0 → v6.5.0 — second pass, after the reconciliation was applied
-- Sources (exactly three): the repository's disk as it is now; the Keel v6.5.0 manifest (Table 1 and Table 3); the decision log (D-001…D-047). The project card, phase status and open items were read from the living state file for the conditions only.
-- Every state below was re-derived from the disk in this pass. The previous version of this file was overwritten without being consulted.
-- Commands run for evidence (all read-only): the project linter, the chain check without its smoke mode, the environment doctor in check mode, a syntax check of every generated script and hook, and file comparisons of the lock and the embedded trees.
-- The sweep ran while slice S-026 was still open and the main session was editing the tree; rows that depend on a moving file say so.
+- Sweep: Phase 7 gate (release gate open, slice S-061), regenerated from scratch at `develop` `e89356b`.
+- Sources (exactly three): the repository's disk as it is now; the Keel v6.5.0 manifest (Table 1 and Table 3); the decision log (D-001…D-068). The project card, the phase status and the open items were read from the living state file for the conditions only.
+- Every state below was derived in this pass from a command run in this pass. The previous version of this file was overwritten; only its header and column layout were copied, no row and no state.
+- Commands run for evidence (all read-only): the project linter, the chain check without its smoke mode, the environment doctor in check mode, `git status --porcelain`, `git remote -v`, `git check-ignore`, `git worktree list`, file comparisons of the lock block (both files against each other and against the canonical block of the installed skill) and of the two embedded trees, and greps of the generated scripts, hooks, settings and documents.
+- The sweep ran while another session was working in the same checkout (uncommitted edits to product classes, a test, the sprint plan, the Playwright config and the playground setup script; `e89356b` not yet on `origin/develop`). Rows that depend on a moving file say so. No test suite was run and nothing was started or stopped for this sweep.
 
-Project conditions used (read from the card): WordPress plugin / WooCommerce extension, released (v7.0.2); phases 1–2 adopted (as-built), 3–4 n/a, 5 in progress, 6 in progress, 7 not started, 8 n/a; assistant config full for Claude Code only (D-008, D-039, D-043), CI and MCP not part of it; client budget no (D-010); user guide declined (D-013); website intent no (D-005); autonomy automatic, issues after-sprint, 24h (D-011); chaining start (D-015) with model opus (D-037); sprints on; push test scope affected; security audit required (D-040); no E2E line.
+Project conditions used (read from the card and the phase table): WordPress plugin / WooCommerce extension, released (7.0.2 in production); phases 1–2 adopted (as-built), 3–4 n/a (pre-existing UI, no design handoff), 5 done in slices, 6 in progress, 7 in preparation (gate open, S-032), 8 n/a; assistant config full for Claude Code only (D-008, D-039, D-043), CI and MCP not part of it; client budget no (D-010); user guide declined (D-013); website intent no (D-005); autonomy automatic, chaining start (D-015), sprints on, security audit required (D-040); `Keel baseline:` v6.5.0 (D-049), adopted at v5.9.0 (D-012).
 
 States: `present` (verified on disk now, evidence given) · `missing` (cites the decision and, where one exists, the slice that schedules it; a `missing` row with no decision behind it is repeated under "Unresolved") · `declined` (a recorded refusal) · `n/a` (excluding condition named).
 
 ## Table 1 — parity
 
-The manifest's Table 1 carries no row ids; `T1-nn` is the row's position in the manifest's order.
+The manifest's Table 1 carries no row ids; `T1-nn` is the row's position in the manifest's order (78 rows).
 
 | # | Requirement | State | Evidence / where / decision / excluding condition |
 |---|---|---|---|
-| T1-01 | `docs/PROGRESS.md` | present | Project card, phase status, current position (slice S-026), open items, deferred items |
-| T1-02 | `docs/decisions.md` | present | D-001…D-047 |
-| T1-03 | `docs/lessons-learned.md` | present | L-001…L-007 |
-| T1-04 | `docs/sessions.md` | present | Fifteen-column header from the current template; zero rows yet (the first is appended when the session clock is ended); linter check 24 OK |
-| T1-05 | `scripts/keel-time` | present | Executable, syntax clean; start, slice-start, slice-end, pause, resume, end, report |
-| T1-06 | `docs/.keel/clock.jsonl` | present | On disk, two events with schema keel.clock/1 (a session-start and a slice-start for S-026), gitignored and untracked |
-| T1-07 | Off-machine durability | present | Remote origin on GitHub; card durability line; linter check 19 OK (every commit on develop is on origin/develop) |
-| T1-08 | Clean working tree at every block close | present | Work lands on develop, which tracks origin/develop with nothing ahead. The block (S-026) is still open, so the tree is not clean at this instant: the linter's check 20 reports the living state file modified, and this file is rewritten by this sweep. The requirement binds at the close of S-026 |
-| T1-09 | `CLAUDE.md` + `AGENTS.md` lock | present | Both stamped v6.5.0; the two files are byte-identical |
-| T1-10 | Gemini lock mirror | n/a | Only if the user works with Gemini CLI — Claude Code only (D-008) |
-| T1-11 | `.claude/skills/keel/` + `.agents/skills/keel/` | present | The two trees are identical to each other and to the installed v6.5.0 skill |
-| T1-12 | Competitive landscape document | declined | D-035 (the competitive scan and its document declined by the user) |
-| T1-13 | `docs/01-discovery.md` with its environment and test drivers section | present | Section "Environment & test drivers (step 5a preflight)" at line 52, recorded from a real doctor run |
-| T1-14 | `docs/estimate.md` | present | Estimate v2 re-based on the sprint plan (42.75 h, equal to the plan total; linter check 22 OK) |
-| T1-15 | `docs/token-ledger.md` | present | One row per session; the last row is 2026-08-02 — the session of 2026-10-06 has no row yet (it is still open) |
-| T1-16 | `docs/02-functional-spec.md` with stable criterion ids | present | AC-01…AC-57 in the acceptance-criteria table (57 rows counted); 26 of them recorded as as-built, unverified (D-045) |
-| T1-17 | `docs/03-technical-plan.md` (code map, change map, testing plan with drivers, environment requirements) | present | Code map, testing plan with drivers, environment requirements; the change map lives in docs/02-functional-spec.md and the plan now points to it from its own "Change map" section. |
-| T1-18 | `docs/threat-model.md` | present | Assumptions, defended controls with delivery states, "Not defended" table |
-| T1-19 | `docs/flows/` | present | Six flow files (four checkouts, notification handling, refund) |
-| T1-20 | Client budget document | n/a | Only if the card says client budget yes — it says no (D-010) |
-| T1-21 | Spec reference artifacts directory | n/a | Only if the spec records any — the functional spec has no reference-artifacts section |
-| T1-22 | Rubrics directory | n/a | Only if a rubric domain was accepted at the Phase 2 review — phases 1–2 were adopted as-built, none on record |
-| T1-23 | Design references directory | n/a | Only if the user holds any — phases 3–4 n/a, no design contract (D-009) |
-| T1-24 | Assistant rules: `.claude/rules/` | present | Three rule files (code style, docs discipline, security); accepted by D-039 |
-| T1-25 | Assistant subagents: `.claude/agents/` | present | Six agent files; model map on the card (D-043) |
-| T1-26 | Design brief | n/a | Phase 3 n/a — no design contract (D-009) |
-| T1-27 | Design handoff directory | n/a | Phase 4 n/a — no design contract |
-| T1-28 | Build spec | n/a | Phase 4 n/a — no design contract |
-| T1-29 | Design request register | n/a | When the first Design Request appears — none |
-| T1-30 | `.gitignore` + `.gitattributes` with the mandatory ignore entries | present | All five mandatory entries are in the ignore file (local instructions file, local settings file, clock file at line 56, update-check stamp, hand-off file at line 42) |
-| T1-31 | `docs/sprints/` — one file per sprint | present | Three sprint files with keel.sprint/1 frontmatter, 26 slices; linter check 22 OK |
-| T1-32 | `docs/sprints/deferred.md` | present | Two items (S-033, S-034) |
-| T1-33 | `docs/.keel/plan.json` | present | Schema keel.plan/1, generated; matches its sources (linter check 22) |
-| T1-34 | `docs/05-test-points.md` with criterion, coverage and red-first columns | present | Criterion, coverage and red-first columns exist; 31 ids are bound to rows, 26 are listed as unverified in D-045, 57 in all (linter check 16). |
-| T1-35 | `docs/api/INDEX.md` | present | Linter checks 2 and 7 OK |
-| T1-36 | `docs/keel-conformance.md` | present | This file |
-| T1-37 | `docs/playground.md` | present | Access, try-it, seed and reset instructions, stamp "last verified: 2026-08-01". The playground does not build today (D-044, L-007); restoring it is S-036 |
-| T1-38 | `scripts/keel-verify` | present | Executable, 28 checks, ran to completion in this sweep |
-| T1-39 | `scripts/keel-affected-tests` | present | Executable; base, head, run and full options; prints one scope line; linter check 25 OK |
-| T1-40 | `.githooks/pre-push` + `core.hooksPath` set | present | Hook executable; hooks path reads .githooks; skips tags and deletions |
-| T1-41 | `scripts/keel-doctor` | present | Executable; ran in check mode in this sweep; compiled from the plan's environment-requirements section |
-| T1-42 | Build/minify script for the shipped CSS/JS | present | `bin/build-assets.js` (CSS) and `webpack.config.js` (Blocks script, readable and minified); `npm run build:assets`; linter check 11 compares against a rebuild (D-054, S-027) |
-| T1-43 | `scripts/keel-handoff-verify` | present | Executable; allow-list entry present in both settings files (chain check row 4) |
-| T1-44 | Single-lane lock | present | Outside the repository, under the state directory's keel-locks folder; chain check row 9 OK (reachable, held by the live session) |
-| T1-45 | `scripts/keel-tools/claude.sh` (one row per accepted assistant) | present | All nine fields plus detect and launch functions (linter check 26); the only accepted tool is claude |
-| T1-46 | `scripts/keel-continue` | present | Executable; sources the tool row; checksum matches the card's chain-verified line (chain check rows 2 and 11) |
-| T1-47 | `scripts/keel-close` | present | Executable; steps 0 to 8; allow-list entry in the committed settings file |
-| T1-48 | `.githooks/post-commit` + `core.hooksPath` set | present | Hook deletes the hand-off file and nothing else; chain check row 10b OK (installed, active, no hand-off on disk) |
-| T1-49 | `scripts/keel-stop-hook` + its `Stop` hook registration | present | Script executable; registered as the Stop hook in the committed Claude Code settings; linter check 26 confirms the registration matches the tool row. Its own allow-list entry and its recorded firing evidence are tracked in Table 3 (T3-5.15.0-1b, T3-5.15.0-1c) |
-| T1-50 | `scripts/keel-session-pid.sh` | present | One sourced function; sourced by the launcher and the hand-off verifier |
-| T1-51 | `scripts/keel-chain-check` | present | Executable; ran in this sweep: fifteen rows OK, verdict READY; allow-list entry in the committed settings file |
-| T1-52 | Chaining-model card line | present | Card: "Chaining model: opus (D-037)" |
-| T1-53 | Chain-verified card line | present | Card: dated 2026-10-06, tier start, Keel 6.5.0, launcher and row checksums; chain check row 11 says the proof is not stale |
-| T1-54 | `.githooks/pre-commit` | present | Confidential-data gate, executable, active through the hooks path; accepted by D-039; public test key recognised by hash (D-042) |
-| T1-55 | Permission allow-list: `.claude/settings.json` | present | Committed allow-list confirmed by the user (D-043) |
-| T1-56 | CI workflow | n/a | Only if accepted and the forge has CI — forge CI was not part of the package the user accepted (D-039); the card's CI line reads n/a |
-| T1-57 | MCP registration | n/a | Only if the technical plan defines development MCP servers — it defines none |
-| T1-58 | `docs/architecture.md` | present | On disk |
-| T1-59 | `docs/api/`, `docs/usage/`, `docs/reference/` | present | Index and readme under api; four usage documents; four reference documents (classes, endpoints, functions, hooks and extension points); linter checks 7 and 8 OK |
-| T1-60 | `docs/security.md` | present | On disk; profile per D-001 |
-| T1-61 | Accessibility record with automated results and the guided assistive-technology pass | missing | The automated pass is built, run and recorded (S-029, D-067: `tests/e2e/accessibility.spec.js`, results in `docs/accessibility.md`). The guided pass is still not run: it needs a person with a screen reader (S-030); its script is written |
-| T1-62 | `README.md` | present | Repository root |
-| T1-63 | End-user guide | declined | D-013 |
-| T1-64 | Guide theme, brand layer and version marker | declined | D-013 |
-| T1-65 | Release record | n/a | Required from Phase 7 — not started (the release gate is slice S-032) |
-| T1-66 | Security-audit log | n/a | Required from Phase 7 and created by the first audit run — Phase 7 not started and no audit has run. The audit is required (card, D-040) and scheduled as S-028 |
-| T1-67 | Security-audit run directory ignored | n/a | Any project on which an audit has run — none has |
-| T1-68 | Site documentation set | n/a | Website intent only — no (D-005) |
-| T1-69 | Art-direction spec | n/a | Website intent only (D-005) |
-| T1-70 | Machine-local art ledger | n/a | Website intent only (D-005) |
-| T1-71 | Launch report | n/a | Website intent only (D-005) |
-| T1-72 | Site operations record | n/a | Website intent only (D-005) |
-| T1-73 | End-to-end status file | n/a | Only if the card carries an E2E line — it does not (absent is the default) |
-| T1-74 | End-to-end history file | n/a | Same condition; optional even where the line exists |
-| T1-75 | Worker slice reports | n/a | Only if work is fanned out over git worktrees — not on record |
-| T1-76 | `docs/issues.md` | present | Header line "Last inbound sweep: 2026-08-01 17:50" (older than the 24h interval; the sweep is due at the sprint close) |
-| T1-77 | Archive directory | n/a | When archiving starts — nothing archived yet |
-| T1-78 | `docs/04-adoption-audit.md` | present | On disk |
+| T1-01 | `docs/PROGRESS.md` — living state | present | File on disk with project card, phase status, current position (S-032), open items and deferred items. |
+| T1-02 | `docs/decisions.md` — append-only decision log | present | 68 entries, D-001 to D-068, no duplicate heading id (grep, sort, uniq -d returned nothing). |
+| T1-03 | `docs/lessons-learned.md` — problem to solution log | present | 10 entries, L-001 to L-010, no duplicate id; each carries a "Check added" field. |
+| T1-04 | `docs/sessions.md` — one row per working session | present | 6 session rows with the Active h, Pace factor and Projected left h columns; the linter's session-time check finds the arithmetic consistent. |
+| T1-05 | `scripts/keel-time` — the only reader of the clock | present | Executable; carries start, slice-start, slice-end, pause, resume, end and the pace and projection figures (grep). |
+| T1-06 | docs/.keel/clock.jsonl — machine-local clock events | present | On disk (schema keel.clock/1), ignored by `.gitignore` line 56 and not tracked (`git ls-files` lists only the plan file under that directory). |
+| T1-07 | Off-machine durability — a Git remote | present | `git remote -v`: origin on GitHub; card `Durability:` line says satisfied. At the moment of the sweep `e89356b` is one commit ahead of `origin/develop` (the live session has not pushed it yet). |
+| T1-08 | A clean working tree at every block close | present | Mechanism in place: `develop` exists and is published, the linter fails a dirty or unpushed tree, the Stop hook blocks on both. Not a closed block right now: `git status --porcelain` lists ten modified files and one untracked file that belong to the live session, so cleanliness at the close cannot be read at this instant. |
+| T1-09 | `CLAUDE.md` + `AGENTS.md` — the portability lock | present | Both carry the block stamped v6.5.0; the two blocks are identical to each other and to the canonical block of the installed skill (diff, 126 lines, no difference). |
+| T1-10 | GEMINI.md or the Gemini settings mirror | n/a | Only if the user works with Gemini CLI — Claude Code is the only accepted tool (D-008); neither file exists. |
+| T1-11 | `.claude/skills/keel/` + `.agents/skills/keel/` — embedded skill | present | Both trees on disk, manifest header v6.5.0 in each, identical to each other and to the installed skill (diff -rq, no difference). Card: `Keel portability:` lock + embedded v6.5.0 (D-034). |
+| T1-12 | docs/00-competitive-landscape.md — competitive scan | declined | D-035: the user declined every row that concerns the competition. File absent. |
+| T1-13 | `docs/01-discovery.md` — discovery, with the environment preflight | present | Carries `## Environment & test drivers (step 5a preflight)`: present, missing, impossible, screen-stealing verdict, command execution, environment restrictions, `claude` on PATH. That section was recorded while the playground was down and still says no suite could run; the doctor run in this pass reports every blocking requirement OK. |
+| T1-14 | `docs/estimate.md` — estimate | present | Adoption estimate plus "Estimate v2" re-based on the sprint plan. Its Phase 5 figure (50.25 h) no longer equals the plan's slice hours (55.25 h) since four slices were added in `e89356b`; the linter fails on it. |
+| T1-15 | `docs/token-ledger.md` — token usage per session | present | 12 session rows, the newest for sprint 3 (S-052, S-054, S-029, S-056, S-032 first part). |
+| T1-16 | `docs/02-functional-spec.md` — functional contract | present | 71 acceptance criteria with `AC-nn` ids, flows index, change map, data model, permissions. |
+| T1-17 | `docs/03-technical-plan.md` — technical plan | present | Stack, code map with 38 paths marked [E] that exist on disk (linter), change map pointer, testing block (driver per surface, run mode, element addressability, division of labour, static analysis, accessibility automation, read-back duty, test selection) and `## Environment requirements`. |
+| T1-18 | `docs/threat-model.md` — threat model | present | Assumptions, defended controls with delivery states (12 IN PLACE, 3 MANUAL, 2 TO BUILD by grep) and the "Not defended" table. One control row carries two states at once ("TO BUILD or MANUAL, undetermined"). |
+| T1-19 | `docs/flows/` — one file per journey | present | Six files: four checkouts, notification handling, refund. |
+| T1-20 | docs/budget.md — client budget | n/a | Only if `Client budget: yes` — the card says no (D-010). |
+| T1-21 | docs/spec-references/ — reference artifacts | n/a | Only if the spec records any — the functional spec has no "Reference artifacts" section and the directory does not exist. |
+| T1-22 | docs/rubrics/ — judgment criteria | n/a | Only if a rubric domain was accepted — none is recorded anywhere under docs/ (grep); the directory does not exist. |
+| T1-23 | docs/design/references/ — rich visual references | n/a | Only if the user holds any — none recorded; no docs/design/ directory. |
+| T1-24 | Assistant rules — `.claude/rules/` | present | Three rule files: code-style, docs-discipline, security. Card: `Assistant config:` full (tools: claude). |
+| T1-25 | Assistant subagents — `.claude/agents/` | present | Six agents, each with its model field: code-reviewer and security-auditor on sonnet; docs-verifier, playground-qa, test-driver and a11y-auditor on haiku (D-043). |
+| T1-26 | docs/design/DESIGN-BRIEF.md | n/a | Required from Phase 3, which is n/a on the phase table: adopted project with a pre-existing UI and no design contract (D-009). |
+| T1-27 | docs/design/design-handoff/ | n/a | Required from Phase 4, which is n/a on the phase table: no design handoff (D-009). |
+| T1-28 | docs/BUILD-SPEC.md | n/a | Required from Phase 4, which is n/a on the phase table: no design handoff (D-009). |
+| T1-29 | docs/design/design-requests/ | n/a | When the first Design Request appears — none has; the card's open items say "Open Design Requests: none". |
+| T1-30 | .gitignore + .gitattributes — hygiene boundaries | present | Both at the repo root. `git check-ignore` confirms the five mandatory entries: CLAUDE.local.md, the local Claude settings file, the clock file, the update-check stamp and the continuation prompt. The personal files of other tools are not listed because no other tool is accepted (D-008). |
+| T1-31 | `docs/sprints/` — one file per sprint | present | Three sprint files with `schema: keel.sprint/1` frontmatter; slices carry id, title, status, hours, actual_hours, actual_source, depends_on, criteria. The newest file is being edited by the live session. |
+| T1-32 | `docs/sprints/deferred.md` — the one backlog file | present | `schema: keel.deferred/1`, items with target and reason; ids share the slice namespace (no duplicate id across the four files). |
+| T1-33 | `docs/.keel/plan.json` — the derived plan | present | `schema: keel.plan/1`, generated by the plan script, tracked. At the moment of the sweep it drifts from its sources (S-061 moved in the uncommitted sprint file); the linter reports the drift. |
+| T1-34 | `docs/05-test-points.md` — test-point log | present | 37 rows, 15 columns including Criterion, Coverage, Red first and Evidence; the linter finds every Coverage and Red first cell in its enum. |
+| T1-35 | `docs/api/INDEX.md` — one line per public surface | present | 48 rows; the linter finds each one in the source and each document under the api and reference directories indexed. |
+| T1-36 | `docs/keel-conformance.md` — this sweep | present | This file, regenerated in this pass from the manifest, the disk and the decision log. |
+| T1-37 | `docs/playground.md` — playground | present | Start, reset, stop, try-it steps, the setup script as the seed, `last verified: 2026-10-06`. |
+| T1-38 | `scripts/keel-verify` — release linter | present | Executable; 29 checks; run in this pass. |
+| T1-39 | `scripts/keel-affected-tests` — push-time selection | present | Executable; the linter's synthetic uncovered file makes it widen (scope: affected, 3 of 120 tests). |
+| T1-40 | `.githooks/pre-push` + core.hooksPath | present | Executable, calls the selector, skips tag refs; `git config core.hooksPath` is .githooks. |
+| T1-41 | `scripts/keel-doctor` — environment doctor | present | Executable; check, plan, fix and json modes; run in check mode in this pass: all blocking requirements OK. |
+| T1-42 | Build and minify script — `bin/build-assets.js` | present | Named by the technical plan's "Front-end asset build contract" and run by `npm run build:assets` (D-054). It lives under bin/, not under scripts/. The linter finds the three stylesheets and the built script in sync with a fresh build. |
+| T1-43 | `scripts/keel-handoff-verify` — courier checks | present | Executable; containment, release and baton handling present (grep); its allow-list entry is in `.claude/settings.json`. |
+| T1-44 | Single-lane lock (card: Chaining start) | present | Taken by the hand-off verifier; the chain check's row 9 finds the lane directory outside the repository and writable, and names its current holder. |
+| T1-45 | `scripts/keel-tools/claude.sh` — tool registry row | present | Declares the nine fields and both functions (linter check 26); evidence VERIFIED, tier start. One accepted tool, one row file. |
+| T1-46 | `scripts/keel-continue` — launcher | present | Executable; sources the registry row, claims the session entry before firing, releases the lane first; the chain check finds none of the four measured launch bugs. |
+| T1-47 | `scripts/keel-close` — the close-out | present | Executable; runs the session clock end, the linter, the chain check and the launcher in order; its allow-list entry is in `.claude/settings.json`. |
+| T1-48 | `.githooks/post-commit` + core.hooksPath | present | Executable; deletes the continuation prompt and nothing else; D-048 records it deleting a hand-off on a real commit. |
+| T1-49 | `scripts/keel-stop-hook` + its Stop registration in `.claude/settings.json` | present | Executable and registered as the Stop hook for Claude Code only. Its allow-list entry is not added: declined on the record (D-048), because the harness invokes the hook, not the shell tool. D-048 records it blocking a live turn four times. |
+| T1-50 | `scripts/keel-session-pid.sh` — session identity | present | One function, `keel_session_pid`; not executable by design (sourced). |
+| T1-51 | `scripts/keel-chain-check` — the chaining contract | present | Executable; run in this pass without its smoke mode: every row OK, VERDICT READY. |
+| T1-52 | `Chaining model:` line on the project card | present | opus (D-037). |
+| T1-53 | `Chain verified:` line on the project card | present | 2026-10-06, tier start, Keel 6.5.0, launcher checksum b8796f66873c0ff2; the chain check's row 11 finds the checksum still matching the launcher on disk. |
+| T1-54 | `.githooks/pre-commit` — confidential-data gate | present | Executable; exempts the hooks directory and both embedded skill trees; active through core.hooksPath (D-039). |
+| T1-55 | Permission allow-list — `.claude/settings.json` | present | Committed allow-list confirmed by the user by name (D-043): playground start and stop, the three suites, the build, the read-and-verify Keel scripts, the gate's tree scan, edits under tests/. |
+| T1-56 | CI workflow | declined | D-039: forge CI was not part of the package the user accepted. No .github directory; card `CI runs on:` n/a. |
+| T1-57 | MCP registration | n/a | Only if the technical plan defines development MCP servers — it defines none ("Browser MCP: none is registered for this project"); no .mcp.json. |
+| T1-58 | `docs/architecture.md` — consolidated architecture | present | Overview, components, request and data flow, external dependencies, extension points, known gaps. |
+| T1-59 | `docs/api/`, `docs/usage/`, `docs/reference/` — documentation layout | present | api: index and readme; usage: configuration, examples, getting started, installation; reference: classes, endpoints, functions, hooks and extension points. |
+| T1-60 | `docs/security.md` — consolidated security posture | present | Profile, posture summary, pointer to the threat model, process gaps. |
+| T1-61 | docs/accessibility.md — automated results plus the guided assistive-technology pass, per item | missing | The file exists and holds the automated pass (S-029, D-067), but its guided-pass section says "Not run (S-030)" and holds the eleven-step script, not results. D-067 records the pass as not run; S-030 is `not-started` and waits for a person with a screen reader. |
+| T1-62 | `README.md` — the repository's front door | present | At the repo root. |
+| T1-63 | guide/ — end-user HTML guide | declined | D-013: the end-user guide is declined for now. Card `User guide:` says so; no guide/ directory. |
+| T1-64 | guide/_theme/ + guide/brand/ + the theme marker | declined | D-013: no guide, so no vendored theme. Card `Docs theme:` n/a. |
+| T1-65 | docs/07-release.md — release record including the full-suite re-run on the candidate and the linter output | missing | The file exists and is open (D-068, S-032 `in-progress`): it records the gate item by item, but the entire-suite run with `scope: full` on the final candidate, the linter output on that tree, the real-environment pass and the self-audit results are not in it yet, and no version is approved (7.1.0 proposed). |
+| T1-66 | `docs/security-audit.md` — counts-only audit log | present | Two rows: the full run at `e50ab39` and the scoped run at `476d52e`. Card: `Security audit:` required (D-040). |
+| T1-67 | docs/security-audit/ listed in .gitignore | present | `.gitignore` line 59; the two run directories are on disk and untracked. |
+| T1-68 | Site documentation set | n/a | Website intent only — the card says no (D-005). |
+| T1-69 | Site art direction | n/a | Website intent only — the card says no (D-005). |
+| T1-70 | Machine-local art ledger | n/a | Website intent only — the card says no (D-005). |
+| T1-71 | Site launch report | n/a | Website intent only — the card says no (D-005). |
+| T1-72 | Site operations record | n/a | Website intent only — the card says no (D-005). |
+| T1-73 | docs/.keel/e2e-status.json | n/a | Only if the card carries an `E2E:` line — it carries none (absent is the default). |
+| T1-74 | docs/.keel/e2e-history.jsonl | n/a | Optional, and only where `E2E:` exists — the card carries no such line. |
+| T1-75 | docs/.keel/slices/ worker reports | n/a | Only if the project fans work out over git worktrees — `git worktree list` shows the main tree only. |
+| T1-76 | `docs/issues.md` — forge issue log | present | Inventory, entries, and the `Last inbound sweep:` header line stamped 2026-10-06 19:20. |
+| T1-77 | docs/old/ — archive | n/a | When archiving starts — nothing has been archived; the directory does not exist. |
+| T1-78 | `docs/04-adoption-audit.md` — gap audit | present | On disk; adopted project. |
 
-### Project-card lines (manifest paragraph under Table 1)
+### Project-card lines
+
+One row per line of the card template. `T1-52` and `T1-53` above already cover the two chaining-proof lines.
 
 | # | Requirement | State | Evidence / where / decision / excluding condition |
 |---|---|---|---|
-| T1-C01 | Base card lines (name, type, stack, license, docs language, security profile, accessibility, i18n, installed base, design system, website intent, durability, autonomy, branches, notify) | present | All read on the card |
-| T1-C02 | `Keel portability:` | present | lock + embedded v6.5.0 (D-034) |
-| T1-C03 | `Assistant config:` | present | full (tools: claude) — rules, agents, pre-commit gate, committed allow-list and Stop hook; CI not accepted (D-039, D-043) |
-| T1-C04 | `Keel baseline:` | present | The line exists and reads v5.9.0; it advances only when the reconciliation is closed |
-| T1-C05 | `Client budget:` | present | no (D-010) |
-| T1-C06 | `User guide:` | present | declined for now (D-013) |
-| T1-C07 | `Docs theme:` | present | n/a — no guide |
-| T1-C08 | `Models:` | present | orchestrator = session model, reviewer = sonnet, mechanical = haiku (D-043) |
-| T1-C09 | `Chaining:` | present | start (D-015) |
-| T1-C10 | `Issue sweep interval:` | present | 24h, on the autonomy line (D-011) |
-| T1-C11 | `Test-first policy:` | present | pure-logic (D-036) |
-| T1-C12 | `Sprints:` | present | on — the default, never asked |
-| T1-C13 | `Push test scope:` | present | affected — the default, never asked |
-| T1-C14 | `Security audit:` | present | required — money moves and the notification endpoints are reachable from outside (derived, D-040) |
-| T1-C15 | `CI runs on:` | present | n/a — no forge CI (D-039) |
-| T1-C16 | E2E card line | n/a | Absent is the default and means the feature does not exist for the project; never invented |
-| T1-C17 | E2E environment card line | n/a | Optional, only alongside the E2E line |
+| T1-C01 | `Name / one-line purpose:` | present | Card line present. |
+| T1-C02 | `Project type:` | present | WordPress plugin / WooCommerce extension (D-001). |
+| T1-C03 | `Stack & target platform(s):` | present | PHP, WordPress, WooCommerce, the Blocks build. |
+| T1-C04 | `License:` | present | GPL-2.0-or-later (D-003). |
+| T1-C05 | `Docs language:` | present | English (D-004). |
+| T1-C06 | `Security profile:` | present | The WordPress profile. |
+| T1-C07 | `Security audit:` | present | required, derived (D-040). |
+| T1-C08 | `Accessibility:` | present | WCAG 2.2 AA floor (D-007). |
+| T1-C09 | `i18n:` | present | multi, base English, shipped locale es_ES. |
+| T1-C10 | `Installed base:` | present | In production, 7.0.2. |
+| T1-C11 | `Design system:` | present | one-off / n/a (D-009). |
+| T1-C12 | `Keel portability:` | present | lock + embedded v6.5.0 (D-034). |
+| T1-C13 | `Assistant config:` | present | full (tools: claude) (D-039, D-043). |
+| T1-C14 | E2E card line | n/a | Absent is the default and means the feature does not exist for this project; the card carries no such line. |
+| T1-C15 | E2E env card line | n/a | Optional, only where the E2E line exists; the card carries neither. |
+| T1-C16 | `CI runs on:` | present | n/a — no forge CI. |
+| T1-C17 | `Models:` | present | orchestrator, reviewer and mechanical map (D-043). |
+| T1-C18 | `Keel baseline:` | present | v6.5.0 (D-049) — equal to the running Keel. |
+| T1-C19 | `Website intent:` | present | no (D-005). |
+| T1-C20 | `Client budget:` | present | no (D-010). |
+| T1-C21 | `User guide:` | present | declined for now (D-013). |
+| T1-C22 | `Docs theme:` | present | n/a — no guide. |
+| T1-C23 | `Test-first policy:` | present | pure-logic (D-036). |
+| T1-C24 | `Push test scope:` | present | affected. |
+| T1-C25 | `Sprints:` | present | on. |
+| T1-C26 | `Durability:` | present | git remote origin — satisfied. |
+| T1-C27 | `Autonomy:` | present | automatic, issues after-sprint, Issue capture off (D-011). |
+| T1-C28 | `Issue sweep interval:` | present | 24h, on the Autonomy line. |
+| T1-C29 | `Branches:` | present | Integration branch develop. Its text still says "current work: adoption on develop", which the phase table contradicts (adoption is complete). |
+| T1-C30 | `Notify:` | present | PushNotification tool (D-011). |
+| T1-C31 | `Chaining:` | present | start (D-015). |
 
-## Table 3 — per-version actions (v5.9.0 → v6.5.0)
+## Table 3 — per-version actions
 
-Ids are `T3-<version>-<manifest action number>`; a letter suffix splits one manifest action into the artifact and its one-time verification where the two ended in different states.
+Two parts, by the manifest's own rule: Table 3 lists what a reconciliation applies "for every version newer than the project's Keel baseline". The project was adopted at v5.9.0 (D-012) and reconciled v5.9.0 → v6.5.0 (D-049), so the applicable delta is v5.10.0 → v6.5.0. The versions at or before v5.9.0 were walked as well, one row each, and are `n/a` by that rule; what the disk shows for them is written in the row, and the three things found absent there are listed under "Observed outside the applicable set".
 
-### v5.10.0
+A version whose actions end in different states has one row per state (suffix a, b, c).
+
+### Applicable delta — v5.10.0 → v6.5.0
+
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.10.0-1 | Re-ask the chaining question where the card is automatic with chaining off | n/a | The card is chaining start (D-015) |
-| T3-5.10.0-2 | Lock stamp-only refresh (recurs unchanged in v5.10.0–v5.20.0) | present | Both lock files stamped v6.5.0 (D-034) |
+| T3-v5.10.0 | Re-ask the chaining question where the card is automatic and chaining off | n/a | Projects already on prefill or start need nothing — the card says start (D-015). |
+| T3-v5.10.1 | Closed list of what may stop a chain | n/a | No per-project action: the rules live in the skill files every session reads. |
+| T3-v5.10.2 | The script decides whether to chain | n/a | No per-project action. The launcher on disk does re-check the tool's command before firing (grep). |
+| T3-v5.10.3 | Launcher contract 6a and 6b; per-user installer directory in env.PATH | present | The machine-local settings carry the literal per-user bin directory first in env.PATH; the chain check's rows 6, 8 and 10 are OK. |
+| T3-v5.11.0 | Test-first policy card line, Red first column, the three red checks | present | Card line pure-logic (D-036); the column exists with 37 valid cells; linter check 17 runs the enum and failure-output checks. |
+| T3-v5.12.0 | Art direction for websites | n/a | Applies to website projects only — website intent is no (D-005). |
+| T3-v5.13.0 | Chain check script with its allow-list entry, smoke run, the two card lines, Mode field in the hand-off | present | Script and entry on disk; both card lines present; D-048 records the smoke run observed for real; the close-out script writes the Mode field (grep). |
+| T3-v5.14.0 | Close-out script with its entry; post-commit hook; chain check row 10b | present | All three on disk; row 10b OK in this pass. |
+| T3-v5.15.0-a | Stop hook generated, registered and seen firing | present | Registered in the committed Claude settings; D-048 records it blocking a live turn four times. |
+| T3-v5.15.0-b | Allow-list entry for running the Stop hook by hand | declined | D-048: not added; the harness invokes the hook, and the user confirmed the allow-list without it (D-043). |
+| T3-v5.15.1-a | Stop hook scoped to the session; block log keyed by repository and session; session identity file | present | Cede logic and the session-keyed block log are in the hook (grep); the identity file is on disk. |
+| T3-v5.15.1-b | Observe the fixed hook firing after a session restart | missing | D-048: proven in fixtures only; scheduled as S-037, which is `not-started`. |
+| T3-v5.15.2 | Queue block cedes and is discharged by a completed close-out; queue counted in Open items only | present | The hook reads the Open items section and the fire ledger (grep). Both directions were proven in fixtures (D-048); the observation after a restart is the same open item as T3-v5.15.1-b. |
+| T3-v5.16.0 | `CI runs on:` card line | present | n/a — no forge CI (CI declined, D-039). No workflow exists to regenerate. |
+| T3-v5.17.0-a | Sprint frontmatter, deferred file, derived plan, the plan checks | present | Present as in T1-31 to T1-33; linter check 22 runs the plan checks (and currently reports the in-flight drift). |
+| T3-v5.17.0-b | E2E card lines and status file | n/a | Absent is the default — the card carries no E2E line. |
+| T3-v5.18.0 | Stop hook registered only where the tool's contract is confirmed; launcher fires only the detected tool's row | present | Registered in the Claude settings only; one row file, for Claude, with its stop-hook field yes; linter check 26 finds no tool name in a shared script. The committed Codex config file holds an environment policy only, no hook. |
+| T3-v5.19.0-a | Not checked field on entries asserting an impossibility, with its linter check | present | Linter check 21: 8 such entries, each with the field. |
+| T3-v5.19.0-b | Card value supervised | n/a | Only where something outside the project continues it — the card says start. |
+| T3-v5.19.1 | Wording of the supervised option | n/a | Wording only, no per-project action. |
+| T3-v5.19.2 | Stop hook parses the porcelain line (rename, quoted path) | present | The hook splits on the rename arrow (grep); D-048 records the rename and path-with-space fixtures. |
+| T3-v5.20.0 | Session fire ledger in the launcher, the hook and the chain check; smoke re-run | present | Ledger claim in the launcher and read in the hook (grep); chain check rows 7a and 7b OK; row 11 finds the proof not stale. |
+| T3-v5.21.0 | `Sprints:` card line, plan created, actual hours on done slices, plan checks, the hook's plan state | present | Card line on; linter check 23: plan not behind the work, 38 done slices each with numeric actual hours. |
+| T3-v6.0.0-a | Session clock, sessions file, clock file ignored, actual_source, close-out step 0, Push test scope, test selection, selector and pre-push hook, lock refreshed | present | Each on disk as in T1-04 to T1-06, T1-39, T1-40 and T1-C24; the plan's "Test selection" section exists; the close-out script calls the clock's end step. |
+| T3-v6.0.0-b | Selector and pre-push hook verified on a real push | missing | D-048: a real push through the hook with a real selection is scheduled as S-037, `not-started`. The release record does show a real selection run widened to 120 of 120 tests, which is not the push. |
+| T3-v6.1.0 | Tool registry as data; four linter rows; smoke re-run | present | As T1-45; linter check 26 OK; the card's proof line carries the row checksum. |
+| T3-v6.2.0 | Codex launch flags | n/a | Structural only on a project that accepted Codex — Claude Code is the only accepted tool (D-008). |
+| T3-v6.3.0 | `Security audit:` card line; run directory ignored; counts-only log; audit covering the candidate | present | Card line required (D-040); ignore line and log on disk; two runs recorded. The newest audited commit is `476d52e`, HEAD is `e89356b`, and product classes are being edited in the working tree right now: whether the audit covers the final candidate is a gate item, not settled by this row. |
+| T3-v6.4.0-a | Clock script with pace and projection; plan generator fields; three new sessions columns; linter checks | present | Greps of the clock and plan scripts; the columns exist; linter check 24 runs the arithmetic. |
+| T3-v6.4.0-b | Timing report exercised over a real multi-session slice | missing | D-048: proven in fixtures; the reading in this repository is scheduled as S-037, `not-started`. |
+| T3-v6.5.0-a | Playwright worker cap recorded; doctor's three browser rows; lock restamped | present | The config caps workers through PW_WORKERS with a default of 1 (stricter than the reference default of 2, with the reason recorded in the plan's run-mode block); the doctor prints the three advisory rows; lock stamped v6.5.0. The config file is being edited by the live session. |
+| T3-v6.5.0-b | Browser MCP registration shape | n/a | Only where the assistant drives the browser through an MCP server — none is registered (no .mcp.json; doctor row OK). |
 
-### v5.10.1
+### At or before the adoption baseline — v1.10.0 → v5.9.0 (walked, not applicable)
+
+Excluding condition for every row of this table: Table 3 applies to versions newer than the project's baseline; this project was adopted at v5.9.0 (D-012), where the Table 1 parity above is the check. The last column says what the disk shows anyway.
+
 | # | Action | State | Evidence / condition |
 |---|---|---|---|
-| T3-5.10.1-1 | Closed list of four chain stops; the close-out never asks permission | n/a | No per-project action — behavioural |
-
-### v5.10.2
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-5.10.2-1 | Chain decided by the script; live re-check of the tool's command | n/a | No per-project action. (The launcher re-checks the row's command at line 185) |
-
-### v5.10.3
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-5.10.3-1 | Launcher contract points 6a/6b | present | Chain check row 10: script file run by path, temp-file template ends in its X run, the hand-off's content is never an argument |
-| T3-5.10.3-2 | Declared PATH includes the per-user installer directory as a literal path | present | Local settings: the declared PATH starts with the user's local bin directory; chain check rows 6 and 8 OK |
-
-### v5.11.0
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-5.11.0-1 | Ask the test-first question; add the card line | present | D-036; card line pure-logic |
-| T3-5.11.0-2 | Red-first column in the test-point log; existing rows take the predates value | present | Column present; 15 rows carry "n/a — predates" |
-| T3-5.11.0-3 | Three red checks in the linter | present | Linter check 17 ran: enum OK, observed rows OK, judgment list reported |
-| T3-5.11.0-4 | Bug fixes start from a failing reproduction test | n/a | Behavioural standing rule (restated in D-036) |
-| T3-5.11.0-5 | A criterion-derived test is never edited to pass | n/a | Behavioural standing rule |
-
-### v5.12.0
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-5.12.0-1 | Art direction, ledger, art-direction spec, blacklist, launch checks | n/a | Website projects only — website intent no (D-005) |
-
-### v5.13.0
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-5.13.0-1 | Generate the chain check and its allow-list entry | present | Script on disk; entry in the committed settings file |
-| T3-5.13.0-2 | Run the smoke mode once | present | The card's chain-verified line exists (it is written only by a passing smoke run) and its checksums match the launcher and the row on disk (chain check row 11) |
-| T3-5.13.0-3 | Chain-verified card line | present | On the card, dated 2026-10-06 |
-| T3-5.13.0-3b | Ask the chaining model; the launcher passes it on every fire | present | D-037; chain check row 10a OK |
-| T3-5.13.0-4 | Mode field in the hand-off header | present | The close-out script writes it (line 381). No hand-off is on disk at the moment, which is ordinary |
-| T3-5.13.0-5 | Two run points for the chain check | n/a | Behavioural run points (session start; step 5 of the close-out script) |
-
-### v5.14.0
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-5.14.0-1 | Generate the close-out script and its allow-list entry | present | Script on disk, steps 0 to 8; entry in the committed settings file |
-| T3-5.14.0-2a | Install the post-commit hook and set the hooks path | present | Hook executable; hooks path set; chain check row 10b OK |
-| T3-5.14.0-2b | Verify the post-commit hook fires on a real commit | present | Observed 2026-10-06: a probe hand-off existed before commit 066fdfd and was gone after it. Recorded in D-048 and in the sprint 2 row of docs/05-test-points.md. |
-| T3-5.14.0-3 | Row 10b in the chain check | present | Printed by the chain check in this sweep |
-| T3-5.14.0-4 | Launcher degrades on a bad Keel artifact instead of printing | present | Launcher lines 275–321 and 379: missing, unreadable, stale or blocked hand-off degrade onto the living state; identity and concurrency stay terminal |
-| T3-5.14.0-5 | Notify when the launcher prints on a chaining card | n/a | Behavioural session duty through the recorded channel (D-011); the launcher prints a notify line |
-
-### v5.15.0
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-5.15.0-1a | Generate the stop hook and register it as the Stop hook | present | Script on disk; registered in the committed Claude Code settings |
-| T3-5.15.0-1b | The stop hook's own allow-list entry | declined | D-048 — the hook is invoked by the harness, not through the shell tool; the user confirmed the committed allow-list by name without it (D-043). |
-| T3-5.15.0-1c | Verify the stop hook fires by ending a turn with a dirty tree | present | Observed 2026-10-06: the hook blocked a live turn four times. Recorded in D-048 and in the sprint 2 row of docs/05-test-points.md. |
-| T3-5.15.0-2 | Re-read anti-patterns 12e–12l | n/a | Re-read duty, no project artifact |
-| T3-5.15.0-3 | Two new operating principles | n/a | Behavioural |
-| T3-5.15.0-4 | Context-discipline exceptions | n/a | Behavioural |
-
-### v5.15.1
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-5.15.1-1 | Stop hook: session-scoped uncommitted rule, block log keyed by repository and session | present | Generated from the current contract: cede branches at lines 477–482, session-keyed ledger entry at line 430 |
-| T3-5.15.1-3 | Generate the session-identity file | present | On disk, one function, PID plus start time |
-| T3-5.15.1-5 | Verify the hook in both directions, then observe it after a session restart | missing | Both directions proven in fixtures (D-048); the observation after a full session restart is scheduled S-037 (D-048). |
-| T3-5.15.1-6 | Re-read anti-pattern 12m | n/a | Re-read duty |
-
-### v5.15.2
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-5.15.2-1 | Stop hook: queue rule cedes, close-out discharge, queue counted in the open-items section, per-rule fingerprints | present | Lines 254–263 (open items only), 567–574 (cede and block), close-out record written by step 8 of the close-out script |
-| T3-5.15.2-5 | Verify both directions for every blocking rule | present | Every blocking rule in both directions, the cede, the close-out discharge and the plan-behind state: 35 assertions in throwaway fixtures, recorded as fixture-grade evidence in D-048. |
-| T3-5.15.2-6 | Operating principle "fix the class, not the instance" | n/a | Behavioural |
-
-### v5.16.0
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-5.16.0-1 | Ask when CI runs; record the card line | present | Card line reads n/a — no forge CI; forge CI was not part of the accepted package (D-039) |
-| T3-5.16.0-5 | Regenerate the workflow's trigger block | n/a | No CI workflow exists |
-
-### v5.17.0
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-5.17.0-1 | Sprint files with frontmatter, deferred backlog, generated plan file and human index | present | Three sprint files, the deferred file, the plan file and the generated index in the sprints readme (D-040) |
-| T3-5.17.0-3 | Plan checks in the linter | present | Linter check 22 OK |
-| T3-5.17.0-4 | E2E card lines and published result | n/a | Absent is the default; never invented |
-| T3-5.17.0-5 | One convention for machine-readable artifacts | present | The plan file carries schema keel.plan/1 and the clock file keel.clock/1, both under the keel data directory |
-
-### v5.18.0
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-5.18.0-1 | Stop hook registered only for the tool whose schema is confirmed | present | Registered for Claude Code only; the Codex directory holds a config file and no hook file |
-| T3-5.18.0-2 | Launcher point 4a — only the detected tool's own action | present | Launcher lines 157–169: no recognising row means print |
-| T3-5.18.0-3 | Codex start row | n/a | Codex is not an accepted tool (D-008) |
-| T3-5.18.0-4 | Chaining-model description generalised; anti-patterns 12p/12q | n/a | Wording and re-read only |
-| T3-5.18.0-6 | Default reasoning for CI on private GitHub repositories | n/a | No CI (D-039) |
-
-### v5.19.0
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-5.19.0-1a | A not-checked field on every decision asserting an impossibility | present | D-029, D-044 and D-047 carry the field; linter check 21 passes. |
-| T3-5.19.0-1b | Matching linter check | present | Linter check 21 exists and ran |
-| T3-5.19.0-2 | Re-measure when the user contradicts a recorded negative | n/a | Behavioural |
-| T3-5.19.0-3 | Supervised chaining value | n/a | The card is chaining start (D-015) |
-| T3-5.19.0-4 | Anti-patterns 12s/12t | n/a | Re-read duty |
-
-### v5.19.1
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-5.19.1-1 | Wording of the supervised option | n/a | Wording only |
-
-### v5.19.2
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-5.19.2-1 | Stop hook parses the porcelain output instead of slicing it | present | Lines 207–244: NUL-separated porcelain parsed, rename source consumed and skipped, an entry that cannot be stat-ed is not established. Its fixture verification (a rename, a path with a space) is part of T3-5.15.1-5 |
-| T3-5.19.2-2 | Same parsing rule binds the write rule | n/a | Behavioural |
-| T3-5.19.2-3 | Re-read anti-pattern 12u | n/a | Re-read duty |
-
-### v5.20.0
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-5.20.0-1 | Launcher: per-session fire ledger and a receipt for the degraded path | present | Launcher lines 346 and 379 |
-| T3-5.20.0-2 | Stop hook reads the fire ledger and stands down | present | Stop hook line 430; chain check row 7b OK |
-| T3-5.20.0-3 | Chain check rows 7a and 7b; the smoke fires twice | present | Rows 7a and 7b printed in this sweep; second smoke launch at line 252 |
-| T3-5.20.0-4 | Re-run the smoke after regenerating the launcher | present | The chain-verified line carries the checksum of the launcher on disk (chain check row 11) |
-| T3-5.20.0-6 | Re-read anti-pattern 12v | n/a | Re-read duty |
-
-### v5.21.0
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-5.21.0-0 | Lock block text refresh | present | Block rewritten from the canonical copy, stamped v6.5.0 (D-034) |
-| T3-5.21.0-1 | Card line for sprints | present | Card: on |
-| T3-5.21.0-2 | Create the plan where none exists | present | Sprints 1 to 3 and the deferred backlog (D-040) |
-| T3-5.21.0-3 | Actual hours on every done slice | present | 17 done slices carry numeric actual hours (linter check 23) |
-| T3-5.21.0-4 | Five plan checks in the linter | present | Linter check 23: five OK lines |
-| T3-5.21.0-5 | Stop hook: plan-behind-the-work state | present | Stop hook lines 533–551. Its both-directions verification is part of T3-5.15.2-5 |
-| T3-5.21.0-6 | Every unit of work is a slice from now on | n/a | Behavioural |
-| T3-5.21.0-7 | Re-read the sprint-ledger section and anti-pattern 12w | n/a | Re-read duty |
-
-### v6.0.0
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-6.0.0-1a | Generate the session clock script | present | On disk, executable |
-| T3-6.0.0-1b | Create the sessions ledger from its template | present | On disk |
-| T3-6.0.0-1c | Ignore the clock file | present | Ignore file line 56; the clock file is untracked (linter check 24) |
-| T3-6.0.0-1d | Sessions ledger in the bookkeeping list of the linter and the stop hook | present | Linter line 1292; stop hook line 533 |
-| T3-6.0.0-1e | Every session opens and closes with the clock | n/a | Behavioural. (The clock file shows today's session opened; it has not been closed yet) |
-| T3-6.0.0-2 | Actual-source field; existing actuals marked estimated | present | All 26 slices carry the field, all estimated (linter check 24) |
-| T3-6.0.0-3 | Close-out script runs the clock's end as step 0 | present | Close-out script line 152 |
-| T3-6.0.0-4a | Card line for push test scope | present | Card: affected |
-| T3-6.0.0-4b | Test-selection line in the technical plan | present | Plan section "Test selection" at line 152 |
-| T3-6.0.0-4c | Generate the test selector | present | On disk; widening list matches the plan (linter check 25) |
-| T3-6.0.0-4d | Generate the pre-push hook | present | On disk, executable, hooks path set |
-| T3-6.0.0-4e | Verify both on a real diff (a dependent's tests selected, a push blocked by a red selection, an uncovered file widened) | missing | A docs-only push went through the real hook at 066fdfd; a real selection through it is scheduled S-037 after S-036 (D-044, D-048). |
-| T3-6.0.0-4f | Switch non-main CI triggers to the affected selection | n/a | No CI |
-| T3-6.0.0-5 | Test-selection and session-time rows in the linter | present | Linter checks 24 and 25 |
-| T3-6.0.0-6 | Refresh the lock block | present | v6.5.0 block in both files (D-034) |
-
-### v6.1.0
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-6.1.0-1 | One row file per accepted tool | present | The claude row file, complete (linter check 26) |
-| T3-6.1.0-2 | Move every per-tool fact out of the shared scripts | present | Linter check 26 at the final run of this sweep: no shared keel script names a registry tool outside a comment (11 scripts). The doctor's and the selector's Claude Code facts sit in a companion file beside the row, not yet committed |
-| T3-6.1.0-3 | Four registry rows in the linter | present | Linter check 26 carries all four |
-| T3-6.1.0-4 | Run the hook-registration check on the existing tree first | present | Linter check 26: the row says the stop hook is the tool's own, and the tool's hook file mentions it |
-| T3-6.1.0-5 | Re-run the smoke | present | The chain-verified line carries the row's checksum beside the launcher's |
-| T3-6.1.0-6 | Restamp the lock | present | v6.5.0 |
-
-### v6.2.0
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-6.2.0-1 | Regenerate the Codex row with the new flags | n/a | Only on a project that accepted Codex — not accepted (D-008) |
-| T3-6.2.0-2 | Restamp the lock | present | v6.5.0 |
-
-### v6.3.0
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-6.3.0-1 | Derive and write the security-audit card line | present | Card: required (D-040) |
-| T3-6.3.0-2 | Nothing is created until an audit runs | n/a | No audit has run |
-| T3-6.3.0-3 | Say now that the next release gate needs an audit covering its candidate, or a decision declining it | present | Stated in D-040 and scheduled as S-028 in sprint 3, ahead of the release gate S-032 |
-| T3-6.3.0-4 | Restamp the lock | present | v6.5.0 |
-
-### v6.4.0
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-6.4.0-1 | Session clock: active and planned hours, deviation, baseline remaining, pace projection | present | Clock script lines 378–401 and 562–600 |
-| T3-6.4.0-2 | Plan generator: pace factor and projected remaining hours | present | Generator and plan file carry both fields (null: no measured completed slice yet) |
-| T3-6.4.0-3 | Three new columns in the sessions ledger | present | Header carries active hours, pace factor and projected left hours |
-| T3-6.4.0-4a | Arithmetic, data-eligibility and ledger checks in the linter | present | Linter check 24: five OK lines |
-| T3-6.4.0-4b | Exercise the timing report in the three named cases | missing | Exercised in a scratch copy only; reading it over a real multi-session slice in this repository is scheduled S-037 (D-048). |
-| T3-6.4.0-5 | Restamp the lock | present | v6.5.0 |
-
-### v6.5.0
-| # | Action | State | Evidence / condition |
-|---|---|---|---|
-| T3-6.5.0-1 | Cap local Playwright workers through an environment variable and record the cap in the plan | present | The Playwright config reads the worker count from PW_WORKERS with a default of 1; the plan's run-mode block records the cap and why this project keeps 1 everywhere and no separate CI branch (one shared site, no forge CI). Unexercised until the playground builds (D-044) |
-| T3-6.5.0-2 | Browser MCP registered at repository level only | n/a | Only where the assistant drives the browser through an MCP server — none is registered for this project; the doctor reports no user-level registration |
-| T3-6.5.0-3 | Three advisory browser rows in the doctor | present | Doctor output in this sweep: MCP scope, MCP flags, orphaned Playwright browsers |
-| T3-6.5.0-4 | Restamp the lock | present | v6.5.0 |
+| T3-v1.10.0 | Config and baseline card lines; config package offered | n/a | At or before the adoption baseline. Disk: both card lines exist; package accepted (D-039). |
+| T3-v1.11.0 | Lock block version stamp | n/a | At or before the adoption baseline. Disk: stamped v6.5.0. |
+| T3-v1.12.0 | None structural | n/a | None structural. |
+| T3-v1.12.1 | Update-check stamp ignored | n/a | At or before the adoption baseline. Disk: .gitignore line 39. |
+| T3-v1.13.0 | None structural | n/a | None structural. |
+| T3-v2.0.0 | Client budget question, linter and playground reset, CI offer, debug log with a switch, user-guide question | n/a | At or before the adoption baseline. Disk: budget no (D-010); linter and playground reset exist; CI declined (D-039); each of the four gateways has a debug setting defaulting to no; guide declined (D-013). |
+| T3-v2.1.0 | None structural | n/a | None structural; no design handoff exists. |
+| T3-v3.0.0 | Assistant list, second lock file, second embedded tree, gate exemption, export-ignore of config trees | n/a | At or before the adoption baseline. Disk: Claude only (D-008); both lock files and both trees exist; the gate exempts both skill trees; .gitattributes export-ignores the Claude, agents, Codex and hooks trees and both lock files. |
+| T3-v3.1.0 | Comments check in the reviewer agent and the code-style rule | n/a | At or before the adoption baseline. Disk: both carry the comments line; no guide, so no guide agent. |
+| T3-v3.2.0 | Docs theme card line | n/a | At or before the adoption baseline. Disk: line present, n/a — no guide. |
+| T3-v3.2.1 | None structural | n/a | None structural. |
+| T3-v3.3.0 | Models card line and model fields | n/a | At or before the adoption baseline. Disk: line present (D-043); six agents carry a model field. |
+| T3-v3.4.0 | Source-first assets and a local build script | n/a | At or before the adoption baseline. Disk: applied by S-027 (D-054); linter check 11 OK. |
+| T3-v3.5.0 | Docs follow the code; the rubric question asked once and its answer recorded | n/a | At or before the adoption baseline. Disk: no record of the rubric question or of an answer anywhere under docs/ — see "Observed outside the applicable set". |
+| T3-v4.0.0 | Anti-patterns self-audit, code-map markers, change map, threat model, linter checks, competitive confrontation | n/a | At or before the adoption baseline. Disk: markers, change map, threat model and the linter checks exist; the confrontation is declined (D-035); the self-audit is being run in this same gate pass (S-061) and the release record still says "Not run yet". |
+| T3-v5.0.0 | Conformance sweep, environment requirements and doctor, driver per surface, AC ids and coverage columns, test-driver agent, allow-list coverage | n/a | At or before the adoption baseline. Disk: all present; 23 of the 71 criteria have no test-point row by D-045 and are scheduled as S-060. |
+| T3-v5.1.0 | Video and trace recording on; a headed script; run mode recorded | n/a | At or before the adoption baseline. Disk: run mode recorded; trace is retain-on-failure only, video is off and no headed script exists (the plan marks both TO BUILD) — see "Observed outside the applicable set". |
+| T3-v5.2.0 | Parallel verifier dispatch; test-driver with Edit | n/a | At or before the adoption baseline. Disk: the test-driver agent lists Edit in its tools. |
+| T3-v5.3.0 | Hand-off file ignored, verifier script and entry, chaining question, single lane | n/a | At or before the adoption baseline. Disk: all present (T1-43, T1-44, T1-C31). |
+| T3-v5.3.1 | Verifier at the scaffold; lane taken by it | n/a | At or before the adoption baseline. Disk: present. |
+| T3-v5.3.2 | The assistant's command on PATH as a gate for start | n/a | At or before the adoption baseline. Disk: chain check row 8 OK. |
+| T3-v5.3.3 | The sweep never reads its predecessor; orphan lane recovered | n/a | At or before the adoption baseline. This sweep consulted no previous row; the verifier handles an orphan lane (grep). |
+| T3-v5.4.0 | Two discovery lines; worktree fan-out reports | n/a | At or before the adoption baseline. Disk: both lines are in the discovery document; no fan-out. |
+| T3-v5.4.1 | Fan-out dispatch; probe corroboration | n/a | At or before the adoption baseline. Disk: the doctor distinguishes its states; no fan-out. |
+| T3-v5.5.0 | Setup batch card lines, env.PATH and permission mode, develop flow, launcher receipt, three-beat issue replies | n/a | At or before the adoption baseline. Disk: Autonomy, Branches and Notify lines (D-011); literal env.PATH and mode auto; develop published; receipt and breaker in the launcher; the issue log carries the reply fields. |
+| T3-v5.5.1 | Fan-out permission mode | n/a | At or before the adoption baseline, and no fan-out. |
+| T3-v5.5.2 | Launcher changes directory first | n/a | At or before the adoption baseline. Disk: the Claude row writes the directory change into the launch script. |
+| T3-v5.6.0 | Durability card line; the two linter checks | n/a | At or before the adoption baseline. Disk: line present; linter checks 19 and 20 exist (and fail right now on the live session's unpushed commit and uncommitted files). |
+| T3-v5.7.0 | Hand-off at every sprint close; lock content refresh | n/a | At or before the adoption baseline. Disk: lock identical to the canonical block. |
+| T3-v5.8.0 | Issue sweep interval; last-sweep header line | n/a | At or before the adoption baseline. Disk: both present. |
+| T3-v5.8.1 | Launcher and verifier regenerated with release and baton | n/a | At or before the adoption baseline. Disk: both present (grep). |
+| T3-v5.9.0 | Forge allow block merged into the machine-local settings; Issue capture card value | n/a | At or before the adoption baseline. Disk: Issue capture off is on the card (D-011); the machine-local allow list holds one forge entry (issue view) of the block the manifest lists — see "Observed outside the applicable set". |
 
 ## Totals
 
-Counted from the tables above.
+Counted from the tables above by the linter (see "Linter result").
 
-| Table | present | missing | declined | n/a | Rows |
+| Table | present | missing | declined | n/a | rows |
 |---|---|---|---|---|---|
-| Table 1 — paths (T1-01…T1-78) | 51 | 1 | 3 | 23 | 78 |
-| Table 1 — card lines (T1-C01…T1-C17) | 15 | 0 | 0 | 2 | 17 |
-| Table 1 — total | 66 | 1 | 3 | 25 | 95 |
-| Table 3 — v5.10.0…v6.5.0 | 71 | 3 | 1 | 32 | 107 |
+| Table 1 — paths | 53 | 2 | 4 | 19 | 78 |
+| Table 1 — card lines | 29 | 0 | 0 | 2 | 31 |
+| Table 3 — applicable delta | 19 | 3 | 1 | 9 | 32 |
+| Table 3 — at or before the baseline | 0 | 0 | 0 | 32 | 32 |
+| All | 101 | 5 | 5 | 62 | 173 |
 
 ## Still missing, with the decision that schedules it
 
+- T1-61 — the guided assistive-technology pass has not run; the record holds its script only. D-067; slice S-030, waiting for a person with a screen reader.
+- T1-65 — the release record is open: no entire-suite run on the final candidate, no linter output on that tree, no real-environment pass, no self-audit results, no approved version. D-068; slice S-032.
+- T3-v5.15.1-b — the Stop hook has not been observed firing after a session restart. D-048; slice S-037.
+- T3-v6.0.0-b — no real push through the pre-push hook with a real selection is recorded. D-048; slice S-037.
+- T3-v6.4.0-b — the timing report has not been read in this repository over a real multi-session slice. D-048; slice S-037.
 
-- T1-61 — accessibility passes: the automated one is done (S-029, D-067); the guided one is S-030 (sprint 3) and needs the user.
-- T3-5.15.1-5 — the Stop hook observed after a full session restart: S-037 (D-048).
-- T3-6.0.0-4e — a real selection through the pre-push hook: S-037 after S-036 (D-044, D-048).
-- T3-6.4.0-4b — the timing report over a real multi-session slice: S-037 (D-048).
+## Observed outside the applicable set
+
+Three things the manifest asks of versions at or before the adoption baseline are absent on disk and have no decision behind them. They are not rows of the applicable set, so they carry no state; they are listed for the user to decide, one by one.
+
+- v3.5.0 — the rubric question was never recorded as asked, and no answer ("a rubric" or "none for this project") exists.
+- v5.1.0 — browser recording is partial: trace on failure only, no video, and no headed script in the package file. The technical plan says so itself (TO BUILD).
+- v5.9.0 — the machine-local allow list carries one forge entry (issue view); the rest of the block (issue list, comment, create, edit, close, reopen; the pull-request and label commands) is absent, so a reply on an issue still meets a permission dialog.
 
 ## Unresolved
 
-None. Every `missing` row above is scheduled as a named slice by a recorded decision.
+None inside the applicable set: every `missing` row cites a recorded decision and a slice.
+
+Two rows whose state rests on something this pass could not read at rest:
+
+- T1-08 — the working tree is dirty because another session is mid-block in this checkout; cleanliness at the block close is that session's to show.
+- T3-v6.3.0 — the security audit covers `476d52e`; whether it covers the final candidate depends on what the live session commits.

@@ -22,7 +22,9 @@ const { test, expect } = require( '@playwright/test' );
 
 test( 'Inespay is hidden when the cart total exceeds the transaction limit (fractional total)', async ( { page } ) => {
 	await page.goto( '/product/e2e-transaction-limit-product/' );
-	await page.getByRole( 'button', { name: 'Add to cart' } ).click();
+	// By name, not by label: current WooCommerce themes render a second
+	// "Add to cart" button on the product page.
+	await page.locator( 'form.cart button[name="add-to-cart"]' ).click();
 
 	await page.goto( '/checkout/' );
 
