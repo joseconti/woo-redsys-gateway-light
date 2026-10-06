@@ -101,3 +101,11 @@
 - Fix: neither file was committed; the slice stays open with what it needs written down.
 - Check added: none mechanical. A whole-suite run whose output has no `OK (` or `Tests:` line is not a pass, whatever its exit code — `scripts/keel-affected-tests` would be the place to refuse it.
 - Rule for next time: a delegated test result is read before it is believed — run the files, count the tests that ran against the tests that exist, and read the assertions. "Passes individually" is a symptom, not a result.
+
+## L-013 — A mutation run against the payment handlers was refused by the session's permission classifier, and plain reads of the same files after it
+- Where: sprint 3, slice S-060 (2026-10-06, late night), after the notification-outcome spec passed on its first run.
+- What failed first: the command that temporarily edited the three notification handlers to prove the new tests can fail (the project's habit since D-022). The automatic permission mode refused it as the removal of a security check — which, read without its context, it is. Two later read-only commands that touched the card gateway class and the verification scripts were refused as well; reads of other files went through.
+- Cause: the mutation was written as one in-place edit of shipped security code, in a session that had no standing permission for it. Nothing was changed: the tree was checked clean straight after.
+- Fix: none to the code. The tests' ability to fail was argued from their counterpart cases instead (D-073, D-074), and the nine criteria that needed the refused files stayed in the slice.
+- Check added: none mechanical.
+- Rule for next time: build the proof that a test can fail into the test file — a counterpart case that takes the other branch with the same harness — rather than into a temporary edit of shipped code. When a mutation run of a payment or signature path is still wanted, ask the owner first and do it on a copy the web server does not serve; never retry a refused command another way.
