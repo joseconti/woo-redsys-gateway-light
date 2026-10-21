@@ -40,9 +40,9 @@ Run 2026-10-21 on `704730a`, every answer from a command or a file: **27 pass, 5
 
 | Failing answer | State |
 |---|---|
-| 1 — declared static tools never run (PHPCS, PHPStan, Plugin Check) | **run once on the candidate, outside the repository (D-102)**: no security or behaviour finding from PHPCS; three low PHPStan defects, none new in 7.1.0 (S-092); Plugin Check flags the `Requires at least: 4.0` header and the 7.1.0 upgrade notice. Still not installed in the project (S-093) — **for the owner to accept for 7.1.0** |
+| 1 — declared static tools never run (PHPCS, PHPStan, Plugin Check) | **run once on the candidate, outside the repository (D-102)**: no security or behaviour finding from PHPCS; three low PHPStan defects, none new in 7.1.0 (S-092); Plugin Check flags the `Requires at least: 4.0` header and the 7.1.0 upgrade notice. Still not installed in the project (S-093) — **accepted for 7.1.0 by the owner (D-106)** |
 | 5 — `woocommerce_ajax_loader_url` named by no test | closed: test added (D-100) |
-| 6 — the Blocks script's `es_ES` JSON never loaded (wrong file name) | **open — S-065, deferred by D-072; for the owner to accept for 7.1.0** |
+| 6 — the Blocks script's `es_ES` JSON never loaded (wrong file name) | **closed: S-065 brought onto `develop` before the tag (D-106, S-097)** |
 | 17n — this session's row | written at the session close |
 | 17o — no `scope: full` record | closed: the floor run above |
 
@@ -70,11 +70,11 @@ See `docs/token-ledger.md`, "Final reconciliation — 7.1.0". The orchestrating 
 - The zip above (built locally, not committed). The tag, the `master` merge and the WordPress.org upload are the owner's.
 
 ## What the release still needs, in one list
-1. **From the owner:** accept, or not, self-audit answers 1 (analysers run once, not installed — D-102) and 6 (S-065) for 7.1.0; decide whether the 7.1.0 upgrade notice is shortened before the tag (below); merge `develop` into `master`; tag `v7.1.0`; build the archive from the tag and upload it to WordPress.org SVN.
+1. **From the owner:** (answers 1, 6 and the upgrade notice settled by D-106) merge `develop` into `master`; tag `v7.1.0`; build the archive from the tag and upload it to WordPress.org SVN.
 2. **From the assistant, after publication:** the replies on #93, #112 and the two forum threads (D-099); `docs/issues.md` entries updated with the shipped version; Phase 7 marked done and the project moved to maintenance.
 
 ## Upgrade notice over WordPress.org's limit (D-102)
-Plugin Check: the 7.1.0 upgrade notice is about 430 characters; WordPress.org shows 300. What falls past the cut is the instruction to delete old Google Pay debug logs. A 280-character wording, offered and not applied (it changes `readme.txt`, a shipped file, and the text was approved in D-099):
+Plugin Check: the 7.1.0 upgrade notice is about 430 characters; WordPress.org shows 300. What falls past the cut is the instruction to delete old Google Pay debug logs. A 280-character wording, offered and **applied on `develop` by the owner's choice (D-106)**:
 
 > Security and reliability release: fixes unpaid test-mode Bizum and Google Pay payments, refund matching on long order IDs, and notification hardening. If you enabled Google Pay debug logging, delete its old logs (WooCommerce > Status > Logs): they may contain your signing secret.
 

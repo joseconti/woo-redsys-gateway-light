@@ -8,17 +8,18 @@
     "docs/sprints/sprint-3.md",
     "docs/sprints/sprint-4.md",
     "docs/sprints/sprint-5.md",
+    "docs/sprints/sprint-6.md",
     "docs/sprints/deferred.md"
   ],
   "current_sprint": null,
   "reconciliation_status": "reconciled",
   "totals": {
-    "original_estimated_hours": 84.4,
-    "completed_original_hours": 84.4,
-    "actual_hours": 32.7942,
+    "original_estimated_hours": 85.15,
+    "completed_original_hours": 85.15,
+    "actual_hours": 32.8956,
     "remaining_hours": 0,
-    "deviation_hours": -51.6058,
-    "pace_factor": 0.193799,
+    "deviation_hours": -52.2544,
+    "pace_factor": 0.192998,
     "projected_remaining_hours": 0,
     "reconciliation_status": "reconciled",
     "scope_delta": {
@@ -29,17 +30,17 @@
     "percent_done": 100,
     "unit": "hours of AI working time plus supervision",
     "spent_unfinished_hours": 0,
-    "slices_total": 79,
-    "slices_done": 78,
+    "slices_total": 80,
+    "slices_done": 79,
     "slices_pending": 0,
     "slices_dropped": 1,
     "slices_unreconciled": 0,
     "pace_sample": {
-      "slices": 59,
-      "estimated_hours": 54.15,
-      "actual_hours": 10.4942,
-      "deviation_hours": -43.6558,
-      "deviation_percent": -80.62,
+      "slices": 60,
+      "estimated_hours": 54.9,
+      "actual_hours": 10.5956,
+      "deviation_hours": -44.3044,
+      "deviation_percent": -80.7,
       "provisional": false
     }
   },
@@ -54,7 +55,7 @@
       "actual_hours": 20,
       "remaining_hours": 0,
       "deviation_hours": 0,
-      "pace_factor": 0.193799,
+      "pace_factor": 0.192998,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -290,7 +291,7 @@
       "actual_hours": 4.2175,
       "remaining_hours": 0,
       "deviation_hours": -5.5325,
-      "pace_factor": 0.193799,
+      "pace_factor": 0.192998,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -454,7 +455,7 @@
       "actual_hours": 7.0276,
       "remaining_hours": 0,
       "deviation_hours": -42.6224,
-      "pace_factor": 0.193799,
+      "pace_factor": 0.192998,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -1675,7 +1676,7 @@
       "actual_hours": 0.0989,
       "remaining_hours": 0,
       "deviation_hours": -1.4011,
-      "pace_factor": 0.193799,
+      "pace_factor": 0.192998,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -1737,7 +1738,7 @@
       "actual_hours": 1.4502,
       "remaining_hours": 0,
       "deviation_hours": -2.0498,
-      "pace_factor": 0.193799,
+      "pace_factor": 0.192998,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -1979,6 +1980,74 @@
             ],
             "parallel": "serial",
             "serial_reason": "same playground as S-092"
+          }
+        }
+      ]
+    },
+    {
+      "sprint": 6,
+      "goal": "Apply the owner's pre-tag answers to the 7.1.0 candidate (D-106)",
+      "status": "done",
+      "file": "docs/sprints/sprint-6.md",
+      "original_estimated_hours": 0.75,
+      "completed_original_hours": 0.75,
+      "actual_hours": 0.1014,
+      "remaining_hours": 0,
+      "deviation_hours": -0.6486,
+      "pace_factor": 0.192998,
+      "projected_remaining_hours": 0,
+      "reconciliation_status": "reconciled",
+      "scope_delta": {
+        "added_scope_hours": 0,
+        "extracted_hours": 0,
+        "explicit_residual_reestimate_hours": 0
+      },
+      "percent_done": 100,
+      "unit": "hours of AI working time plus supervision",
+      "spent_unfinished_hours": 0,
+      "slices_total": 1,
+      "slices_done": 1,
+      "slices_pending": 0,
+      "slices_dropped": 0,
+      "slices_unreconciled": 0,
+      "slices": [
+        {
+          "id": "S-097",
+          "title": "Bring S-065 (f658ebb) onto develop under the 7.1.0 changelog and replace the 7.1.0 upgrade notice with the 280-character wording, then re-check the shipped-file diff against the candidate",
+          "status": "done",
+          "original_hours": 0.75,
+          "residual_hours": 0,
+          "change_kind": "added",
+          "parent_slice": null,
+          "owns": [
+            "S-097"
+          ],
+          "estimate_changes": [],
+          "actual_hours": 0.1014,
+          "actual_source": "measured",
+          "depends_on": [],
+          "criteria": [],
+          "execution": {
+            "write_paths": [
+              "bin/build_i18n.sh",
+              "bin/i18n-map.json",
+              "languages/",
+              "package.json",
+              "readme.txt",
+              "tests/Integration/BlocksScriptTranslationTest.php",
+              "docs/07-release.md",
+              "docs/decisions.md",
+              "docs/PROGRESS.md",
+              "docs/sprints/",
+              "docs/.keel/plan.json"
+            ],
+            "contracts": {
+              "reads": [],
+              "writes": []
+            },
+            "exclusive_resources": [],
+            "parallel": "serial",
+            "serial_reason": "one slice; it changes the release candidate the owner merges"
           }
         }
       ]

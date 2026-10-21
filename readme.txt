@@ -103,6 +103,7 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 * Tweak: Tested up to WordPress 7.1 and WooCommerce 11.2 (checked on PHP 8.4).
 * Fix: In the Blocks checkout, Inespay was shown to customers outside Spain, Portugal and Italy (on older WooCommerce versions, with a generic label and no icon). It is now offered only for an address in those countries, as in the classic checkout.
+* Fix: In the Blocks checkout, the Spanish translation of the payment methods' script was never loaded (it showed "Inespay Bank Transfer" untranslated when no title was set).
 * Tweak: The translated texts of the Redsys, Bizum and Google Pay redirect pages (button, cancel link and redirect message) are now escaped, and the Google Pay page filters its form like the other two.
 * Tweak: The main plugin file and the Redsys signature class now stop at once when requested directly, outside WordPress.
 * Tweak: The SHA-256 secrets of the Redsys, Bizum and Google Pay gateways and the Inespay API key are now password fields on the settings screens, so they are not shown in clear.
@@ -401,7 +402,7 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 == Upgrade Notice ==
 
 = 7.1.0 =
-Security and reliability release. Fixes valid test-mode Bizum and Google Pay payments left unpaid, wrong-order matching for refunds on stores with long order IDs, and several notification hardening issues; the SHA-256 secrets become password fields. If you ever enabled debug logging for Google Pay, delete its old logs (WooCommerce > Status > Logs): they may contain your signing secret.
+Security and reliability release: fixes unpaid test-mode Bizum and Google Pay payments, refund matching on long order IDs, and notification hardening. If you enabled Google Pay debug logging, delete its old logs (WooCommerce > Status > Logs): they may contain your signing secret.
 
 = 7.0.2 =
 Security release. Adds signature + amount verification to the Inespay callback (update immediately if you use Inespay) and fixes signature validation failures (Ds_MerchantParameters "+" arriving as spaces, and spaces in the SHA-256 key) that could reject valid payments on Redsys, Bizum and Google Pay.
