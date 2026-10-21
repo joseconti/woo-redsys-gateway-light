@@ -291,4 +291,105 @@ class MarkOrderAsPaidUnsignedReturnTest extends WP_UnitTestCase {
 		$this->assertFalse( $gateways[ $gateway_id ]->is_valid_return( array( 'Ds_MerchantParameters' => $param ) ) );
 		$this->assertFalse( $gateways[ $gateway_id ]->is_valid_return( null ) );
 	}
+
+	/**
+	 * S-055: the per-order attempt is claimed atomically. A parallel request
+	 * carrying the same genuine return can take the claim after this one
+	 * passed the early check; this one must then stop instead of waiting and
+	 * completing the order a second time. The parallel request is simulated
+	 * from inside the order-number lookup, which runs between the early check
+	 * and the claim.
+	 *
+	 * @dataProvider redsys_protocol_gateways
+	 * @param string $gateway_id Gateway id.
+	 * @param string $ds_order   Ds_Order of the fixture.
+	 */
+	public function test_a_claim_taken_by_a_parallel_request_stops_this_one( $gateway_id, $ds_order ) {
+		$order    = $this->pending_order( $gateway_id, $ds_order );
+		$order_id = $order->get_id();
+		$this->return_signed_by_redsys( $ds_order );
+
+		$parallel = function ( $pre ) use ( $order_id ) {
+			set_transient( 'redsyslite_mark_paid_attempt_' . $order_id, 1, 30 );
+			return $pre;
+		};
+		add_filter( 'pre_transient_redys_order_temp_' . $ds_order, $parallel );
+
+		$start = microtime( true );
+		redsyslite_mark_order_as_paid( $order_id );
+		$elapsed = microtime( true ) - $start;
+
+		remove_filter( 'pre_transient_redys_order_temp_' . $ds_order, $parallel );
+
+		$this->assertLessThan( 1, $elapsed, 'The attempt was already claimed by the parallel request: this one must not wait.' );
+		$this->assertTrue( wc_get_order( $order_id )->has_status( 'pending' ), 'Only the request holding the claim may complete the order.' );
+	}
+
+	/**
+	 * S-055: a claim left behind by an earlier attempt, once expired, does not
+	 * block the order for ever. One gateway is enough: the claim does not
+	 * depend on it, and each case waits five seconds.
+	 */
+	public function test_an_expired_claim_is_taken_again() {
+		$order    = $this->pending_order( 'redsys', '000000000601' );
+		$order_id = $order->get_id();
+		$this->return_signed_by_redsys( '000000000601' );
+
+		set_transient( 'redsyslite_mark_paid_attempt_' . $order_id, 1, 30 );
+		update_option( '_transient_timeout_redsyslite_mark_paid_attempt_' . $order_id, time() - 60, false );
+
+		$start = microtime( true );
+		redsyslite_mark_order_as_paid( $order_id );
+
+		$this->assertGreaterThanOrEqual( 5, microtime( true ) - $start );
+		$this->assertTrue( wc_get_order( $order_id )->has_status( array( 'processing', 'completed' ) ) );
+	}
+
+	/**
+	 * S-055: successful_request() verifies through is_valid_return(), so there
+	 * is one verification to keep right instead of two. A gateway whose
+	 * is_valid_return() refuses must not complete the order, even for a
+	 * return that carries a valid signature.
+	 *
+	 * @dataProvider redsys_protocol_gateways
+	 * @param string $gateway_id Gateway id.
+	 * @param string $ds_order   Ds_Order of the fixture.
+	 */
+	public function test_successful_request_verifies_through_is_valid_return( $gateway_id, $ds_order ) {
+		$order = $this->pending_order( $gateway_id, $ds_order );
+		$this->return_signed_by_redsys( $ds_order );
+
+		switch ( $gateway_id ) {
+			case 'bizumredsys':
+				$gateway = new class() extends WC_Gateway_Bizum_Redsys {
+					public function is_valid_return( $params ) {
+						return false;
+					}
+				};
+				break;
+			case 'googlepayredirecredsys':
+				$gateway = new class() extends WC_Gateway_GooglePay_Redirection_Redsys {
+					public function is_valid_return( $params ) {
+						return false;
+					}
+				};
+				break;
+			default:
+				$gateway = new class() extends WC_Gateway_redsys {
+					public function is_valid_return( $params ) {
+						return false;
+					}
+				};
+		}
+
+		$gateway->successful_request(
+			array(
+				'Ds_MerchantParameters' => $_GET['Ds_MerchantParameters'],
+				'Ds_Signature'          => $_GET['Ds_Signature'],
+				'Ds_SignatureVersion'   => $_GET['Ds_SignatureVersion'],
+			)
+		);
+
+		$this->assertTrue( wc_get_order( $order->get_id() )->has_status( 'pending' ) );
+	}
 }

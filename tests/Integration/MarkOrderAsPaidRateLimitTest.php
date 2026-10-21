@@ -116,4 +116,28 @@ class MarkOrderAsPaidRateLimitTest extends WP_UnitTestCase {
 			'An order already in a paid status must return before the sleep(5), not after it — this is the common case on a repeat visit to the thank-you page.'
 		);
 	}
+
+	/**
+	 * S-055: redsyslite_claim_transient() takes a free claim once, refuses a
+	 * live one, and takes an expired one again exactly once. The claim reads
+	 * back as an ordinary transient. The persistent-object-cache branch
+	 * (wp_cache_add()) is not exercised: the test site has no such cache.
+	 */
+	public function test_the_claim_is_taken_once_and_again_only_after_it_expires() {
+		$name = 'redsyslite_claim_test_' . wp_generate_password( 8, false );
+
+		$this->assertTrue( redsyslite_claim_transient( $name, 30 ), 'A free claim is taken.' );
+		$this->assertFalse( redsyslite_claim_transient( $name, 30 ), 'A live claim is refused.' );
+		$this->assertSame( '1', get_transient( $name ), 'The claim reads back as a transient.' );
+
+		update_option( '_transient_timeout_' . $name, time() - 60, false );
+		$this->assertTrue( redsyslite_claim_transient( $name, 30 ), 'An expired claim is taken again.' );
+		$this->assertFalse( redsyslite_claim_transient( $name, 30 ), 'By one request only.' );
+		$this->assertGreaterThan( time(), (int) get_option( '_transient_timeout_' . $name ) );
+
+		delete_transient( $name );
+		$this->assertFalse( get_transient( $name ) );
+		$this->assertTrue( redsyslite_claim_transient( $name, 30 ), 'A deleted claim is free again.' );
+		delete_transient( $name );
+	}
 }

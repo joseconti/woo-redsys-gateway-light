@@ -524,7 +524,12 @@ function redsyslite_mark_order_as_paid( $order_id ) {
 	if ( ! $mapped_order && (int) WCRedL()->clean_order_number( $ds_order ) !== (int) $order_id ) {
 		return;
 	}
-	set_transient( $attempt_guard, 1, 30 );
+
+	// Claimed atomically: a parallel request carrying the same return may have
+	// passed the early check too, and only one of them waits and completes.
+	if ( ! redsyslite_claim_transient( $attempt_guard, 30 ) ) {
+		return;
+	}
 
 	// Give the server-to-server notification time to arrive and be processed first.
 	sleep( 5 );
@@ -535,6 +540,53 @@ function redsyslite_mark_order_as_paid( $order_id ) {
 	}
 
 	$payment_gateway->successful_request( $params );
+}
+
+/**
+ * Sets a transient only if no live one exists, atomically across requests.
+ *
+ * set_transient() overwrites, so a get_transient() check followed by a
+ * set_transient() lets two parallel requests both pass. With a persistent
+ * object cache the claim is wp_cache_add() in the group set_transient() uses;
+ * without one it is an INSERT IGNORE of the transient's timeout row, and an
+ * expired row left behind is taken again by one request only. Either way
+ * get_transient() and delete_transient() see the claim as an ordinary transient.
+ *
+ * @param string $transient  Transient name, as passed to set_transient().
+ * @param int    $expiration Lifetime of the claim in seconds.
+ * @return bool True when this request holds the claim.
+ */
+function redsyslite_claim_transient( $transient, $expiration ) {
+	global $wpdb;
+
+	if ( wp_using_ext_object_cache() ) {
+		return wp_cache_add( $transient, 1, 'transient', $expiration );
+	}
+
+	$timeout_key = '_transient_timeout_' . $transient;
+	$value_key   = '_transient_' . $transient;
+	$now         = time();
+
+	// phpcs:disable WordPress.DB.DirectDatabaseQuery -- the claim has to be one atomic statement; the options API has none.
+	$claimed = (bool) $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO {$wpdb->options} ( option_name, option_value, autoload ) VALUES ( %s, %s, 'no' )", $timeout_key, $now + $expiration ) );
+	if ( ! $claimed ) {
+		$claimed = (bool) $wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND CAST( option_value AS UNSIGNED ) < %d", $now + $expiration, $timeout_key, $now ) );
+	}
+	if ( ! $claimed ) {
+		return false;
+	}
+	$wpdb->query( $wpdb->prepare( "INSERT INTO {$wpdb->options} ( option_name, option_value, autoload ) VALUES ( %s, '1', 'no' ) ON DUPLICATE KEY UPDATE option_value = '1'", $value_key ) );
+	// phpcs:enable WordPress.DB.DirectDatabaseQuery
+
+	// The rows were written behind the options cache: drop what it remembers.
+	wp_cache_delete( $timeout_key, 'options' );
+	wp_cache_delete( $value_key, 'options' );
+	$notoptions = wp_cache_get( 'notoptions', 'options' );
+	if ( is_array( $notoptions ) ) {
+		unset( $notoptions[ $timeout_key ], $notoptions[ $value_key ] );
+		wp_cache_set( 'notoptions', $notoptions, 'options' );
+	}
+	return true;
 }
 
 /**

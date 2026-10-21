@@ -960,7 +960,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	 * Verifies and nothing else: no order is changed and nothing waits. The
 	 * order-received fallback asks this before it spends its five-second wait
 	 * on a request (redsyslite_mark_order_as_paid()). successful_request()
-	 * still verifies on its own.
+	 * verifies through it, so there is one verification to keep right.
 	 *
 	 * @since 7.1.0
 	 * @param array $params Ds_MerchantParameters and Ds_Signature, as received.
@@ -1033,37 +1033,19 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		$dsexpiryyear      = '';
 		$dsexpirymonth     = '';
 
-		// Same test/live gate check_ipn_request_is_valid() uses: without a real
-		// SHA256 secret configured for this mode, the HMAC is attacker-computable,
-		// so refuse to process before even decoding.
-		if ( 'yes' === $this->testmode ) {
-			$usesecretsha256 = ! empty( $this->customtestsha256 ) ? $this->customtestsha256 : $this->secretsha256;
-		} else {
-			$usesecretsha256 = $this->secretsha256;
-		}
-
-		if ( empty( $usesecretsha256 ) ) {
+		// Verify the signature to prevent payment forgery, through the one
+		// verification every caller shares: it fails closed without a SHA256
+		// secret for this mode, and resolves the secret the way
+		// check_ipn_request_is_valid() does, so test mode and any per-order
+		// override are both honored (see resolve_notification_secret()).
+		if ( ! $this->is_valid_return( $params ) ) {
 			if ( 'yes' === $this->debug ) {
-				$this->log->add( 'googlepayredirecredsys', 'Payment rejected in successful_request: no SHA256 secret configured.' );
+				$this->log->add( 'googlepayredirecredsys', 'Payment rejected in successful_request: signature verification failed or no SHA256 secret configured.' );
 			}
 			return;
 		}
 
-		// Resolve the ACTUAL secret to verify against — same method
-		// check_ipn_request_is_valid() uses, so test mode and any per-order
-		// override are both honored (see resolve_notification_secret()'s docblock).
-		$decodedata      = $mi_obj->decode_merchant_parameters( $data );
-		$usesecretsha256 = $this->resolve_notification_secret( $mi_obj );
-
-		$localsecret = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
-
-		// Verify cryptographic signature to prevent payment forgery.
-		if ( ! hash_equals( $localsecret, $remote_sign ) ) {
-			if ( 'yes' === $this->debug ) {
-				$this->log->add( 'googlepayredirecredsys', 'Signature verification failed in successful_request.' );
-			}
-			return;
-		}
+		$decodedata = $mi_obj->decode_merchant_parameters( $data );
 
 		$total             = $mi_obj->get_parameter( 'Ds_Amount' );
 		$ordermi           = $mi_obj->get_parameter( 'Ds_Order' );
@@ -1093,7 +1075,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 
 		if ( 'yes' === $this->debug ) {
 			// Presence only: the signing secret itself never goes to the log.
-			$this->log->add( 'googlepayredirecredsys', 'SHA256 Settings: ' . ( $usesecretsha256 ? 'set' : 'empty' ) );
+			$this->log->add( 'googlepayredirecredsys', 'SHA256 Settings: set' );
 			$this->log->add( 'googlepayredirecredsys', 'SHA256 Transcient: ' . ( $secretsha256 ? 'set' : 'empty' ) );
 			$this->log->add( 'googlepayredirecredsys', 'decode_merchant_parameters: ' . $decodedata );
 			$this->log->add( 'googlepayredirecredsys', 'Ds_Amount: ' . $total );

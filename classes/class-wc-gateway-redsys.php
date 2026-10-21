@@ -929,7 +929,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 	 * Verifies and nothing else: no order is changed and nothing waits. The
 	 * order-received fallback asks this before it spends its five-second wait
 	 * on a request (redsyslite_mark_order_as_paid()). successful_request()
-	 * still verifies on its own.
+	 * verifies through it, so there is one verification to keep right.
 	 *
 	 * @since 7.1.0
 	 * @param array $params Ds_MerchantParameters and Ds_Signature, as received.
@@ -964,15 +964,17 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			$params = stripslashes_deep( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		}
 
-		if ( 'yes' === $this->testmode ) {
-			$usesecretsha256 = ! empty( $this->customtestsha256 ) ? $this->customtestsha256 : $this->secretsha256;
-		} else {
-			$usesecretsha256 = $this->secretsha256;
+		// Verify the signature to prevent payment forgery, through the one
+		// verification every caller shares. It fails closed without a SHA256
+		// secret, for which the HMAC would be attacker-computable.
+		if ( ! $this->is_valid_return( $params ) ) {
+			if ( 'yes' === $this->debug ) {
+				$this->log->add( 'redsys', 'Payment rejected in successful_request: signature verification failed or no SHA256 secret configured.' );
+			}
+			return;
 		}
 
-		$version           = sanitize_text_field( wp_unslash( $params['Ds_SignatureVersion'] ?? '' ) );
-		$data              = RedsysLiteAPI::sanitize_merchant_parameters( wp_unslash( $params['Ds_MerchantParameters'] ?? '' ) );
-		$remote_sign       = sanitize_text_field( wp_unslash( $params['Ds_Signature'] ?? '' ) );
+		$data              = RedsysLiteAPI::sanitize_merchant_parameters( wp_unslash( $params['Ds_MerchantParameters'] ) );
 		$mi_obj            = new RedsysLiteAPI();
 		$dscardnumbercompl = '';
 		$dsexpiration      = '';
@@ -980,25 +982,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$dscardnumber4     = '';
 		$dsexpiryyear      = '';
 		$dsexpirymonth     = '';
-		$decodedata        = $mi_obj->decode_merchant_parameters( $data );
-
-		// Fail closed: without a real SHA256 secret the HMAC is attacker-computable, so refuse to process.
-		if ( empty( $usesecretsha256 ) ) {
-			if ( 'yes' === $this->debug ) {
-				$this->log->add( 'redsys', 'Payment rejected in successful_request: no SHA256 secret configured.' );
-			}
-			return;
-		}
-
-		$localsecret = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
-
-		// Verify cryptographic signature to prevent payment forgery.
-		if ( ! hash_equals( $localsecret, $remote_sign ) ) {
-			if ( 'yes' === $this->debug ) {
-				$this->log->add( 'redsys', 'Signature verification failed in successful_request.' );
-			}
-			return;
-		}
+		$mi_obj->decode_merchant_parameters( $data );
 
 		$total             = $mi_obj->get_parameter( 'Ds_Amount' );
 		$ordermi           = $mi_obj->get_parameter( 'Ds_Order' );
