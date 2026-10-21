@@ -14,7 +14,7 @@ Defined at the top of `woocommerce-redsys.php`.
 
 | Constant | Value |
 |----------|-------|
-| `REDSYS_WOOCOMMERCE_VERSION` | The plugin version (`7.0.2`). |
+| `REDSYS_WOOCOMMERCE_VERSION` | The plugin version (`7.1.0`). |
 | `REDSYS_PLUGIN_URL` | URL of the plugin directory, with a trailing slash. |
 | `REDSYS_PLUGIN_PATH` | Filesystem path of the plugin directory, with a trailing slash. |
 | `REDSYS_PLUGIN_DATA_PATH`, `REDSYS_PLUGIN_DATA_URL` | Path and URL of `includes/data/`. |

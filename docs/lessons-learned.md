@@ -133,3 +133,11 @@
 - Fix: none applied by the assistant — it is the owner's call. Opening and closing the tunnel ran; driving requests through it needs the owner's OK (a permission rule, or running it themselves).
 - Check added: none mechanical.
 - Rule for next time: before a tunnelled exercise in automatic mode, ask the owner for the permission in the same batch as the other questions; never try to route around the refusal.
+
+## L-017 — A Keel check took a reconciliation id for a slice id
+- Where: sprint 3, S-032 (2026-10-21), the first `scope_reconciliations` record of this project.
+- What failed first: `scripts/keel-verify` check 22 — "R-3 was in the plan in git history and is now in no sprint file". The record's id was `R-3-01`; the check's history regex, `- id:\s*([A-Za-z]+-\d+)` without an end anchor, read the first part of it as a slice id, and renaming the record could not help because the old line stays in history.
+- Cause: the regex was written when only slices carried `- id:` lines; `scope_reconciliations` (Keel v6.6.0) added a second kind.
+- Fix: the regex is anchored to the end of the line in this project's `scripts/keel-verify` (D-100); the record is now `R3-01`.
+- Check added: none beyond the fix; to report to Keel so the canonical script carries it.
+- Rule for next time: name reconciliation records so they cannot look like a slice id (`R3-01`), and when a generated Keel script misreads the project, fix it here AND report it upstream — never answer it by editing history.

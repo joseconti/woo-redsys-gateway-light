@@ -4,7 +4,7 @@ sprint: 3
 goal: Release preparation for the unreleased security and correctness fixes
 status: in-progress
 scope_reconciliations:
-  - id: R-3-01
+  - id: R3-01
     date: 2026-10-21
     reason: D-099 — the owner's go for 7.1.0; S-030 (1 h) moves intact to deferred.md, and S-037's tunnel payment (0.25 h) is extracted to S-090 in deferred.md
     slices: [S-030, S-037, S-090]
@@ -106,7 +106,7 @@ slices:
         after_residual_hours: 0.25
         reason: D-099 — the Redsys test-terminal payment through the tunnel is acknowledged for 7.1.0 and moves to deferred as S-090
         decision: D-099
-        reconciliation: R-3-01
+        reconciliation: R3-01
     actual_hours: null
     actual_source: estimated
     depends_on: [S-036]

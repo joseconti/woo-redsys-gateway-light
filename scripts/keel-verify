@@ -1367,7 +1367,7 @@ else:
                      % (where(item, "status"), item.get("id")))
                 bad += 1
     rc, history, _ = git("log", "--format=", "-p", "--unified=0", "--", "docs/sprints")
-    ever = set(re.findall(r"^[+-]\s+- id:\s*([A-Za-z]+-\d+)", history, re.M))
+    ever = set(re.findall(r"^[+-]\s+- id:\s*([A-Za-z]+-\d+)\s*$", history, re.M))  # anchored: a reconciliation id such as R-3-01 is not a slice id (D-100)
     for ident in sorted(ever - set(seen)):
         fail("docs/sprints/: %s was in the plan in git history and is now in no sprint file and not in %s — "
              "a slice leaves a sprint by moving to deferred.md or by `status: dropped` with its decision"

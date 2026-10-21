@@ -217,13 +217,13 @@ add_filter(
   - `$status` (`string[]`) — order statuses, without the `wc-` prefix, in which an order counts as **not yet paid**. Default, from `includes/data/redsys-status-paid.php`: `pending`, `redsys-pbankt`, `cancelled`, `failed`, `pending-deposit`.
 - **Returns:** the list of statuses.
 - **When:** on every `WCRedL()->is_paid()` call — while a notification is processed, in the order-received fallback and when the order-received text is built.
-- **Effect:** an order whose status is in the list is treated as unpaid, so a notification may still complete it. Any other status — including `on-hold` and `failed` — counts as paid, and payment notifications for it are ignored by the card and Bizum gateways.
+- **Effect:** an order whose status is in the list is treated as unpaid, so a notification may still complete it. Any other status — including `on-hold` — counts as paid, and payment notifications for it are ignored by the card and Bizum gateways.
 
 ```php
 add_filter(
 	'redsys_status_pending',
 	function ( $status ) {
-		$status[] = 'failed'; // Let a later successful notification complete a failed order.
+		$status[] = 'awaiting-review'; // Let a later successful notification complete an order in a custom status.
 		return $status;
 	}
 );
