@@ -6,30 +6,31 @@
     "docs/sprints/sprint-1.md",
     "docs/sprints/sprint-2.md",
     "docs/sprints/sprint-3.md",
+    "docs/sprints/sprint-4.md",
     "docs/sprints/deferred.md"
   ],
-  "current_sprint": null,
+  "current_sprint": 4,
   "reconciliation_status": "reconciled",
   "totals": {
-    "original_estimated_hours": 79.4,
+    "original_estimated_hours": 80.9,
     "completed_original_hours": 79.4,
     "actual_hours": 31.2451,
-    "remaining_hours": 0,
+    "remaining_hours": 1.5,
     "deviation_hours": -48.1549,
     "pace_factor": 0.181996,
-    "projected_remaining_hours": 0,
+    "projected_remaining_hours": 0.273,
     "reconciliation_status": "reconciled",
     "scope_delta": {
       "added_scope_hours": -1.25,
       "extracted_hours": 0,
       "explicit_residual_reestimate_hours": 0
     },
-    "percent_done": 100,
+    "percent_done": 98.15,
     "unit": "hours of AI working time plus supervision",
     "spent_unfinished_hours": 0,
-    "slices_total": 71,
+    "slices_total": 72,
     "slices_done": 70,
-    "slices_pending": 0,
+    "slices_pending": 1,
     "slices_dropped": 1,
     "slices_unreconciled": 0,
     "pace_sample": {
@@ -1659,6 +1660,70 @@
             ],
             "parallel": "serial",
             "serial_reason": "a lockfile change widens the pre-push selection to the whole suite, which needs the one playground"
+          }
+        }
+      ]
+    },
+    {
+      "sprint": 4,
+      "goal": "Work independent of the owner's 7.1.0 release block — evidence only, no shipped file changes while develop is the candidate",
+      "status": "in-progress",
+      "file": "docs/sprints/sprint-4.md",
+      "original_estimated_hours": 1.5,
+      "completed_original_hours": 0,
+      "actual_hours": 0,
+      "remaining_hours": 1.5,
+      "deviation_hours": 0,
+      "pace_factor": 0.181996,
+      "projected_remaining_hours": 0.273,
+      "reconciliation_status": "reconciled",
+      "scope_delta": {
+        "added_scope_hours": 0,
+        "extracted_hours": 0,
+        "explicit_residual_reestimate_hours": 0
+      },
+      "percent_done": 0,
+      "unit": "hours of AI working time plus supervision",
+      "spent_unfinished_hours": 0,
+      "slices_total": 1,
+      "slices_done": 0,
+      "slices_pending": 1,
+      "slices_dropped": 0,
+      "slices_unreconciled": 0,
+      "slices": [
+        {
+          "id": "S-091",
+          "title": "Run PHPCS (phpcs.xml), PHPStan and Plugin Check read-only against the 7.1.0 candidate, so the owner decides self-audit answer 1 on findings rather than on \"never run\"",
+          "status": "in-progress",
+          "original_hours": 1.5,
+          "residual_hours": 1.5,
+          "change_kind": "added",
+          "parent_slice": null,
+          "owns": [
+            "S-091"
+          ],
+          "estimate_changes": [],
+          "actual_hours": null,
+          "actual_source": null,
+          "depends_on": [],
+          "criteria": [],
+          "execution": {
+            "write_paths": [
+              "docs/07-release.md",
+              "docs/decisions.md",
+              "docs/PROGRESS.md",
+              "docs/sprints/",
+              "docs/.keel/plan.json"
+            ],
+            "contracts": {
+              "reads": [],
+              "writes": []
+            },
+            "exclusive_resources": [
+              "wp-env-playground"
+            ],
+            "parallel": "serial",
+            "serial_reason": "Plugin Check runs inside the one playground; the tools are installed outside the repository so no manifest or lockfile on the candidate changes"
           }
         }
       ]
