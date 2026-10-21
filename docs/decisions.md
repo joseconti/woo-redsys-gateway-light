@@ -897,3 +897,4 @@
 - Conformance sweep regenerated from the disk, `MANIFEST.md` and this file (not from the previous sweep): 0 missing; the guided assistive-technology pass, the tunnel payment and SA-06/13/20 declined by D-099.
 - `scripts/keel-verify` check 22 reported the reconciliation id `R-3-01` as a vanished slice (`R-3`): its history regex was unanchored. Anchored in this project's copy and the id renamed `R3-01`; a Keel defect to report upstream (L-017).
 - S-037 observed: a real push through `.githooks/pre-push` (S-089, widened to the entire suite by the lockfile, `result: GREEN`), and `scripts/keel-stop-hook` blocking the turn of a freshly started session on an unpushed commit. The timing report over a multi-session slice is S-032's, at this session's close.
+- Not checked: any static analyser (PHPCS, PHPStan, Plugin Check — self-audit answer 1); the ceiling instance and the installed package, recorded in D-101.
