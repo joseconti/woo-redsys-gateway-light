@@ -782,3 +782,10 @@
 - Alternatives rejected: dropping the line (the refund case on 8–9-digit stores was real).
 - Supersedes: the wording of D-024 item 3 ("roughly 1 in 5"), not the fix of D-026.
 
+## D-084 — `Ds_MerchantParameters` sent as an array is refused without a warning (S-078)
+- Date / phase: 2026-10-21 / Phase 5 (sprint 3)
+- Decision: `RedsysLiteAPI::sanitize_merchant_parameters()` answers `''` for anything that is not a string, instead of casting it. Red first, observed on the pinned instance: the unit cases (an array, a nested array, an empty array) returned `'Array'`, and the new integration case raised "Array to string conversion" at `includes/class-redsysliteapi.php:141` from `check_ipn_request_is_valid()` of the card, Bizum and Google Pay gateways. Green after the guard on the pinned instance (unit 8, `NotificationWithMalformedOrderTest` 38) and then on the ceiling instance alone (same counts), one at a time (L-014). The one method fixes every caller: the three notification checks, the three `successful_request()` and the order-received fallback. AC-04 gains the clause and its two tests; `docs/reference/classes.md` shows the new parameter type; line references in `docs/flows/` re-resolved; changelog line added.
+- Why: the request was already refused (an empty payload fails the signature); the warning was noise in the shop's log, reachable by anyone.
+- Alternatives rejected: guarding at each of the seven call sites (the sanitiser is the one place they share).
+- Supersedes: none
+

@@ -286,6 +286,27 @@ class RedsysLiteAPITest extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
+	 * S-078: the value comes from the request before any signature is
+	 * compared, so it can arrive as an array (Ds_MerchantParameters[]=x).
+	 * What is not a string carries no parameters, and saying so raises nothing.
+	 *
+	 * @dataProvider provide_merchant_parameters_that_are_not_strings
+	 * @param mixed $raw What the request carried.
+	 */
+	public function test_sanitize_merchant_parameters_answers_empty_for_what_is_not_a_string( $raw ) {
+		$this->assertSame( '', RedsysLiteAPI::sanitize_merchant_parameters( $raw ) );
+	}
+
+	public function provide_merchant_parameters_that_are_not_strings() {
+		return array(
+			'an array'        => array( array( 'eyJhIjoiYiJ9' ) ),
+			'a nested array'  => array( array( array( 'eyJhIjoiYiJ9' ) ) ),
+			'an empty array'  => array( array() ),
+			'null'            => array( null ),
+		);
+	}
+
+	/**
 	 * S-046: reading a parameter after decoding something that is not a JSON
 	 * object answers null, on every PHP version, instead of raising.
 	 *

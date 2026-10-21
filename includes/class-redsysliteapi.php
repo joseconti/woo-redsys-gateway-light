@@ -134,11 +134,17 @@ class RedsysLiteAPI {
 	 * verification (the HMAC is calculated over this exact string). This helper restores
 	 * the "+" characters and keeps only valid Base64/Base64URL characters.
 	 *
-	 * @param string $raw Raw Ds_MerchantParameters value.
+	 * The value is read from the request before any signature is compared, so
+	 * it may arrive as an array; what is not a string carries no parameters.
+	 *
+	 * @param mixed $raw Raw Ds_MerchantParameters value.
 	 * @return string
 	 */
 	public static function sanitize_merchant_parameters( $raw ) {
-		return preg_replace( '/[^A-Za-z0-9+\/=_-]/', '', str_replace( ' ', '+', (string) $raw ) );
+		if ( ! is_string( $raw ) ) {
+			return '';
+		}
+		return preg_replace( '/[^A-Za-z0-9+\/=_-]/', '', str_replace( ' ', '+', $raw ) );
 	}
 	/**
 	 *  FUNCIONES PARA LA GENERACIÓN DEL FORMULARIO DE PAGO.

@@ -105,6 +105,37 @@ class NotificationWithMalformedOrderTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * S-078: Ds_MerchantParameters itself sent as an array
+	 * (Ds_MerchantParameters[]=...) is refused by the notification check and
+	 * by successful_request(), and refusing it raises nothing.
+	 *
+	 * @dataProvider gateway_classes
+	 * @param string $class Gateway class name.
+	 */
+	public function test_a_notification_whose_merchant_parameters_are_an_array_is_rejected_quietly( $class ) {
+		$params = array( base64_encode( wp_json_encode( array( 'Ds_Order' => '123000000001', 'Ds_Response' => '0000', 'Ds_Amount' => '100' ) ) ) ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode
+
+		$_POST['Ds_SignatureVersion']   = 'HMAC_SHA256_V1';
+		$_POST['Ds_MerchantParameters'] = $params;
+		$_POST['Ds_Signature']          = 'not-a-signature';
+
+		$gateway = $this->configured_gateway( $class );
+		$this->assertFalse( (bool) $gateway->check_ipn_request_is_valid() );
+
+		$order = wc_create_order();
+		$order->set_total( 1 );
+		$order->save();
+		$gateway->successful_request(
+			array(
+				'Ds_SignatureVersion'   => 'HMAC_SHA256_V1',
+				'Ds_MerchantParameters' => $params,
+				'Ds_Signature'          => 'not-a-signature',
+			)
+		);
+		$this->assertFalse( wc_get_order( $order->get_id() )->is_paid() );
+	}
+
+	/**
 	 * @return array<string, array{0: string}>
 	 */
 	public function gateway_classes() {

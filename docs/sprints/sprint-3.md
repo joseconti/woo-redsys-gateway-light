@@ -318,9 +318,9 @@ slices:
     criteria: []
   - id: S-078
     title: A notification whose Ds_MerchantParameters is not a string (sent as an array) raises an "Array to string conversion" notice or warning in the card, Bizum and Google Pay handlers before any signature is compared — found by S-076's sweep; reproduce with a failing test, fix in the one shared sanitiser
-    status: in-progress
+    status: done
     hours: 0.5
-    actual_hours: 0.0114
+    actual_hours: 0.0536
     actual_source: measured
     depends_on: [S-076]
     criteria: []
@@ -388,3 +388,4 @@ slices:
 - Session close, 2026-10-06 at about 23:25, asked for by the owner: no inbound issue sweep — the last one was at 21:52, inside the 24-hour interval (`gh issue list` at 23:10 showed the same six open issues, none updated since). The next chat is not chained: the owner opens it.
 - Session of 2026-10-21, 11:28 — a WordPress.org support thread reports D-023 on 7.0.2 (fixed on `develop`, unreleased); the owner's decision (7.0.3 hotfix or 7.1.0) and the forum reply are recorded in `docs/PROGRESS.md`. S-079 added and done.
 - S-079 (done 2026-10-21, D-083): the `readme.txt` line about the order-number fallback said "roughly 1 in 5"; rewritten from a simulation of the 7.0.2 code — about 1 in 10 of fallback cases, only on 8- or 9-digit order IDs, in practice refund confirmations. Measured time excludes the investigation done before the slice opened, in the same session.
+- S-078 (done 2026-10-21, D-084): the shared sanitiser answers `''` for a value that is not a string; red observed, green on the pinned and the ceiling instance one at a time; changelog line added.
