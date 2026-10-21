@@ -7,7 +7,12 @@ slices:
   - id: S-020
     title: Install Keel v6.5.0 (embedded trees, lock block) and run the conformance sweep
     status: done
-    hours: 0.5
+    original_hours: 0.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-020]
+    estimate_changes: []
     actual_hours: 0.5
     actual_source: estimated
     depends_on: []
@@ -15,7 +20,12 @@ slices:
   - id: S-021
     title: Session clock and sprint plan tooling (keel-time, keel-plan, sessions.md, plan.json, sprint 1 backfill)
     status: done
-    hours: 1.5
+    original_hours: 1.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-021]
+    estimate_changes: []
     actual_hours: 0.2
     actual_source: estimated
     depends_on: [S-020]
@@ -23,7 +33,12 @@ slices:
   - id: S-022
     title: Chaining family (keel-continue regenerated, keel-close, keel-chain-check, keel-stop-hook, keel-session-pid, keel-tools, post-commit hook)
     status: done
-    hours: 2.5
+    original_hours: 2.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-022]
+    estimate_changes: []
     actual_hours: 0.6
     actual_source: estimated
     depends_on: [S-020]
@@ -31,7 +46,12 @@ slices:
   - id: S-023
     title: Test selection (keel-affected-tests, pre-push hook), doctor rows, environment and driver sections of the plan
     status: done
-    hours: 1.25
+    original_hours: 1.25
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-023]
+    estimate_changes: []
     actual_hours: 0.3
     actual_source: estimated
     depends_on: [S-020]
@@ -39,7 +59,12 @@ slices:
   - id: S-024
     title: Native Claude Code config package (rules, agents, confidential-data pre-commit gate, shared allow-list)
     status: done
-    hours: 1
+    original_hours: 1
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-024]
+    estimate_changes: []
     actual_hours: 0.35
     actual_source: estimated
     depends_on: [S-020]
@@ -47,7 +72,12 @@ slices:
   - id: S-025
     title: Documentation backfill (AC ids, flows, usage, hooks reference)
     status: done
-    hours: 1.5
+    original_hours: 1.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-025]
+    estimate_changes: []
     actual_hours: 0.35
     actual_source: estimated
     depends_on: [S-020]
@@ -55,7 +85,12 @@ slices:
   - id: S-026
     title: keel-verify regenerated, one-time verifications, card lines, decisions, conformance closed, baseline advanced
     status: done
-    hours: 1.5
+    original_hours: 1.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-026]
+    estimate_changes: []
     actual_hours: 1.9175
     actual_source: measured
     depends_on: [S-021, S-022, S-023, S-024, S-025]

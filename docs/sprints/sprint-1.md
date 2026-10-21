@@ -7,7 +7,12 @@ slices:
   - id: S-001
     title: Embedded Keel skill updated from v1.11.0 to v5.9.0, lock blocks refreshed, session-setup batch answered (D-011, D-012)
     status: done
-    hours: 1
+    original_hours: 1
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-001]
+    estimate_changes: []
     actual_hours: 1
     actual_source: estimated
     depends_on: []
@@ -15,7 +20,12 @@ slices:
   - id: S-002
     title: Full Keel adoption with inventory, as-built docs, gap audit, license reconciliation and reference-material relocation (D-001 to D-010, D-013)
     status: done
-    hours: 3
+    original_hours: 3
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-002]
+    estimate_changes: []
     actual_hours: 3
     actual_source: estimated
     depends_on: [S-001]
@@ -23,7 +33,12 @@ slices:
   - id: S-003
     title: Phase 5 testability scaffold built and the playground verified for real (D-014)
     status: done
-    hours: 1.5
+    original_hours: 1.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-003]
+    estimate_changes: []
     actual_hours: 1.5
     actual_source: estimated
     depends_on: [S-002]
@@ -31,7 +46,12 @@ slices:
   - id: S-004
     title: Issue 93 fix (wc_enqueue_js deprecation) and triage of all 8 open GitHub issues
     status: done
-    hours: 1
+    original_hours: 1
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-004]
+    estimate_changes: []
     actual_hours: 1
     actual_source: estimated
     depends_on: [S-003]
@@ -39,7 +59,12 @@ slices:
   - id: S-005
     title: Chat chaining enabled with the single-lane lock and keel-continue (D-015)
     status: done
-    hours: 1
+    original_hours: 1
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-005]
+    estimate_changes: []
     actual_hours: 1
     actual_source: estimated
     depends_on: [S-002]
@@ -47,7 +72,12 @@ slices:
   - id: S-006
     title: RedsysLiteAPI unit tests with no WordPress bootstrap (D-016, D-017)
     status: done
-    hours: 1
+    original_hours: 1
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-006]
+    estimate_changes: []
     actual_hours: 1
     actual_source: estimated
     depends_on: [S-003]
@@ -55,7 +85,12 @@ slices:
   - id: S-007
     title: IPN and callback integration tests for the four gateways, including the Google Pay signature-bypass fix (D-018 to D-021)
     status: done
-    hours: 3
+    original_hours: 3
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-007]
+    estimate_changes: []
     actual_hours: 3
     actual_source: estimated
     depends_on: [S-006]
@@ -63,7 +98,12 @@ slices:
   - id: S-008
     title: Playwright checkout smoke test for the Redsys gateway (D-022)
     status: done
-    hours: 1.5
+    original_hours: 1.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-008]
+    estimate_changes: []
     actual_hours: 1.5
     actual_source: estimated
     depends_on: [S-003]
@@ -71,7 +111,12 @@ slices:
   - id: S-009
     title: Full-plugin review, its 9 bug fixes, the deferred plaintext-secret finding and the Unreleased changelog (D-023 to D-026, D-032)
     status: done
-    hours: 3
+    original_hours: 3
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-009]
+    estimate_changes: []
     actual_hours: 3
     actual_source: estimated
     depends_on: [S-007]
@@ -79,7 +124,12 @@ slices:
   - id: S-010
     title: The four remaining testability gaps closed (D-027 to D-031)
     status: done
-    hours: 2.5
+    original_hours: 2.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-010]
+    estimate_changes: []
     actual_hours: 2.5
     actual_source: estimated
     depends_on: [S-008]
@@ -87,7 +137,12 @@ slices:
   - id: S-011
     title: The 1 billion bug fixed, with the refund-time transient renewal (D-033)
     status: done
-    hours: 1.5
+    original_hours: 1.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-011]
+    estimate_changes: []
     actual_hours: 1.5
     actual_source: estimated
     depends_on: [S-009]

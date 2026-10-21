@@ -7,7 +7,12 @@ slices:
   - id: S-036
     title: Restore the playground on this machine (PHP 7.4 base image no longer builds; plugin activation order under the current wp-env)
     status: done
-    hours: 1.5
+    original_hours: 1.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-036]
+    estimate_changes: []
     actual_hours: 0.1892
     actual_source: measured
     depends_on: []
@@ -15,7 +20,12 @@ slices:
   - id: S-027
     title: CSS/JS source plus minified pairs, build script, SCRIPT_DEBUG-aware enqueue
     status: done
-    hours: 1.5
+    original_hours: 1.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-027]
+    estimate_changes: []
     actual_hours: 0.1189
     actual_source: measured
     depends_on: [S-036]
@@ -23,7 +33,12 @@ slices:
   - id: S-028
     title: Active security audit of the release candidate (Security audit is required)
     status: done
-    hours: 2
+    original_hours: 2
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-028]
+    estimate_changes: []
     actual_hours: 0.2872
     actual_source: measured
     depends_on: []
@@ -31,7 +46,12 @@ slices:
   - id: S-029
     title: Automated accessibility pass on the settings screens and the checkout surfaces
     status: done
-    hours: 1
+    original_hours: 1
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-029]
+    estimate_changes: []
     actual_hours: 0.0672
     actual_source: measured
     depends_on: [S-036]
@@ -39,7 +59,12 @@ slices:
   - id: S-030
     title: Guided assistive-technology pass with the user
     status: not-started
-    hours: 1
+    original_hours: 1
+    residual_hours: 1
+    change_kind: added
+    parent_slice: null
+    owns: [S-030]
+    estimate_changes: []
     actual_hours: null
     actual_source: estimated
     depends_on: [S-029]
@@ -47,7 +72,12 @@ slices:
   - id: S-031
     title: Dependabot alerts triage, stale wp-scripts dependency, package.json version sync
     status: done
-    hours: 1.5
+    original_hours: 1.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-031]
+    estimate_changes: []
     actual_hours: 0.0936
     actual_source: measured
     depends_on: []
@@ -55,7 +85,12 @@ slices:
   - id: S-035
     title: Reproduce and fix the candidate defects surfaced by the documentation backfill (Google Pay fallback and paid guard, zero-amount refunds, Bizum limit casts, secret in debug logs)
     status: done
-    hours: 2.5
+    original_hours: 2.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-035]
+    estimate_changes: []
     actual_hours: 0.1303
     actual_source: measured
     depends_on: [S-036]
@@ -63,7 +98,12 @@ slices:
   - id: S-037
     title: Remaining one-time verifications of the Keel scaffolding (Stop hook after a session restart, timing report over a real multi-session slice, a real push through pre-push; and, deferred here by the owner in D-093, one Redsys test-terminal payment whose notification URL is the playground tunnel)
     status: not-started
-    hours: 0.5
+    original_hours: 0.5
+    residual_hours: 0.5
+    change_kind: added
+    parent_slice: null
+    owns: [S-037]
+    estimate_changes: []
     actual_hours: null
     actual_source: estimated
     depends_on: [S-036]
@@ -71,7 +111,12 @@ slices:
   - id: S-038
     title: Issue 112 — cancel URL sent to Redsys is HTML-escaped and re-cancels an already cancelled order
     status: done
-    hours: 1
+    original_hours: 1
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-038]
+    estimate_changes: []
     actual_hours: 0.1347
     actual_source: measured
     depends_on: [S-036]
@@ -79,7 +124,12 @@ slices:
   - id: S-039
     title: Build toolchain on current Node — major upgrade of @wordpress/scripts and the WooCommerce dependency-extraction plugin (clears the remaining build-tool audit findings)
     status: done
-    hours: 1
+    original_hours: 1
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-039]
+    estimate_changes: []
     actual_hours: 0.0681
     actual_source: measured
     depends_on: [S-036]
@@ -87,7 +137,12 @@ slices:
   - id: S-043
     title: Security fix SA-01 from the 2026-10-06 audit
     status: done
-    hours: 0.5
+    original_hours: 0.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-043]
+    estimate_changes: []
     actual_hours: 0.1086
     actual_source: measured
     depends_on: [S-036]
@@ -95,7 +150,12 @@ slices:
   - id: S-044
     title: Security fix SA-03 from the 2026-10-06 audit
     status: done
-    hours: 0.25
+    original_hours: 0.25
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-044]
+    estimate_changes: []
     actual_hours: 0.0578
     actual_source: measured
     depends_on: [S-036]
@@ -103,7 +163,12 @@ slices:
   - id: S-045
     title: Security fix SA-17 from the 2026-10-06 audit
     status: done
-    hours: 0.5
+    original_hours: 0.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-045]
+    estimate_changes: []
     actual_hours: 0.0781
     actual_source: measured
     depends_on: [S-036]
@@ -111,7 +176,12 @@ slices:
   - id: S-046
     title: Security fix SA-07 from the 2026-10-06 audit
     status: done
-    hours: 0.5
+    original_hours: 0.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-046]
+    estimate_changes: []
     actual_hours: 0.1564
     actual_source: measured
     depends_on: [S-036]
@@ -119,7 +189,12 @@ slices:
   - id: S-047
     title: Security fix SA-08 from the 2026-10-06 audit
     status: done
-    hours: 0.25
+    original_hours: 0.25
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-047]
+    estimate_changes: []
     actual_hours: 0.0164
     actual_source: measured
     depends_on: [S-036]
@@ -127,7 +202,12 @@ slices:
   - id: S-048
     title: Security fix SA-09 from the 2026-10-06 audit
     status: done
-    hours: 0.25
+    original_hours: 0.25
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-048]
+    estimate_changes: []
     actual_hours: 0.0544
     actual_source: measured
     depends_on: [S-036]
@@ -135,7 +215,12 @@ slices:
   - id: S-049
     title: Security fix SA-05 from the 2026-10-06 audit
     status: done
-    hours: 0.75
+    original_hours: 0.75
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-049]
+    estimate_changes: []
     actual_hours: 0.1097
     actual_source: measured
     depends_on: [S-036]
@@ -143,7 +228,12 @@ slices:
   - id: S-050
     title: Security fix SA-16 from the 2026-10-06 audit
     status: done
-    hours: 0.5
+    original_hours: 0.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-050]
+    estimate_changes: []
     actual_hours: 0.2094
     actual_source: measured
     depends_on: [S-036]
@@ -151,7 +241,12 @@ slices:
   - id: S-051
     title: Security fix SA-19 from the 2026-10-06 audit
     status: done
-    hours: 0.25
+    original_hours: 0.25
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-051]
+    estimate_changes: []
     actual_hours: 0
     actual_source: measured
     depends_on: [S-036]
@@ -159,7 +254,12 @@ slices:
   - id: S-054
     title: File and line references in docs/reference re-resolved against the code, with a keel-verify check that fails when one no longer points at its symbol
     status: done
-    hours: 0.5
+    original_hours: 0.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-054]
+    estimate_changes: []
     actual_hours: 0
     actual_source: measured
     depends_on: [S-043, S-044, S-045, S-046, S-047, S-048, S-049, S-050, S-051]
@@ -167,7 +267,12 @@ slices:
   - id: S-052
     title: Scoped security re-audit of the fixes (each verifier re-run against the candidate; diff since e50ab39)
     status: done
-    hours: 0.5
+    original_hours: 0.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-052]
+    estimate_changes: []
     actual_hours: 0.1256
     actual_source: measured
     depends_on: [S-043, S-044, S-045, S-046, S-047, S-048, S-049, S-050, S-051]
@@ -175,7 +280,12 @@ slices:
   - id: S-056
     title: About page — text colours below the 4.5:1 contrast of WCAG 2.2 AA (found by the automated pass, S-029)
     status: done
-    hours: 0.25
+    original_hours: 0.25
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-056]
+    estimate_changes: []
     actual_hours: 0.1061
     actual_source: measured
     depends_on: [S-029]
@@ -183,7 +293,12 @@ slices:
   - id: S-032
     title: Phase 7 release gate on the candidate (full suite, version proposed to the user, package hygiene)
     status: in-progress
-    hours: 2
+    original_hours: 2
+    residual_hours: 2
+    change_kind: added
+    parent_slice: null
+    owns: [S-032]
+    estimate_changes: []
     actual_hours: 0.0386
     actual_source: measured
     depends_on: [S-036, S-027, S-028, S-029, S-031, S-035, S-039, S-052, S-054, S-056]
@@ -191,7 +306,12 @@ slices:
   - id: S-058
     title: Support-matrix ceiling — a second wp-env instance on the declared WooCommerce ceiling and a current PHP, and the entire suite run on it
     status: done
-    hours: 1
+    original_hours: 1
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-058]
+    estimate_changes: []
     actual_hours: 0.1092
     actual_source: measured
     depends_on: [S-036]
@@ -199,7 +319,12 @@ slices:
   - id: S-059
     title: Lifecycle rehearsal on the built archive — install, configure, uninstall, reinstall, and the upgrade from 7.0.2 (unversioned candidate; repeated on the versioned package at the gate)
     status: done
-    hours: 1
+    original_hours: 1
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-059]
+    estimate_changes: []
     actual_hours: 0.0783
     actual_source: measured
     depends_on: [S-032]
@@ -207,7 +332,12 @@ slices:
   - id: S-060
     title: Driven tests for the as-built acceptance criteria still on D-045's unverified list
     status: done
-    hours: 2
+    original_hours: 2
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [AC-09, AC-10, AC-11, AC-12, AC-15, AC-16, AC-23, AC-31, AC-32, AC-35, AC-41, AC-42, AC-43, AC-46, AC-47, AC-49, AC-50, AC-52, AC-54, AC-55, AC-56, AC-57]
+    estimate_changes: []
     actual_hours: 0.8333
     actual_source: measured
     depends_on: [S-036]
@@ -215,7 +345,12 @@ slices:
   - id: S-061
     title: Gate checks that do not need the version number — whole-tree confidential-data check, conformance sweep, self-audit, threat model, code map and change map, security-auditor and docs-verifier on the tree
     status: done
-    hours: 1
+    original_hours: 1
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-061]
+    estimate_changes: []
     actual_hours: 0.0989
     actual_source: measured
     depends_on: [S-052]
@@ -223,7 +358,12 @@ slices:
   - id: S-062
     title: The reverse lookup of an order by its Redsys order number uses a query WooCommerce 9.2+ reports as unsupported on the legacy order storage (found by the ceiling run, S-058)
     status: done
-    hours: 0.5
+    original_hours: 0.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-062]
+    estimate_changes: []
     actual_hours: 0.3425
     actual_source: measured
     depends_on: [S-058]
@@ -231,7 +371,12 @@ slices:
   - id: S-063
     title: PHP 8.1+ deprecation notices from the notification handlers (null passed to htmlspecialchars_decode) and a dynamic property set by one test (found by the ceiling run, S-058)
     status: done
-    hours: 0.25
+    original_hours: 0.25
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-063]
+    estimate_changes: []
     actual_hours: 0.0003
     actual_source: measured
     depends_on: [S-058]
@@ -239,7 +384,12 @@ slices:
   - id: S-064
     title: A Bizum notification posted without its signature-version field ends in an uncaught error on PHP 8 (first hardening note of S-053; raised again by the gate's security read)
     status: done
-    hours: 0.25
+    original_hours: 0.25
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-064]
+    estimate_changes: []
     actual_hours: 0.1022
     actual_source: measured
     depends_on: [S-058]
@@ -247,7 +397,12 @@ slices:
   - id: S-067
     title: Two drifts found while driving the last criteria (S-060) — the configuration reference says the refund confirmation flag never expires, and the test map has no row for PluginWithoutWooCommerceTest
     status: done
-    hours: 0.15
+    original_hours: 0.15
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-067]
+    estimate_changes: []
     actual_hours: 0.1364
     actual_source: measured
     depends_on: [S-060]
@@ -255,7 +410,12 @@ slices:
   - id: S-068
     title: The line numbers in the "Source files" lists of docs/flows/ are behind the code (docs/flows/refund.md names ask_for_refund() at 1091, it is at 1137); repair them and extend keel-verify's check 28, which reads docs/reference/ only, to docs/flows/
     status: done
-    hours: 0.5
+    original_hours: 0.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-068]
+    estimate_changes: []
     actual_hours: 0.0381
     actual_source: measured
     depends_on: [S-067]
@@ -263,7 +423,12 @@ slices:
   - id: S-069
     title: Gate security read, second pass — an independent verifier for the unverified candidates of the read at e89356b (G-4 to G-7 and the reader's notes on is_paid() and replay), and a read of what that pass did not cover (the shipped diff since e89356b, the PSD2 and global classes, the refund request bodies)
     status: done
-    hours: 1.5
+    original_hours: 1.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-069]
+    estimate_changes: []
     actual_hours: 0.0133
     actual_source: measured
     depends_on: [S-061]
@@ -271,7 +436,12 @@ slices:
   - id: S-070
     title: Self-audit answers that need no owner — the test-point row without a command (7), the suppression count justified or reduced (8), the two test-modifying commits read diff by diff (16), failing cases for the older linter checks (17c); docs/07-release.md brought up to the tree
     status: done
-    hours: 0.75
+    original_hours: 0.75
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-070]
+    estimate_changes: []
     actual_hours: 0.0003
     actual_source: measured
     depends_on: [S-061]
@@ -279,7 +449,12 @@ slices:
   - id: S-071
     title: The whole suite on the ceiling instance at the current tree — the tests of S-060 and S-064 to S-067 have never run on WordPress 7.0.7, WooCommerce 10.9.4 and PHP 8.3
     status: done
-    hours: 0.5
+    original_hours: 0.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-071]
+    estimate_changes: []
     actual_hours: 0.7761
     actual_source: measured
     depends_on: [S-060]
@@ -287,7 +462,12 @@ slices:
   - id: S-072
     title: A Google Pay notification whose Ds_Order is not a string ends in an uncaught error on PHP 8, and a Bizum one in a warning (found by the second pass of the gate security read, S-069; the sibling S-064 left)
     status: done
-    hours: 0.5
+    original_hours: 0.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-072]
+    estimate_changes: []
     actual_hours: 0.0003
     actual_source: measured
     depends_on: [S-069]
@@ -295,7 +475,12 @@ slices:
   - id: S-075
     title: Tests for the six documented hooks no test names (redsys_status_pending, the three valid_*_standard_ipn_request actions, woocommerce_redsys_args, woocommerce_googlepayredirecredsys_args) — self-audit answer 5
     status: done
-    hours: 0.5
+    original_hours: 0.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-075]
+    estimate_changes: []
     actual_hours: 0.0331
     actual_source: measured
     depends_on: [S-070]
@@ -303,7 +488,12 @@ slices:
   - id: S-076
     title: Gate checks on the current tree that need no owner — S-072's change read by an auditor that did not write it (and the class swept: every notification field used before the signature is compared), and the whole-tree confidential-data check
     status: done
-    hours: 0.5
+    original_hours: 0.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-076]
+    estimate_changes: []
     actual_hours: 0.05
     actual_source: measured
     depends_on: [S-072]
@@ -311,7 +501,12 @@ slices:
   - id: S-077
     title: The facts S-066's question needs — Inespay in the Blocks checkout for a customer outside ES, PT and IT, on the floor and on the ceiling, and whether such an order can be placed; no shipped code changed
     status: dropped
-    hours: 0.75
+    original_hours: 0.75
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-077]
+    estimate_changes: []
     actual_hours: null
     actual_source: estimated
     depends_on: []
@@ -319,7 +514,12 @@ slices:
   - id: S-078
     title: A notification whose Ds_MerchantParameters is not a string (sent as an array) raises an "Array to string conversion" notice or warning in the card, Bizum and Google Pay handlers before any signature is compared — found by S-076's sweep; reproduce with a failing test, fix in the one shared sanitiser
     status: done
-    hours: 0.5
+    original_hours: 0.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-078]
+    estimate_changes: []
     actual_hours: 0.0536
     actual_source: measured
     depends_on: [S-076]
@@ -327,7 +527,12 @@ slices:
   - id: S-079
     title: The changelog line about the order-number fallback (readme.txt, Unreleased) overstated it — rewritten from a simulation of the 7.0.2 code; no shipped code changed
     status: done
-    hours: 0.25
+    original_hours: 0.25
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-079]
+    estimate_changes: []
     actual_hours: 0.0058
     actual_source: measured
     depends_on: []
@@ -335,7 +540,12 @@ slices:
   - id: S-066
     title: On WooCommerce 7.4 the Blocks checkout draws the Inespay option for customers outside ES, PT and IT (fallback label, no description, no icon); fix so it is offered only where the classic checkout offers it — moved from deferred.md by the owner's "arregla todo" (2026-10-21, D-085)
     status: done
-    hours: 1
+    original_hours: 1
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-066]
+    estimate_changes: []
     actual_hours: 0.0258
     actual_source: measured
     depends_on: []
@@ -343,7 +553,12 @@ slices:
   - id: S-073
     title: Escape the translated strings of the three redirect forms (the redirect message inside the inline script, the two button labels) and pass the Google Pay form through wp_kses like its siblings — moved from deferred.md (D-085)
     status: done
-    hours: 1
+    original_hours: 1
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-073]
+    estimate_changes: []
     actual_hours: 0.0278
     actual_source: measured
     depends_on: []
@@ -351,7 +566,12 @@ slices:
   - id: S-074
     title: ABSPATH guard in woocommerce-redsys.php and includes/class-redsysliteapi.php (the unit suite loads the second without WordPress, so its bootstrap changes with it) — moved from deferred.md (D-085)
     status: done
-    hours: 0.5
+    original_hours: 0.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-074]
+    estimate_changes: []
     actual_hours: 0.0189
     actual_source: measured
     depends_on: []
@@ -359,7 +579,12 @@ slices:
   - id: S-080
     title: An order already paid is never cancelled or failed by a later refused, cancelled or error notification, nor by a return to the cancel URL, in any gateway; a signed success on an order the merchant cancelled after payment completes it again (owner, D-085) — verify with tests, fix where it does not hold
     status: done
-    hours: 1.5
+    original_hours: 1.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-080]
+    estimate_changes: []
     actual_hours: 0.3361
     actual_source: measured
     depends_on: []
@@ -367,7 +592,12 @@ slices:
   - id: S-081
     title: Uninstall removes the plugin's internal data only — woocommerce-redsys-version, woocommerce-redsys-rate, the redsys_signature_* and redys_order_temp_* transients; gateway settings and order meta stay (owner, D-085)
     status: done
-    hours: 1
+    original_hours: 1
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-081]
+    estimate_changes: []
     actual_hours: 0.0392
     actual_source: measured
     depends_on: []
@@ -375,7 +605,12 @@ slices:
   - id: S-082
     title: The secret fields of the gateway settings screens (SHA-256 secrets, Inespay credentials) are password fields
     status: done
-    hours: 0.5
+    original_hours: 0.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-082]
+    estimate_changes: []
     actual_hours: 0.0789
     actual_source: measured
     depends_on: []
@@ -383,7 +618,12 @@ slices:
   - id: S-083
     title: Test and declare WordPress 7.1 and WooCommerce 11.2 (11.1 when planned; 11.2.1 was current on the day) — the ceiling instance moved to the current releases (PHP 8.4), the whole suite run there, the headers and readme.txt updated (owner, D-085)
     status: done
-    hours: 2
+    original_hours: 2
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-083]
+    estimate_changes: []
     actual_hours: 0.1417
     actual_source: measured
     depends_on: [S-066, S-073, S-074, S-080, S-081, S-082]
@@ -391,31 +631,51 @@ slices:
   - id: S-084
     title: Keel v6.5.0 → v7.3.2 post-update reconciliation — embedded trees replaced, lock block refreshed, MANIFEST Table 1 + Table 3 sweep into docs/keel-conformance.md, standing checks, Keel baseline advanced
     status: in-progress
-    hours: 1.5
-    actual_hours: null
-    actual_source: estimated
+    original_hours: 1.5
+    residual_hours: 1.5
+    change_kind: added
+    parent_slice: null
+    owns: [S-084]
+    estimate_changes: []
+    actual_hours: 0.3328
+    actual_source: measured
     depends_on: []
     criteria: []
   - id: S-085
     title: Keel v6.6.0 split-work estimates — hours → original_hours in every sprint file and deferred.md, residual_hours and reconciliation_status on open slices, keel-plan/keel-time/keel-verify regenerated, plan.json regenerated (owner, D-093)
-    status: not-started
-    hours: 3
-    actual_hours: null
-    actual_source: estimated
+    status: done
+    original_hours: 3
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-085]
+    estimate_changes: []
+    actual_hours: 0.2472
+    actual_source: measured
     depends_on: []
     criteria: []
   - id: S-086
     title: Keel v7.3.1 parallel-aware clock — a keel-clock script copied from keel_clock.py, keel-time slice-start/slice-record, docs/sessions.md new columns, keel-verify accepts overlap and checks projection basis (owner, D-093)
-    status: not-started
-    hours: 1.5
-    actual_hours: null
+    status: done
+    original_hours: 1.5
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-086]
+    estimate_changes: []
+    actual_hours: 0
     actual_source: estimated
     depends_on: [S-085]
     criteria: []
   - id: S-087
     title: Keel v7.2.0 inbound tunnel — inbound-call inventory in docs/03-technical-plan.md, a playground-tunnel script, doctor row, docs/playground.md section (owner, D-093)
     status: not-started
-    hours: 1.5
+    original_hours: 1.5
+    residual_hours: 1.5
+    change_kind: added
+    parent_slice: null
+    owns: [S-087]
+    estimate_changes: []
     actual_hours: null
     actual_source: estimated
     depends_on: []
@@ -423,7 +683,12 @@ slices:
   - id: S-088
     title: Keel v7.0.0/v7.3.0 parallel development enabled (auto; max_workers: max) — a keel-parallel script copied from keel_parallel.py, sprint schema v2 for the active sprint, docs/.keel/parallel/ gitignored, backend probe recorded (owner, D-093)
     status: not-started
-    hours: 2.5
+    original_hours: 2.5
+    residual_hours: 2.5
+    change_kind: added
+    parent_slice: null
+    owns: [S-088]
+    estimate_changes: []
     actual_hours: null
     actual_source: estimated
     depends_on: [S-085]
@@ -493,3 +758,5 @@ slices:
 - S-066 (done 2026-10-21, D-091): Inespay offered in the Blocks checkout only for ES, PT and IT, from one list; S-077 dropped — its question was answered by the owner (D-085).
 - S-083 (done 2026-10-21, D-092): ceiling moved to WordPress 7.1.3, WooCommerce 11.2.1, PHP 8.4; whole suite there (browser 63 of 67, the four known help-tip scans); `Tested up to: 7.1`, `WC tested up to: 11.2`.
 - Session close, 2026-10-21 at 13:45: inbound issue sweep done (no new issue; two WordPress.org threads report D-023, replies drafted for the owner); token ledger and session row written; S-083's test-point row corrected to one of the five Red-first values. Suppression count 149 (145 recorded): the four new `phpcs:ignore` lines are `uninstall.php`'s two direct queries (S-081), `DirectAccessTest`'s `shell_exec()` (S-074) and `RedirectFormEscapingTest`'s `base64_encode()` fixture (S-073).
+- S-085 (done 2026-10-21, D-093, D-094): Keel v6.6.0 migration. Every slice's legacy `hours:` in sprints 1 to 3 and `deferred.md` moved unchanged to the immutable `original_hours:` (that value is the migration record; 79.4 h approved, unchanged). The open slices' `residual_hours` are explicit estimates, each equal to its original: no open slice has part of its scope built (S-032's 0.04 h and S-084's 0.33 h are measured time, never deducted). Done and dropped slices carry residual 0. Every slice is `change_kind: added` with no parent; there is no extraction. Ownership is exclusive: the one slice with acceptance criteria owns them, every other slice (maintenance, audits, reconciliations, no AC) owns its own id as its scope. `docs/.keel/plan.json` is now `keel.plan/2`, `reconciliation_status: reconciled`.
+- S-086 (done 2026-10-21, D-094): built by the same delegated run as S-085, inside S-085's measured interval, so the whole 0.25 h is charged to S-085 and S-086 carries 0 h with `actual_source: estimated` — no time was invented for it. `scripts/keel-clock` is a byte copy of the skill's `keel_clock.py` (SHA-256 82e0c0a7…2992); `scripts/keel-time` no longer closes other slices on `slice-start`, gained `slice-record`, and reports wall-clock against summed slice hours, maximum concurrency, throughput and the projection basis; `docs/sessions.md` gained the four columns; `scripts/keel-verify` accepts overlapping intervals and checks projections against their basis, and its new check 30 runs the split-work regressions on throwaway plans.

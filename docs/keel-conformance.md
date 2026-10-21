@@ -12,8 +12,8 @@
 | T1-02 | `docs/decisions.md` | present | `docs/decisions.md` |
 | T1-03 | `docs/lessons-learned.md` | present | `docs/lessons-learned.md` |
 | T1-04 | `docs/sessions.md` | present | `docs/sessions.md` (columns: see T3 v7.3.1 row 3) |
-| T1-05 | `scripts/keel-time` | present | `scripts/keel-time` (pre-v7.3.1 rules: see T3 v7.3.1 row 2) |
-| T1-06 | `scripts/keel-clock` | missing | not in `scripts/`; Python 3.9.6 available (see T3 v7.3.1 row 1); owner approved applying it (D-093), scheduled in S-086 |
+| T1-05 | `scripts/keel-time` | present | `scripts/keel-time` (v7.3.1 rules: see T3 v7.3.1 row 2) |
+| T1-06 | `scripts/keel-clock` | present | `scripts/keel-clock`, byte-identical to the installed Keel skill's `keel_clock.py` (`cmp`, SHA-256 82e0c0a7…); Python 3.9.6; S-086 |
 | T1-07 | `docs/.keel/clock.jsonl`, gitignored | present | exists; `.gitignore:56` |
 | T1-08 | Off-machine durability | present | `origin` → GitHub; card `Durability:` line |
 | T1-09 | Clean working tree at block close | present | block in progress (S-084 open on `develop`); the close commits it |
@@ -94,9 +94,9 @@
 | T1-84 | `Parallel development:` card line (`auto; max_workers: max` or `off (D-0XX)`) | present | `docs/PROGRESS.md` card: `auto; max_workers: max` (owner, D-093) |
 | C-01 | Card lines `Keel baseline:` / `Keel portability:` | present | being updated to v7.3.2; applied in S-084 (D-093) |
 | C-02 | Card lines `Assistant config:`, `Client budget:`, `User guide:`, `Docs theme:`, `Models:`, `Chaining:`, `Issue sweep interval:`, `Test-first policy:`, `Sprints:`, `Push test scope:`, `Security audit:` | present | `docs/PROGRESS.md` lines 16–37 |
-| T3-v6.6.0-1 | Legacy `hours` → immutable `original_hours`, actuals preserved | missing | sprint-1..3 and `deferred.md` carry `hours:` only (0 `original_hours`); owner approved applying it (D-093), scheduled in S-085 |
-| T3-v6.6.0-2 | Open slices: exclusive ownership + explicit `residual_hours`; `reconciliation_status` | missing | open slices S-032, S-084 carry neither field; owner approved applying it (D-093), scheduled in S-085 |
-| T3-v6.6.0-3 | Regenerate `scripts/keel-time`, plan generator (`scripts/keel-plan`), `scripts/keel-verify` for original/residual, `added / extracted / re-estimated`, balance equation | missing | 0 occurrences of `original_hours` / `reconciliation_status` in the three scripts; owner approved applying it (D-093), scheduled in S-085 |
+| T3-v6.6.0-1 | Legacy `hours` → immutable `original_hours`, actuals preserved | present | every slice of sprint-1..3 and `deferred.md` carries `original_hours:` (0 `hours:` left); `actual_hours`/`actual_source` untouched; S-085 |
+| T3-v6.6.0-2 | Open slices: exclusive ownership + explicit `residual_hours`; `reconciliation_status` | present | every slice carries `residual_hours`, `change_kind`, `parent_slice`, `owns`, `estimate_changes`; `docs/.keel/plan.json` `reconciliation_status: reconciled`; ownership rule in the sprint-3 body (S-085 note) |
+| T3-v6.6.0-3 | Regenerate `scripts/keel-time`, plan generator (`scripts/keel-plan`), `scripts/keel-verify` for original/residual, `added / extracted / re-estimated`, balance equation | present | `scripts/keel-plan` (`validate`, `keel.plan/2`), `scripts/keel-time` (residual 0 on done), `scripts/keel-verify` checks 22 and 30 (split-work regressions); S-085 |
 | T3-v6.6.0-4 | Reconcile existing parent/child decompositions | n/a | no slice declares a parent or extraction |
 | T3-v6.6.0-5 | Restamp lock | present | applied in S-084 (D-093) |
 | T3-v7.0.0-1 | `Parallel development:` card line | present | `docs/PROGRESS.md` card: `auto; max_workers: max` (owner, D-093) |
@@ -118,10 +118,10 @@
 | T3-v7.3.0-3 | Standing check 2 (`max_workers: max`) | present | `docs/PROGRESS.md` card: `auto; max_workers: max` (owner, D-093) |
 | T3-v7.3.0-4 | Effective cap resolved at kickoff with its limit | n/a | only when `auto`; next kickoff |
 | T3-v7.3.0-5 | Restamp lock | present | applied in S-084 (D-093) |
-| T3-v7.3.1-1 | `scripts/keel-clock` = byte copy of `keel_clock.py` | missing | absent; owner approved applying it (D-093), scheduled in S-086 |
-| T3-v7.3.1-2 | Regenerate `scripts/keel-time` (no cross-slice close, `slice-record`, wall-clock vs summed, concurrency, throughput, basis) | missing | 0 `slice-record` / `keel-clock` references; owner approved applying it (D-093), scheduled in S-086 |
-| T3-v7.3.1-3 | `docs/sessions.md` gains `Slice h`, `Max concurrency`, `Throughput`, `Projection basis` before `Notes` | missing | header line 6 lacks them; owner approved applying it (D-093), scheduled in S-086 |
-| T3-v7.3.1-4 | `scripts/keel-verify` accepts overlapping intervals, checks projection vs basis | missing | no such check; owner approved applying it (D-093), scheduled in S-086 |
+| T3-v7.3.1-1 | `scripts/keel-clock` = byte copy of `keel_clock.py` | present | `scripts/keel-clock` (see T1-06); S-086 |
+| T3-v7.3.1-2 | Regenerate `scripts/keel-time` (no cross-slice close, `slice-record`, wall-clock vs summed, concurrency, throughput, basis) | present | `scripts/keel-time` delegates to `scripts/keel-clock`; exclusive mode only under `Parallel development: off` or `effective cap: 1`; S-086 |
+| T3-v7.3.1-3 | `docs/sessions.md` gains `Slice h`, `Max concurrency`, `Throughput`, `Projection basis` before `Notes` | present | `docs/sessions.md` header; past rows `—`; S-086 |
+| T3-v7.3.1-4 | `scripts/keel-verify` accepts overlapping intervals, checks projection vs basis | present | `scripts/keel-verify` check 24; S-086 |
 | T3-v7.3.1 | Refresh lock stamp | present | applied in S-084 (D-093) |
 | T3-v7.3.2-1 | Copy `keel_parallel.py` over `scripts/keel-parallel` | missing | `Parallel development: auto` chosen by the owner (D-093); scheduled in S-088 |
 | T3-v7.3.2-2-4 | Worker `test_commands` cheap only; `verify-batch` once per batch | n/a | procedural, only when parallel workers run |

@@ -2,7 +2,8 @@
 #
 # keel-verify — mechanical checks that this project's docs match reality.
 #
-# Contract: Keel v6.5.0, references/phase-5-development.md §1a (the canonical
+# Contract: Keel v7.3.1 (plan rows of v6.6.0 "Scope ownership and residual
+# estimates", clock rows of v7.3.1), references/phase-5-development.md §1a (the canonical
 # list), references/project-state.md ("The sprint plan", "Session time", "The
 # registry is DATA") and MANIFEST.md Table 3. Read-only: it changes nothing in
 # the repository and runs no state-changing git command. Plain bash 3.2 for
@@ -48,11 +49,14 @@
 #   20. The working tree is clean.
 #   21. Every recorded negative in docs/decisions.md carries `Not checked:`.
 #   22. The sprint plan is well-formed (enums, ids, depends_on, plan.json
-#       drift, estimate, removed slices).
+#       drift, original vs residual hours, scope ownership and balance via
+#       `scripts/keel-plan validate`, estimate, removed slices).
 #   23. The plan is not behind the work (card line, plan exists, ancestry,
 #       actuals, current position).
 #   24. Session time is measured, not typed (actual_source, sessions.md
-#       arithmetic, projection, plan.json eligibility, .gitignore).
+#       arithmetic, overlapping slice intervals accepted, projection checked
+#       against its stated basis pace|throughput|none, plan.json eligibility,
+#       .gitignore).
 #   25. Test selection is wired and honest.
 #   26. The tool registry is data, complete, and nowhere else.
 #   27. Suppression count (reported, compared with the last sprint close).
@@ -61,6 +65,13 @@
 #       `symbol()` line number in docs/flows/ is that function's definition
 #       (S-068).
 #   29. Package boundary: `git archive` ships runtime files only (S-032).
+#   30. Split-work regressions (Keel v6.6.0): scratch plans run through
+#       `scripts/keel-plan` — an unchanged-scope split conserves the balance,
+#       completing an extracted child removes only its residual, added scope
+#       raises the balance explicitly, a re-estimate keeps original estimates
+#       and actuals, a pace outlier may raise the projection while residual
+#       work falls; broken ownership, an unrecorded residual change and a
+#       false balance are refused.
 #
 # Exits 0 when no check FAILED, 1 otherwise. Every failure is printed with
 # the file and line, never just "something's wrong".
@@ -257,14 +268,14 @@ rm -f /tmp/keel-verify-links.$$
 end_check
 
 # ---------------------------------------------------------------------------
-# Checks 6-29 — python3, standard library only. The program reads the
+# Checks 6-30 — python3, standard library only. The program reads the
 # repository and prints; it writes nothing inside it. Temporary files (the
 # i18n dry run, the selector's synthetic repository) live under $TMPDIR and
 # are removed before it returns.
 # ---------------------------------------------------------------------------
 if ! command -v python3 >/dev/null 2>&1; then
 	echo
-	fail "python3 is not on PATH — checks 6-29 did not run"
+	fail "python3 is not on PATH — checks 6-30 did not run"
 else
 	python3 - "$PWD" "$SUMMARY" <<'KEEL_PY'
 import glob
@@ -1201,19 +1212,29 @@ def frontmatter(path):
     except ValueError:
         return None
     top, items, current = {}, [], None
+    top_key, item_indent = None, None
     for index in range(1, end):
         raw = lines[index]
         text = re.sub(r"\s+#.*$", "", raw)
         match = re.match(r"^(\s*)(- )?([A-Za-z_]+):\s*(.*)$", text)
         if not match:
+            if current is not None and raw.strip():
+                current["_raw"] += "\n" + raw
             continue
         indent, dash, key, value = match.groups()
-        if dash:
+        if not indent and not dash:
+            top[key] = (scalar(value), index + 1)
+            top_key, current, item_indent = key, None, None
+            continue
+        if top_key not in ("slices", "items"):
+            continue  # a nested block of another top-level key (scope_reconciliations, ...)
+        if dash and item_indent is None:
+            item_indent = len(indent)
+        if dash and len(indent) == item_indent:
             current = {"_line": index + 1, "_raw": raw}
             items.append(current)
-        elif not indent:
-            top[key] = (scalar(value), index + 1)
-            current = None
+        elif current is not None and (len(indent) > item_indent + 2 or dash):
+            current["_raw"] += "\n" + raw  # nested block inside a slice (estimate_changes, execution)
             continue
         if current is not None:
             current[key] = scalar(value)
@@ -1288,8 +1309,18 @@ else:
             fail("%s %s status '%s' is outside the enum (%s)" % (where(item, "status"), ident, item.get("status"),
                                                                  " | ".join(STATUS)))
             bad += 1
-        if not is_num(item.get("hours")):
-            fail("%s %s hours '%s' is not a number" % (where(item, "hours"), ident, item.get("hours")))
+        if "hours" in item and "original_hours" not in item:
+            fail("%s %s still carries the legacy `hours:` — migrate it to original_hours + residual_hours "
+                 "(Keel v6.6.0)" % (where(item, "hours"), ident))
+            bad += 1
+        for key in ("original_hours", "residual_hours"):
+            if not is_num(item.get(key)) or item.get(key) < 0:
+                fail("%s %s %s '%s' is not a non-negative number" % (where(item, key), ident, key, item.get(key)))
+                bad += 1
+        if item.get("status") in ("done", "dropped") and is_num(item.get("residual_hours")) \
+                and item["residual_hours"] != 0:
+            fail("%s %s is `%s` with residual_hours %g — a closed slice has no unbuilt scope"
+                 % (where(item, "residual_hours"), ident, item.get("status"), item["residual_hours"]))
             bad += 1
         if ident in seen:
             fail("%s id %s is already used at %s" % (where(item, "id"), ident, seen[ident]))
@@ -1342,8 +1373,22 @@ else:
             for line in (out + err).strip().split("\n")[:12]:
                 fail("scripts/keel-plan check (exit %d): %s" % (rc, line))
             bad += 1
+        rc, out, err = run(["/bin/bash", "scripts/keel-plan", "validate"])
+        for line in (out + err).strip().split("\n"):
+            if line.startswith("INVALID: "):
+                fail("scripts/keel-plan validate: %s" % line[len("INVALID: "):])
+            elif line.startswith("UNRECONCILED: "):
+                info("scripts/keel-plan validate: %s" % line[len("UNRECONCILED: "):])
+        if rc != 0:
+            if not re.search(r"^INVALID: ", out, re.M):
+                fail("scripts/keel-plan validate (exit %d): %s" % (rc, (out + err).strip()[:300]))
+            bad += 1
+        else:
+            ok("scope ownership: %s" % out.strip().split("\n")[-1])
     estimate = read("docs/estimate.md")
-    total = sum(i["hours"] for i in slices if is_num(i.get("hours")) and i.get("status") != "dropped")
+    total = sum(i["original_hours"] for i in slices if is_num(i.get("original_hours")) and i.get("status") != "dropped")
+    residual = sum(i["residual_hours"] for i in slices if is_num(i.get("residual_hours"))
+                   and i.get("status") not in ("done", "dropped"))
     if estimate is None:
         na("docs/estimate.md does not exist — no Phase 5 line to compare with the plan's %g h" % total)
     else:
@@ -1353,14 +1398,14 @@ else:
             fail("docs/estimate.md: no `Phase 5 hours: <n> h` line")
             bad += 1
         elif abs(float(match.group(1)) - total) > 0.005:
-            fail("docs/estimate.md:%d Phase 5 hours is %s h; the plan's slice hours sum to %g h"
+            fail("docs/estimate.md:%d Phase 5 hours is %s h; the plan's original_hours sum to %g h"
                  % (lineno, match.group(1), total))
             bad += 1
     if not bad:
         ok("%d sprint files, %d slices, %d deferred items: statuses in the enum, ids unique, every depends_on "
            "resolves to the same or an earlier sprint, plan.json matches its sources, the estimate's Phase 5 "
-           "hours equal the plan's (%g h), no slice left without a trace"
-           % (len(sprint_files), len(slices), len(deferred_items), total))
+           "hours equal the plan's original_hours (%g h; current residual %g h is a separate fact), no slice "
+           "left without a trace" % (len(sprint_files), len(slices), len(deferred_items), total, residual))
 
 section("The plan is not behind the work")
 BOOKKEEPING = ["docs/sprints", "docs/.keel", "docs/PROGRESS.md", "docs/sessions.md", "docs/token-ledger.md"]
@@ -1422,7 +1467,8 @@ section("Session time is measured, not typed")
 SESSIONS = "docs/sessions.md"
 COLUMNS = ["Start", "End", "Wall-clock h", "Paused h", "Planned (slices, est. h)", "Done", "Est. h", "Actual h",
            "Deviation h", "Not finished (h spent)", "Left after h", "Active h", "Pace factor", "Projected left h",
-           "Notes"]
+           "Slice h", "Max concurrency", "Throughput", "Projection basis", "Notes"]
+BASES = ("pace", "throughput", "none")
 if plan_off:
     na("the card says `Sprints: off` (%s)" % ", ".join(real_decisions(sprints_line)))
 else:
@@ -1449,7 +1495,7 @@ else:
             fail("%s has no sessions table (header starting `| Start | End |`)" % SESSIONS)
         elif sessions_table["header"] != COLUMNS:
             lacking = [c for c in COLUMNS if c not in sessions_table["header"]]
-            fail("%s:%d the header is not the contract's fifteen columns%s"
+            fail("%s:%d the header is not the contract's nineteen columns%s"
                  % (SESSIONS, sessions_table["line"], (" — missing: " + ", ".join(lacking)) if lacking else
                     " (order or extra columns differ)"))
             sessions_table = None
@@ -1458,6 +1504,7 @@ else:
     if sessions_table is not None:
         done_listed = set()
         bad = 0
+        tp_sessions, tp_est, tp_active = 0, 0.0, 0.0  # rows so far with Max concurrency above 1
         for lineno, cells in rows:
             if len(cells) != len(COLUMNS):
                 fail("%s:%d row has %d cells, the header has %d" % (SESSIONS, lineno, len(cells), len(COLUMNS)))
@@ -1485,6 +1532,11 @@ else:
                 fail("%s:%d Deviation h is %g; Actual h %g minus Est. h %g is %g"
                      % (SESSIONS, lineno, dev, act, est, act - est))
                 bad += 1
+            concurrency = number(row["Max concurrency"])
+            basis = row["Projection basis"].strip()
+            if concurrency is not None and concurrency > 1 and est is not None and number(row["Active h"]) \
+                    and number(row["Active h"]) > 0:
+                tp_sessions, tp_est, tp_active = tp_sessions + 1, tp_est + est, tp_active + number(row["Active h"])
             if legacy:
                 continue
             wall, paused, active = number(row["Wall-clock h"]), number(row["Paused h"]), number(row["Active h"])
@@ -1492,9 +1544,26 @@ else:
                 fail("%s:%d Wall-clock h / Paused h / Active h must be numbers on a non-legacy row ('%s', '%s', '%s')"
                      % (SESSIONS, lineno, row["Wall-clock h"], row["Paused h"], row["Active h"]))
                 bad += 1
-            elif abs(active - (wall - paused)) > 0.05:
-                fail("%s:%d Active h is %g; Wall-clock h %g minus Paused h %g is %g"
+            elif active > wall + 0.05:
+                fail("%s:%d Active h %g exceeds Wall-clock h %g" % (SESSIONS, lineno, active, wall))
+                bad += 1
+            elif (concurrency is None or concurrency <= 1) and abs(active - (wall - paused)) > 0.05:
+                fail("%s:%d Active h is %g; Wall-clock h %g minus Paused h %g is %g (serial session)"
                      % (SESSIONS, lineno, active, wall, paused, wall - paused))
+                bad += 1
+            # Overlap is valid: Actual h and Slice h may exceed Active h; nothing here compares them.
+            if basis not in BASES + (DASH, "", "-"):
+                fail("%s:%d Projection basis '%s' is not one of %s" % (SESSIONS, lineno, basis, " | ".join(BASES)))
+                bad += 1
+            throughput = number(row["Throughput"])
+            if throughput is not None and est is not None and active:
+                if abs(throughput - est / active) > 0.05:
+                    fail("%s:%d Throughput is %g; Est. h %g / Active h %g is %g"
+                         % (SESSIONS, lineno, throughput, est, active, est / active))
+                    bad += 1
+            if concurrency is not None and concurrency > 1 and basis == "pace" and "throughput" not in notes.lower():
+                fail("%s:%d Max concurrency is %g and the projection basis is pace, but Notes does not say why "
+                     "the throughput basis was not used" % (SESSIONS, lineno, concurrency))
                 bad += 1
             left, factor, projected = number(row["Left after h"]), number(row["Pace factor"]), number(row["Projected left h"])
             reasoned = re.search(r"unavailable|no time plan|no work remains", notes, re.I)
@@ -1505,7 +1574,24 @@ else:
                 fail("%s:%d Pace factor / Projected left h is unavailable ('%s', '%s') and Notes gives no reason"
                      % (SESSIONS, lineno, row["Pace factor"], row["Projected left h"]))
                 bad += 1
-            if projected is not None and left is not None:
+            if basis == "throughput":
+                cumulative = tp_est / tp_active if tp_active > 0 and tp_est > 0 else None
+                if cumulative is None:
+                    fail("%s:%d basis throughput, but no row up to this one has Max concurrency above 1 with "
+                         "estimated work finished" % (SESSIONS, lineno))
+                    bad += 1
+                elif projected is None or left is None or abs(projected - left / cumulative) > 0.05:
+                    fail("%s:%d Projected left h is %s; basis throughput gives Left after h %s / cumulative "
+                         "throughput %.4g (%d parallel session(s), %g h est. in %g h active) = %s"
+                         % (SESSIONS, lineno, row["Projected left h"], row["Left after h"], cumulative, tp_sessions,
+                            tp_est, tp_active, "%.4g" % (left / cumulative) if left is not None else "?"))
+                    bad += 1
+            elif basis == "none":
+                if projected != 0 or left != 0:
+                    fail("%s:%d basis none is only for no work remaining (Left after h %s, Projected left h %s)"
+                         % (SESSIONS, lineno, row["Left after h"], row["Projected left h"]))
+                    bad += 1
+            elif projected is not None and left is not None:
                 if factor is not None and abs(projected - left * factor) > 0.05:
                     fail("%s:%d Projected left h is %g; Left after h %g x Pace factor %g is %g"
                          % (SESSIONS, lineno, projected, left, factor, left * factor))
@@ -1516,10 +1602,12 @@ else:
                     bad += 1
         if not bad:
             if rows:
-                ok("%s: %d row(s) — End not before Start, Deviation = Actual - Est., Active = Wall-clock - Paused, "
-                   "projection = Left after x Pace factor (all within 0.05 h)" % (SESSIONS, len(rows)))
+                ok("%s: %d row(s) — End not before Start, Deviation = Actual - Est., Active = Wall-clock - Paused on "
+                   "serial rows and <= Wall-clock on parallel ones, overlapping slice hours accepted, projection "
+                   "matches its basis (pace: Left after x Pace factor; throughput: Left after / cumulative "
+                   "throughput; legacy rows without a basis: pace) (all within 0.05 h)" % (SESSIONS, len(rows)))
             else:
-                ok("%s: the fifteen-column header is in place and the table has 0 rows, so there is no row "
+                ok("%s: the nineteen-column header is in place and the table has 0 rows, so there is no row "
                    "arithmetic to check yet (the first row is appended by `scripts/keel-time end`)" % SESSIONS)
         bad = 0
         for item in slices:
@@ -1542,9 +1630,10 @@ else:
             fail("%s is not valid JSON" % PLANJSON)
         if plan_data is not None:
             eligible = [i for i in slices if i.get("status") == "done" and i.get("actual_source") == "measured"
-                        and is_num(i.get("hours")) and i["hours"] > 0
+                        and is_num(i.get("original_hours")) and i["original_hours"] > 0
                         and is_num(i.get("actual_hours")) and i["actual_hours"] >= 0]
-            factor = (sum(i["actual_hours"] for i in eligible) / sum(i["hours"] for i in eligible)) if eligible else None
+            factor = ((sum(i["actual_hours"] for i in eligible) / sum(i["original_hours"] for i in eligible))
+                      if eligible else None)
 
             def expected(remaining):
                 if remaining == 0:
@@ -1558,13 +1647,14 @@ else:
 
             bad = 0
             totals = plan_data.get("totals") or {}
-            remaining = sum(i["hours"] for i in slices if is_num(i.get("hours")) and i.get("status") not in ("done", "dropped"))
+            remaining = sum(i["residual_hours"] for i in slices if is_num(i.get("residual_hours"))
+                            and i.get("status") not in ("done", "dropped"))
             if "pace_factor" not in totals or "projected_remaining_hours" not in totals:
                 fail("%s totals carry no pace_factor / projected_remaining_hours" % PLANJSON)
                 bad += 1
             else:
                 if not same(totals["pace_factor"], factor, 1e-5):
-                    fail("%s totals.pace_factor is %s; the %d eligible slices (done, measured, hours > 0) give %s"
+                    fail("%s totals.pace_factor is %s; the %d eligible slices (done, measured, original_hours > 0) give %s"
                          % (PLANJSON, totals["pace_factor"], len(eligible), factor))
                     bad += 1
                 if not same(totals["projected_remaining_hours"], expected(remaining), 1e-3):
@@ -1577,7 +1667,8 @@ else:
                     bad += 1
             for sprint in plan_data.get("sprints") or []:
                 own = [i for i in slices if i["_sprint"] == sprint.get("sprint")]
-                left = sum(i["hours"] for i in own if is_num(i.get("hours")) and i.get("status") not in ("done", "dropped"))
+                left = sum(i["residual_hours"] for i in own if is_num(i.get("residual_hours"))
+                           and i.get("status") not in ("done", "dropped"))
                 if "projected_remaining_hours" in sprint and not same(sprint["projected_remaining_hours"], expected(left), 1e-3):
                     fail("%s sprint %s projected_remaining_hours is %s; remaining %g h x plan-wide factor %s gives %s"
                          % (PLANJSON, sprint.get("sprint"), sprint["projected_remaining_hours"], left, factor, expected(left)))
@@ -1963,6 +2054,145 @@ else:
         fail("%s is a runtime path and is missing from the package" % name)
     if not extra and not gone:
         ok("the package's top level is exactly the %d runtime entries" % len(PACKAGE_TOP))
+
+# === 30. Split-work regressions ==============================================
+# Keel v6.6.0 ("Scope ownership and residual estimates"): the plan generator
+# is exercised on scratch plans under $TMPDIR, never on this repository's.
+section("Split-work regressions (scope ownership and residual estimates)")
+
+
+def fx_slice(ident, status, original, residual, owns, kind="added", parent=None, changes=(), actual=None,
+             source="estimated"):
+    lines = ["  - id: %s" % ident, "    title: fixture %s" % ident, "    status: %s" % status,
+             "    original_hours: %s" % original, "    residual_hours: %s" % residual,
+             "    change_kind: %s" % kind, "    parent_slice: %s" % (parent or "null"),
+             "    owns: [%s]" % ", ".join(owns)]
+    if changes:
+        lines.append("    estimate_changes:")
+        for before, after, rid in changes:
+            lines += ["      - before_residual_hours: %s" % before, "        after_residual_hours: %s" % after,
+                      "        reason: fixture", "        date: 2026-01-01", "        decision: D-001",
+                      "        reconciliation: %s" % rid]
+    else:
+        lines.append("    estimate_changes: []")
+    lines += ["    actual_hours: %s" % ("null" if actual is None else actual), "    actual_source: %s" % source,
+              "    depends_on: []", "    criteria: []"]
+    return lines
+
+
+def fx_rec(rid, ids, before, completed, added, reestimates, after):
+    return ["  - id: %s" % rid, "    date: 2026-01-01", "    reason: fixture", "    slices: [%s]" % ", ".join(ids),
+            "    remaining_before: %s" % before, "    completed_residual: %s" % completed,
+            "    added_scope: %s" % added, "    explicit_residual_reestimates: %s" % reestimates,
+            "    remaining_after: %s" % after]
+
+
+def fx_run(slices, recs):
+    base = tempfile.mkdtemp(prefix="keel-verify-plan-")
+    try:
+        os.makedirs(os.path.join(base, "docs", "sprints"))
+        lines = ["---", "schema: keel.sprint/1", "sprint: 1", "goal: fixture", "status: in-progress"]
+        if recs:
+            lines.append("scope_reconciliations:")
+            for rec in recs:
+                lines += rec
+        lines.append("slices:")
+        for item in slices:
+            lines += item
+        lines += ["---", "", "# Sprint 1 — fixture", ""]
+        with open(os.path.join(base, "docs", "sprints", "sprint-1.md"), "w", encoding="utf-8") as handle:
+            handle.write("\n".join(lines))
+        env = dict(os.environ, KEEL_ROOT=base)
+        rc_j, out_j, err_j = run(["/bin/bash", os.path.join(ROOT, "scripts", "keel-plan"), "json"], env=env)
+        rc_v, out_v, err_v = run(["/bin/bash", os.path.join(ROOT, "scripts", "keel-plan"), "validate"], env=env)
+        plan = json.loads(out_j) if rc_j == 0 else None
+        return plan, rc_v, out_v + err_v + ("" if rc_j == 0 else err_j)
+    finally:
+        shutil.rmtree(base, ignore_errors=True)
+
+
+def fx_slices(plan):
+    return dict((s["id"], s) for sp in plan["sprints"] for s in sp["slices"])
+
+
+if not os.path.isfile("scripts/keel-plan"):
+    fail("scripts/keel-plan does not exist — the split-work regressions cannot run")
+else:
+    A = fx_slice("S-1", "done", 2, 0, ["AC-0"], actual=1, source="measured")
+    P0 = fx_slice("S-2", "not-started", 4, 4, ["AC-1", "AC-2"])
+    split = [("4", "3", "R-1")]
+    P1 = fx_slice("S-2", "not-started", 4, 3, ["AC-1"], changes=split)
+    C1 = fx_slice("S-3", "not-started", 1, 1, ["AC-2"], kind="extracted", parent="S-2")
+    C2 = fx_slice("S-3", "done", 1, 0, ["AC-2"], kind="extracted", parent="S-2", actual=0.5, source="measured")
+    N3 = fx_slice("S-4", "not-started", 2, 2, ["AC-3"])
+    P4 = fx_slice("S-2", "not-started", 4, 3.5, ["AC-1"], changes=split + [("3", "3.5", "R-4")])
+    N5 = fx_slice("S-4", "done", 2, 0, ["AC-3"], actual=6, source="measured")
+    R1 = fx_rec("R-1", ["S-2", "S-3"], 4, 0, 0, 0, 4)
+    R2 = fx_rec("R-2", ["S-3"], 4, 1, 0, 0, 3)
+    R3 = fx_rec("R-3", ["S-4"], 3, 0, 2, 0, 5)
+    R4 = fx_rec("R-4", ["S-2"], 5, 0, 0, 0.5, 5.5)
+    R5 = fx_rec("R-5", ["S-4"], 5.5, 2, 0, 0, 3.5)
+    problems = []
+
+    def expect(name, plan, rc, text, remaining=None, valid=True, needle=None):
+        if valid and (plan is None or rc != 0):
+            problems.append("%s: the plan was refused (%s)" % (name, text.strip()[:200]))
+            return None
+        if not valid:
+            if rc == 0:
+                problems.append("%s: keel-plan validate accepted a plan it must refuse" % name)
+            elif needle and needle not in text:
+                problems.append("%s: refused, but not for '%s' (%s)" % (name, needle, text.strip()[:200]))
+            return None
+        got = plan["totals"]["remaining_hours"]
+        if remaining is not None and abs(got - remaining) > 1e-6:
+            problems.append("%s: remaining_hours is %s, expected %s" % (name, got, remaining))
+        return plan
+
+    s0 = expect("baseline", *fx_run([A, P0], []), remaining=4)
+    s1 = expect("unchanged-scope split", *fx_run([A, P1, C1], [R1]), remaining=4)
+    if s1 and fx_slices(s1)["S-2"]["original_hours"] != 4:
+        problems.append("unchanged-scope split: the parent's original_hours changed")
+    s2 = expect("extracted child completed", *fx_run([A, P1, C2], [R1, R2]), remaining=3)
+    if s2 and (fx_slices(s2)["S-2"]["residual_hours"] != 3 or fx_slices(s2)["S-3"]["residual_hours"] != 0):
+        problems.append("extracted child completed: only the child's residual may fall")
+    s3 = expect("genuine added scope", *fx_run([A, P1, C2, N3], [R1, R2, R3]), remaining=5)
+    if s3 and s3["totals"]["scope_delta"]["added_scope_hours"] != 2:
+        problems.append("genuine added scope: scope_delta.added_scope_hours is %s, expected 2"
+                        % s3["totals"]["scope_delta"]["added_scope_hours"])
+    s4 = expect("re-estimate", *fx_run([A, P4, C2, N3], [R1, R2, R3, R4]), remaining=5.5)
+    if s4:
+        items = fx_slices(s4)
+        if items["S-2"]["original_hours"] != 4 or items["S-1"]["actual_hours"] != 1 \
+                or items["S-3"]["actual_hours"] != 0.5:
+            problems.append("re-estimate: an original estimate or an actual changed")
+    s5 = expect("measured pace outlier", *fx_run([A, P4, C2, N5], [R1, R2, R3, R4, R5]), remaining=3.5)
+    if s4 and s5:
+        before, after = s4["totals"]["projected_remaining_hours"], s5["totals"]["projected_remaining_hours"]
+        if not (after > before and s5["totals"]["remaining_hours"] < s4["totals"]["remaining_hours"]):
+            problems.append("measured pace outlier: projected %s -> %s while remaining %s -> %s; the projection "
+                            "must be free to rise while residual work falls"
+                            % (before, after, s4["totals"]["remaining_hours"], s5["totals"]["remaining_hours"]))
+    P_dup = fx_slice("S-2", "not-started", 4, 3, ["AC-1", "AC-2"], changes=split)
+    expect("parent and child own the same requirement", *fx_run([A, P_dup, C1], [R1]), valid=False,
+           needle="already owns")
+    P_silent = fx_slice("S-2", "not-started", 4, 3, ["AC-1", "AC-2"])
+    expect("residual changed without a record", *fx_run([A, P_silent], []), valid=False,
+           needle="no estimate_changes record")
+    expect("false balance", *fx_run([A, P1, C1], [fx_rec("R-1", ["S-2", "S-3"], 4, 0, 0, 0, 5)]), valid=False,
+           needle="balance does not hold")
+    P_norec = fx_slice("S-2", "not-started", 4, 3, ["AC-1"], changes=[("4", "3", "R-9")])
+    expect("extraction without reconciliation", *fx_run([A, P_norec, C1], []), valid=False,
+           needle="not reconciled in the same checkpoint")
+    for problem in problems:
+        fail("split-work regression — %s" % problem)
+    if not problems:
+        ok("split conserves the balance (4 h -> 4 h), completing the extracted child removes only its residual "
+           "(-> 3 h), added scope raises it explicitly (-> 5 h), a re-estimate keeps originals and actuals "
+           "(-> 5.5 h), a pace outlier raises the projection (%s h -> %s h) while residual work falls "
+           "(5.5 h -> 3.5 h); shared ownership, an unrecorded residual change, a false balance and an "
+           "unreconciled extraction are refused"
+           % (s4["totals"]["projected_remaining_hours"], s5["totals"]["projected_remaining_hours"]))
 
 flush()
 sys.exit(1 if STATE["failed"] else 0)
