@@ -24,7 +24,7 @@ items:
     owns: [S-040]
     estimate_changes: []
     target: null
-    reason: D-052 — request data, lower risk than the secret; a debug log exists to show it, so what to keep is a product choice
+    reason: D-052 — request data, lower risk than the secret; a debug log exists to show it, so what to keep is a product choice. Sprint 5's security review (2026-10-21) noted that Inespay's handle_callback() logs the raw callback body (debtor name and account) BEFORE its signature is verified, when debug is on — same item
     depends_on: []
     criteria: []
   - id: S-041

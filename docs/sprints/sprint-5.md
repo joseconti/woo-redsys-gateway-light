@@ -133,9 +133,11 @@ slices:
       serial_reason: same playground as S-092
   - id: S-096
     title: get_acctinfo() counts the account age from midnight of the registration day (the date is formatted to Ymd before the minutes are computed), so "just created" (chAccAgeInd 02) is reached only shortly after midnight
-    status: not-started
+    status: done
     original_hours: 0.25
-    residual_hours: 0.25
+    actual_hours: 0.1114
+    actual_source: measured
+    residual_hours: 0
     change_kind: added
     parent_slice: null
     owns: [S-096]
