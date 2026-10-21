@@ -30,10 +30,10 @@ The contract is Keel's `references/project-state.md`: "Sprint files (Phase 5) â€
 | [5](sprint-5.md) | Next-version defect fixes on the work branch work/after-7.1.0, merged into develop only after the owner tags v7.1.0 | done | 7 / 7 | 3.5 | 3.5 | 1.45 | 0 | 0 | 100 |
 | [6](sprint-6.md) | Apply the owner's pre-tag answers to the 7.1.0 candidate (D-106) | done | 1 / 1 | 0.75 | 0.75 | 0.1 | 0 | 0 | 100 |
 | [7](sprint-7.md) | Next-version work independent of the owner's 7.1.0 release block, on work/after-7.1.0 (D-103) | done | 1 / 1 | 1.5 | 1.5 | 0.26 | 0 | 0 | 100 |
-| [8](sprint-8.md) | Mechanical defects extracted from the S-053 and S-041 notes, independent of the owner's 7.1.0 release block, on work/after-7.1.0 (D-109) | in-progress | 0 / 3 | 1.25 | 0 | 0 | 1.25 | 0.24 | 0 |
-| **Total** | | | 80 / 83 | 87.9 | 86.65 | 33.15 | 1.25 | 0.24 | 98.6 |
+| [8](sprint-8.md) | Mechanical defects extracted from the S-053 and S-041 notes, independent of the owner's 7.1.0 release block, on work/after-7.1.0 (D-109) | done | 3 / 3 | 1.25 | 1.25 | 0.24 | 0 | 0 | 100 |
+| **Total** | | | 83 / 83 | 87.9 | 87.9 | 33.39 | 0 | 0 | 100 |
 
-All figures are hours of AI working time plus supervision. Contingency is not included, and neither is the backlog in [`deferred.md`](deferred.md) (8 items, 8.5 h). Pace factor: 0.1924 (61 measured slices). Balance: reconciled.
+All figures are hours of AI working time plus supervision. Contingency is not included, and neither is the backlog in [`deferred.md`](deferred.md) (8 items, 8.5 h). Pace factor: 0.1924 (64 measured slices). Balance: reconciled.
 <!-- keel-plan:index:end -->
 
 ## Related files
