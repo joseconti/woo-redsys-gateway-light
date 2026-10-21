@@ -1833,7 +1833,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				return false;
 			}
 		} else {
-			if ( 'yes' === $this->debug && $result ) {
+			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'bizumredsys', __( 'Refund Failed: No transaction ID', 'woo-redsys-gateway-light' ) );
 				$this->log->add( 'bizumredsys', ' ' );
 				$this->log->add( 'bizumredsys', '/******************************************/' );

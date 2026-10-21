@@ -1425,7 +1425,7 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				return false;
 			}
 		} else {
-			if ( 'yes' === $this->debug && $result ) {
+			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'redsys', __( 'Refund Failed: No transaction ID', 'woo-redsys-gateway-light' ) );
 			}
 			return new WP_Error( 'error', __( 'Refund Failed: No transaction ID', 'woo-redsys-gateway-light' ) );

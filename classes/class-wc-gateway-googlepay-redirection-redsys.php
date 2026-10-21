@@ -1628,7 +1628,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 				return false;
 			}
 		} else {
-			if ( 'yes' === $this->debug && $result ) {
+			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'googlepayredirecredsys', __( 'Refund Failed: No transaction ID', 'woo-redsys-gateway-light' ) );
 				$this->log->add( 'googlepayredirecredsys', ' ' );
 				$this->log->add( 'googlepayredirecredsys', '/******************************************/' );

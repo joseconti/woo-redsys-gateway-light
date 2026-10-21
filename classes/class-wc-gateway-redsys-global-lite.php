@@ -717,9 +717,9 @@ class WC_Gateway_Redsys_Global_Lite {
 					continue;
 				}
 			}
-		} else {
-			return '2';
 		}
+		// A language missing from the table gets the same English code as an empty table.
+		return '2';
 	}
 	/**
 	 * Check if an order exists.
@@ -980,13 +980,13 @@ class WC_Gateway_Redsys_Global_Lite {
 					if ( $valid_token ) {
 						return true;
 					}
-					break;
+					continue;
 				} else {
 					continue;
 				}
 			}
-			return false;
 		}
+		return false;
 	}
 	/**
 	 * Get the Redsys users token.
