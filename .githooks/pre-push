@@ -22,6 +22,14 @@ set -u
 ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || exit 1
 cd "$ROOT" || exit 1
 
+# Worker role (Keel v7.0.0 (5), S-088): a parallel worker never pushes — only
+# the coordinator merges and pushes. A worktree carrying a coordinator
+# assignment refuses every push, whether or not the assignment validates.
+if [ -e "$ROOT/.keel-worker/assignment.json" ]; then
+	echo "pre-push: REFUSED — this worktree carries a parallel-worker assignment (.keel-worker/assignment.json); workers never push, the coordinator integrates and pushes." >&2
+	exit 1
+fi
+
 SELECTOR="scripts/keel-affected-tests"
 INTEGRATION_BRANCH="develop"
 REMOTE="${1:-origin}"

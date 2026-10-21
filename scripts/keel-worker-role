@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+#
+# keel-worker-role — which role this checkout plays under Keel parallel
+# development (Keel v7.0.0 (5), v7.3.2 (5); references/parallel-development.md,
+# "Coordinator and worker ownership"; references/phase-5-development.md,
+# "Worker role is a validated branch in those controls, never a generic
+# bypass"). Read-only. The ONE place the worker-aware controls
+# (scripts/keel-stop-hook, scripts/keel-time, scripts/keel-close,
+# .githooks/pre-commit, .githooks/pre-push) ask the question, so they all
+# answer it the same way.
+#
+# Project convention (D-093, S-088): before launching a writer, the coordinator
+# places in the worker's worktree root, gitignored by `.keel-worker/`:
+#   .keel-worker/assignment.json  the immutable copy of the registered
+#                                 keel.worker-assignment/1
+#   .keel-worker/run              one line: the ABSOLUTE path of the
+#                                 coordinator's run.json under
+#                                 docs/.keel/parallel/runs/<run-id>/
+# Worker worktrees live under .claude/worktrees/ (gitignored) or outside the
+# repository; never inside another session's checkout.
+#
+# Output (stdout, one line) and exit status:
+#   coordinator                          exit 0 — no assignment here: every
+#                                        ordinary control applies unchanged
+#   worker <attempt_id> <slice_id>       exit 0 — `scripts/keel-parallel
+#                                        worker-check` accepted the assignment
+#                                        from this worktree's real root (repo,
+#                                        cwd, branch, base, registration, scope)
+#   invalid <reason>                     exit 1 — an assignment is present but
+#                                        does not validate: worker operations
+#                                        FAIL CLOSED
+# A bare environment variable or a prompt never selects the worker role; only
+# the assignment file plus the helper's verdict does.
+#
+# Requires: bash 3.2+, git, python3 3.9+ (for scripts/keel-parallel).
+
+set -u
+
+ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || {
+	echo "coordinator"
+	exit 0
+}
+ASSIGNMENT="$ROOT/.keel-worker/assignment.json"
+RUNFILE="$ROOT/.keel-worker/run"
+
+if [ ! -e "$ASSIGNMENT" ]; then
+	echo "coordinator"
+	exit 0
+fi
+
+if [ ! -f "$RUNFILE" ]; then
+	echo "invalid .keel-worker/run is missing (it must name the coordinator's absolute run.json)"
+	exit 1
+fi
+RUN=$(head -1 "$RUNFILE" | tr -d '\r')
+case "$RUN" in
+	/*) ;;
+	*)
+		echo "invalid .keel-worker/run does not hold an absolute path"
+		exit 1
+		;;
+esac
+HELPER="$ROOT/scripts/keel-parallel"
+if [ ! -x "$HELPER" ]; then
+	echo "invalid scripts/keel-parallel is missing or not executable in this worktree"
+	exit 1
+fi
+
+REAL_ROOT=$(cd "$ROOT" && pwd -P) || {
+	echo "invalid cannot enter the worktree root"
+	exit 1
+}
+VERDICT=$(cd "$REAL_ROOT" && "$HELPER" worker-check --run "$RUN" --assignment "$ASSIGNMENT" 2>&1)
+STATUS=$?
+
+python3 - "$STATUS" "$VERDICT" "$ASSIGNMENT" <<'KEEL_PY'
+import json, sys
+status, text = int(sys.argv[1]), sys.argv[2]
+try:
+    data = json.loads(text)
+except ValueError:
+    data = {}
+if status == 0 and data.get("valid") is True and data.get("role") == "worker":
+    slice_id = ""
+    try:
+        with open(sys.argv[3], encoding="utf-8") as handle:
+            slice_id = json.load(handle).get("slice_id", "")
+    except (OSError, ValueError):
+        pass
+    print("worker %s %s" % (data.get("attempt_id", "?"), slice_id or "?"))
+    sys.exit(0)
+reason = data.get("error") if isinstance(data, dict) and data.get("error") else (text.strip().splitlines() or ["no verdict"])[-1]
+print("invalid " + " ".join(str(reason).split()))
+sys.exit(1)
+KEEL_PY

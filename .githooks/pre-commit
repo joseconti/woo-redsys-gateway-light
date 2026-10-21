@@ -19,6 +19,27 @@
 mode=staged
 [ "${1:-}" = "--scan-tree" ] && mode=tree
 
+# Worker role (Keel v7.0.0 (5), S-088): in a worktree carrying a coordinator
+# assignment, the commit must also pass scripts/keel-parallel worker-check
+# (repository, cwd, branch, base, registration, and every committed, staged,
+# unstaged and untracked path inside the assigned write paths). A present but
+# invalid assignment fails closed. This is IN ADDITION to the confidential-data
+# scan below, never instead of it.
+if [ "$mode" = "staged" ]; then
+  wroot=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [ -n "$wroot" ] && [ -e "$wroot/.keel-worker/assignment.json" ]; then
+    role=$("$wroot/scripts/keel-worker-role" 2>&1)
+    case "$role" in
+      worker\ *) ;;
+      *)
+        printf 'Commit stopped: worker scope/identity check failed (%s).\n' "${role:-no verdict}" >&2
+        printf 'Stage only the assigned paths; an out-of-scope change is reported to the coordinator, never deleted.\n' >&2
+        exit 1
+        ;;
+    esac
+  fi
+fi
+
 if [ "$mode" = "tree" ]; then
   files=$(git -c core.quotepath=off ls-files)
 else

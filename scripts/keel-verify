@@ -2,8 +2,9 @@
 #
 # keel-verify — mechanical checks that this project's docs match reality.
 #
-# Contract: Keel v7.3.1 (plan rows of v6.6.0 "Scope ownership and residual
-# estimates", clock rows of v7.3.1), references/phase-5-development.md §1a (the canonical
+# Contract: Keel v7.3.2 (plan rows of v6.6.0 "Scope ownership and residual
+# estimates", clock rows of v7.3.1, parallel rows of v7.0.0/v7.3.2 — sprint
+# schema v2 and the scripts/keel-parallel helper), references/phase-5-development.md §1a (the canonical
 # list), references/project-state.md ("The sprint plan", "Session time", "The
 # registry is DATA") and MANIFEST.md Table 3. Read-only: it changes nothing in
 # the repository and runs no state-changing git command. Plain bash 3.2 for
@@ -50,7 +51,12 @@
 #   21. Every recorded negative in docs/decisions.md carries `Not checked:`.
 #   22. The sprint plan is well-formed (enums, ids, depends_on, plan.json
 #       drift, original vs residual hours, scope ownership and balance via
-#       `scripts/keel-plan validate`, estimate, removed slices).
+#       `scripts/keel-plan validate`, estimate, removed slices). Sprint files
+#       are `keel.sprint/1` or `keel.sprint/2`; where the card says
+#       `Parallel development: auto`, the in-progress sprint is
+#       `keel.sprint/2`, scripts/keel-parallel exists, is executable, is
+#       byte-identical to the embedded skill's keel_parallel.py and accepts
+#       plan.json, and docs/.keel/parallel/ is gitignored and untracked.
 #   23. The plan is not behind the work (card line, plan exists, ancestry,
 #       actuals, current position).
 #   24. Session time is measured, not typed (actual_source, sessions.md
@@ -746,6 +752,9 @@ for path in doc_files:
         if path == "docs/keel-conformance.md" and re.search(r"\|\s*(missing|declined|n/a)\s*\|", line):
             # a row in one of these states names an artifact to say it is absent
             continue
+        if path.startswith("docs/sprints/") and re.match(r"^\s+write_paths:", line):
+            # a keel.sprint/2 execution mapping names the paths a slice WILL write (a target, not a citation)
+            continue
         for match in PATH_CITE.finditer(line):
             rest = line[match.end():match.end() + 1]
             target = match.group(1)
@@ -1288,8 +1297,8 @@ else:
             bad += 1
             continue
         schema = data["top"].get("schema", (None, 1))
-        if schema[0] != "keel.sprint/1":
-            fail("%s:%d schema is '%s', expected keel.sprint/1" % (path, schema[1], schema[0]))
+        if schema[0] not in ("keel.sprint/1", "keel.sprint/2"):
+            fail("%s:%d schema is '%s', expected keel.sprint/1 or keel.sprint/2" % (path, schema[1], schema[0]))
             bad += 1
         status = data["top"].get("status", (None, 1))
         if status[0] not in STATUS:
@@ -1379,12 +1388,62 @@ else:
                 fail("scripts/keel-plan validate: %s" % line[len("INVALID: "):])
             elif line.startswith("UNRECONCILED: "):
                 info("scripts/keel-plan validate: %s" % line[len("UNRECONCILED: "):])
+            elif line.startswith("UNMAPPED: "):
+                info("scripts/keel-plan validate: %s" % line[len("UNMAPPED: "):])
         if rc != 0:
             if not re.search(r"^INVALID: ", out, re.M):
                 fail("scripts/keel-plan validate (exit %d): %s" % (rc, (out + err).strip()[:300]))
             bad += 1
         else:
             ok("scope ownership: %s" % out.strip().split("\n")[-1])
+    parallel_line = card("Parallel development")
+    if parallel_line and parallel_line.strip("`* ").lower().startswith("auto"):
+        pbad = 0
+        for path, order, data in sprint_meta:
+            if data and data["top"].get("status", (None, 1))[0] == "in-progress":
+                schema = data["top"].get("schema", (None, 1))
+                if schema[0] != "keel.sprint/2":
+                    fail("%s:%d is the in-progress sprint and the card says `Parallel development: auto`, but its "
+                         "schema is '%s' — migrate it to keel.sprint/2 with execution mappings (Keel v7.0.0)"
+                         % (path, schema[1], schema[0]))
+                    pbad += 1
+        helper = "scripts/keel-parallel"
+        canon = sorted(glob.glob(".*/skills/keel/scripts/keel_parallel.py"))  # every embedded skill copy
+        if not os.path.isfile(helper) or not os.access(helper, os.X_OK):
+            fail("%s is missing or not executable although the card says `Parallel development: auto`" % helper)
+            pbad += 1
+        else:
+            with open(helper, "rb") as handle:
+                mine = handle.read()
+            for c in canon:
+                with open(c, "rb") as handle:
+                    if handle.read() != mine:
+                        fail("%s is not byte-identical to %s — copy the skill's keel_parallel.py over it "
+                             "(Keel v7.3.2)" % (helper, c))
+                        pbad += 1
+            if not canon:
+                info("no embedded keel_parallel.py to compare %s with" % helper)
+            if os.path.isfile(PLANJSON):
+                rc, out, err = run([helper, "validate", "--plan", PLANJSON])
+                if rc != 0:
+                    fail("%s validate --plan %s (exit %d): %s" % (helper, PLANJSON, rc, (out + err).strip()[:300]))
+                    pbad += 1
+        ignore_lines = [l.strip() for l in (read(".gitignore") or "").split("\n")]
+        if "docs/.keel/parallel/" not in ignore_lines:
+            fail(".gitignore does not carry docs/.keel/parallel/ (the parallel execution journal stays local)")
+            pbad += 1
+        journal = [t for t in TRACKED if t.startswith("docs/.keel/parallel/")]
+        if journal:
+            fail("docs/.keel/parallel/ is tracked by git (%s) — untrack it" % ", ".join(journal[:3]))
+            pbad += 1
+        if pbad:
+            bad += pbad
+        else:
+            ok("parallel development (%s): the in-progress sprint is keel.sprint/2, %s is executable, matches "
+               "%s and accepts plan.json, docs/.keel/parallel/ is ignored and untracked"
+               % (parallel_line, helper, " and ".join(canon) or "no embedded copy"))
+    else:
+        info("the card says `Parallel development: %s` — the parallel checks do not apply" % (parallel_line or "(absent)"))
     estimate = read("docs/estimate.md")
     total = sum(i["original_hours"] for i in slices if is_num(i.get("original_hours")) and i.get("status") != "dropped")
     residual = sum(i["residual_hours"] for i in slices if is_num(i.get("residual_hours"))

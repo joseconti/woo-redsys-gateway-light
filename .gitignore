@@ -57,3 +57,12 @@ docs/.keel/clock.jsonl
 
 # Security audit runs: findings stay out of Git while any is open (Keel security-audit)
 docs/security-audit/
+
+# Keel parallel development (D-093, S-088): the execution journal (runs,
+# assignments, envelopes, raw logs, signals), the immutable assignment copy
+# the coordinator places in a worker worktree, and the worker worktrees
+# themselves stay on this machine. Per-attempt worker reports under
+# docs/.keel/slices/<run>/<slice>/<attempt>.json stay tracked.
+docs/.keel/parallel/
+.keel-worker/
+.claude/worktrees/

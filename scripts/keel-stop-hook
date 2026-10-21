@@ -29,6 +29,10 @@
 #   4. When allowing: hand the queue on through scripts/keel-continue — ONLY
 #      for a session that completed its close-out at HEAD, and ONLY when this
 #      session's fire-ledger entry does not already exist.
+#   W. Worker role (Keel v7.0.0/v7.3.2): a coordinator-registered assignment
+#      at .keel-worker/assignment.json that scripts/keel-worker-role accepts
+#      allows the stop with no queue/push/hand-off/chaining duty; one that does
+#      not validate blocks (fails closed), braked by rule 3.
 #   5. Any internal error allows the stop. There is deliberately NO `set -e`
 #      and NO `ERR` trap: this runs on every turn, and a hook that can break
 #      a session is worse than no hook. A cede is a decision printed on the
@@ -463,6 +467,34 @@ main() {
 	elif [ "$STOP_HOOK_ACTIVE" -eq 1 ] && [ "$chain_count" -ge "$CHAIN_CAP" ]; then
 		capped=1
 		say "Keel stop hook: this stop is already the result of $chain_count consecutive hook blocks (cap $CHAIN_CAP) — allowing the stop."
+	fi
+
+	# ---------------------------------------------------------- worker role
+	# Keel v7.0.0 (5) / v7.3.2 (5): a coordinator-registered worker assignment
+	# in THIS worktree, accepted by `scripts/keel-parallel worker-check` through
+	# scripts/keel-worker-role, permits the worker's exit without the queue,
+	# push, hand-off or chaining duties (rules 1b-1d, 2 and 4 are the
+	# coordinator's). A worker runs only its assignment's cheap static checks
+	# (lint, syntax, types), never a test suite or a browser: the coordinator
+	# runs the full verification once per batch (`keel-parallel verify-batch`).
+	# A present but INVALID assignment fails closed: the stop is blocked naming
+	# why, braked like every other block. No assignment file: every rule below
+	# runs unchanged — an environment variable never selects this branch.
+	if [ -e "$REPO_ROOT/.keel-worker/assignment.json" ]; then
+		local role_out role_rc worker_fp
+		role_out=$("$SCRIPT_DIR/keel-worker-role" 2>&1)
+		role_rc=$?
+		if [ "$role_rc" -eq 0 ] && [ "${role_out%% *}" = "worker" ]; then
+			say "Keel stop hook: worker role ($role_out), validated by scripts/keel-parallel worker-check — exit permitted. Queue, push, hand-off and chaining belong to the coordinator; report through the per-attempt result, after only the assignment's cheap checks (never a test suite)."
+			emit_and_exit
+		fi
+		if [ "$capped" -eq 0 ]; then
+			worker_fp=$(sha256_of "worker-invalid|$role_out")
+			if brake worker-invalid "$worker_fp"; then
+				add_block worker-invalid "$worker_fp" "Keel stop hook: this worktree carries .keel-worker/assignment.json but the worker assignment does not validate (${role_out:-no verdict}). An invalid worker identity fails closed: do not commit, push or close from here — stop and report it to the coordinator, who resolves the attempt."
+			fi
+		fi
+		emit_and_exit
 	fi
 
 	if [ "$capped" -eq 0 ]; then

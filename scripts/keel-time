@@ -112,6 +112,22 @@ fi
 
 command -v python3 >/dev/null 2>&1 || { echo "keel-time: python3 not found" >&2; exit 2; }
 
+# Worker role (Keel v7.0.0 (5), S-088): a parallel worker never edits the
+# sprint file or the clock log. Its timing goes into its per-attempt result
+# (started_at / finished_at read from the system clock, paused_seconds), which
+# the coordinator records at integration with `keel-time slice-record`. A
+# present but invalid assignment fails closed the same way: nothing written.
+if [ -e "$ROOT/.keel-worker/assignment.json" ]; then
+  KT_ROLE=$("$SELF_DIR/keel-worker-role" 2>&1)
+  case "$KT_ROLE" in
+    worker\ *)
+      echo "keel-time: worker role ($KT_ROLE) — the sprint file and the clock log are the coordinator's. Put started_at / finished_at (read with: date -u +%Y-%m-%dT%H:%M:%SZ) and paused_seconds in your per-attempt result; the coordinator records them with 'keel-time slice-record' at integration. Nothing written." >&2 ;;
+    *)
+      echo "keel-time: this worktree carries a worker assignment that does not validate (${KT_ROLE:-no verdict}) — fails closed, nothing written." >&2 ;;
+  esac
+  exit 2
+fi
+
 exec python3 - "$ROOT" "$SELF_DIR/keel-plan" "$SELF_DIR/keel-clock" "$@" <<'PY'
 # -*- coding: utf-8 -*-
 import calendar

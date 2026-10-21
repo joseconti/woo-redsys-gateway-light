@@ -43,6 +43,16 @@
 
 set -u
 
+# Worker role (Keel v7.0.0 (5), S-088): keel-close is unavailable to a parallel
+# worker — commit-to-integration, merge, push, hand-off and chaining are the
+# coordinator's. A worktree carrying .keel-worker/assignment.json refuses,
+# valid assignment or not; the worker reports through its per-attempt result.
+KC_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+if [ -n "$KC_ROOT" ] && [ -e "$KC_ROOT/.keel-worker/assignment.json" ]; then
+	echo "keel-close: unavailable in a parallel-worker worktree (.keel-worker/assignment.json) — the coordinator closes, merges and pushes; return your per-attempt result instead." >&2
+	exit 2
+fi
+
 DRY=0
 COMMIT_MESSAGE=""
 COMMIT_MESSAGE_FILE=""

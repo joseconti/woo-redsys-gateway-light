@@ -1,5 +1,5 @@
 ---
-schema: keel.sprint/1
+schema: keel.sprint/2
 sprint: 3
 goal: Release preparation for the unreleased security and correctness fixes
 status: in-progress
@@ -69,6 +69,14 @@ slices:
     actual_source: estimated
     depends_on: [S-029]
     criteria: []
+    execution:
+      write_paths: [docs/accessibility.md, docs/05-test-points.md]
+      contracts:
+        reads: []
+        writes: []
+      exclusive_resources: [wp-env-playground]
+      parallel: serial
+      serial_reason: a guided pass with the owner at an assistive technology — needs the user live, runs on the shared wp-env playground and records its result in coordinator-owned test-point state
   - id: S-031
     title: Dependabot alerts triage, stale wp-scripts dependency, package.json version sync
     status: done
@@ -108,6 +116,14 @@ slices:
     actual_source: estimated
     depends_on: [S-036]
     criteria: []
+    execution:
+      write_paths: [docs/keel-conformance.md, docs/05-test-points.md, docs/sprints/sprint-3.md]
+      contracts:
+        reads: [inbound-tunnel, keel-worker-controls]
+        writes: []
+      exclusive_resources: [wp-env-playground, playground-tunnel]
+      parallel: serial
+      serial_reason: observations only the coordinator session can make — a session restart under the Stop hook, a real push through .githooks/pre-push (only the coordinator pushes), and the owner's Redsys test terminal notifying through the playground tunnel
   - id: S-038
     title: Issue 112 — cancel URL sent to Redsys is HTML-escaped and re-cancels an already cancelled order
     status: done
@@ -303,6 +319,14 @@ slices:
     actual_source: measured
     depends_on: [S-036, S-027, S-028, S-029, S-031, S-035, S-039, S-052, S-054, S-056]
     criteria: []
+    execution:
+      write_paths: [docs/07-release.md, docs/05-test-points.md, docs/keel-conformance.md, readme.txt, woocommerce-redsys.php, package.json, package-lock.json, .gitattributes]
+      contracts:
+        reads: [keel-conformance-sweep, inbound-tunnel]
+        writes: [release-version]
+      exclusive_resources: [wp-env-playground, wp-env-ceiling]
+      parallel: serial
+      serial_reason: Phase 7 release gate — the version is the owner's answer, the entire suite runs once on the candidate on both wp-env instances (the single batch-verification lane), and it writes release metadata and coordinator-owned state
   - id: S-058
     title: Support-matrix ceiling — a second wp-env instance on the declared WooCommerce ceiling and a current PHP, and the entire suite run on it
     status: done
@@ -641,6 +665,14 @@ slices:
     actual_source: measured
     depends_on: []
     criteria: []
+    execution:
+      write_paths: [CLAUDE.md, AGENTS.md, .claude/, .agents/, docs/keel-conformance.md, docs/PROGRESS.md, docs/decisions.md]
+      contracts:
+        reads: []
+        writes: [keel-portability-lock, keel-conformance-sweep]
+      exclusive_resources: []
+      parallel: serial
+      serial_reason: Keel post-update reconciliation — rewrites the portability lock, the project card, decisions and the conformance sweep, all coordinator-owned aggregate state
   - id: S-085
     title: Keel v6.6.0 split-work estimates — hours → original_hours in every sprint file and deferred.md, residual_hours and reconciliation_status on open slices, keel-plan/keel-time/keel-verify regenerated, plan.json regenerated (owner, D-093)
     status: done
@@ -680,25 +712,42 @@ slices:
     actual_source: estimated
     depends_on: []
     criteria: []
+    execution:
+      write_paths: [scripts/playground-tunnel, scripts/keel-doctor, docs/03-technical-plan.md, docs/playground.md]
+      contracts:
+        reads: []
+        writes: [inbound-tunnel]
+      exclusive_resources: [wp-env-playground, playground-tunnel]
+      parallel: serial
+      serial_reason: writes the coordinator-owned shared inventories docs/03-technical-plan.md and docs/playground.md, and probes the tunnel against the shared wp-env playground
   - id: S-088
     title: Keel v7.0.0/v7.3.0 parallel development enabled (auto; max_workers: max) — a keel-parallel script copied from keel_parallel.py, sprint schema v2 for the active sprint, docs/.keel/parallel/ gitignored, backend probe recorded (owner, D-093)
-    status: not-started
+    status: done
     original_hours: 2.5
-    residual_hours: 2.5
+    residual_hours: 0
     change_kind: added
     parent_slice: null
     owns: [S-088]
     estimate_changes: []
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.185
+    actual_source: measured
     depends_on: [S-085]
     criteria: []
+    execution:
+      write_paths: [scripts/keel-parallel, scripts/keel-worker-role, scripts/keel-plan, scripts/keel-verify, scripts/keel-stop-hook, scripts/keel-close, scripts/keel-time, .githooks/, .gitignore, docs/sprints/, docs/.keel/plan.json]
+      contracts:
+        reads: []
+        writes: [keel-sprint-schema-v2, keel-worker-controls]
+      exclusive_resources: []
+      parallel: serial
+      serial_reason: installs the parallel machinery itself and migrates docs/sprints/ (the coordinator-owned plan); the scheduler it installs cannot dispatch it
 ---
 
 # Sprint 3 — Release preparation for the unreleased security and correctness fixes
 
 - Acceptance: the fixes recorded in D-020, D-023, D-026 and D-033 are ready to ship: the full suite is green on the candidate, the security audit covers it or is declined on the record, and the version number has been approved by the user. Merging to `master` and tagging remain the user's acts.
 - Notes: built from `docs/PROGRESS.md` open items on 2026-10-06 during the reconciliation. S-027 was scheduled here by the user rather than applied inside the reconciliation, because it changes code that reaches production stores. Hours are AI working time plus supervision.
+- Parallel development (S-088, D-093; Keel v7.0.0/v7.3.0/v7.3.2): this sprint moved to `keel.sprint/2` on 2026-10-21; every open slice (S-030, S-032, S-037, S-084, S-087, S-088) carries its `execution` mapping and all six are `serial`, each with its reason — none is dispatchable to a writing worker. Exclusive resources: `wp-env-playground` (the default wp-env instance on Docker — ports 8888/8889, its database; every suite and browser run uses it), `wp-env-ceiling` (`.wp-env.ceiling.json`, port 8890) and `playground-tunnel` (the one public URL into the playground). `scripts/keel-parallel` is a byte copy of the installed skill's `keel_parallel.py` (`cmp` identical; SHA-256 a1ac8452e27f75def3805ac896f47e9113b8979cd3ac99445b051b179c1e7ee5; Python 3.9.6, POSIX `flock`/`setsid`/`killpg` present). Backend probe, 2026-10-21: no VERIFIED isolated writing backend — the native candidate (Claude Code's subagent tool with `isolation: worktree`, Claude Code 2.1.306) is observed in use but has not passed the disposable-repository smoke run the spec requires; agent teams are not available to this session (the `CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS` key was written to `.claude/settings.local.json` today, after this session started, and no team tool is exposed); the `claude` CLI is on PATH (`~/.local/bin/claude`) but no unattended worker adapter has been verified on this machine. Execution mode: serial fallback. effective cap: 1 — no verified isolated writing backend (session agent budget and backend concurrency limit not observed; machine: Apple M5, 10 cores, 32 GB, Docker VM 7.7 GB). Re-resolved at the next kickoff after a backend passes the smoke run.
 - Candidate defects (S-035), read from code during S-025 and NOT yet reproduced — each starts from a failing test per D-036: (1) the order-received fallback passes no `Ds_SignatureVersion`, and the Google Pay gateway calls `wp_die()` without it; (2) Google Pay `successful_request()` has no already-paid guard; (3) a refund amount of `0` refunds the full total in the Redsys, Bizum and Google Pay gateways (fixed for Inespay only in D-026); (4) the Bizum transaction limit still truncates with integer casts (fixed for Inespay in D-026/D-030); (5) debug logging in Bizum and Google Pay writes the signing secret in clear — not covered by D-025, to be added to `docs/threat-model.md`; (6) Google Pay is hidden for everyone in test mode because `testshowgateway` has no settings field. The full list with file:line is in the S-025 hand-back recorded in `docs/decisions.md` D-041.
 - Close-out:
 - S-031 (done 2026-10-06, D-050): the two unused `dependencies` removed, `package.json` version synced to 7.0.2 and now checked by `scripts/keel-verify`, non-breaking audit fixes applied. `npm audit` 147 → 115; everything left hangs on two major upgrades — `@wordpress/scripts` 36 (new slice S-039) and `@wordpress/env` 11 (belongs to S-036, it is the playground tool). Not pushed: the pre-push selection for a lockfile change is the entire suite, which needs S-036.
@@ -760,3 +809,4 @@ slices:
 - Session close, 2026-10-21 at 13:45: inbound issue sweep done (no new issue; two WordPress.org threads report D-023, replies drafted for the owner); token ledger and session row written; S-083's test-point row corrected to one of the five Red-first values. Suppression count 149 (145 recorded): the four new `phpcs:ignore` lines are `uninstall.php`'s two direct queries (S-081), `DirectAccessTest`'s `shell_exec()` (S-074) and `RedirectFormEscapingTest`'s `base64_encode()` fixture (S-073).
 - S-085 (done 2026-10-21, D-093, D-094): Keel v6.6.0 migration. Every slice's legacy `hours:` in sprints 1 to 3 and `deferred.md` moved unchanged to the immutable `original_hours:` (that value is the migration record; 79.4 h approved, unchanged). The open slices' `residual_hours` are explicit estimates, each equal to its original: no open slice has part of its scope built (S-032's 0.04 h and S-084's 0.33 h are measured time, never deducted). Done and dropped slices carry residual 0. Every slice is `change_kind: added` with no parent; there is no extraction. Ownership is exclusive: the one slice with acceptance criteria owns them, every other slice (maintenance, audits, reconciliations, no AC) owns its own id as its scope. `docs/.keel/plan.json` is now `keel.plan/2`, `reconciliation_status: reconciled`.
 - S-086 (done 2026-10-21, D-094): built by the same delegated run as S-085, inside S-085's measured interval, so the whole 0.25 h is charged to S-085 and S-086 carries 0 h with `actual_source: estimated` — no time was invented for it. `scripts/keel-clock` is a byte copy of the skill's `keel_clock.py` (SHA-256 82e0c0a7…2992); `scripts/keel-time` no longer closes other slices on `slice-start`, gained `slice-record`, and reports wall-clock against summed slice hours, maximum concurrency, throughput and the projection basis; `docs/sessions.md` gained the four columns; `scripts/keel-verify` accepts overlapping intervals and checks projections against their basis, and its new check 30 runs the split-work regressions on throwaway plans.
+- S-088 (done 2026-10-21, D-095): `scripts/keel-parallel` (byte copy of `keel_parallel.py`, SHA-256 a1ac8452…7ee5) and `scripts/keel-worker-role`; sprint 3 on `keel.sprint/2` with an `execution` mapping on every open slice (all `serial`); worker branches in `scripts/keel-stop-hook`, `.githooks/pre-commit`, `.githooks/pre-push`, `scripts/keel-close` and `scripts/keel-time`, exercised in a throwaway repository; `docs/.keel/parallel/`, `.keel-worker/` and `.claude/worktrees/` gitignored. Probe: no verified isolated writing backend, so serial fallback, effective cap 1.

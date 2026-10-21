@@ -5,7 +5,8 @@
 # job each").
 #
 # Layers:
-#   1. Authority  docs/sprints/sprint-<N>.md  (frontmatter `keel.sprint/1`)
+#   1. Authority  docs/sprints/sprint-<N>.md  (frontmatter `keel.sprint/1`, or
+#                 `keel.sprint/2` for a parallel-capable active sprint)
 #   2. Backlog    docs/sprints/deferred.md    (frontmatter `keel.deferred/1`)
 #   3. Derived    docs/.keel/plan.json        (`keel.plan/2`; this script writes
 #                                              it; nobody edits it by hand)
@@ -30,6 +31,24 @@
 #   remaining_before - completed_residual + added_scope
 #     + explicit_residual_reestimates = remaining_after.
 # A legacy `hours:` field is refused: it is migrated to original_hours.
+#
+# Sprint schema v2 (Keel v7.0.0, references/parallel-development.md, "Sprint
+# plan version 2"): a `keel.sprint/2` file keeps every field above and may add
+# to each slice the closed mapping
+#   execution:
+#     write_paths: [repo-relative files or dir prefixes ending in /; no globs]
+#     contracts:
+#       reads: [contract names]
+#       writes: [contract names]
+#     exclusive_resources: [shared mutable environments]
+#     parallel: eligible | serial
+#     serial_reason: <text; required when serial, null otherwise>
+# An `execution:` mapping in a `keel.sprint/1` file is refused. Missing
+# execution metadata means UNKNOWN, never eligible: `validate` prints an
+# `UNMAPPED:` line (not a failure) for each open v2 slice without it. The
+# mapping is carried verbatim (normalised) into plan.json, and `validate`
+# also runs scripts/keel-parallel validate over the generated plan when that
+# helper exists, so the DAG/ownership rules have one implementation.
 #
 # Commands:
 #   build     Parse every sprint file and deferred.md, write docs/.keel/plan.json
@@ -130,6 +149,7 @@ PLAN = os.path.join(ROOT, "docs", ".keel", "plan.json")
 
 UNIT = "hours of AI working time plus supervision"
 STATUSES = ("not-started", "in-progress", "done", "dropped")
+SPRINT_SCHEMAS = ("keel.sprint/1", "keel.sprint/2")
 SOURCES = ("measured", "estimated")
 BEGIN = "<!-- keel-plan:index:begin -->"
 END = "<!-- keel-plan:index:end -->"
@@ -311,7 +331,7 @@ def public(mapping, fields):
     return result
 
 
-def clean_item(path, item, deferred):
+def clean_item(path, item, deferred, schema=None):
     where = "%s:%d" % (rel(path), item["_line"])
     ident = item.get("id")
     if not isinstance(ident, str) or not ident:
@@ -370,8 +390,57 @@ def clean_item(path, item, deferred):
     result["depends_on"] = [str(x) for x in depends]
     result["criteria"] = [str(x) for x in criteria]
     if "execution" in item:
-        result["execution"] = item["execution"]
+        if schema != "keel.sprint/2":
+            raise PlanError("%s: an execution mapping needs schema keel.sprint/2 (this file is %s)" % (where, schema))
+        result["execution"] = clean_execution(where, item["execution"])
     return result
+
+
+EXEC_KEYS = ("write_paths", "contracts", "exclusive_resources", "parallel", "serial_reason")
+PARALLEL_MODES = ("eligible", "serial")
+
+
+def clean_path(where, path):
+    if not isinstance(path, str) or not path or "\\" in path or any(c in path for c in "*?["):
+        raise PlanError("%s: write_paths entry %r is not a repository path (no globs, no backslashes)" % (where, path))
+    if path.startswith("/") or any(part in ("", ".", "..") for part in path.rstrip("/").split("/")):
+        raise PlanError("%s: write_paths entry '%s' must be normalised and repository-relative" % (where, path))
+    return path
+
+
+def clean_execution(where, mapping):
+    """The closed keel.sprint/2 execution mapping, in contract order."""
+    if not isinstance(mapping, dict):
+        raise PlanError("%s: execution must be a block mapping" % where)
+    unknown = sorted(k for k in mapping if k not in EXEC_KEYS)
+    if unknown:
+        raise PlanError("%s: execution has unknown key(s) %s" % (where, ", ".join(unknown)))
+    paths = mapping.get("write_paths")
+    if not isinstance(paths, list) or not paths:
+        raise PlanError("%s: execution.write_paths must be a nonempty inline list" % where)
+    contracts = mapping.get("contracts")
+    if not isinstance(contracts, dict) or sorted(contracts) != ["reads", "writes"]:
+        raise PlanError("%s: execution.contracts must be a mapping with exactly reads: and writes:" % where)
+    lists = (("contracts.reads", contracts["reads"]), ("contracts.writes", contracts["writes"]),
+             ("exclusive_resources", mapping.get("exclusive_resources")))
+    for label, values in lists:
+        if not isinstance(values, list) or any(not isinstance(v, str) or not v for v in values):
+            raise PlanError("%s: execution.%s must be an inline list of names" % (where, label))
+    mode = mapping.get("parallel")
+    if mode not in PARALLEL_MODES:
+        raise PlanError("%s: execution.parallel '%s' is not one of %s" % (where, mode, " | ".join(PARALLEL_MODES)))
+    reason = mapping.get("serial_reason")
+    if mode == "serial" and (not isinstance(reason, str) or not reason.strip()):
+        raise PlanError("%s: a serial slice names its serial_reason" % where)
+    if mode == "eligible" and reason is not None:
+        raise PlanError("%s: serial_reason must be null on an eligible slice" % where)
+    return ordered([
+        ("write_paths", [clean_path(where, p) for p in paths]),
+        ("contracts", ordered([("reads", list(contracts["reads"])), ("writes", list(contracts["writes"]))])),
+        ("exclusive_resources", list(mapping["exclusive_resources"])),
+        ("parallel", mode),
+        ("serial_reason", reason),
+    ])
 
 
 def clean_reconciliations(path, top):
@@ -387,8 +456,9 @@ def load():
     sprints = []
     for path in glob.glob(os.path.join(SPRINTS_DIR, "sprint-*.md")):
         top, items = frontmatter(path)
-        if top.get("schema") != "keel.sprint/1":
-            raise PlanError("%s: schema is '%s', expected keel.sprint/1" % (rel(path), top.get("schema")))
+        if top.get("schema") not in SPRINT_SCHEMAS:
+            raise PlanError("%s: schema is '%s', expected %s" % (rel(path), top.get("schema"),
+                                                                 " or ".join(SPRINT_SCHEMAS)))
         number = top.get("sprint")
         if not isinstance(number, int) or isinstance(number, bool):
             raise PlanError("%s: 'sprint:' is not an integer" % rel(path))
@@ -400,7 +470,8 @@ def load():
             "goal": "" if top.get("goal") is None else str(top.get("goal")),
             "status": top.get("status"),
             "file": rel(path),
-            "slices": [clean_item(path, item, False) for item in items],
+            "schema": top.get("schema"),
+            "slices": [clean_item(path, item, False, top.get("schema")) for item in items],
             "scope_reconciliations": clean_reconciliations(path, top),
         })
     if not sprints:
@@ -671,6 +742,31 @@ def validate(sprints, deferred):
     return problems, unreconciled
 
 
+def parallel_problems(sprints, text):
+    """Run scripts/keel-parallel validate over the generated plan (one implementation of its rules)."""
+    helper = os.path.join(ROOT, "scripts", "keel-parallel")
+    if not any(s["schema"] == "keel.sprint/2" for s in sprints) or not os.path.isfile(helper):
+        return []
+    import subprocess
+    import tempfile
+    handle, scratch = tempfile.mkstemp(suffix=".json")
+    try:
+        with io.open(handle, "w", encoding="utf-8") as fh:
+            fh.write(text)
+        proc = subprocess.run([sys.executable, helper, "validate", "--plan", scratch],
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    finally:
+        os.unlink(scratch)
+    if proc.returncode == 0:
+        return []
+    message = (proc.stdout + proc.stderr).decode("utf-8", "replace").strip()
+    try:
+        message = json.loads(message).get("error", message)
+    except ValueError:
+        pass
+    return ["scripts/keel-parallel validate refuses the generated plan: %s" % message]
+
+
 def serialise(plan):
     return json.dumps(plan, indent=2, ensure_ascii=False) + "\n"
 
@@ -845,8 +941,16 @@ def main():
 
     if CMD == "validate":
         problems, unreconciled = validate(sprints, deferred)
+        problems += parallel_problems(sprints, text)
         for item in unreconciled:
             out("UNRECONCILED: %s\n" % item)
+        for sprint in sprints:
+            if sprint["schema"] != "keel.sprint/2":
+                continue
+            for s in sprint["slices"]:
+                if s["status"] not in ("done", "dropped") and "execution" not in s:
+                    out("UNMAPPED: %s (%s): open keel.sprint/2 slice with no execution mapping %s unknown, "
+                        "never dispatched\n" % (sprint["file"], s["id"], DASH))
         for item in problems:
             out("INVALID: %s\n" % item)
         if problems:
