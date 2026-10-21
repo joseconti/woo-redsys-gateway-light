@@ -311,6 +311,63 @@ class GatewayInespayAsBuiltTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * S-080 (D-085): a paid order is never cancelled or failed by a later
+	 * callback that is not a success.
+	 *
+	 * @dataProvider paid_statuses_and_failure_codes
+	 * @param string $paid   Status of the paid order.
+	 * @param string $status codStatus of the later callback.
+	 */
+	public function test_a_later_callback_that_is_not_a_success_leaves_a_paid_order_paid( $paid, $status ) {
+		$order = $this->create_order( 'payin-80-' . $paid . '-' . $status );
+		$order->set_status( $paid );
+		$order->save();
+
+		$this->deliver_signed_callback(
+			array(
+				'singlePayinId' => 'payin-80-' . $paid . '-' . $status,
+				'codStatus'     => $status,
+				'amount'        => '1000',
+			)
+		);
+
+		$this->assertSame( $paid, wc_get_order( $order->get_id() )->get_status() );
+	}
+
+	/**
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public function paid_statuses_and_failure_codes() {
+		$cases = array();
+		foreach ( array( 'processing', 'completed' ) as $paid ) {
+			foreach ( array( 'KO', 'CANCELED', 'REJECTED', 'ERROR' ) as $status ) {
+				$cases[ $paid . ', then ' . $status ] = array( $paid, $status );
+			}
+		}
+		return $cases;
+	}
+
+	/**
+	 * S-080's counterpart: a success for an order that failed before completes it.
+	 */
+	public function test_a_paid_callback_for_an_order_that_failed_completes_it() {
+		$this->setExpectedIncorrectUsage( 'is_internal_meta_key' );
+		$order = $this->create_order( 'payin-80-failed' );
+		$order->set_status( 'failed' );
+		$order->save();
+
+		$this->deliver_signed_callback(
+			array(
+				'singlePayinId' => 'payin-80-failed',
+				'codStatus'     => 'OK',
+				'amount'        => '1000',
+			)
+		);
+
+		$this->assertNotNull( wc_get_order( $order->get_id() )->get_date_paid() );
+	}
+
+	/**
 	 * AC-42: a signed callback whose status is neither OK nor SETTLED.
 	 */
 	public function test_a_signed_callback_with_another_status_adds_a_note_and_stores_the_inespay_fields_without_changing_the_order_status() {

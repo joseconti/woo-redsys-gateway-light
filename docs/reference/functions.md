@@ -139,7 +139,7 @@ Read in full:
 
 | Function | File | Returns |
 |----------|------|---------|
-| `redsys_return_status_paid()` | `includes/data/redsys-status-paid.php` | `string[]` — the statuses in which an order counts as unpaid: `pending`, `redsys-pbankt`, `cancelled`, `pending-deposit`. Despite its name, this is the unpaid list. |
+| `redsys_return_status_paid()` | `includes/data/redsys-status-paid.php` | `string[]` — the statuses in which an order counts as unpaid: `pending`, `redsys-pbankt`, `cancelled`, `failed`, `pending-deposit`. Despite its name, this is the unpaid list. |
 | `redsys_return_types()` | `includes/data/redsys-types.php` | `string[]` — the gateway IDs treated as "Redsys orders": `redsys`, `bizumredsys`, `googlepayredirecredsys`. |
 
 ```php

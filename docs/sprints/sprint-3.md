@@ -358,10 +358,10 @@ slices:
     criteria: []
   - id: S-080
     title: An order already paid is never cancelled or failed by a later refused, cancelled or error notification, nor by a return to the cancel URL, in any gateway; a signed success on an order the merchant cancelled after payment completes it again (owner, D-085) — verify with tests, fix where it does not hold
-    status: not-started
+    status: done
     hours: 1.5
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.3361
+    actual_source: measured
     depends_on: []
     criteria: []
   - id: S-081
@@ -445,3 +445,4 @@ slices:
 - Session of 2026-10-21, 11:28 — a WordPress.org support thread reports D-023 on 7.0.2 (fixed on `develop`, unreleased); the owner's decision (7.0.3 hotfix or 7.1.0) and the forum reply are recorded in `docs/PROGRESS.md`. S-079 added and done.
 - S-079 (done 2026-10-21, D-083): the `readme.txt` line about the order-number fallback said "roughly 1 in 5"; rewritten from a simulation of the 7.0.2 code — about 1 in 10 of fallback cases, only on 8- or 9-digit order IDs, in practice refund confirmations. Measured time excludes the investigation done before the slice opened, in the same session.
 - S-078 (done 2026-10-21, D-084): the shared sanitiser answers `''` for a value that is not a string; red observed, green on the pinned and the ceiling instance one at a time; changelog line added.
+- S-080 (done 2026-10-21, D-086): a paid order stays paid in all four gateways; a `failed` order now takes a later success (it was counted as paid) — `failed` added to the unpaid list; AC-72 added.

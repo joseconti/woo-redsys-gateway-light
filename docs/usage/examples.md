@@ -147,15 +147,15 @@ function my_shop_redsys_details( $order_id ) {
 
 `is_redsys_order()` is true for card, Bizum and Google Pay orders. For Inespay read `_inespay_single_payin_id` and `_inespay_status` from the order directly. Never expose `_redsys_secretsha256`.
 
-## 6. Let a later notification rescue a failed order
+## 6. Let a later notification rescue an order in a custom status
 
-By default only `pending`, `redsys-pbankt`, `cancelled` and `pending-deposit` orders count as unpaid. An order in any other status ignores further payment notifications in the card and Bizum gateways. To let a successful notification complete an order that some other plugin marked `failed`:
+By default `pending`, `redsys-pbankt`, `cancelled`, `failed` and `pending-deposit` orders count as unpaid; since S-080 a successful notification completes a `failed` or `cancelled` order. An order in any other status counts as paid and ignores further notifications in the card, Bizum and Google Pay gateways, so a refusal arriving after a success never cancels it. To let a successful notification complete an order that another plugin put in its own status (here `awaiting-review`):
 
 ```php
 add_filter(
 	'redsys_status_pending',
 	function ( $status ) {
-		$status[] = 'failed';
+		$status[] = 'awaiting-review';
 		return $status;
 	}
 );

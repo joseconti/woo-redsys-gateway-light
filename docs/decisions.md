@@ -799,3 +799,11 @@
 - Not in scope of this answer, left in `deferred.md`: S-033, S-034, S-040, S-041, S-042, S-053, S-055, S-057, S-065 — named to the owner in the same reply.
 - Supersedes: the open questions of D-071, D-072, D-078 (cancelled order) and D-069 (versions above the declared ones).
 
+## D-086 — A paid order stays paid; a success completes a cancelled or failed order (S-080)
+- Date / phase: 2026-10-21 / Phase 5 (sprint 3)
+- Decision: the owner's rule of D-085 is pinned by tests in all four gateways (AC-72). Red first, observed on the pinned instance over HTTP: an authorised, signed notification for a `failed` order left it `failed` in the card, Bizum and Google Pay gateways (`3 failed`, `Expected: "processing" Received: "failed"`), because `is_paid()` counts every status outside `redsys_return_status_paid()` as paid and `failed` was not in that list. Fix: `failed` added to the default unpaid list (`includes/data/redsys-status-paid.php`); still filterable through `redsys_status_pending`. Everything else already held and is now pinned: a refused notification leaves `processing`, `completed` and `on-hold` orders unchanged (three gateways), a success completes a `cancelled` order (three gateways), and Inespay never changes a paid order on a callback that is not a success and completes a `failed` one (it uses `needs_payment()`, which already treats `failed` as unpaid).
+- Test changed with the requirement: `DocumentedHooksFireTest::test_an_order_in_a_status_added_through_the_pending_filter_counts_as_not_paid` used `failed` as its example of a paid status; that requirement changed by the owner's decision (D-085), so the test now uses `on-hold` — its subject, that the filter runs and changes the answer, is unchanged. `docs/usage/examples.md` §6 rewritten for the same reason.
+- Consequence to say in the release notes: a `failed` order now receives a later success, and a later refusal would cancel it (it was not paid).
+- Not checked: a return to the cancel URL for a paid order, driven — it is WooCommerce's own handler, which cancels only orders valid for cancellation (`pending`, `failed`), plus the `cancelled` order the plugin's filter adds back for an already cancelled return (D-053); the plugin adds no paid status to it.
+- Supersedes: the default of `redsys_return_status_paid()`.
+

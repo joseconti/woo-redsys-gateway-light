@@ -47,7 +47,7 @@ A `POST` to `?wc-api=WC_Gateway_<gateway id>` with `Ds_SignatureVersion`, `Ds_Me
 | `Ds_Response` is 0–99 and the amount matches | Saves the payment meta, adds the notes "HTTP Notification received - payment completed" and "Authorization code: …", calls `payment_complete()`, then `completed` when `orderdo` is `completed`. Google Pay then fires `googlepayredirecredsys_post_payment_complete`. | `AC-09`, `AC-21`, `AC-29`, `AC-32` |
 | `Ds_Response` is above 99 | Order `cancelled` with a note; the cart is emptied. Bizum and Google Pay also store the Redsys error text in `_redsys_error_payment_ds_response_value`; Google Pay then fires `googlepayredirecredsys_post_payment_error`. | `AC-11`, `AC-23`, `AC-31`, `AC-32` |
 
-"Already paid" means the order status is **not** one of the statuses returned by `get_status_pending()` — by default `pending`, `redsys-pbankt`, `cancelled` and `pending-deposit`, changeable with the filter `redsys_status_pending`. An `on-hold` order therefore counts as paid. Google Pay's `successful_request()` has no already-paid check.
+"Already paid" means the order status is **not** one of the statuses returned by `get_status_pending()` — by default `pending`, `redsys-pbankt`, `cancelled`, `failed` and `pending-deposit`, changeable with the filter `redsys_status_pending`. An `on-hold` order therefore counts as paid, and a refusal arriving after a success never cancels a paid order; a success for a `cancelled` or `failed` order completes it (S-080, D-085). Google Pay's `successful_request()` makes the same already-paid check.
 
 Amounts are compared as strings of minor units with leading zeros removed.
 

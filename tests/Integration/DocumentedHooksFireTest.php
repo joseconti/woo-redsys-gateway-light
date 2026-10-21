@@ -82,15 +82,18 @@ class DocumentedHooksFireTest extends WP_UnitTestCase {
 
 	public function test_an_order_in_a_status_added_through_the_pending_filter_counts_as_not_paid() {
 		$order = wc_create_order();
-		$order->set_status( 'failed' );
+		// `failed` counted as paid until S-080 made it unpaid by default
+		// (owner, D-085); `on-hold` still counts as paid and is what the
+		// filter is shown changing now.
+		$order->set_status( 'on-hold' );
 		$order->save();
 
-		$this->assertTrue( WCRedL()->is_paid( $order->get_id() ), 'Without the filter a failed order counts as paid (AC-12).' );
+		$this->assertTrue( WCRedL()->is_paid( $order->get_id() ), 'Without the filter an on-hold order counts as paid (AC-12).' );
 
 		$seen   = array();
 		$filter = function ( $statuses ) use ( &$seen ) {
 			$seen[]     = $statuses;
-			$statuses[] = 'failed';
+			$statuses[] = 'on-hold';
 			return $statuses;
 		};
 		add_filter( 'redsys_status_pending', $filter );
@@ -99,7 +102,7 @@ class DocumentedHooksFireTest extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $seen, 'The filter never ran.' );
 		$this->assertContains( 'pending', $seen[0], 'The filter receives the default list.' );
-		$this->assertNotContains( 'failed', $seen[0] );
+		$this->assertNotContains( 'on-hold', $seen[0] );
 		$this->assertFalse( $paid );
 	}
 

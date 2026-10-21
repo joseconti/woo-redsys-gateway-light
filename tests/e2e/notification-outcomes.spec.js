@@ -185,3 +185,31 @@ for ( const [ gatewayId, criterion, cancelNote ] of [
 		}
 	} );
 }
+
+/**
+ * S-080, the owner's rule (D-085): an order that is paid is never cancelled
+ * or failed by a later notification — a success can arrive at once and a
+ * refusal for the same payment later — and a signed success completes an
+ * order that is not paid, including one the merchant cancelled after payment
+ * and one that failed before.
+ */
+for ( const gatewayId of Object.keys( GATEWAYS ) ) {
+	test.describe( `${ gatewayId } — a paid order stays paid (S-080)`, () => {
+		for ( const paid of [ 'processing', 'completed', 'on-hold' ] ) {
+			test( `a refused notification for an order in ${ paid } changes nothing`, async ( { request } ) => {
+				const made = fixture( 'make', gatewayId, paid, '0190', 'match' );
+				const after = await notify( request, gatewayId, made );
+				expect( after ).toEqual( made.before );
+			} );
+		}
+
+		for ( const unpaid of [ 'cancelled', 'failed' ] ) {
+			test( `an authorised notification for an order in ${ unpaid } completes the payment`, async ( { request } ) => {
+				const made = fixture( 'make', gatewayId, unpaid, '0000', 'match' );
+				const after = await notify( request, gatewayId, made );
+				expect( after.status ).toBe( 'processing' );
+				expect( after.date_paid ).not.toBeNull();
+			} );
+		}
+	} );
+}
