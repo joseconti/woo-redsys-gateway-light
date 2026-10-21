@@ -130,10 +130,6 @@ class DocumentedHooksFireTest extends WP_UnitTestCase {
 		$order->set_total( 12.34 );
 		$order->save();
 		$gateway = $this->configured_gateway( $class );
-		if ( 'WC_Gateway_GooglePay_Redirection_Redsys' === $class ) {
-			// Pre-existing and deferred (S-042): this class reads the billing name through the generic meta API.
-			$this->setExpectedIncorrectUsage( 'is_internal_meta_key' );
-		}
 
 		$seen     = array();
 		$callback = function ( $args ) use ( &$seen ) {

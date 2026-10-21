@@ -64,10 +64,6 @@ class RedirectFormEscapingTest extends WP_UnitTestCase {
 	 * @param string $class Gateway class name.
 	 */
 	public function test_a_hostile_translation_adds_no_markup_and_does_not_break_the_script( $class ) {
-		if ( 'WC_Gateway_GooglePay_Redirection_Redsys' === $class ) {
-			// Pre-existing and deferred (S-042): this class reads the billing name through the generic meta API.
-			$this->setExpectedIncorrectUsage( 'is_internal_meta_key' );
-		}
 		$order = wc_create_order();
 		$order->set_total( 12.34 );
 		$order->save();
@@ -98,10 +94,6 @@ class RedirectFormEscapingTest extends WP_UnitTestCase {
 	 * @param string $class Gateway class name.
 	 */
 	public function test_the_ajax_loader_url_filter_sets_the_spinner_of_the_redirect_message( $class ) {
-		if ( 'WC_Gateway_GooglePay_Redirection_Redsys' === $class ) {
-			// Pre-existing and deferred (S-042): this class reads the billing name through the generic meta API.
-			$this->setExpectedIncorrectUsage( 'is_internal_meta_key' );
-		}
 		remove_filter( 'gettext', array( $this, 'hostile_translation' ), 10 );
 		$order = wc_create_order();
 		$order->set_total( 12.34 );

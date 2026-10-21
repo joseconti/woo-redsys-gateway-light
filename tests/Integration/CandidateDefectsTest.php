@@ -259,11 +259,6 @@ class CandidateDefectsTest extends WP_UnitTestCase {
 		$gateway->debug        = 'yes';
 		$gateway->log          = new Redsyslite_Test_Recording_Logger();
 
-		if ( 'WC_Gateway_GooglePay_Redirection_Redsys' === $gateway_class ) {
-			// Pre-existing and deferred (S-042): this class reads the billing name through the generic meta API.
-			$this->setExpectedIncorrectUsage( 'is_internal_meta_key' );
-		}
-
 		$args = $gateway->get_redsys_args( $order );
 
 		$this->transients[] = 'redsys_signature_' . WCRedL()->prepare_order_number( $order->get_id() );

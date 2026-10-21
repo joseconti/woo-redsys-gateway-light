@@ -626,8 +626,8 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		$product_description = __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number();
 		$merchant_name       = $this->commercename;
 		$currency            = $currency_codes[ get_woocommerce_currency() ];
-		$name                = WCRedL()->get_order_meta( $order_id, '_billing_first_name', true );
-		$lastname            = WCRedL()->get_order_meta( $order_id, '_billing_last_name', true );
+		$name                = $order->get_billing_first_name();
+		$lastname            = $order->get_billing_last_name();
 
 		if ( class_exists( 'SitePress' ) ) {
 			$gatewaylanguage = WCRedL()->get_lang_code( ICL_LANGUAGE_CODE );

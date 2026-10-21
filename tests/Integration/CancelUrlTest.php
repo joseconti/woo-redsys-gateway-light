@@ -71,12 +71,6 @@ class CancelUrlTest extends WP_UnitTestCase {
 		$order->set_total( 10 );
 		$order->save();
 
-		if ( 'WC_Gateway_GooglePay_Redirection_Redsys' === $gateway_class ) {
-			// Pre-existing and out of scope here (deferred, S-042): this gateway reads
-			// the billing name through the generic meta API instead of the order's getters.
-			$this->setExpectedIncorrectUsage( 'is_internal_meta_key' );
-		}
-
 		$gateway = new $gateway_class();
 		$params  = $this->decoded_merchant_parameters( $gateway->get_redsys_args( $order ) );
 
