@@ -108,11 +108,17 @@ items:
     title: Install PHPCS (phpcs.xml fixed — testVersion 7.0-, property syntax), PHPStan and Plugin Check as project development tools, with doctor rows, and correct the readme header Requires at least
     status: not-started
     original_hours: 1.5
-    residual_hours: 1.5
+    residual_hours: 1
     change_kind: added
     parent_slice: null
     owns: [S-093]
-    estimate_changes: []
+    estimate_changes:
+      - date: 2026-10-21
+        before_residual_hours: 1.5
+        after_residual_hours: 1
+        reason: D-111 — the phpcs.xml fix and the readme Requires at least correction extracted to S-101 (sprint 9); installing PHPCS, PHPStan and Plugin Check with doctor rows stays, waiting for the tag
+        decision: D-111
+        reconciliation: R9-01
     target: null
     reason: D-102 — self-audit answer 1; the tools ran once outside the repository; installing them changes composer.json and the playground, so it waits for the tag
     depends_on: []
