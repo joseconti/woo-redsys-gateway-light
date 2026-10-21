@@ -125,3 +125,11 @@
 - Fix: the S-066 test was set aside, the push repeated (`result: GREEN`), and the test restored afterwards.
 - Check added: none mechanical.
 - Rule for next time: while `.githooks/pre-push` (or any suite) runs, read code only; write nothing under the mounted tree until it ends.
+
+## L-016 — Traffic through the inbound tunnel is refused by the permission classifier in automatic mode
+- Where: sprint 3, S-087's real run (2026-10-21).
+- What failed first: after `scripts/playground-tunnel` opened a Cloudflare quick tunnel to the playground, the `curl` requests to the public URL (home page, the four `?wc-api=` endpoints, a forged notification as negative control) were refused by Claude Code's automatic-mode classifier ("External Ingress Tunnel"). The tunnel was closed at once with `kill -TERM`, and the restore was confirmed.
+- Cause: the classifier treats exposing a local service through a public tunnel as an outward-facing action needing the person's authorisation; no standing permission covers it.
+- Fix: none applied by the assistant — it is the owner's call. Opening and closing the tunnel ran; driving requests through it needs the owner's OK (a permission rule, or running it themselves).
+- Check added: none mechanical.
+- Rule for next time: before a tunnelled exercise in automatic mode, ask the owner for the permission in the same batch as the other questions; never try to route around the refusal.

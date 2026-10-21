@@ -654,9 +654,9 @@ slices:
     criteria: []
   - id: S-084
     title: Keel v6.5.0 → v7.3.2 post-update reconciliation — embedded trees replaced, lock block refreshed, MANIFEST Table 1 + Table 3 sweep into docs/keel-conformance.md, standing checks, Keel baseline advanced
-    status: in-progress
+    status: done
     original_hours: 1.5
-    residual_hours: 1.5
+    residual_hours: 0
     change_kind: added
     parent_slice: null
     owns: [S-084]
@@ -701,15 +701,15 @@ slices:
     criteria: []
   - id: S-087
     title: Keel v7.2.0 inbound tunnel — inbound-call inventory in docs/03-technical-plan.md, a playground-tunnel script, doctor row, docs/playground.md section (owner, D-093)
-    status: not-started
+    status: done
     original_hours: 1.5
-    residual_hours: 1.5
+    residual_hours: 0
     change_kind: added
     parent_slice: null
     owns: [S-087]
     estimate_changes: []
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.2111
+    actual_source: measured
     depends_on: []
     criteria: []
     execution:
@@ -810,3 +810,4 @@ slices:
 - S-085 (done 2026-10-21, D-093, D-094): Keel v6.6.0 migration. Every slice's legacy `hours:` in sprints 1 to 3 and `deferred.md` moved unchanged to the immutable `original_hours:` (that value is the migration record; 79.4 h approved, unchanged). The open slices' `residual_hours` are explicit estimates, each equal to its original: no open slice has part of its scope built (S-032's 0.04 h and S-084's 0.33 h are measured time, never deducted). Done and dropped slices carry residual 0. Every slice is `change_kind: added` with no parent; there is no extraction. Ownership is exclusive: the one slice with acceptance criteria owns them, every other slice (maintenance, audits, reconciliations, no AC) owns its own id as its scope. `docs/.keel/plan.json` is now `keel.plan/2`, `reconciliation_status: reconciled`.
 - S-086 (done 2026-10-21, D-094): built by the same delegated run as S-085, inside S-085's measured interval, so the whole 0.25 h is charged to S-085 and S-086 carries 0 h with `actual_source: estimated` — no time was invented for it. `scripts/keel-clock` is a byte copy of the skill's `keel_clock.py` (SHA-256 82e0c0a7…2992); `scripts/keel-time` no longer closes other slices on `slice-start`, gained `slice-record`, and reports wall-clock against summed slice hours, maximum concurrency, throughput and the projection basis; `docs/sessions.md` gained the four columns; `scripts/keel-verify` accepts overlapping intervals and checks projections against their basis, and its new check 30 runs the split-work regressions on throwaway plans.
 - S-088 (done 2026-10-21, D-095): `scripts/keel-parallel` (byte copy of `keel_parallel.py`, SHA-256 a1ac8452…7ee5) and `scripts/keel-worker-role`; sprint 3 on `keel.sprint/2` with an `execution` mapping on every open slice (all `serial`); worker branches in `scripts/keel-stop-hook`, `.githooks/pre-commit`, `.githooks/pre-push`, `scripts/keel-close` and `scripts/keel-time`, exercised in a throwaway repository; `docs/.keel/parallel/`, `.keel-worker/` and `.claude/worktrees/` gitignored. Probe: no verified isolated writing backend, so serial fallback, effective cap 1.
+- S-087 (done 2026-10-21, D-096, L-016): built by a delegated run in its own worktree and cherry-picked (`b7d8fe9`). Inventory of the four notification endpoints in `docs/03-technical-plan.md`; `scripts/playground-tunnel` (open / `--url` / `--restore`, refuses while a gateway is out of test mode, restores on every exit path); cloudflared optional doctor row (`2026.9.3 OK`); `docs/playground.md` section. Real run on the main playground: a Cloudflare quick tunnel opened, WordPress pointed at it, `kill -TERM` closed it and `WP_HOME`/`WP_SITEURL` came back to `http://localhost:8888` with the HTTPS shim removed (no `cloudflared` left running). Not verified: requests through the tunnel — the permission classifier refused them in automatic mode (L-016) — and the Redsys acceptance payment (S-037, D-093).

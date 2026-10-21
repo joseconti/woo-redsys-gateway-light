@@ -1,7 +1,7 @@
 # Keel conformance sweep
 
 - Date: 2026-10-21
-- Reconciliation: Keel v6.5.0 → v7.3.2 (slice S-084)
+- Reconciliation: Keel v6.5.0 → v7.3.2 (slice S-084) — completed 2026-10-21 (D-097); rows updated as S-085 to S-088 landed
 - Sources, and only these: the repository's disk (checked with commands), `~/.claude/skills/keel/MANIFEST.md` v7.3.2 (Table 1 and Table 3 rows v6.6.0–v7.3.2, read together with `CHANGELOG.md` 6.6.0–7.3.2 and `references/project-state.md` / `references/parallel-development.md`), and `docs/decisions.md`. The previous sweep was not read.
 - Position: Phase 5 development / Phase 7 release in preparation (sprint 3), Phase 6 in progress; adopted project; no website (D-005), no client budget (D-010), no user guide (D-013), no design system (D-009); Claude Code only; `Autonomy: automatic`; `Chaining: start`; `Sprints: on`; `Security audit: required`.
 - States: `present` / `missing` / `declined` (+ D-entry) / `n/a` (+ the condition that excludes it).
@@ -42,15 +42,15 @@
 | T1-32 | `docs/sprints/` | present | sprint-1..3 (`keel.sprint/1`) |
 | T1-33 | `docs/sprints/deferred.md` | present | `keel.deferred/1` |
 | T1-34 | `docs/.keel/plan.json` | present | `keel.plan/1` (no `original_hours`/reconciliation fields: see T3 v6.6.0) |
-| T1-35 | `scripts/keel-parallel` | missing | `Parallel development: auto` chosen by the owner (D-093); scheduled in S-088 |
-| T1-36 | `docs/.keel/parallel/` | missing | `Parallel development: auto` chosen by the owner (D-093); scheduled in S-088 |
+| T1-35 | `scripts/keel-parallel` | present | `scripts/keel-parallel` byte-identical to the skill (SHA-256 a1ac8452…7ee5); S-088, D-095 |
+| T1-36 | `docs/.keel/parallel/` | n/a | no parallel run yet (serial fallback, D-095): `keel-parallel init` creates it at the first run; its `.gitignore` entry is in place (S-088) |
 | T1-37 | `docs/.keel/slices/…` | n/a | no parallel writing worker has run |
 | T1-38 | `docs/05-test-points.md` (Criterion, Coverage, Red first) | present | header line 9 |
 | T1-39 | `docs/api/INDEX.md` | present | `docs/api/INDEX.md` |
 | T1-40 | `docs/keel-conformance.md` | present | this file |
 | T1-41 | `docs/playground.md` | present | `last verified:` line 3 |
 | T1-42 | `scripts/keel-verify` | present | `scripts/keel-verify` |
-| T1-43 | `scripts/playground-tunnel` | missing | Redsys/Bizum/Google Pay/Inespay call `?wc-api=WC_Gateway_<id>` from outside (card `Security audit:` line); script absent (see T3 v7.2.0); owner approved applying it (D-093), scheduled in S-087 |
+| T1-43 | `scripts/playground-tunnel` | present | `scripts/playground-tunnel`; S-087, D-096 |
 | T1-44 | `scripts/keel-affected-tests` | present | `scripts/keel-affected-tests` |
 | T1-45 | `.githooks/pre-push` + `core.hooksPath` | present | `core.hooksPath=.githooks`; pre-push calls `keel-affected-tests` |
 | T1-46 | `scripts/keel-doctor` | present | `scripts/keel-doctor` |
@@ -100,17 +100,17 @@
 | T3-v6.6.0-4 | Reconcile existing parent/child decompositions | n/a | no slice declares a parent or extraction |
 | T3-v6.6.0-5 | Restamp lock | present | applied in S-084 (D-093) |
 | T3-v7.0.0-1 | `Parallel development:` card line | present | `docs/PROGRESS.md` card: `auto; max_workers: max` (owner, D-093) |
-| T3-v7.0.0-2 | Active sprint → `keel.sprint/2` | missing | `Parallel development: auto` chosen by the owner (D-093); scheduled in S-088 |
-| T3-v7.0.0-3 | `scripts/keel-parallel` + SHA-256 + gitignore `docs/.keel/parallel/` | missing | `Parallel development: auto` chosen by the owner (D-093); scheduled in S-088 |
-| T3-v7.0.0-4 | Probe isolated writing backend / record serial fallback | missing | `Parallel development: auto` chosen by the owner (D-093); scheduled in S-088 |
-| T3-v7.0.0-5 | Worker-aware locks/hooks | missing | `Parallel development: auto` chosen by the owner (D-093); scheduled in S-088 |
+| T3-v7.0.0-2 | Active sprint → `keel.sprint/2` | present | `docs/sprints/sprint-3.md` on `keel.sprint/2`, `execution` on every open slice; S-088, D-095 |
+| T3-v7.0.0-3 | `scripts/keel-parallel` + SHA-256 + gitignore `docs/.keel/parallel/` | present | `scripts/keel-parallel` byte-identical to the skill (SHA-256 a1ac8452…7ee5); S-088, D-095; `docs/.keel/parallel/` gitignored |
+| T3-v7.0.0-4 | Probe isolated writing backend / record serial fallback | present | serial fallback recorded in `docs/sprints/sprint-3.md`: no verified isolated writing backend, effective cap 1 (2026-10-21, D-095) |
+| T3-v7.0.0-5 | Worker-aware locks/hooks | present | worker branches in `scripts/keel-stop-hook`, `.githooks/pre-commit`, `.githooks/pre-push`, `scripts/keel-close`, `scripts/keel-time` via `scripts/keel-worker-role`; S-088, D-095 |
 | T3-v7.0.0-6-7 | Integration after validated result + review; separate time/effort counters | n/a | procedural, only when parallel workers run |
 | T3-v7.0.0-8 | Restamp lock | present | applied in S-084 (D-093) |
 | T3-v7.1.0 | Static-analysis evidence `PASS`/`FINDINGS`/`BLOCKED — ENVIRONMENT` | n/a | no file or card line; procedural rule from the next test point (phpcs `TO BUILD`, PHPStan absent per technical plan) |
 | T3-v7.1.0-2 | Restamp lock | present | applied in S-084 (D-093) |
-| T3-v7.2.0-1 | Inbound-call inventory in the technical plan's `## Testing` | missing | `docs/03-technical-plan.md` has no inbound/tunnel inventory; owner approved applying it (D-093), scheduled in S-087 |
-| T3-v7.2.0-2 | `scripts/playground-tunnel`, tunnel binary as `optional` env row, regenerated `keel-doctor`, `docs/playground.md` tunnel section, outside the distributable | missing | none present (`scripts/` is already `export-ignore`, `.gitattributes:31`); owner approved applying it (D-093), scheduled in S-087 |
-| T3-v7.2.0-3 | Provider accepts the tunnel URL — tested once by hand, D-entry | missing | no D-entry; owner approved applying it (D-093), scheduled in S-037 |
+| T3-v7.2.0-1 | Inbound-call inventory in the technical plan's `## Testing` | present | `docs/03-technical-plan.md` → Testing → "Inbound calls" (four endpoints); S-087, D-096 |
+| T3-v7.2.0-2 | `scripts/playground-tunnel`, tunnel binary as `optional` env row, regenerated `keel-doctor`, `docs/playground.md` tunnel section, outside the distributable | present | `scripts/playground-tunnel`, cloudflared optional row, `scripts/keel-doctor` row, `docs/playground.md` section; `scripts/` export-ignore; real open/close/restore run 2026-10-21; S-087, D-096 |
+| T3-v7.2.0-3 | Provider accepts the tunnel URL — tested once by hand, D-entry | missing | deferred by the owner into S-037 (D-093); traffic through the tunnel was refused by the permission classifier in automatic mode (D-096, L-016) |
 | T3-v7.2.0-4 | Re-examine delegations whose only reason was reachability | n/a | the only `CREDENTIAL` row (test points line 40) cites a merchant terminal, not reachability |
 | T3-v7.2.0-5 | `Real run in playground` cell; Playwright where a browser surface exists | present | test-points header line 9; `@playwright/test` in `package.json` |
 | T3-v7.3.0-1 | Reconciliation runs now | present | S-084 |
@@ -123,7 +123,7 @@
 | T3-v7.3.1-3 | `docs/sessions.md` gains `Slice h`, `Max concurrency`, `Throughput`, `Projection basis` before `Notes` | present | `docs/sessions.md` header; past rows `—`; S-086 |
 | T3-v7.3.1-4 | `scripts/keel-verify` accepts overlapping intervals, checks projection vs basis | present | `scripts/keel-verify` check 24; S-086 |
 | T3-v7.3.1 | Refresh lock stamp | present | applied in S-084 (D-093) |
-| T3-v7.3.2-1 | Copy `keel_parallel.py` over `scripts/keel-parallel` | missing | `Parallel development: auto` chosen by the owner (D-093); scheduled in S-088 |
+| T3-v7.3.2-1 | Copy `keel_parallel.py` over `scripts/keel-parallel` | present | `scripts/keel-parallel` byte-identical to the skill (SHA-256 a1ac8452…7ee5); S-088, D-095 |
 | T3-v7.3.2-2-4 | Worker `test_commands` cheap only; `verify-batch` once per batch | n/a | procedural, only when parallel workers run |
-| T3-v7.3.2-5 | Worker-role branch of `keel-stop-hook` | n/a | `scripts/keel-stop-hook` has no worker-role branch |
+| T3-v7.3.2-5 | Worker-role branch of `keel-stop-hook` | present | rule W in `scripts/keel-stop-hook`: a valid worker exits with no queue/push/hand-off duty and is told to run only cheap checks; S-088, D-095 |
 | T3-v7.3.2 | Refresh lock stamp | present | applied in S-084 (D-093) |
