@@ -342,10 +342,10 @@ slices:
     criteria: []
   - id: S-073
     title: Escape the translated strings of the three redirect forms (the redirect message inside the inline script, the two button labels) and pass the Google Pay form through wp_kses like its siblings — moved from deferred.md (D-085)
-    status: not-started
+    status: done
     hours: 1
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.0278
+    actual_source: measured
     depends_on: []
     criteria: []
   - id: S-074
@@ -449,3 +449,4 @@ slices:
 - S-081 (done 2026-10-21, D-087): `uninstall.php` removes the plugin's own options and transients; settings, tokens and orders stay; AC-73.
 - S-082 (done 2026-10-21, D-088): the signing secrets and Inespay's API key are password fields.
 - S-074 (done 2026-10-21, D-089): `ABSPATH` guard in the main file and the signature class; generated files left as they are, recorded.
+- S-073 (done 2026-10-21, D-090): the translated strings of the three redirect forms are escaped; Google Pay's form goes through `wp_kses()`.

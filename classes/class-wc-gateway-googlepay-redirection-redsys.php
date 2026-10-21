@@ -754,7 +754,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 			'woocommerce',
 			'jQuery( function( $ ) {
 		$("body").block({
-			message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', WC()->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . __( 'Thank you for your order. We are now redirecting you to Redsys to make the payment.', 'woo-redsys-gateway-light' ) . '",
+			message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', WC()->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . esc_js( esc_html__( 'Thank you for your order. We are now redirecting you to Redsys to make the payment.', 'woo-redsys-gateway-light' ) ) . '\",
 			overlayCSS:
 			{
 				background: "#fff",
@@ -775,7 +775,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		);
 		return '<form action="' . esc_url( $redsys_adr ) . '" method="post" id="redsys_payment_form" target="_top">
 		' . implode( '', $form_inputs ) . '
-		<input type="submit" class="button-alt" id="submit_redsys_payment_form" value="' . __( 'Pay with Gpay', 'woo-redsys-gateway-light' ) . '" /> <a class="button cancel" href="' . esc_url( $order->get_cancel_order_url() ) . '">' . __( 'Cancel order &amp; restore cart', 'woo-redsys-gateway-light' ) . '</a>
+		<input type="submit" class="button-alt" id="submit_redsys_payment_form" value=\"' . esc_attr__( 'Pay with Gpay', 'woo-redsys-gateway-light' ) . '\" /> <a class="button cancel" href="' . esc_url( $order->get_cancel_order_url() ) . '">' . esc_html__( 'Cancel order &amp; restore cart', 'woo-redsys-gateway-light' ) . '</a>
 	</form>';
 	}
 
@@ -799,8 +799,28 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	 * @param obj $order Order object.
 	 */
 	public function receipt_page( $order ) {
+		// The same markup the card and Bizum pages allow (S-073).
+		$allowed_html = array(
+			'form'  => array(
+				'action' => array(),
+				'method' => array(),
+				'id'     => array(),
+				'target' => array(),
+			),
+			'input' => array(
+				'type'  => array(),
+				'class' => array(),
+				'id'    => array(),
+				'value' => array(),
+				'name'  => array(),
+			),
+			'a'     => array(
+				'class' => array(),
+				'href'  => array(),
+			),
+		);
 		echo '<p>' . esc_html__( 'Thank you for your order, please click the button below to pay with Google Pay.', 'woo-redsys-gateway-light' ) . '</p>';
-		echo $this->generate_redsys_form( $order ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		echo wp_kses( $this->generate_redsys_form( $order ), $allowed_html );
 	}
 
 	/**

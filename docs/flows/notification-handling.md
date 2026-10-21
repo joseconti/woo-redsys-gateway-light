@@ -172,7 +172,7 @@ Part A: `AC-03` to `AC-12`, `AC-18` to `AC-23`, `AC-26` to `AC-32`, and the refu
 ## Source files
 - `classes/class-wc-gateway-redsys.php` — `check_ipn_request_is_valid()` line 850, `check_ipn_response()` 915, `successful_request()` 960.
 - `classes/class-wc-gateway-bizum-redsys.php` — `resolve_notification_secret()` line 1050, `check_ipn_request_is_valid()` 1085, `check_ipn_response()` 1160, `successful_request()` 1218.
-- `classes/class-wc-gateway-googlepay-redirection-redsys.php` — `check_ipn_request_is_valid()` line 859, `check_ipn_response()` 919, `successful_request()` 976.
+- `classes/class-wc-gateway-googlepay-redirection-redsys.php` — `check_ipn_request_is_valid()` line 879, `check_ipn_response()` 939, `successful_request()` 996.
 - `classes/class-wc-gateway-inespay-redsys.php` — `handle_callback()` line 513, `get_order_by_payin_id()` 821.
 - `classes/class-wc-gateway-redsys-global-lite.php` — `get_status_pending()` line 865, `is_paid()` 879, `clean_order_number()` 1093, `get_order_id_by_redsys_order_number()` 1117.
 - `includes/class-redsysliteapi.php` — `sanitize_merchant_parameters()` line 147, `decode_merchant_parameters()` 268, `create_merchant_signature_notif()` 321 (key derivation in `diversify_notif_key()`: a notification that names no order never verifies, `AC-64`).

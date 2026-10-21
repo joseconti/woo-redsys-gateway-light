@@ -77,7 +77,7 @@ NL='
 # function calls; each spec's `#payment_method_<gateway id>`).
 DIRECT=$(cat <<'EOF'
 includes/class-redsysliteapi.php | tests/Unit/RedsysLiteAPITest.php tests/Unit/DirectAccessTest.php tests/Integration/GatewayRedsysIpnTest.php tests/Integration/GatewayBizumIpnTest.php tests/Integration/GatewayGooglePayIpnTest.php | RedsysLiteAPI: unit suite + the three IPN tests that sign fixtures with it
-classes/class-wc-gateway-redsys.php | tests/Integration/GatewayRedsysIpnTest.php tests/Integration/RefundOrderNumberTransientTest.php tests/e2e/checkout-redsys.spec.js tests/e2e/checkout-blocks-redsys.spec.js | WC_Gateway_Redsys
+classes/class-wc-gateway-redsys.php | tests/Integration/GatewayRedsysIpnTest.php tests/Integration/RedirectFormEscapingTest.php tests/Integration/RefundOrderNumberTransientTest.php tests/e2e/checkout-redsys.spec.js tests/e2e/checkout-blocks-redsys.spec.js | WC_Gateway_Redsys
 classes/class-wc-gateway-bizum-redsys.php | tests/Integration/GatewayBizumIpnTest.php tests/Integration/RefundOrderNumberTransientTest.php tests/e2e/checkout-bizum.spec.js | WC_Gateway_Bizum_Redsys
 classes/class-wc-gateway-googlepay-redirection-redsys.php | tests/Integration/GatewayGooglePayIpnTest.php tests/Integration/RefundOrderNumberTransientTest.php tests/e2e/checkout-googlepay.spec.js | WC_Gateway_GooglePay_Redirection_Redsys
 classes/class-wc-gateway-inespay-redsys.php | tests/Integration/GatewayInespayIpnTest.php tests/e2e/checkout-inespay.spec.js tests/e2e/inespay-transaction-limit.spec.js | WC_Gateway_Inespay_Redsys

@@ -826,3 +826,8 @@
 - Decision: `woocommerce-redsys.php` and `includes/class-redsysliteapi.php` stop at once when `ABSPATH` is not defined. Red (`tests/Unit/DirectAccessTest.php`, each file included by a separate PHP process): the main file → `PHP Fatal error: Uncaught Error: Call to undefined function plugin_dir_url()` with its path; the class file → defined the class; a guarded gateway file printed nothing (counterpart). Green: whole unit suite `OK (41 tests, 78 assertions)`. The unit bootstrap now defines `ABSPATH` before loading the class it tests alone.
 - Left without a guard on purpose, recorded in the threat model: the generated asset and translation files (build output; editing them by hand is a defect) and the silent `index.php` stubs.
 
+## D-090 — The translated strings of the redirect forms are escaped (S-073)
+- Date / phase: 2026-10-21 / Phase 5 (sprint 3)
+- Decision: in the card (both branches), Bizum and Google Pay `generate_redsys_form()`, the button label is printed with `esc_attr__()`, the cancel link with `esc_html__()` (its intended `&amp;` is kept — `esc_html` does not double-encode an entity) and the redirect message inside the inline script with `esc_js( esc_html__() )`; Google Pay's `receipt_page()` passes the form through `wp_kses()` with the allow-list the card and Bizum pages use. The msgids are unchanged, so the `.pot` and the `es_ES` translation need no change.
+- Red (`tests/Integration/RedirectFormEscapingTest.php`, every string "translated" through `gettext` into a quote plus markup): card and Bizum — the translation closed the inline script string; Google Pay — the injected element reached the page. Green: `OK (3 tests, 19 assertions)`.
+
