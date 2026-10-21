@@ -281,6 +281,29 @@ else
 	add_row "PHP (local, for phpcs)" "absent" ">=7.4 recommended" "MISSING" "optional" "install PHP locally to run phpcs outside Docker (not required — wp-env's own containers carry PHP)"
 fi
 
+# --- cloudflared: the inbound tunnel (scripts/playground-tunnel, D-093) ----
+# Optional: only the flows that wait for a Redsys/Inespay notification need it.
+# System-global, so never in FIX_CMDS. A ~/.cloudflared/config.yml makes quick
+# tunnels refuse to start; it is the user's file — reported, never touched.
+CF_BIN=$(find_tool cloudflared)
+CF_HOW="brew install cloudflared (macOS); Cloudflare's package or 'winget install --id Cloudflare.cloudflared' (Linux/Windows)"
+if [ -n "$CF_BIN" ]; then
+	CF_V=$("$CF_BIN" --version 2>/dev/null | head -1 | sed -n 's/.*version \([0-9][0-9.]*\).*/\1/p')
+	CF_CONF=""
+	for _f in "$HOME/.cloudflared/config.yml" "$HOME/.cloudflared/config.yaml"; do
+		[ -f "$_f" ] && CF_CONF="$_f"
+	done
+	if [ -z "$CF_V" ]; then
+		add_row "cloudflared (inbound tunnel)" "present, version unreadable$(where cloudflared "$CF_BIN")" "any" "NOT OPERATIONAL" "optional" "reinstall: $CF_HOW"
+	elif [ -n "$CF_CONF" ]; then
+		add_row "cloudflared (inbound tunnel)" "$CF_V, but $CF_CONF exists" "any; no config.yml for quick tunnels" "NOT OPERATIONAL" "optional" "your file — not edited by Keel: open your own tunnel and use scripts/playground-tunnel --url <https-url>"
+	else
+		add_row "cloudflared (inbound tunnel)" "$CF_V$(where cloudflared "$CF_BIN")" "any" "OK" "optional" "—"
+	fi
+else
+	add_row "cloudflared (inbound tunnel)" "absent" "any" "MISSING" "optional" "$CF_HOW — needed only for the notification flows (scripts/playground-tunnel)"
+fi
+
 # --- The assistant's own facts come from its row, never from this file -----
 # Keel references/project-state.md, "The registry is DATA": a shared script
 # carries no tool name on an executable line. The row is

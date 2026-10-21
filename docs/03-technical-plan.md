@@ -179,6 +179,27 @@ Every bug fixed gets a test pinning the fix, **written and failing before the fi
 ### Test-first policy: pure-logic
 Card value `pure-logic` (D-036). Pure logic gets its test written and **seen failing** before its code: here that is signature creation/verification (`RedsysLiteAPI`, the Inespay HMAC), order-number preparation and its transients, amount formatting, and response/status-code mapping. Not applied to gateway settings markup, hook registration and bootstrap glue, or exploratory work against Redsys/Inespay behaviour that is not yet known (a spike, closed by a test once the shape is known). No acceptance-level scope is in force. A test derived from an `AC-nn` or a reproduced bug is never edited to make it pass. The policy is not retroactive: rows already in `docs/05-test-points.md` carry `Red first: n/a — predates`.
 
+### Inbound calls (the source of `scripts/playground-tunnel`)
+
+Calls an external system makes TO the shop (Keel `references/inbound-tunnel.md`, S-087, D-093). Every gateway builds its notification URL from `home_url( '/' )` with `add_query_arg( 'wc-api', … )`, and WooCommerce dispatches it to the `woocommerce_api_wc_gateway_<id>` action, so the WordPress base URL is the one setting that moves them all.
+
+| Caller | Endpoint (handler) | How the caller learns the URL | Stable hostname needed? |
+|---|---|---|---|
+| Redsys (card redirection) | `/?wc-api=WC_Gateway_redsys` → `WC_Gateway_Redsys::check_ipn_response()` | Sent in each request: `DS_MERCHANT_MERCHANTURL` in the signed payment form (`classes/class-wc-gateway-redsys.php`) | No |
+| Redsys (Bizum) | `/?wc-api=WC_Gateway_bizumredsys` → `WC_Gateway_Bizum_Redsys::check_ipn_response()` | Sent in each request: `DS_MERCHANT_MERCHANTURL` (`classes/class-wc-gateway-bizum-redsys.php`) | No |
+| Redsys (Google Pay redirection) | `/?wc-api=WC_Gateway_googlepayredirecredsys` → `WC_Gateway_GooglePay_Redirection_Redsys::check_ipn_response()` | Sent in each request: `DS_MERCHANT_MERCHANTURL` (`classes/class-wc-gateway-googlepay-redirection-redsys.php`) | No |
+| Inespay | `/?wc-api=wc_gateway_inespayredsys` → `WC_Gateway_Inespay_Redsys::handle_callback()` | Sent in each request: `notifUrl` in the server-side `v22/payins/single/init` call (`classes/class-wc-gateway-inespay-redsys.php`) | No |
+
+No caller learns the URL from a provider console, so nothing has to be registered and a Cloudflare quick tunnel's per-run hostname is enough. The customer's browser returning from the payment page (`successLinkRedirect`/`abortLinkRedirect`, the Redsys `DS_MERCHANT_URLOK`/`DS_MERCHANT_URLKO`) is not an inbound server call: it is the browser, which reaches `localhost` already.
+
+- **Tunnel choice:** a Cloudflare quick tunnel (`cloudflared tunnel --url http://localhost:<port> --no-autoupdate`, no account), because all four URLs travel in each request. A named tunnel is only needed if a provider turns out to reject the shared `trycloudflare.com` domain. That acceptance check (a Redsys test-terminal payment with the notification URL on the tunnel) has not been run. The owner deferred it to S-037 (D-093).
+- **Pointing the playground** (done by the script, undone on every exit path):
+  1. *Public base URL:* the `WP_HOME` and `WP_SITEURL` constants that wp-env writes to `wp-config.php`, through `wp config set` in the `cli` container, back to `http://localhost:<port>` on restore. The port is read from `.wp-env.json` (or `.wp-env.override.json` / `WP_ENV_CONFIG`), with wp-env's default 8888 when the file sets none.
+  2. *Proxy scheme:* a must-use plugin, `.wp-env-mu-plugins/keel-playground-tunnel-https.php`, sets `$_SERVER['HTTPS']` from `X-Forwarded-Proto: https` while the tunnel is up. The script deletes it on restore. It is playground code only: `.wp-env-mu-plugins/` and `scripts/` are both `export-ignore` in `.gitattributes`, so neither ships.
+  3. *Host allow-list:* WordPress has none. Nothing to change.
+- **Gateway setting to leave alone:** the Redsys gateways' "not use https" option (`not_use_https`) rewrites the notification URL to `http:`. Leave it off while tunnelling.
+- **Test mode only:** the script refuses to run while any enabled gateway has `testmode` off (exit 2).
+
 ## Environment requirements (the source of `scripts/keel-doctor`)
 
 One machine plays all three roles here — the user's Mac holds the repository and runs the tests. PHP, Composer, MySQL, WordPress and WooCommerce are **not** host requirements: they run inside the wp-env containers.
@@ -196,6 +217,7 @@ One machine plays all three roles here — the user's Mac holds the repository a
 | `axe-core` | `^4.14`, project-local | blocking | `npm install` |
 | Playwright Chromium | the revision the installed `@playwright/test` pins | blocking | `npx playwright install chromium` — a download of a few hundred MB |
 | PHP on the host | >= 7.4 recommended | optional — only for `php -l` outside Docker | Homebrew / the OS package manager |
+| `cloudflared` (inbound tunnel) | any | optional — only the flows that wait for a Redsys/Inespay notification need it; without it those flows are recorded `⚠ unverified`, never skipped silently | `brew install cloudflared` (macOS); the Cloudflare package or `winget install --id Cloudflare.cloudflared` (Linux/Windows). Never installed by the doctor's `--fix`. A `~/.cloudflared/config.yml` blocks quick tunnels: it is the user's file, reported, never edited |
 | python3 | any | optional — the doctor reads the MCP and settings JSON with it | Xcode Command Line Tools / the OS package manager |
 | Permission mode | not `manual` | advisory | `.claude/settings.local.json` (`permissions.defaultMode: "auto"`), or `claude --permission-mode auto` |
 | Browser MCP scope | no user-level registration | advisory | `claude mcp remove -s user playwright`; register in the project's `.mcp.json` |

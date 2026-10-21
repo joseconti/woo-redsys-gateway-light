@@ -332,12 +332,76 @@ npx wp-env start      # if not already running
 npx playwright test   # or: npm run test:e2e
 ```
 
+## Inbound tunnel (Redsys/Inespay notifications reaching the playground)
+
+The playground lives on `localhost`, so Redsys and Inespay cannot send their
+server-to-server notification to it. Without a tunnel, a sandbox payment stops
+at "pending". `scripts/playground-tunnel` opens a public HTTPS URL that forwards
+to the playground for as long as the exercise lasts. The inventory of the four
+notification endpoints is in `docs/03-technical-plan.md` → "Inbound calls".
+It needs `cloudflared` (`brew install cloudflared`). `scripts/keel-doctor`
+reports it as an optional row.
+
+```
+scripts/playground-tunnel                 # open a Cloudflare quick tunnel, point WordPress at it, wait
+scripts/playground-tunnel --url <https>   # point WordPress at a tunnel you already opened
+scripts/playground-tunnel --restore       # back to http://localhost:8888 (safe to repeat)
+```
+
+**What it changes while it is open:**
+
+- `WP_HOME` and `WP_SITEURL` in the playground's `wp-config.php` are set to
+  the tunnel URL. Every gateway builds its notification URL from that address,
+  so `DS_MERCHANT_MERCHANTURL` (Redsys, Bizum, Google Pay) and Inespay's
+  `notifUrl` now carry the tunnel hostname. The script prints the four
+  endpoints.
+- A playground-only must-use plugin,
+  `.wp-env-mu-plugins/keel-playground-tunnel-https.php`, tells WordPress the
+  request is HTTPS when the tunnel says so (`X-Forwarded-Proto`). It never
+  ships: `.wp-env-mu-plugins/` is `export-ignore`.
+- While the tunnel is open, the playground (including `/wp-admin`) is
+  reachable through it by anyone who has the URL, with the `admin` /
+  `password` credentials above. That is why the script refuses to start while
+  any enabled gateway is out of test mode. Only test keys go in front of it,
+  such as the public Redsys test key `scripts/playground-setup` writes. Don't
+  paste the URL into commits, issues or public notes.
+- Leave the Redsys gateways' "not use https" option off. It rewrites the
+  notification URL to `http:`.
+
+**How it is closed:** press Ctrl-C in the terminal running it, or run
+`kill -TERM <pid>` (the PID is printed). From a shell that started with
+SIGINT ignored (a background job, an assistant's tool shell), only TERM
+reaches the trap. Every exit path closes the tunnel, deletes the HTTPS
+plugin and puts `WP_HOME`/`WP_SITEURL` back on `http://localhost:8888`.
+That includes the tunnel dying on its own, the URL never appearing (it
+gives up after `PLAYGROUND_TUNNEL_TIMEOUT` seconds, default 30, and prints
+cloudflared's last lines), and a failed switch. After a `kill -9`, or after
+`--url`, run `scripts/playground-tunnel --restore`. Never leave a tunnel
+open between sessions. A playground still pointing at a dead hostname
+looks like a product bug.
+
+Exit codes: 0 done, 2 could not run. It exits 2 without changing anything
+in these cases: the playground is not answering, port 8888 belongs to
+another checkout's wp-env, `cloudflared` is missing, a gateway is out of
+test mode, or `~/.cloudflared/config.yml` exists. That last file is yours
+and the script never edits it. Open your own tunnel and use `--url`.
+
+**Last real run: none yet.** The script's exit paths were exercised against
+stand-ins for `npx wp-env` and `cloudflared` (S-087). No public tunnel to the
+playground has been opened. The one provider acceptance check, a Redsys
+test-terminal payment whose notification URL is on the tunnel, is deferred to
+S-037 by the owner (D-093). Until it runs, it is unknown whether Redsys
+accepts a `trycloudflare.com` notification URL. If it does not, the next step
+is a named tunnel, not a deployment.
+
 ## What this playground does NOT verify
 
 - A real Redsys/Bizum/Apple-Google Pay/Inespay round trip against Redsys's
   live test environment (`CREDENTIAL`, step 7 above).
 - Anything requiring HTTPS-only behaviour that Redsys's real endpoints may
-  enforce — this local environment is plain HTTP.
+  enforce — this local environment is plain HTTP (the inbound tunnel above
+  serves it over HTTPS, but no Redsys run through it has happened yet:
+  S-037, D-093).
 - Email deliverability of WooCommerce order emails (no SMTP is configured in
   `.wp-env.json`; add a mail-catching plugin if that becomes relevant to a
   future slice).
