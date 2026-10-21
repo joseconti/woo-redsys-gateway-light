@@ -16,9 +16,11 @@ scope_reconciliations:
 slices:
   - id: S-101
     title: phpcs.xml corrected (testVersion 7.0-, minimum WordPress 5.9, array properties in element syntax, manage_woocommerce as a known capability) and the readme header Requires at least raised from 4.0 to 5.9, the floor of the WooCommerce 7.4 the plugin requires
-    status: not-started
+    status: done
     original_hours: 0.5
-    residual_hours: 0.5
+    actual_hours: 0.0119
+    actual_source: measured
+    residual_hours: 0
     change_kind: extracted
     parent_slice: S-093
     owns: [S-101]
@@ -59,3 +61,4 @@ slices:
 - Acceptance: on `work/after-7.1.0`, PHPCS with the committed `phpcs.xml` reports no deprecation notice and none of the findings the slices name; comment-only and configuration changes, so the affected tests stay green; independent review of the diff; `develop` (the 7.1.0 candidate) carries no product change.
 - Notes: opened 2026-10-21 at the owner's fourth request for work that does not depend on the merge and tag. S-093 waits for the tag because installing the analysers changes `composer.json` and the playground (D-102, D-103); its `phpcs.xml` fix and its readme-header correction change neither, so they are extracted (D-111). The PHPCS run of the work branch (tools under `/tmp/redsys-sa`, nothing installed) gives 40 errors and 10 warnings, none about security. Left for the owner: the 15 prohibited `@copyright`/`@license`/`@author`/`@access` tags (the files' own header convention), and `Requires PHP: 7.0` (D-001) while WooCommerce 7.4 declares PHP 7.2. Hours are AI working time plus supervision.
 - Close-out:
+- S-101 (done 2026-10-21, D-111): `work/after-7.1.0` at `dca7915`; PHPCS on the tracked PHP files no longer prints the four deprecation notices, and its `t_coalesce` (3) and unknown-capability (2) findings are gone — 45 left, all S-102's or the owner's. Configuration and readme only, no PHP changed.
