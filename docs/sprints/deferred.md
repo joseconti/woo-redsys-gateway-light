@@ -66,19 +66,6 @@ items:
     reason: D-067 — the colours are WooCommerce's stylesheet, not this plugin's; giving the buttons colours of their own is a visual decision for the user, and the result on a current WooCommerce has not been observed
     depends_on: []
     criteria: []
-  - id: S-055
-    title: Order-received fallback follow-ups — successful_request() of the three gateways to verify through is_valid_return() (one verification instead of two), and an atomic claim of the per-order attempt
-    status: not-started
-    original_hours: 1
-    residual_hours: 1
-    change_kind: added
-    parent_slice: null
-    owns: [S-055]
-    estimate_changes: []
-    target: null
-    reason: D-060 — both need a valid signature to matter; refactoring the verification head of successful_request() is not a security-fix change
-    depends_on: []
-    criteria: []
   - id: S-030
     title: Guided assistive-technology pass with the user
     status: not-started

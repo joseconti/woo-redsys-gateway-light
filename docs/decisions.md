@@ -938,3 +938,8 @@
 - Decision: the owner (1) accepts self-audit answer 1 for 7.1.0 — the analysers were run once outside the repository (D-102) and installing them stays S-093; (2) wants S-065 in 7.1.0 — commit `f658ebb` is brought onto `develop` (S-097), its changelog line moved from `== Unreleased ==` into `== 7.1.0 ==`; (3) takes the 280-character upgrade notice offered in D-102, replacing the D-099 wording.
 - Evidence: the regenerated `es_ES` JSON carries the same translations as the one it replaces, under the MD5 of `assets/js/frontend/blocks.js`; the shipped-file diff against `704730a` is the new JSON (and the removed old one) and `readme.txt`; `scripts/keel-affected-tests --run` widened to the entire suite by the build-script change: 205 of 205 green.
 - Consequence: the 7.1.0 candidate is `develop` after S-097. Merging `work/after-7.1.0` later will conflict in `readme.txt`; S-065's line must stay only in `== 7.1.0 ==`.
+
+## D-107 — Sprint 7: S-055 promoted onto `work/after-7.1.0` while the owner's release block stands
+- Date / phase: 2026-10-21 / Phase 7 (independent of the owner's release block)
+- Decision: the owner asked again for the work that does not depend on the merge and tag. Of `deferred.md`, S-055 is the one item with no product choice, no owner action and no recorded tag dependency: D-060 deferred it because a verification refactor did not belong in a security-fix release, and D-103 left it "planned with the next version" — which is what `work/after-7.1.0` holds. It is promoted into sprint 7 and built there; `develop` stays the unchanged 7.1.0 candidate. Everything else stays deferred for the reasons D-103 recorded (S-093 waits for the tag by D-102).
+- Consequence: S-055 reaches `develop` with `work/after-7.1.0`, after the `v7.1.0` tag.
