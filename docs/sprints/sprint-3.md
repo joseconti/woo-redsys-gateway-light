@@ -741,6 +741,27 @@ slices:
       exclusive_resources: []
       parallel: serial
       serial_reason: installs the parallel machinery itself and migrates docs/sprints/ (the coordinator-owned plan); the scheduler it installs cannot dispatch it
+  - id: S-089
+    title: Development-dependency maintenance — the non-breaking npm audit fixes on develop (markdown-it, qs) and triage of the 17 open Dependabot PRs against master (independent of the owner block)
+    status: done
+    original_hours: 1
+    actual_hours: 0.0353
+    actual_source: measured
+    residual_hours: 0
+    change_kind: added
+    parent_slice: null
+    owns: [S-089]
+    estimate_changes: []
+    depends_on: []
+    criteria: []
+    execution:
+      write_paths: [package-lock.json, docs/issues.md, docs/decisions.md, docs/PROGRESS.md, docs/sprints/, docs/.keel/plan.json]
+      contracts:
+        reads: []
+        writes: []
+      exclusive_resources: [wp-env-playground]
+      parallel: serial
+      serial_reason: a lockfile change widens the pre-push selection to the whole suite, which needs the one playground
 ---
 
 # Sprint 3 — Release preparation for the unreleased security and correctness fixes

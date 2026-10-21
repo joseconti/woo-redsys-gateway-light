@@ -11,33 +11,33 @@
   "current_sprint": 3,
   "reconciliation_status": "reconciled",
   "totals": {
-    "original_estimated_hours": 79.4,
-    "completed_original_hours": 75.9,
-    "actual_hours": 30.6454,
+    "original_estimated_hours": 80.4,
+    "completed_original_hours": 76.9,
+    "actual_hours": 30.6807,
     "remaining_hours": 3.5,
-    "deviation_hours": -45.2546,
-    "pace_factor": 0.180832,
-    "projected_remaining_hours": 0.6329,
+    "deviation_hours": -46.2193,
+    "pace_factor": 0.177745,
+    "projected_remaining_hours": 0.6221,
     "reconciliation_status": "reconciled",
     "scope_delta": {
       "added_scope_hours": 0,
       "extracted_hours": 0,
       "explicit_residual_reestimate_hours": 0
     },
-    "percent_done": 95.59,
+    "percent_done": 95.65,
     "unit": "hours of AI working time plus supervision",
     "spent_unfinished_hours": 0.0386,
-    "slices_total": 71,
-    "slices_done": 67,
+    "slices_total": 72,
+    "slices_done": 68,
     "slices_pending": 3,
     "slices_dropped": 1,
     "slices_unreconciled": 0,
     "pace_sample": {
-      "slices": 49,
-      "estimated_hours": 46.15,
-      "actual_hours": 8.3454,
-      "deviation_hours": -37.8046,
-      "deviation_percent": -81.92,
+      "slices": 50,
+      "estimated_hours": 47.15,
+      "actual_hours": 8.3807,
+      "deviation_hours": -38.7693,
+      "deviation_percent": -82.23,
       "provisional": false
     }
   },
@@ -52,7 +52,7 @@
       "actual_hours": 20,
       "remaining_hours": 0,
       "deviation_hours": 0,
-      "pace_factor": 0.180832,
+      "pace_factor": 0.177745,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -288,7 +288,7 @@
       "actual_hours": 4.2175,
       "remaining_hours": 0,
       "deviation_hours": -5.5325,
-      "pace_factor": 0.180832,
+      "pace_factor": 0.177745,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -447,24 +447,24 @@
       "goal": "Release preparation for the unreleased security and correctness fixes",
       "status": "in-progress",
       "file": "docs/sprints/sprint-3.md",
-      "original_estimated_hours": 49.65,
-      "completed_original_hours": 46.15,
-      "actual_hours": 6.4279,
+      "original_estimated_hours": 50.65,
+      "completed_original_hours": 47.15,
+      "actual_hours": 6.4632,
       "remaining_hours": 3.5,
-      "deviation_hours": -39.7221,
-      "pace_factor": 0.180832,
-      "projected_remaining_hours": 0.6329,
+      "deviation_hours": -40.6868,
+      "pace_factor": 0.177745,
+      "projected_remaining_hours": 0.6221,
       "reconciliation_status": "reconciled",
       "scope_delta": {
         "added_scope_hours": 0,
         "extracted_hours": 0,
         "explicit_residual_reestimate_hours": 0
       },
-      "percent_done": 92.95,
+      "percent_done": 93.09,
       "unit": "hours of AI working time plus supervision",
       "spent_unfinished_hours": 0.0386,
-      "slices_total": 53,
-      "slices_done": 49,
+      "slices_total": 54,
+      "slices_done": 50,
       "slices_pending": 3,
       "slices_dropped": 1,
       "slices_unreconciled": 0,
@@ -1648,6 +1648,42 @@
             "exclusive_resources": [],
             "parallel": "serial",
             "serial_reason": "installs the parallel machinery itself and migrates docs/sprints/ (the coordinator-owned plan); the scheduler it installs cannot dispatch it"
+          }
+        },
+        {
+          "id": "S-089",
+          "title": "Development-dependency maintenance — the non-breaking npm audit fixes on develop (markdown-it, qs) and triage of the 17 open Dependabot PRs against master (independent of the owner block)",
+          "status": "done",
+          "original_hours": 1,
+          "residual_hours": 0,
+          "change_kind": "added",
+          "parent_slice": null,
+          "owns": [
+            "S-089"
+          ],
+          "estimate_changes": [],
+          "actual_hours": 0.0353,
+          "actual_source": "measured",
+          "depends_on": [],
+          "criteria": [],
+          "execution": {
+            "write_paths": [
+              "package-lock.json",
+              "docs/issues.md",
+              "docs/decisions.md",
+              "docs/PROGRESS.md",
+              "docs/sprints/",
+              "docs/.keel/plan.json"
+            ],
+            "contracts": {
+              "reads": [],
+              "writes": []
+            },
+            "exclusive_resources": [
+              "wp-env-playground"
+            ],
+            "parallel": "serial",
+            "serial_reason": "a lockfile change widens the pre-push selection to the whole suite, which needs the one playground"
           }
         }
       ]

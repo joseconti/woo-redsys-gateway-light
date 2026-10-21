@@ -2,7 +2,7 @@
 
 > Living log of forge issues (GitHub, `joseconti/woo-redsys-gateway-light`). Inventory first, one entry per issue worked.
 > Updated the moment an issue is triaged, worked, or closed.
-> Last inbound sweep: 2026-10-21 13:45 (session close — `gh issue list --state all`: six open issues, none new since #112 on 2026-09-16; no new comment; five open Dependabot PRs (#111, #113–#116, development dependencies only), not triaged here. Outside the forge, two WordPress.org support threads report D-023 on 7.0.2 — recorded in `docs/PROGRESS.md`; replies drafted, not posted, waiting for the owner)
+> Last inbound sweep: 2026-10-21 13:45 (session close — `gh issue list --state all`: six open issues, none new since #112 on 2026-09-16; no new comment; seventeen open Dependabot PRs (#94–#116, development dependencies only), triaged 2026-10-21 by S-089 — all superseded on `develop`, see "Dependabot pull requests" below. Outside the forge, two WordPress.org support threads report D-023 on 7.0.2 — recorded in `docs/PROGRESS.md`; replies drafted, not posted, waiting for the owner)
 
 ## Inventory
 | # | Title | Type | Priority | Status | Entry |
@@ -57,3 +57,29 @@ These predate this adoption and were never closed even though the underlying cod
 - **#21** (2024) — a string in `includes/data/number-order-type.php` looked wrong. Confirmed the owner's own 2024 reply: that file is never `require`d/`include`d anywhere in the Lite codebase (dead code left over from the premium version). Won't-fix for Lite; low-priority hygiene item (unused file) noted in `docs/04-adoption-audit.md`, not worth a code change on its own.
 - **#2** (2021) — "operación denegada" turned out to be a PSD2-terminal-configuration question, resolved via conversation with the reporter's bank/terminal setup, not a plugin defect.
 - **#1** (2018) — "not passing completed order" turned out to be a hosting firewall (Wordfence) blocking Redsys's Java-User-Agent callback IP, resolved via conversation, not a plugin defect.
+
+## Dependabot pull requests (triaged 2026-10-21, S-089, D-098)
+
+Seventeen open Dependabot PRs, all against `master` and all touching `package-lock.json` only (development tools; nothing from npm ships, D-050). Each was compared with `develop`'s lockfile: **every one is already superseded there** — the package is at or above the PR's target, or no longer in the tree at all.
+
+| PR | Bump | On `develop` |
+|----|------|--------------|
+| #116 | axios 1.16.0 → 1.20.0 | not in the tree |
+| #115 | markdown-it 12.3.2 → 14.3.2, @wordpress/scripts 30 → 36.0.0 | markdown-it 14.3.3 (S-089), @wordpress/scripts 36.0.0 (D-055) |
+| #114 | ip-address 10.2.0 → 10.7.2 | not in the tree |
+| #113 | adm-zip 0.5.16 → 0.6.1, @wordpress/scripts 30 → 35.0.0 | adm-zip 0.6.1, @wordpress/scripts 36.0.0 |
+| #111 | js-yaml 3.14.2 → 3.15.2 and 4.1.1 → 4.3.2 | 3.15.2, 4.3.2 (and 5.2.3) |
+| #110 | joi 17.13.3 → 17.13.7 | not in the tree |
+| #109 | baseline-browser-mapping 2.9.19 → 2.11.21 | 2.11.27 |
+| #108 | colord 2.9.3 → 2.10.0 | 2.10.0 |
+| #107 | browserslist 4.28.1 → 4.28.9 | 4.29.3 |
+| #106 | fast-uri 3.1.2 → 3.1.7 | 3.1.8 |
+| #105 | postcss-selector-parser 6.1.2 → 6.1.4 and 7.1.0 → 7.1.5 | 6.1.4, 7.1.6 |
+| #104 | brace-expansion 1.1.13 → 1.1.18 | 1.1.21 (and 2.1.7, 5.0.12) |
+| #103 | nanoid 3.3.11 → 3.3.18 | 3.3.20 |
+| #99 | body-parser 1.20.5 → 1.20.6 | 1.20.8 |
+| #98 | shell-quote 1.8.4 → 1.10.0 | 1.12.0 |
+| #97 | immutable 4.3.8 → 4.3.9 | 5.1.9 |
+| #94 | websocket-driver 0.7.4 → 0.7.5 | 0.7.5 |
+
+- Action: none on the forge. Merging any of them into `master` would conflict with, and be overwritten by, `develop`'s lockfile when the owner merges the release; Dependabot reads the default branch, so these PRs and the alert count resolve themselves once `develop` reaches `master`. They are not closed by Keel — that is the owner's call (or Dependabot's own, after the merge).
