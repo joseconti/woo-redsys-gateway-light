@@ -9,36 +9,36 @@
     "docs/sprints/sprint-4.md",
     "docs/sprints/deferred.md"
   ],
-  "current_sprint": 4,
+  "current_sprint": null,
   "reconciliation_status": "reconciled",
   "totals": {
     "original_estimated_hours": 80.9,
-    "completed_original_hours": 79.4,
-    "actual_hours": 31.2451,
-    "remaining_hours": 1.5,
-    "deviation_hours": -48.1549,
-    "pace_factor": 0.181996,
-    "projected_remaining_hours": 0.273,
+    "completed_original_hours": 80.9,
+    "actual_hours": 31.344,
+    "remaining_hours": 0,
+    "deviation_hours": -49.556,
+    "pace_factor": 0.178559,
+    "projected_remaining_hours": 0,
     "reconciliation_status": "reconciled",
     "scope_delta": {
       "added_scope_hours": -1.25,
       "extracted_hours": 0,
       "explicit_residual_reestimate_hours": 0
     },
-    "percent_done": 98.15,
+    "percent_done": 100,
     "unit": "hours of AI working time plus supervision",
     "spent_unfinished_hours": 0,
     "slices_total": 72,
-    "slices_done": 70,
-    "slices_pending": 1,
+    "slices_done": 71,
+    "slices_pending": 0,
     "slices_dropped": 1,
     "slices_unreconciled": 0,
     "pace_sample": {
-      "slices": 51,
-      "estimated_hours": 49.15,
-      "actual_hours": 8.9451,
-      "deviation_hours": -40.2049,
-      "deviation_percent": -81.8,
+      "slices": 52,
+      "estimated_hours": 50.65,
+      "actual_hours": 9.044,
+      "deviation_hours": -41.606,
+      "deviation_percent": -82.14,
       "provisional": false
     }
   },
@@ -53,7 +53,7 @@
       "actual_hours": 20,
       "remaining_hours": 0,
       "deviation_hours": 0,
-      "pace_factor": 0.181996,
+      "pace_factor": 0.178559,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -289,7 +289,7 @@
       "actual_hours": 4.2175,
       "remaining_hours": 0,
       "deviation_hours": -5.5325,
-      "pace_factor": 0.181996,
+      "pace_factor": 0.178559,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -453,7 +453,7 @@
       "actual_hours": 7.0276,
       "remaining_hours": 0,
       "deviation_hours": -42.6224,
-      "pace_factor": 0.181996,
+      "pace_factor": 0.178559,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -1667,44 +1667,44 @@
     {
       "sprint": 4,
       "goal": "Work independent of the owner's 7.1.0 release block — evidence only, no shipped file changes while develop is the candidate",
-      "status": "in-progress",
+      "status": "done",
       "file": "docs/sprints/sprint-4.md",
       "original_estimated_hours": 1.5,
-      "completed_original_hours": 0,
-      "actual_hours": 0,
-      "remaining_hours": 1.5,
-      "deviation_hours": 0,
-      "pace_factor": 0.181996,
-      "projected_remaining_hours": 0.273,
+      "completed_original_hours": 1.5,
+      "actual_hours": 0.0989,
+      "remaining_hours": 0,
+      "deviation_hours": -1.4011,
+      "pace_factor": 0.178559,
+      "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
         "added_scope_hours": 0,
         "extracted_hours": 0,
         "explicit_residual_reestimate_hours": 0
       },
-      "percent_done": 0,
+      "percent_done": 100,
       "unit": "hours of AI working time plus supervision",
       "spent_unfinished_hours": 0,
       "slices_total": 1,
-      "slices_done": 0,
-      "slices_pending": 1,
+      "slices_done": 1,
+      "slices_pending": 0,
       "slices_dropped": 0,
       "slices_unreconciled": 0,
       "slices": [
         {
           "id": "S-091",
           "title": "Run PHPCS (phpcs.xml), PHPStan and Plugin Check read-only against the 7.1.0 candidate, so the owner decides self-audit answer 1 on findings rather than on \"never run\"",
-          "status": "in-progress",
+          "status": "done",
           "original_hours": 1.5,
-          "residual_hours": 1.5,
+          "residual_hours": 0,
           "change_kind": "added",
           "parent_slice": null,
           "owns": [
             "S-091"
           ],
           "estimate_changes": [],
-          "actual_hours": null,
-          "actual_source": null,
+          "actual_hours": 0.0989,
+          "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
           "execution": {
@@ -1719,11 +1719,9 @@
               "reads": [],
               "writes": []
             },
-            "exclusive_resources": [
-              "wp-env-playground"
-            ],
+            "exclusive_resources": [],
             "parallel": "serial",
-            "serial_reason": "Plugin Check runs inside the one playground; the tools are installed outside the repository so no manifest or lockfile on the candidate changes"
+            "serial_reason": "Plugin Check needs a WordPress site (a throw-away one was used, not the playground); the tools are installed outside the repository so no manifest or lockfile on the candidate changes"
           }
         }
       ]
@@ -1934,6 +1932,40 @@
       "estimate_changes": [],
       "target": null,
       "reason": "D-099 — acknowledged, not validated, for 7.1.0; the owner runs the payments after the release and anything found goes into 7.1.1",
+      "depends_on": [],
+      "criteria": []
+    },
+    {
+      "id": "S-092",
+      "title": "Low defects found by PHPStan on the 7.1.0 candidate — undefined $result in the no-transaction-ID refund branch (Redsys, Bizum, Google Pay), PSD2 shipAddressUsage fields never sent, two methods that can end without a return",
+      "status": "not-started",
+      "original_hours": 1,
+      "residual_hours": 1,
+      "change_kind": "added",
+      "parent_slice": null,
+      "owns": [
+        "S-092"
+      ],
+      "estimate_changes": [],
+      "target": null,
+      "reason": "D-102 — found by S-091, none a regression of 7.1.0; each starts from a failing test (D-036)",
+      "depends_on": [],
+      "criteria": []
+    },
+    {
+      "id": "S-093",
+      "title": "Install PHPCS (phpcs.xml fixed — testVersion 7.0-, property syntax), PHPStan and Plugin Check as project development tools, with doctor rows, and correct the readme header Requires at least",
+      "status": "not-started",
+      "original_hours": 1.5,
+      "residual_hours": 1.5,
+      "change_kind": "added",
+      "parent_slice": null,
+      "owns": [
+        "S-093"
+      ],
+      "estimate_changes": [],
+      "target": null,
+      "reason": "D-102 — self-audit answer 1; the tools ran once outside the repository; installing them changes composer.json and the playground, so it waits for the tag",
       "depends_on": [],
       "criteria": []
     }

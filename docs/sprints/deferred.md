@@ -144,6 +144,32 @@ items:
     reason: D-099 — acknowledged, not validated, for 7.1.0; the owner runs the payments after the release and anything found goes into 7.1.1
     depends_on: []
     criteria: []
+  - id: S-092
+    title: Low defects found by PHPStan on the 7.1.0 candidate — undefined $result in the no-transaction-ID refund branch (Redsys, Bizum, Google Pay), PSD2 shipAddressUsage fields never sent, two methods that can end without a return
+    status: not-started
+    original_hours: 1
+    residual_hours: 1
+    change_kind: added
+    parent_slice: null
+    owns: [S-092]
+    estimate_changes: []
+    target: null
+    reason: D-102 — found by S-091, none a regression of 7.1.0; each starts from a failing test (D-036)
+    depends_on: []
+    criteria: []
+  - id: S-093
+    title: Install PHPCS (phpcs.xml fixed — testVersion 7.0-, property syntax), PHPStan and Plugin Check as project development tools, with doctor rows, and correct the readme header Requires at least
+    status: not-started
+    original_hours: 1.5
+    residual_hours: 1.5
+    change_kind: added
+    parent_slice: null
+    owns: [S-093]
+    estimate_changes: []
+    target: null
+    reason: D-102 — self-audit answer 1; the tools ran once outside the repository; installing them changes composer.json and the playground, so it waits for the tag
+    depends_on: []
+    criteria: []
 ---
 
 # Deferred — wanted, not in the current plan
