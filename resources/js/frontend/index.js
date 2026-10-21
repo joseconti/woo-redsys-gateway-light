@@ -164,12 +164,32 @@ const GPayRed = {
 		features: settingsgpayredsys.supports,
 	},
 };
+/**
+ * Inespay serves only the countries the plugin hands over (S-066): the
+ * shipping country when there is one, else the billing country, the same
+ * order the classic checkout uses. Without that list — the plugin handed no
+ * data because the customer is elsewhere — it is not offered at all.
+ *
+ * @param {Object} cart Data the Blocks checkout passes to canMakePayment.
+ * @return {boolean} Whether Inespay can be offered for this address.
+ */
+const canPayWithInespay = ( cart ) => {
+	const countries = Array.isArray( settingsinespayredsys.countries ) ? settingsinespayredsys.countries : [];
+	if ( ! countries.length ) {
+		return false;
+	}
+	const shipping = ( cart && cart.shippingAddress && cart.shippingAddress.country ) || '';
+	const billing = ( cart && cart.billingAddress && cart.billingAddress.country ) || ( cart && cart.billingData && cart.billingData.country ) || '';
+	const country = ( shipping || billing ).toUpperCase();
+	// No address typed yet: the server already decided from the session.
+	return '' === country || countries.indexOf( country ) !== -1;
+};
 const Inespay = {
 	name: "inespayredsys",
 	label: <Labelinespay />,
 	content: <Contentinespay />,
 	edit: <Contentinespay />,
-	canMakePayment: () => true,
+	canMakePayment: canPayWithInespay,
 	ariaLabel: labelinespay,
 	supports: {
 		features: settingsinespayredsys.supports,

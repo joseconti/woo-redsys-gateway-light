@@ -310,7 +310,7 @@ slices:
     criteria: []
   - id: S-077
     title: The facts S-066's question needs — Inespay in the Blocks checkout for a customer outside ES, PT and IT, on the floor and on the ceiling, and whether such an order can be placed; no shipped code changed
-    status: in-progress
+    status: dropped
     hours: 0.75
     actual_hours: null
     actual_source: estimated
@@ -334,11 +334,11 @@ slices:
     criteria: []
   - id: S-066
     title: On WooCommerce 7.4 the Blocks checkout draws the Inespay option for customers outside ES, PT and IT (fallback label, no description, no icon); fix so it is offered only where the classic checkout offers it — moved from deferred.md by the owner's "arregla todo" (2026-10-21, D-085)
-    status: not-started
+    status: done
     hours: 1
-    actual_hours: null
-    actual_source: estimated
-    depends_on: [S-077]
+    actual_hours: 0.0258
+    actual_source: measured
+    depends_on: []
     criteria: []
   - id: S-073
     title: Escape the translated strings of the three redirect forms (the redirect message inside the inline script, the two button labels) and pass the Google Pay form through wp_kses like its siblings — moved from deferred.md (D-085)
@@ -450,3 +450,4 @@ slices:
 - S-082 (done 2026-10-21, D-088): the signing secrets and Inespay's API key are password fields.
 - S-074 (done 2026-10-21, D-089): `ABSPATH` guard in the main file and the signature class; generated files left as they are, recorded.
 - S-073 (done 2026-10-21, D-090): the translated strings of the three redirect forms are escaped; Google Pay's form goes through `wp_kses()`.
+- S-066 (done 2026-10-21, D-091): Inespay offered in the Blocks checkout only for ES, PT and IT, from one list; S-077 dropped — its question was answered by the owner (D-085).

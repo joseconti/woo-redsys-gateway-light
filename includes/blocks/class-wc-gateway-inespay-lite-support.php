@@ -49,7 +49,7 @@ final class WC_Gateway_Inespay_Lite_Support extends AbstractPaymentMethodType {
 			return false;
 		}
 
-		$allowed  = array( 'ES', 'PT', 'IT' );
+		$allowed  = WC_Gateway_Inespay_Redsys::allowed_countries();
 		$customer = WC()->customer;
 		$billing  = $customer ? $customer->get_billing_country() : '';
 		$shipping = $customer ? $customer->get_shipping_country() : '';
@@ -110,6 +110,9 @@ final class WC_Gateway_Inespay_Lite_Support extends AbstractPaymentMethodType {
 			'title'       => WCRedL()->get_redsys_option( 'title', 'inespayredsys' ),
 			'description' => WCRedL()->get_redsys_option( 'description', 'inespayredsys' ),
 			'icon'        => esc_url_raw( $icon ),
+			// The script offers Inespay only while the address being typed is in
+			// one of these countries, as the classic checkout does (S-066).
+			'countries'   => WC_Gateway_Inespay_Redsys::allowed_countries(),
 			'supports'    => array(
 				'products',
 				'refunds',

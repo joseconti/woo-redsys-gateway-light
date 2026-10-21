@@ -18,7 +18,7 @@ Every example is ordinary WordPress code. Put it in a small plugin of your own o
 | 3 | `valid_googlepayredirecredsys_standard_ipn_request` | action | `classes/class-wc-gateway-googlepay-redirection-redsys.php:951` |
 | 4 | `googlepayredirecredsys_post_payment_complete` | action | `classes/class-wc-gateway-googlepay-redirection-redsys.php:1290` |
 | 5 | `googlepayredirecredsys_post_payment_error` | action | `classes/class-wc-gateway-googlepay-redirection-redsys.php:1340` |
-| 6 | `inespay_post_payment_complete` | action | `classes/class-wc-gateway-inespay-redsys.php:687` |
+| 6 | `inespay_post_payment_complete` | action | `classes/class-wc-gateway-inespay-redsys.php:698` |
 | 7 | `woocommerce_redsys_args` | filter | `classes/class-wc-gateway-redsys.php:701`, `classes/class-wc-gateway-bizum-redsys.php:909` |
 | 8 | `woocommerce_googlepayredirecredsys_args` | filter | `classes/class-wc-gateway-googlepay-redirection-redsys.php:724` |
 | 9 | `woocommerce_redsys_icon` | filter | `classes/class-wc-gateway-redsys.php:243`, `:245`; `includes/blocks/class-wc-gateway-redsys-lite-support.php:89`, `:91` |
@@ -125,7 +125,7 @@ add_action(
 ### 6. `inespay_post_payment_complete`
 
 - **Kind:** action.
-- **Fired from:** `handle_callback()` — `classes/class-wc-gateway-inespay-redsys.php:687`.
+- **Fired from:** `handle_callback()` — `classes/class-wc-gateway-inespay-redsys.php:698`.
 - **Parameters:**
   - `$order_id` (`int`) — the WooCommerce order ID.
 - **When:** after a correctly signed Inespay callback with status `OK` or `SETTLED` for an order that still needed payment, once `payment_complete()` has run and the meta `_payment_method` and `_redsys_done` are saved. It does not fire for callbacks about an already-resolved order, nor when the amount or currency check puts the order on hold.

@@ -57,3 +57,17 @@ for ( const gateway of GATEWAYS ) {
 		await expect( option ).toContainText( gateway.description );
 	} );
 }
+
+// S-066: a customer outside ES, PT and IT is not offered Inespay in the Blocks
+// checkout, as in the classic one. Before the fix, WooCommerce 7.4 drew it with
+// the fallback label because the script registered it whatever data it had.
+test( 'S-066: a customer in the US is not offered Inespay in the Blocks checkout; Bizum, in the same page, is', async ( { page } ) => {
+	await page.goto( '/?add-to-cart=10' );
+	await page.goto( '/checkout/' );
+	await page.selectOption( '#billing_country', 'US' );
+	await expect( page.locator( '#payment_method_inespayredsys' ) ).toHaveCount( 0, { timeout: 15000 } );
+	await page.goto( '/checkout-blocks/' );
+
+	await expect( page.locator( 'input[type="radio"][value="bizumredsys"]' ) ).toBeAttached( { timeout: 15000 } );
+	await expect( page.locator( 'input[type="radio"][value="inespayredsys"]' ) ).toHaveCount( 0 );
+} );

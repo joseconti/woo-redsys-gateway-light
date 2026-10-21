@@ -80,7 +80,8 @@ Extends `WC_Payment_Gateway`. All public methods are documented here.
 
 | Method | Signature | Returns | Notes |
 |--------|-----------|---------|-------|
-| `is_available` | `()` | `bool` | Enabled and the customer's country is `ES`, `PT` or `IT`. |
+| `allowed_countries` | `static ()` | `string[]` | `array( 'ES', 'PT', 'IT' )` — the countries Inespay serves; read by `is_allowed_country()`, by `WC_Gateway_Inespay_Lite_Support` and, through its data, by the Blocks script (S-066). |
+| `is_available` | `()` | `bool` | Enabled and the customer's country is one of `allowed_countries()`. |
 | `disable_inespay` | `( array $available_gateways )` | `array` | Listener on `woocommerce_available_payment_gateways`; removes the gateway when the amount to pay (order total on the order-pay page, cart total otherwise) is over the transaction limit. Not only on the checkout page. |
 | `admin_options` | `()` | `void` | Prints the settings screen. |
 | `init_form_fields` | `()` | `void` | Fills `$this->form_fields`. |
@@ -191,7 +192,7 @@ Four `final` classes extending WooCommerce's `AbstractPaymentMethodType`, regist
 | `initialize()` | `void` | Loads the option `woocommerce_<gateway id>_settings`. Read in the Inespay class; the other three were not read at this method. |
 | `is_active()` | `bool` | Inespay: enabled and the customer's country is `ES`, `PT` or `IT`. The other three were not read at this method. |
 | `get_payment_method_script_handles()` | `string[]` | Registers the script built from `resources/js/frontend/index.js` (`assets/js/frontend/blocks.js`). Read in the Inespay class, where the handle is `wc-inespayredsys-payments-blocks`. |
-| `get_payment_method_data()` | `array` | `title`, `description`, `icon` (through the gateway's `_icon` filter, then `esc_url_raw()`) and `supports`. Read in all four. |
+| `get_payment_method_data()` | `array` | `title`, `description`, `icon` (through the gateway's `_icon` filter, then `esc_url_raw()`) and `supports`. Read in all four. Inespay's also carries `countries` (`allowed_countries()`): its `canMakePayment` offers it only while the shipping address — or, without one, the billing address — is in one of them, and never when the list is missing (S-066). |
 
 ## `Redsys_Lite_Apps_Plugins`
 

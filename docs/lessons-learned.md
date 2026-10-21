@@ -117,3 +117,11 @@
 - Fix: `docs/playground.md` gives the full command; the ceiling is stopped when its run ends.
 - Check added: none mechanical.
 - Rule for next time: one instance up while a browser suite runs. A browser failure that is a time-out at the log-in step is re-run alone before it is read as a result; a failure that moves between runs is the environment until one run alone says otherwise. After any long run, check `docker ps` before trusting the next command's silence.
+
+## L-015 — A test added while the pre-push suite ran turned that push red
+- Where: sprint 3, S-073's push and S-066's first test (2026-10-21).
+- What failed first: the push of S-073 came back `result: RED`. The playground mounts the working tree, not the commit, so the suite ran the S-066 browser test written while it was running — a test that must fail until S-066's fix exists.
+- Cause: the working tree was edited during a run that reads it.
+- Fix: the S-066 test was set aside, the push repeated (`result: GREEN`), and the test restored afterwards.
+- Check added: none mechanical.
+- Rule for next time: while `.githooks/pre-push` (or any suite) runs, read code only; write nothing under the mounted tree until it ends.

@@ -156,12 +156,23 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 		}
 
 		/**
+		 * The countries Inespay serves, as ISO 3166-1 alpha-2 codes. The classic
+		 * checkout, the Blocks support class and the Blocks script all read it
+		 * (S-066).
+		 *
+		 * @return string[]
+		 */
+		public static function allowed_countries() {
+			return array( 'ES', 'PT', 'IT' );
+		}
+
+		/**
 		 * Check if the customer billing/shipping country is allowed.
 		 *
 		 * @return bool
 		 */
 		protected function is_allowed_country() {
-			$allowed  = array( 'ES', 'PT', 'IT' );
+			$allowed  = self::allowed_countries();
 			$customer = WC()->customer;
 			$billing  = $customer ? $customer->get_billing_country() : '';
 			$shipping = $customer ? $customer->get_shipping_country() : '';

@@ -101,6 +101,7 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == Unreleased ==
 
+* Fix: In the Blocks checkout, Inespay was shown to customers outside Spain, Portugal and Italy (on older WooCommerce versions, with a generic label and no icon). It is now offered only for an address in those countries, as in the classic checkout.
 * Tweak: The translated texts of the Redsys, Bizum and Google Pay redirect pages (button, cancel link and redirect message) are now escaped, and the Google Pay page filters its form like the other two.
 * Tweak: The main plugin file and the Redsys signature class now stop at once when requested directly, outside WordPress.
 * Tweak: The SHA-256 secrets of the Redsys, Bizum and Google Pay gateways and the Inespay API key are now password fields on the settings screens, so they are not shown in clear.
