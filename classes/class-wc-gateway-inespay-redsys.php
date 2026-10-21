@@ -160,6 +160,7 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 		 * checkout, the Blocks support class and the Blocks script all read it
 		 * (S-066).
 		 *
+		 * @since 7.1.0
 		 * @return string[]
 		 */
 		public static function allowed_countries() {
@@ -206,6 +207,7 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 		/**
 		 * Tell whether an amount is above this gateway's transaction limit.
 		 *
+		 * @since 7.1.0
 		 * @param float|string $total Amount to pay.
 		 * @return bool False when no limit is set.
 		 */
@@ -221,6 +223,7 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 		 * empty there. Anywhere else it is the cart total, including in a Store API
 		 * request from the Blocks checkout, which is not "the checkout page".
 		 *
+		 * @since 7.1.0
 		 * @return float|null Null when there is neither an order to pay nor a cart.
 		 */
 		private function get_amount_to_pay() {
@@ -309,6 +312,7 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 		 * image tag on the checkout, so anything that is not part of a URL is
 		 * dropped when the settings are saved.
 		 *
+		 * @since 7.1.0
 		 * @param string $key   Field key.
 		 * @param string $value Posted value.
 		 * @return string A clean URL, or an empty string for the default icon.

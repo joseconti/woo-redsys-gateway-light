@@ -13,13 +13,13 @@ Every example is ordinary WordPress code. Put it in a small plugin of your own o
 
 | # | Hook | Kind | Fired from |
 |---|------|------|------------|
-| 1 | `valid_redsys_standard_ipn_request` | action | `classes/class-wc-gateway-redsys.php:920` |
-| 2 | `valid_bizumredsys_standard_ipn_request` | action | `classes/class-wc-gateway-bizum-redsys.php:1172` |
-| 3 | `valid_googlepayredirecredsys_standard_ipn_request` | action | `classes/class-wc-gateway-googlepay-redirection-redsys.php:951` |
-| 4 | `googlepayredirecredsys_post_payment_complete` | action | `classes/class-wc-gateway-googlepay-redirection-redsys.php:1290` |
-| 5 | `googlepayredirecredsys_post_payment_error` | action | `classes/class-wc-gateway-googlepay-redirection-redsys.php:1340` |
-| 6 | `inespay_post_payment_complete` | action | `classes/class-wc-gateway-inespay-redsys.php:698` |
-| 7 | `woocommerce_redsys_args` | filter | `classes/class-wc-gateway-redsys.php:701`, `classes/class-wc-gateway-bizum-redsys.php:909` |
+| 1 | `valid_redsys_standard_ipn_request` | action | `classes/class-wc-gateway-redsys.php:921` |
+| 2 | `valid_bizumredsys_standard_ipn_request` | action | `classes/class-wc-gateway-bizum-redsys.php:1176` |
+| 3 | `valid_googlepayredirecredsys_standard_ipn_request` | action | `classes/class-wc-gateway-googlepay-redirection-redsys.php:952` |
+| 4 | `googlepayredirecredsys_post_payment_complete` | action | `classes/class-wc-gateway-googlepay-redirection-redsys.php:1292` |
+| 5 | `googlepayredirecredsys_post_payment_error` | action | `classes/class-wc-gateway-googlepay-redirection-redsys.php:1342` |
+| 6 | `inespay_post_payment_complete` | action | `classes/class-wc-gateway-inespay-redsys.php:702` |
+| 7 | `woocommerce_redsys_args` | filter | `classes/class-wc-gateway-redsys.php:702`, `classes/class-wc-gateway-bizum-redsys.php:912` |
 | 8 | `woocommerce_googlepayredirecredsys_args` | filter | `classes/class-wc-gateway-googlepay-redirection-redsys.php:724` |
 | 9 | `woocommerce_redsys_icon` | filter | `classes/class-wc-gateway-redsys.php:243`, `:245`; `includes/blocks/class-wc-gateway-redsys-lite-support.php:89`, `:91` |
 | 10 | `woocommerce_bizumredsys_icon` | filter | `classes/class-wc-gateway-bizum-redsys.php:272`, `:281`; `includes/blocks/class-wc-gateway-bizum-lite-support.php:89`, `:91` |
@@ -32,8 +32,8 @@ Every example is ordinary WordPress code. Put it in a small plugin of your own o
 | 17 | `redsys_lite_apps_plugins_webs` | filter | `includes/class-redsys-lite-apps-plugins.php:570` |
 | 18 | `redsys_lite_apps_plugins_skills` | filter | `includes/class-redsys-lite-apps-plugins.php:634` |
 | 19 | `redsys_lite_apps_plugins_profiles` | filter | `includes/class-redsys-lite-apps-plugins.php:674` |
-| 20 | `woocommerce_ajax_loader_url` (WooCommerce's own) | filter | `classes/class-wc-gateway-redsys.php:738`, `:777`; `classes/class-wc-gateway-bizum-redsys.php:942`; `classes/class-wc-gateway-googlepay-redirection-redsys.php:757` |
-| 21 | `woocommerce_redsys_refund_confirmation_attempts`, `woocommerce_bizumredsys_refund_confirmation_attempts`, `woocommerce_googlepayredirecredsys_refund_confirmation_attempts` | filter | `classes/class-wc-gateway-redsys.php:1384`; `classes/class-wc-gateway-bizum-redsys.php:1787`; `classes/class-wc-gateway-googlepay-redirection-redsys.php:1585` |
+| 20 | `woocommerce_ajax_loader_url` (WooCommerce's own) | filter | `classes/class-wc-gateway-redsys.php:739`, `:778`; `classes/class-wc-gateway-bizum-redsys.php:945`; `classes/class-wc-gateway-googlepay-redirection-redsys.php:757` |
+| 21 | `woocommerce_redsys_refund_confirmation_attempts`, `woocommerce_bizumredsys_refund_confirmation_attempts`, `woocommerce_googlepayredirecredsys_refund_confirmation_attempts` | filter | `classes/class-wc-gateway-redsys.php:1388`; `classes/class-wc-gateway-bizum-redsys.php:1794`; `classes/class-wc-gateway-googlepay-redirection-redsys.php:1589` |
 
 Five of these names are built at run time from the gateway ID (`'valid_' . $this->id . '_standard_ipn_request'`, `'woocommerce_' . $this->id . '_icon'`, `'woocommerce_' . $this->id . '_args'`, `$this->id . '_post_payment_complete'`, `$this->id . '_post_payment_error'`). The names above are the resolved ones; searching the code for the full string does not find those call sites.
 
@@ -48,7 +48,7 @@ All hooks predate the project's adoption into Keel, so none has an introducing s
 `valid_redsys_standard_ipn_request`, `valid_bizumredsys_standard_ipn_request`, `valid_googlepayredirecredsys_standard_ipn_request`
 
 - **Kind:** action.
-- **Fired from:** `check_ipn_response()` — `classes/class-wc-gateway-redsys.php:920`, `classes/class-wc-gateway-bizum-redsys.php:1172` (since 2.0.0), `classes/class-wc-gateway-googlepay-redirection-redsys.php:951` (since 1.0.0).
+- **Fired from:** `check_ipn_response()` — `classes/class-wc-gateway-redsys.php:921`, `classes/class-wc-gateway-bizum-redsys.php:1176` (since 2.0.0), `classes/class-wc-gateway-googlepay-redirection-redsys.php:952` (since 1.0.0).
 - **Parameters:**
   - `$post` (`array`) — the notification's `POST` fields after `stripslashes_deep()`, not otherwise sanitized. Expected keys: `Ds_SignatureVersion`, `Ds_MerchantParameters` (Base64 JSON), `Ds_Signature`.
 - **When:** each time a Redsys notification for that gateway passes signature validation, immediately after the `200` status header is sent. It fires for payment notifications and for refund notifications alike, and before the order has been updated.
@@ -82,7 +82,7 @@ add_action(
 ### 4. `googlepayredirecredsys_post_payment_complete`
 
 - **Kind:** action. **Since:** 2.0.0.
-- **Fired from:** `successful_request()` — `classes/class-wc-gateway-googlepay-redirection-redsys.php:1290`.
+- **Fired from:** `successful_request()` — `classes/class-wc-gateway-googlepay-redirection-redsys.php:1292`.
 - **Parameters:**
   - `$order_id` (`int`) — the WooCommerce order ID.
 - **When:** after an authorised Google Pay notification whose amount matched: the payment meta is saved, the notes are added and `payment_complete()` has run.
@@ -102,7 +102,7 @@ add_action(
 ### 5. `googlepayredirecredsys_post_payment_error`
 
 - **Kind:** action. **Since:** 2.0.0.
-- **Fired from:** `successful_request()` — `classes/class-wc-gateway-googlepay-redirection-redsys.php:1340`.
+- **Fired from:** `successful_request()` — `classes/class-wc-gateway-googlepay-redirection-redsys.php:1342`.
 - **Parameters:**
   - `$order_id` (`int`) — the WooCommerce order ID.
   - `$error` (`string`) — the Redsys response text and the Redsys error text joined by a space; either part can be empty.
@@ -125,7 +125,7 @@ add_action(
 ### 6. `inespay_post_payment_complete`
 
 - **Kind:** action.
-- **Fired from:** `handle_callback()` — `classes/class-wc-gateway-inespay-redsys.php:698`.
+- **Fired from:** `handle_callback()` — `classes/class-wc-gateway-inespay-redsys.php:702`.
 - **Parameters:**
   - `$order_id` (`int`) — the WooCommerce order ID.
 - **When:** after a correctly signed Inespay callback with status `OK` or `SETTLED` for an order that still needed payment, once `payment_complete()` has run and the meta `_payment_method` and `_redsys_done` are saved. It does not fire for callbacks about an already-resolved order, nor when the amount or currency check puts the order on hold.
@@ -151,7 +151,7 @@ add_action(
 ### 7. `woocommerce_redsys_args`
 
 - **Kind:** filter. **Since:** 2.0.0 (docblock at the Bizum call site).
-- **Applied from:** `get_redsys_args()` — `classes/class-wc-gateway-redsys.php:701` (card) **and** `classes/class-wc-gateway-bizum-redsys.php:909` (Bizum). Bizum reuses the card gateway's filter name; there is no `woocommerce_bizumredsys_args`.
+- **Applied from:** `get_redsys_args()` — `classes/class-wc-gateway-redsys.php:702` (card) **and** `classes/class-wc-gateway-bizum-redsys.php:912` (Bizum). Bizum reuses the card gateway's filter name; there is no `woocommerce_bizumredsys_args`.
 - **Parameters:**
   - `$redsys_args` (`array`) — the three fields of the payment form: `Ds_SignatureVersion` (`string`, `HMAC_SHA256_V1`), `Ds_MerchantParameters` (`string`, Base64 JSON of the request), `Ds_Signature` (`string`, Base64).
 - **Returns:** the array whose keys and values become the hidden inputs of the payment form.
@@ -266,7 +266,7 @@ add_filter(
 ### 20. `woocommerce_ajax_loader_url` (WooCommerce's filter, applied here)
 
 - **Kind:** filter, owned by WooCommerce — documented here because this plugin applies it, not because it defines it.
-- **Applied from:** `generate_redsys_form()` — `classes/class-wc-gateway-redsys.php:738` and `:777`, `classes/class-wc-gateway-bizum-redsys.php:942`, `classes/class-wc-gateway-googlepay-redirection-redsys.php:757`.
+- **Applied from:** `generate_redsys_form()` — `classes/class-wc-gateway-redsys.php:739` and `:778`, `classes/class-wc-gateway-bizum-redsys.php:945`, `classes/class-wc-gateway-googlepay-redirection-redsys.php:757`.
 - **Parameters:**
   - `$url` (`string`) — the spinner image shown in the "redirecting" overlay on the order-pay page; default WooCommerce's `assets/images/select2-spinner.gif`.
 - **When:** each time the order-pay form is built for a card, Bizum or Google Pay order.
@@ -284,7 +284,7 @@ add_filter(
 
 `woocommerce_redsys_refund_confirmation_attempts`, `woocommerce_bizumredsys_refund_confirmation_attempts`, `woocommerce_googlepayredirecredsys_refund_confirmation_attempts`
 
-- **Kind:** filter. Added by S-049 (unreleased).
+- **Kind:** filter. Added by S-049 (since 7.1.0).
 - **Applied from:** each gateway's `process_refund()`, after the refund request has been sent — file and line in the summary table.
 - **Parameters:**
   - `$attempts` (`int`) — how many more times, five seconds apart, the gateway looks for Redsys's confirmation after its first look. Default `20`, about 105 seconds in all.

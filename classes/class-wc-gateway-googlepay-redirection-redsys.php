@@ -838,6 +838,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	 * bug had successful_request() using only the live-mode settings secret,
 	 * ignoring test mode and per-order overrides (see docs/lessons-learned.md).
 	 *
+	 * @since 7.1.0
 	 * @param RedsysLiteAPI $mi_obj Notification data, already decoded.
 	 * @return string
 	 */
@@ -961,6 +962,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	 * on a request (redsyslite_mark_order_as_paid()). successful_request()
 	 * still verifies on its own.
 	 *
+	 * @since 7.1.0
 	 * @param array $params Ds_MerchantParameters and Ds_Signature, as received.
 	 * @return bool
 	 */
@@ -1493,6 +1495,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 	 * waiting for (it came late, or the refund was made in the Redsys back
 	 * office) must not be there to answer for a later refund.
 	 *
+	 * @since 7.1.0
 	 * @param int $order_id Order ID.
 	 * @return void
 	 */
@@ -1579,6 +1582,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 			 * Filters how many more times, five seconds apart, the gateway looks for
 			 * Redsys's confirmation of a refund after the first look.
 			 *
+			 * @since 7.1.0
 			 * @param int $attempts Further looks after the first. Default 20 (about 105 seconds in all).
 			 * @param int $order_id Order being refunded.
 			 */

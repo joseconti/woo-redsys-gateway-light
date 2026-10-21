@@ -77,8 +77,8 @@ sequenceDiagram
 `AC-01`, `AC-02`, `AC-05`, `AC-15`, `AC-16`, `AC-45`; the notification half is `AC-03`, `AC-04`, `AC-06` to `AC-14` (see `docs/flows/notification-handling.md`).
 
 ## Source files
-- `classes/class-wc-gateway-redsys.php` — `__construct()` line 238, `is_valid_for_use()` 331, `get_redsys_args()` 572, `generate_redsys_form()` 710, `process_payment()` 808, `receipt_page()` 820, `warning_checkout_test_mode()` 1433.
-- `classes/class-wc-gateway-redsys-global-lite.php` — `prepare_order_number()` line 1154.
+- `classes/class-wc-gateway-redsys.php` — `__construct()` line 238, `is_valid_for_use()` 331, `get_redsys_args()` 573, `generate_redsys_form()` 711, `process_payment()` 809, `receipt_page()` 821, `warning_checkout_test_mode()` 1437.
+- `classes/class-wc-gateway-redsys-global-lite.php` — `prepare_order_number()` line 1155.
 - `classes/class-wc-gateway-redsys-psd2-light.php` — `get_acctinfo()` line 571.
 - `includes/class-redsysliteapi.php` — `create_merchant_parameters()` line 182, `create_merchant_signature()` 195.
 - `includes/blocks/class-wc-gateway-redsys-lite-support.php` — Blocks registration.

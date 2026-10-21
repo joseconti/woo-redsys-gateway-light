@@ -278,6 +278,7 @@ class RedsysLiteAPI {
 	 * Fresh random bytes: never empty and never the same twice, so no value
 	 * a caller presents can match it.
 	 *
+	 * @since 7.1.0
 	 * @return string 32 bytes.
 	 */
 	private function unmatchable_signature() {
@@ -299,6 +300,7 @@ class RedsysLiteAPI {
 	 * Redsys always sends an order number, so a genuine notification is
 	 * never of that shape.
 	 *
+	 * @since 7.1.0
 	 * @param mixed  $order Order number named by the notification.
 	 * @param string $key   Merchant secret, already Base64-decoded.
 	 * @return string The diversified key, or '' when the notification cannot be authenticated.

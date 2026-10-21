@@ -118,6 +118,32 @@ items:
     reason: D-072 — found by the gate's self-audit and confirmed on the ceiling instance; today it only affects the fallback label "Inespay Bank Transfer" when the merchant set no title; older than this release
     depends_on: []
     criteria: []
+  - id: S-030
+    title: Guided assistive-technology pass with the user
+    status: not-started
+    original_hours: 1
+    residual_hours: 1
+    change_kind: added
+    parent_slice: null
+    owns: [S-030]
+    estimate_changes: []
+    target: null
+    reason: D-099 — the owner shipped 7.1.0 with the guided pass recorded as an accepted shortfall; it runs for the next version
+    depends_on: [S-029]
+    criteria: []
+  - id: S-090
+    title: One Redsys test-terminal payment whose notification URL is the playground tunnel, plus the observations SA-06, SA-13 and SA-20 (sandbox payments on the owner's Redsys and Inespay test terminals)
+    status: not-started
+    original_hours: 0.25
+    residual_hours: 0.25
+    change_kind: extracted
+    parent_slice: S-037
+    owns: [S-090]
+    estimate_changes: []
+    target: null
+    reason: D-099 — acknowledged, not validated, for 7.1.0; the owner runs the payments after the release and anything found goes into 7.1.1
+    depends_on: []
+    criteria: []
 ---
 
 # Deferred — wanted, not in the current plan

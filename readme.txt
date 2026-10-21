@@ -5,7 +5,7 @@ Requires at least: 4.0
 Tested up to: 7.1
 Requires PHP: 7.0
 Donate link: https://plugins.joseconti.com/product-category/plugins/donaciones/
-Stable tag: 7.0.2
+Stable tag: 7.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 7.4
@@ -99,7 +99,7 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == Changelog ==
 
-== Unreleased ==
+== 7.1.0 ==
 
 * Tweak: Tested up to WordPress 7.1 and WooCommerce 11.2 (checked on PHP 8.4).
 * Fix: In the Blocks checkout, Inespay was shown to customers outside Spain, Portugal and Italy (on older WooCommerce versions, with a generic label and no icon). It is now offered only for an address in those countries, as in the classic checkout.
@@ -121,13 +121,13 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 * Security Fix: The plugin's two admin notices are now shown to, and can be dismissed by, users who manage WooCommerce only. Any user able to open an admin screen could dismiss them for everyone.
 * Fix: The one-time redirect to the About page after an update now happens only for an administrator on an admin screen. It could be triggered by any request to an admin entry point, including from a visitor who was not logged in, and it could interrupt that request.
 * Security Fix: A return to the order-received page is now checked (gateway, order status and Redsys signature) before the plugin waits for the payment notification. A request without a valid signature no longer holds the page for five seconds.
-* Security Fix: The Logo setting of the Redsys, Bizum and Inespay gateways is now saved as a URL and escaped where the checkout prints it. A value that was not a plain URL could add markup to the checkout page; only a user allowed to change the gateway settings could enter one.
+* Security Fix: The Logo setting of the Redsys, Bizum and Inespay gateways is now saved as a URL and escaped where the checkout prints it. A value that was not a plain URL could add markup to the checkout page; only a user allowed to change the gateway settings could enter one. What you may notice: a logo URL with a query string is now kept exactly as entered; a data: or javascript: value is no longer accepted (the bundled icon is shown instead); a relative path must start with a slash (/wp-content/...); and the URL returned by a woocommerce_<gateway>_icon filter is escaped. Saved values are cleaned when read and replaced the next time the settings are saved.
 * Security Fix: A payment notification that names no order is now always rejected by the Redsys, Bizum and Google Pay gateways. Such a notification could not reach any order, but it passed the signature check.
 * Tweak: The plugin's stylesheets and its Blocks checkout script are now loaded minified. The readable files are still included and are loaded when SCRIPT_DEBUG is on.
 * Fix: The cancel URL sent to Redsys for the card, Bizum and Google Pay gateways contained HTML-escaped separators, so a customer returning from a cancelled or refused payment did not have the cancellation processed. It is now sent as a plain URL.
 * Fix: A customer returning from a payment that Redsys had already cancelled was shown "Your order can no longer be cancelled"; the return is now treated as the cancellation it is.
 * Fix: A refund explicitly requested for 0 through the Redsys, Bizum or Google Pay gateways is now refused instead of being sent to Redsys as a refund of the full order total.
-* Fix: Debug logs of the Bizum, Google Pay and Redsys gateways no longer contain the signing secret or the locally computed signature, including the Google Pay log line written when the payment form is built.
+* Security Fix: Debug logs of the Bizum, Google Pay and Redsys gateways no longer contain the signing secret or the locally computed signature, including the Google Pay log line written when the payment form is built. If you ever enabled debug logging for these gateways, delete their old logs (WooCommerce > Status > Logs), which may contain your SHA-256 secret, and consider generating a new secret in your Redsys back office.
 * Fix: With debug logging on, a refund request that could not reach Redsys caused a fatal error; it now reports the error message.
 * Fix: A repeated payment notification for a Google Pay order that is already paid is now ignored, as in the other gateways.
 * Fix: Returning to the order-received page with a still unpaid Google Pay order stopped the page with an error; the payment is now verified and completed there.
@@ -399,6 +399,9 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 
 == Upgrade Notice ==
+
+= 7.1.0 =
+Security and reliability release. Fixes valid test-mode Bizum and Google Pay payments left unpaid, wrong-order matching for refunds on stores with long order IDs, and several notification hardening issues; the SHA-256 secrets become password fields. If you ever enabled debug logging for Google Pay, delete its old logs (WooCommerce > Status > Logs): they may contain your signing secret.
 
 = 7.0.2 =
 Security release. Adds signature + amount verification to the Inespay callback (update immediately if you use Inespay) and fixes signature validation failures (Ds_MerchantParameters "+" arriving as spaces, and spaces in the SHA-256 key) that could reject valid payments on Redsys, Bizum and Google Pay.

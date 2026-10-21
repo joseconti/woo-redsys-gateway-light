@@ -25,6 +25,7 @@ if ( ! function_exists( 'redsyslite_premium_is_installed' ) ) {
 	/**
 	 * Whether the premium plugin is installed on this site, active or not.
 	 *
+	 * @since 7.1.0
 	 * @return bool
 	 */
 	function redsyslite_premium_is_installed() {
@@ -44,6 +45,7 @@ if ( ! function_exists( 'redsyslite_delete_transients_with_prefix' ) ) {
 	/**
 	 * Delete every transient of the current site whose name starts with a prefix.
 	 *
+	 * @since 7.1.0
 	 * @param string $prefix Transient name prefix.
 	 */
 	function redsyslite_delete_transients_with_prefix( $prefix ) {
@@ -65,6 +67,7 @@ if ( ! function_exists( 'redsyslite_uninstall_site' ) ) {
 	/**
 	 * Remove the plugin's options and transients from the current site.
 	 *
+	 * @since 7.1.0
 	 * @param bool $shared_too Also remove the names shared with the premium plugin.
 	 */
 	function redsyslite_uninstall_site( $shared_too = true ) {

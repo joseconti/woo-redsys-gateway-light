@@ -243,11 +243,11 @@ One machine plays all three roles here — the user's Mac holds the repository a
 ## Version touchpoints (verified, and their current agreement)
 | Location | Value | Agrees with Stable tag? |
 |---|---|---|
-| `woocommerce-redsys.php` header `Version:` | 7.0.2 | yes |
-| `woocommerce-redsys.php` `REDSYS_WOOCOMMERCE_VERSION` constant | 7.0.2 | yes |
-| `readme.txt` `Stable tag:` | 7.0.2 | — (reference) |
-| `readme.txt` changelog top entry | `== 7.0.2 ==` | yes |
-| `package.json` `version` | 7.0.2 | yes — synced in S-031 (D-050) and checked by `scripts/keel-verify` |
+| `woocommerce-redsys.php` header `Version:` | 7.1.0 | yes |
+| `woocommerce-redsys.php` `REDSYS_WOOCOMMERCE_VERSION` constant | 7.1.0 | yes |
+| `readme.txt` `Stable tag:` | 7.1.0 | — (reference) |
+| `readme.txt` changelog top entry | `== 7.1.0 ==` | yes |
+| `package.json` `version` | 7.1.0 | yes — synced in S-031 (D-050) and checked by `scripts/keel-verify` |
 
 ## License compatibility
 GPL-2.0-or-later (D-003). No Composer/npm runtime dependencies are bundled into the shipped plugin (`package.json` deps are dev-only build tooling); no license-compatibility conflict identified.

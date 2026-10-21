@@ -24,7 +24,7 @@
 
 `WC_Gateway_Redsys`, `WC_Gateway_Bizum_Redsys`, `WC_Gateway_GooglePay_Redirection_Redsys` — each extends WooCommerce's `WC_Payment_Gateway`. They share a shape but no code: every method below exists separately in each class.
 
-- **Constructed by:** WooCommerce, from the class names added in `woocommerce_add_gateway_redsys_gateway()` (`woocommerce-redsys.php:328`). The constructor takes no arguments, loads the settings, and registers the listeners for the order-pay page, the settings save, the `wc-api` callback and the checkout banner. It disables the gateway when `is_valid_for_use()` is false.
+- **Constructed by:** WooCommerce, from the class names added in `woocommerce_add_gateway_redsys_gateway()` (`woocommerce-redsys.php:329`). The constructor takes no arguments, loads the settings, and registers the listeners for the order-pay page, the settings save, the `wc-api` callback and the checkout banner. It disables the gateway when `is_valid_for_use()` is false.
 - **Settings:** `docs/usage/configuration.md`.
 
 | Method | Signature | Returns | Notes |
@@ -185,7 +185,7 @@ Listed only, not read for this document: `clean_data`, `debug`, `get_redsys_opti
 
 ## Blocks integrations
 
-Four `final` classes extending WooCommerce's `AbstractPaymentMethodType`, registered on `woocommerce_blocks_payment_method_type_registration` (`woocommerce-redsys.php:405`). Each implements the four methods WooCommerce calls:
+Four `final` classes extending WooCommerce's `AbstractPaymentMethodType`, registered on `woocommerce_blocks_payment_method_type_registration` (`woocommerce-redsys.php:406`). Each implements the four methods WooCommerce calls:
 
 | Method | Returns | Notes |
 |--------|---------|-------|

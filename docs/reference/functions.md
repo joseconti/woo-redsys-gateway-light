@@ -24,7 +24,7 @@ Defined at the top of `woocommerce-redsys.php`.
 ## Accessors
 
 ### `WCRedL()` — after WooCommerce
-- **Signature:** `WCRedL(): WC_Gateway_Redsys_Global_Lite` (`woocommerce-redsys.php:198`).
+- **Signature:** `WCRedL(): WC_Gateway_Redsys_Global_Lite` (`woocommerce-redsys.php:199`).
 - **Returns:** a new helper object on every call.
 - **Side effects:** loads `classes/class-wc-gateway-redsys-global-lite.php` on first use.
 
@@ -35,7 +35,7 @@ if ( function_exists( 'WCRedL' ) ) {
 ```
 
 ### `WCPSD2L()` — after WooCommerce
-- **Signature:** `WCPSD2L(): WC_Gateway_Redsys_PSD2_Light` (`woocommerce-redsys.php:210`).
+- **Signature:** `WCPSD2L(): WC_Gateway_Redsys_PSD2_Light` (`woocommerce-redsys.php:211`).
 - **Returns:** a new PSD2 helper object on every call.
 
 ```php
@@ -53,7 +53,7 @@ wp_enqueue_style( 'my-handle', REDSYS_PLUGIN_URL . 'assets/css/redsys-css' . red
 ```
 
 ### `plugin_abspath_redsys()` and `plugin_url_redsys()` — after WooCommerce
-- **Signatures:** `plugin_abspath_redsys(): string` (`woocommerce-redsys.php:382`) — the plugin directory path with a trailing slash; `plugin_url_redsys(): string` (`:388`) — the plugin URL without a trailing slash.
+- **Signatures:** `plugin_abspath_redsys(): string` (`woocommerce-redsys.php:383`) — the plugin directory path with a trailing slash; `plugin_url_redsys(): string` (`:389`) — the plugin URL without a trailing slash.
 - **Used by:** the Blocks integrations, to locate `assets/js/frontend/blocks.js` and `languages/`.
 
 ```php
@@ -63,7 +63,7 @@ $script = plugin_url_redsys() . '/assets/js/frontend/blocks.js';
 ## Payment handling
 
 ### `redsyslite_mark_order_as_paid( $order_id )`
-- **Signature:** `redsyslite_mark_order_as_paid( int $order_id ): void` (`woocommerce-redsys.php:467`).
+- **Signature:** `redsyslite_mark_order_as_paid( int $order_id ): void` (`woocommerce-redsys.php:470`).
 - **What it does:** the fallback behind the order-received page (`docs/flows/notification-handling.md`, part C). In this order, and stopping at the first that fails: the query string has `Ds_MerchantParameters`; the function has not processed a signed return for this order in the last 30 seconds; the order exists, belongs to one of the three Redsys-protocol gateways and is unpaid; the gateway's `is_valid_return()` accepts the signature. Only then does it wait 5 seconds, and if the order is still unpaid it hands `Ds_MerchantParameters`, `Ds_Signature` and `Ds_SignatureVersion` to the gateway's `successful_request()`.
 - **Side effects:** clears the order caches. For a return with a valid signature only: sets the transient `redsyslite_mark_paid_attempt_<order id>` for 30 seconds, blocks for 5 seconds, and may update the order. A request without a valid signature costs no wait and does not use up the order's attempt (S-046, D-060).
 - **Errors:** none returned. It reads `$_GET` directly, so it only does something useful in the request it was written for.
@@ -74,7 +74,7 @@ redsyslite_mark_order_as_paid( $order_id );
 ```
 
 ### `redsyslite_force_mark_order_as_paid_on_thankyou_page()`
-- **Signature:** `(): void` (`woocommerce-redsys.php:580`), attached to `wp_head`.
+- **Signature:** `(): void` (`woocommerce-redsys.php:584`), attached to `wp_head`.
 - **What it does:** does nothing when WooCommerce is not loaded (it is hooked at file scope; S-051). On the order-received page, when the query string has `key` and `Ds_MerchantParameters`, resolves the order from the key and calls `redsyslite_mark_order_as_paid()`.
 
 ### `redsyslite_allow_cancel_return_for_cancelled_order( $statuses, $order )`
@@ -89,7 +89,7 @@ remove_filter( 'woocommerce_valid_order_statuses_for_cancel', 'redsyslite_allow_
 ```
 
 ### `redsyslite_bust_order_cache( $order_id )`
-- **Signature:** `redsyslite_bust_order_cache( int $order_id ): void` (`woocommerce-redsys.php:441`).
+- **Signature:** `redsyslite_bust_order_cache( int $order_id ): void` (`woocommerce-redsys.php:443`).
 - **What it does:** clears the post cache, the `posts`, `post_meta`, `orders` and `order_meta` object-cache entries, and WooCommerce's `OrderCache` entry when that class exists, so the next read of the order comes from the database. Works for both order storage modes.
 
 ```php
@@ -100,7 +100,7 @@ $order = wc_get_order( $order_id ); // Fresh from the database.
 ## Uninstall
 
 ### `redsyslite_uninstall_site( $shared_too )`
-- **Signature:** `redsyslite_uninstall_site( bool $shared_too = true ): void` (`uninstall.php:70`). Defined only while WordPress runs `uninstall.php` (when the plugin is deleted); not callable at any other time.
+- **Signature:** `redsyslite_uninstall_site( bool $shared_too = true ): void` (`uninstall.php:73`). Defined only while WordPress runs `uninstall.php` (when the plugin is deleted); not callable at any other time.
 - **What it does:** on the current site, deletes the transients `redsyslite_mark_paid_attempt_*`, which only this plugin uses. With `$shared_too` it also deletes the options `woocommerce-redsys-version`, `woocommerce-redsys-rate`, `hide-new-version-redsys-notice` and `telegram-redsys-notice` and the transients `redsys_signature_*`, `redys_order_temp_*` and `<order id>_redsys_refund` found in the options table — names the premium plugin also uses, so `uninstall.php` passes `false` when `redsyslite_premium_is_installed()` finds it (D-087). Keeps the gateway settings, the payment-token options and the order data (D-085). On a multisite network `uninstall.php` runs it once per site, every site.
 
 ```php
@@ -109,28 +109,28 @@ redsyslite_uninstall_site( ! redsyslite_premium_is_installed() );
 ```
 
 ### `redsyslite_premium_is_installed()` and `redsyslite_delete_transients_with_prefix( $prefix )`
-- **Signatures:** `redsyslite_premium_is_installed(): bool` (`uninstall.php:30`) — whether a plugin whose main file is `woocommerce-gateway-redsys.php` or whose text domain is `woocommerce-gateway-redsys` is installed, active or not; `redsyslite_delete_transients_with_prefix( string $prefix ): void` (`uninstall.php:49`) — deletes the current site's transients whose name starts with `$prefix`, from the options table. Both exist only during uninstall.
+- **Signatures:** `redsyslite_premium_is_installed(): bool` (`uninstall.php:31`) — whether a plugin whose main file is `woocommerce-gateway-redsys.php` or whose text domain is `woocommerce-gateway-redsys` is installed, active or not; `redsyslite_delete_transients_with_prefix( string $prefix ): void` (`uninstall.php:51`) — deletes the current site's transients whose name starts with `$prefix`, from the options table. Both exist only during uninstall.
 
 ## Bootstrap and admin
 
 | Function | Signature | Hooked to | What it does |
 |----------|-----------|-----------|--------------|
-| `redsys_language_init` | `(): void` (`woocommerce-redsys.php:84`) | `plugins_loaded`, 10 | Loads the text domain `woo-redsys-gateway-light` from `languages/`. |
-| `woocommerce_gateway_redsys_init` | `(): void` (`woocommerce-redsys.php:180`) | `woocommerce_loaded`, 11 | Declares the functions marked "after WooCommerce", registers the admin menu, notices and gateways, and loads the four gateway classes. |
-| `woocommerce_add_gateway_redsys_gateway` | `( array $methods ): array` (`woocommerce-redsys.php:328`) | filter `woocommerce_payment_gateways` | Appends the four gateway class names. After WooCommerce. |
-| `woocommerce_gateway_redsys_lite_block_support` | `(): void` (`woocommerce-redsys.php:399`) | `woocommerce_blocks_loaded` | Loads and registers the four Blocks integrations when WooCommerce Blocks is available. After WooCommerce. |
-| `redsys_menu` | `(): void` (`woocommerce-redsys.php:187`) | `admin_menu` | Adds WooCommerce → About Redsys (`redsys-about-page`, capability `manage_options`). After WooCommerce. |
+| `redsys_language_init` | `(): void` (`woocommerce-redsys.php:85`) | `plugins_loaded`, 10 | Loads the text domain `woo-redsys-gateway-light` from `languages/`. |
+| `woocommerce_gateway_redsys_init` | `(): void` (`woocommerce-redsys.php:181`) | `woocommerce_loaded`, 11 | Declares the functions marked "after WooCommerce", registers the admin menu, notices and gateways, and loads the four gateway classes. |
+| `woocommerce_add_gateway_redsys_gateway` | `( array $methods ): array` (`woocommerce-redsys.php:329`) | filter `woocommerce_payment_gateways` | Appends the four gateway class names. After WooCommerce. |
+| `woocommerce_gateway_redsys_lite_block_support` | `(): void` (`woocommerce-redsys.php:400`) | `woocommerce_blocks_loaded` | Loads and registers the four Blocks integrations when WooCommerce Blocks is available. After WooCommerce. |
+| `redsys_menu` | `(): void` (`woocommerce-redsys.php:188`) | `admin_menu` | Adds WooCommerce → About Redsys (`redsys-about-page`, capability `manage_options`). After WooCommerce. |
 | `redsys_about_page` | `(): void` (`about-redsys.php:15`) | menu callback | Prints the About page and calls `Redsys_Lite_Apps_Plugins::render()`. |
-| `redsys_welcome_splash` | `(): void` (`woocommerce-redsys.php:124`) | `admin_init`, 1 | Only for a user with `manage_options` (the capability of the About page) and never during an AJAX request (S-048, D-061). When the stored option `woocommerce-redsys-version` differs from the running version — and the request is not `update.php` or `update-core.php` — stores the new version, stores the first-seen time in `woocommerce-redsys-rate` if absent, and redirects to the About page. |
-| `redsys_get_parent_page` | `(): string` (`woocommerce-redsys.php:91`) | — | Base name of the running script; used by `redsys_welcome_splash()`. |
-| `redsys_lite_add_notice_new_version` | `(): void` (`woocommerce-redsys.php:232`) | `admin_notices` | Prints the "updated to version…" notice until dismissed for the running version. Shown to and dismissed by users with `manage_woocommerce` only. After WooCommerce. |
-| `redsys_lite_ask_for_telegram` | `(): void` (`woocommerce-redsys.php:281`) | `admin_notices` | Prints the Telegram-channel notice until dismissed. Shown to and dismissed by users with `manage_woocommerce` only. After WooCommerce. |
-| `redsys_styles_css` | `( string $hook ): void` (`woocommerce-redsys.php:101`) | `admin_enqueue_scripts` | Enqueues `assets/css/welcome.css` on the About page only. |
-| `redsys_css_lite` | `(): void` (`woocommerce-redsys.php:164`) | `admin_enqueue_scripts` | Enqueues `assets/css/redsys-css.css` on the WooCommerce settings screen. |
-| `redsys_lite_notice_style` | `(): void` (`woocommerce-redsys.php:317`) | `admin_enqueue_scripts` | Enqueues `assets/css/redsys-notice.css` on every admin screen. After WooCommerce. |
-| `add_redsys_meta_box` | `( WC_Order $post_or_order_object ): void` (`woocommerce-redsys.php:342`) | `woocommerce_admin_order_data_after_billing_address` | Prints the payment details block on the admin order screen for Redsys-type orders. After WooCommerce. |
-| `mostrar_numero_autentificacion` | `( string $text, WC_Order $order ): string` (`woocommerce-redsys.php:603`) | filter `woocommerce_thankyou_order_received_text`, 20 | Returns the transaction-details text for a paid Redsys-type order, otherwise `$text` unchanged. |
-| `redsys_lite_add_head_text` | `(): void` (`woocommerce-redsys.php:375`) | `wp_head` | Prints an HTML comment with the plugin name and version on every front-end page. After WooCommerce. |
+| `redsys_welcome_splash` | `(): void` (`woocommerce-redsys.php:125`) | `admin_init`, 1 | Only for a user with `manage_options` (the capability of the About page) and never during an AJAX request (S-048, D-061). When the stored option `woocommerce-redsys-version` differs from the running version — and the request is not `update.php` or `update-core.php` — stores the new version, stores the first-seen time in `woocommerce-redsys-rate` if absent, and redirects to the About page. |
+| `redsys_get_parent_page` | `(): string` (`woocommerce-redsys.php:92`) | — | Base name of the running script; used by `redsys_welcome_splash()`. |
+| `redsys_lite_add_notice_new_version` | `(): void` (`woocommerce-redsys.php:233`) | `admin_notices` | Prints the "updated to version…" notice until dismissed for the running version. Shown to and dismissed by users with `manage_woocommerce` only. After WooCommerce. |
+| `redsys_lite_ask_for_telegram` | `(): void` (`woocommerce-redsys.php:282`) | `admin_notices` | Prints the Telegram-channel notice until dismissed. Shown to and dismissed by users with `manage_woocommerce` only. After WooCommerce. |
+| `redsys_styles_css` | `( string $hook ): void` (`woocommerce-redsys.php:102`) | `admin_enqueue_scripts` | Enqueues `assets/css/welcome.css` on the About page only. |
+| `redsys_css_lite` | `(): void` (`woocommerce-redsys.php:165`) | `admin_enqueue_scripts` | Enqueues `assets/css/redsys-css.css` on the WooCommerce settings screen. |
+| `redsys_lite_notice_style` | `(): void` (`woocommerce-redsys.php:318`) | `admin_enqueue_scripts` | Enqueues `assets/css/redsys-notice.css` on every admin screen. After WooCommerce. |
+| `add_redsys_meta_box` | `( WC_Order $post_or_order_object ): void` (`woocommerce-redsys.php:343`) | `woocommerce_admin_order_data_after_billing_address` | Prints the payment details block on the admin order screen for Redsys-type orders. After WooCommerce. |
+| `mostrar_numero_autentificacion` | `( string $text, WC_Order $order ): string` (`woocommerce-redsys.php:607`) | filter `woocommerce_thankyou_order_received_text`, 20 | Returns the transaction-details text for a paid Redsys-type order, otherwise `$text` unchanged. |
+| `redsys_lite_add_head_text` | `(): void` (`woocommerce-redsys.php:376`) | `wp_head` | Prints an HTML comment with the plugin name and version on every front-end page. After WooCommerce. |
 
 
 These are listeners, not an API: none is meant to be called directly. To change what one does, remove it and register your own, for example:

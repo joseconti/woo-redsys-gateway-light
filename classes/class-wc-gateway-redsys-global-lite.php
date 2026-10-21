@@ -1111,6 +1111,7 @@ class WC_Gateway_Redsys_Global_Lite {
 	 * Reverse-look up the real order ID from a Ds_Order value persisted in
 	 * postmeta at payment time (`_payment_order_number_redsys`).
 	 *
+	 * @since 7.1.0
 	 * @param string $ordernumber The Ds_Order value received from Redsys.
 	 * @return int|false The order ID if found, false otherwise.
 	 */
@@ -1218,6 +1219,7 @@ class WC_Gateway_Redsys_Global_Lite {
 	 * and WooCommerce then receives parameters named `amp;order_id` and
 	 * `amp;_wpnonce`. One canonical answer for every gateway.
 	 *
+	 * @since 7.1.0
 	 * @param WC_Order|object $order Order object.
 	 * @return string Cancel URL with literal `&` separators, or '' when it cannot be built.
 	 */

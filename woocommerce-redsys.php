@@ -8,7 +8,7 @@
  * Requires Plugins: woocommerce
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
- * Version: 7.0.2
+ * Version: 7.1.0
  * Author: José Conti
  * Author URI: https://plugins.joseconti.com/
  * Tested up to: 7.1
@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '7.0.2' );
+define( 'REDSYS_WOOCOMMERCE_VERSION', '7.1.0' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 if ( ! defined( 'REDSYS_PLUGIN_PATH' ) ) {
 	define( 'REDSYS_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
@@ -53,6 +53,7 @@ if ( ! defined( 'REDSYS_PLUGIN_CLASS_PATH' ) ) {
  * minified file built from it. Production loads the minified one; with
  * WordPress's SCRIPT_DEBUG on, the readable one is served instead.
  *
+ * @since 7.1.0
  * @return string '.min', or '' when SCRIPT_DEBUG is on.
  */
 function redsyslite_asset_suffix() {
@@ -436,6 +437,7 @@ function woocommerce_gateway_redsys_init() {
  * si algún hook cargó el pedido antes del sleep y quedó cacheado.
  * Compatibilidad con CPT (wp_posts) y HPOS (custom tables).
  *
+ * @since 7.1.0
  * @param int $order_id Order ID.
  */
 function redsyslite_bust_order_cache( $order_id ) {
@@ -462,6 +464,7 @@ function redsyslite_bust_order_cache( $order_id ) {
  * unsigned request must not be able to hold a PHP worker, whatever order it
  * names and however many orders its sender has. See docs/threat-model.md.
  *
+ * @since 7.1.0
  * @param int $order_id Order ID.
  */
 function redsyslite_mark_order_as_paid( $order_id ) {
@@ -544,6 +547,7 @@ function redsyslite_mark_order_as_paid( $order_id ) {
  * verified cancel request, already cancelled and paid through one of these gateways,
  * `cancelled` is accepted and WooCommerce shows its own "Your order was cancelled".
  *
+ * @since 7.1.0
  * @param array         $statuses Order statuses WooCommerce allows a customer to cancel.
  * @param WC_Order|null $order    Order being checked.
  * @return array

@@ -88,7 +88,7 @@ The `wc-api` value is matched by WooCommerce, which fires the action `woocommerc
 ### 5. Return to the order-received page
 
 - **URL:** WooCommerce's order-received URL, which the plugin gives Redsys as `DS_MERCHANT_URLOK` with `utm_nooverride=1` added. Redsys appends its own result parameters when it sends the customer back.
-- **Handler:** `redsyslite_force_mark_order_as_paid_on_thankyou_page()` on `wp_head` (`woocommerce-redsys.php:580`), which calls `redsyslite_mark_order_as_paid()` (`:467`).
+- **Handler:** `redsyslite_force_mark_order_as_paid_on_thankyou_page()` on `wp_head` (`woocommerce-redsys.php:584`), which calls `redsyslite_mark_order_as_paid()` (`:470`).
 - **Parameters** (query string):
 
   | Name | Type | Required | Description |
@@ -105,7 +105,7 @@ The `wc-api` value is matched by WooCommerce, which fires the action `woocommerc
 ### 6–7. Admin notice dismissal
 
 - **URL:** any WordPress admin page with `redsys-hide-new-version=hide-new-version-redsys&_redsys_hide_new_version_nonce=<nonce>`, or with `redsys-telegram=telegram-redsys&_redsys_telegram_nonce=<nonce>`. The links are printed inside the notices themselves.
-- **Handlers:** `redsys_lite_add_notice_new_version()` (`woocommerce-redsys.php:232`) and `redsys_lite_ask_for_telegram()` (`:281`), both on `admin_notices`.
+- **Handlers:** `redsys_lite_add_notice_new_version()` (`woocommerce-redsys.php:233`) and `redsys_lite_ask_for_telegram()` (`:282`), both on `admin_notices`.
 - **Effect:** with a valid nonce (actions `redsys_hide_new_version_nonce` and `redsys_telegram_nonce`), stores the option `hide-new-version-redsys-notice` (the current plugin version) or `telegram-redsys-notice` (`yes`), which hides the notice. With an invalid nonce nothing is stored.
 - **Permissions:** the capability `manage_woocommerce` and the nonce. A user without the capability is neither shown the notices nor able to dismiss them (S-047, D-061).
 
@@ -119,10 +119,10 @@ Requests the plugin makes or sends the customer to. Hosts are fixed in the code.
 |---------|-------------|-----|------|
 | Payment form, live | `https://sis.redsys.es/sis/realizarPago` | browser form `POST` | `liveurl` in the three Redsys-protocol classes |
 | Payment form, test | `https://sis-t.redsys.es:25443/sis/realizarPago` | browser form `POST` | `testurl` in the same classes |
-| Card refund | `https://sis.redsys.es/sis/rest/trataPeticionREST` (live) or the same path on the test host | `wp_remote_post()`, 45 s timeout | `classes/class-wc-gateway-redsys.php:1256` |
-| Bizum / Google Pay refund | the payment-form URL above for the active mode | `wp_remote_post()`, 45 s timeout | `classes/class-wc-gateway-bizum-redsys.php:1664`, `classes/class-wc-gateway-googlepay-redirection-redsys.php:1462` |
-| Inespay pay-in | `https://apiflow.inespay.com/pro/v22/payins/single/init` (live) or `…/san/…` (test) | `wp_remote_post()`, 30 s timeout, headers `X-Api-Key` and `Authorization` | `classes/class-wc-gateway-inespay-redsys.php:468` |
-| Inespay refund | `https://apiflow.inespay.com/pro/v22/refunds/init` (live) or `…/san/…` (test) | `wp_remote_post()`, 30 s timeout, same headers | `classes/class-wc-gateway-inespay-redsys.php:773` |
+| Card refund | `https://sis.redsys.es/sis/rest/trataPeticionREST` (live) or the same path on the test host | `wp_remote_post()`, 45 s timeout | `classes/class-wc-gateway-redsys.php:1258` |
+| Bizum / Google Pay refund | the payment-form URL above for the active mode | `wp_remote_post()`, 45 s timeout | `classes/class-wc-gateway-bizum-redsys.php:1669`, `classes/class-wc-gateway-googlepay-redirection-redsys.php:1464` |
+| Inespay pay-in | `https://apiflow.inespay.com/pro/v22/payins/single/init` (live) or `…/san/…` (test) | `wp_remote_post()`, 30 s timeout, headers `X-Api-Key` and `Authorization` | `classes/class-wc-gateway-inespay-redsys.php:472` |
+| Inespay refund | `https://apiflow.inespay.com/pro/v22/refunds/init` (live) or `…/san/…` (test) | `wp_remote_post()`, 30 s timeout, same headers | `classes/class-wc-gateway-inespay-redsys.php:777` |
 
 The classes also hold two SOAP web-service URLs (`liveurlws`, `testurlws`); `get_redsys_url_gateway()` returns them only when called with a type other than `rd`, which no code in this plugin does.
 

@@ -170,11 +170,11 @@ The customer's browser lands on the WooCommerce order-received page with both `k
 Part A: `AC-03` to `AC-12`, `AC-18` to `AC-23`, `AC-26` to `AC-32`, and the refund notification rows `AC-50`, `AC-52`. Part B: `AC-36` to `AC-42`. Part C: `AC-13`, `AC-14`.
 
 ## Source files
-- `classes/class-wc-gateway-redsys.php` — `check_ipn_request_is_valid()` line 850, `check_ipn_response()` 915, `successful_request()` 960.
-- `classes/class-wc-gateway-bizum-redsys.php` — `resolve_notification_secret()` line 1050, `check_ipn_request_is_valid()` 1085, `check_ipn_response()` 1160, `successful_request()` 1218.
-- `classes/class-wc-gateway-googlepay-redirection-redsys.php` — `check_ipn_request_is_valid()` line 879, `check_ipn_response()` 939, `successful_request()` 996.
-- `classes/class-wc-gateway-inespay-redsys.php` — `handle_callback()` line 524, `get_order_by_payin_id()` 832.
-- `classes/class-wc-gateway-redsys-global-lite.php` — `get_status_pending()` line 865, `is_paid()` 879, `clean_order_number()` 1093, `get_order_id_by_redsys_order_number()` 1117.
-- `includes/class-redsysliteapi.php` — `sanitize_merchant_parameters()` line 147, `decode_merchant_parameters()` 268, `create_merchant_signature_notif()` 321 (key derivation in `diversify_notif_key()`: a notification that names no order never verifies, `AC-64`).
+- `classes/class-wc-gateway-redsys.php` — `check_ipn_request_is_valid()` line 851, `check_ipn_response()` 916, `successful_request()` 962.
+- `classes/class-wc-gateway-bizum-redsys.php` — `resolve_notification_secret()` line 1054, `check_ipn_request_is_valid()` 1089, `check_ipn_response()` 1164, `successful_request()` 1223.
+- `classes/class-wc-gateway-googlepay-redirection-redsys.php` — `check_ipn_request_is_valid()` line 880, `check_ipn_response()` 940, `successful_request()` 998.
+- `classes/class-wc-gateway-inespay-redsys.php` — `handle_callback()` line 528, `get_order_by_payin_id()` 836.
+- `classes/class-wc-gateway-redsys-global-lite.php` — `get_status_pending()` line 865, `is_paid()` 879, `clean_order_number()` 1093, `get_order_id_by_redsys_order_number()` 1118.
+- `includes/class-redsysliteapi.php` — `sanitize_merchant_parameters()` line 147, `decode_merchant_parameters()` 268, `create_merchant_signature_notif()` 323 (key derivation in `diversify_notif_key()`: a notification that names no order never verifies, `AC-64`).
 - `includes/data/redsys-status-paid.php`, `includes/data/redsys-types.php` — the unpaid-status list and the gateway list.
-- `woocommerce-redsys.php` — `redsyslite_bust_order_cache()` line 441, `redsyslite_mark_order_as_paid()` 467, `redsyslite_force_mark_order_as_paid_on_thankyou_page()` 580.
+- `woocommerce-redsys.php` — `redsyslite_bust_order_cache()` line 443, `redsyslite_mark_order_as_paid()` 470, `redsyslite_force_mark_order_as_paid_on_thankyou_page()` 584.

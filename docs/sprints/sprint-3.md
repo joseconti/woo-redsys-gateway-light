@@ -3,6 +3,16 @@ schema: keel.sprint/2
 sprint: 3
 goal: Release preparation for the unreleased security and correctness fixes
 status: in-progress
+scope_reconciliations:
+  - id: R-3-01
+    date: 2026-10-21
+    reason: D-099 — the owner's go for 7.1.0; S-030 (1 h) moves intact to deferred.md, and S-037's tunnel payment (0.25 h) is extracted to S-090 in deferred.md
+    slices: [S-030, S-037, S-090]
+    remaining_before: 3.5
+    completed_residual: 0
+    added_scope: -1.25
+    explicit_residual_reestimates: 0
+    remaining_after: 2.25
 slices:
   - id: S-036
     title: Restore the playground on this machine (PHP 7.4 base image no longer builds; plugin activation order under the current wp-env)
@@ -56,27 +66,6 @@ slices:
     actual_source: measured
     depends_on: [S-036]
     criteria: []
-  - id: S-030
-    title: Guided assistive-technology pass with the user
-    status: not-started
-    original_hours: 1
-    residual_hours: 1
-    change_kind: added
-    parent_slice: null
-    owns: [S-030]
-    estimate_changes: []
-    actual_hours: null
-    actual_source: estimated
-    depends_on: [S-029]
-    criteria: []
-    execution:
-      write_paths: [docs/accessibility.md, docs/05-test-points.md]
-      contracts:
-        reads: []
-        writes: []
-      exclusive_resources: [wp-env-playground]
-      parallel: serial
-      serial_reason: a guided pass with the owner at an assistive technology — needs the user live, runs on the shared wp-env playground and records its result in coordinator-owned test-point state
   - id: S-031
     title: Dependabot alerts triage, stale wp-scripts dependency, package.json version sync
     status: done
@@ -104,14 +93,20 @@ slices:
     depends_on: [S-036]
     criteria: []
   - id: S-037
-    title: Remaining one-time verifications of the Keel scaffolding (Stop hook after a session restart, timing report over a real multi-session slice, a real push through pre-push; and, deferred here by the owner in D-093, one Redsys test-terminal payment whose notification URL is the playground tunnel)
+    title: Remaining one-time verifications of the Keel scaffolding (Stop hook after a session restart, timing report over a real multi-session slice, a real push through pre-push); the tunnel payment extracted to S-090 (D-099)
     status: not-started
     original_hours: 0.5
-    residual_hours: 0.5
+    residual_hours: 0.25
     change_kind: added
     parent_slice: null
     owns: [S-037]
-    estimate_changes: []
+    estimate_changes:
+      - date: 2026-10-21
+        before_residual_hours: 0.5
+        after_residual_hours: 0.25
+        reason: D-099 — the Redsys test-terminal payment through the tunnel is acknowledged for 7.1.0 and moves to deferred as S-090
+        decision: D-099
+        reconciliation: R-3-01
     actual_hours: null
     actual_source: estimated
     depends_on: [S-036]

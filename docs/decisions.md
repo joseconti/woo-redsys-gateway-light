@@ -877,3 +877,13 @@
 - Left on purpose: the `qs` under `express` (6.15.3, moderate) needs `@wp-playground/cli` 3.1.60, i.e. `@wordpress/env` 11.17 — a playground-tool change, better after the release; the rest of the 45 need `npm audit fix --force` (major versions), the state D-050/D-055 recorded.
 - Dependabot: all 17 open PRs (#94–#116, against `master`) are superseded on `develop` — each package at or above its target or gone from the tree (table in `docs/issues.md`). No action on the forge; they resolve when `develop` reaches `master`; closing them stays the owner's.
 - Verified: `npm run build:assets` after the change reproduces `assets/js/frontend/blocks.js` and `blocks.asset.php` byte for byte (same SHA-1 before and after). The suites: the pre-push selection, widened to the entire suite by the lockfile change.
+
+## D-099 — The owner's go for 7.1.0: version approved, the owner-bound gate items settled
+- Date / phase: 2026-10-21 / Phase 7 (sprint 3, S-032)
+- Decision: the owner said "quiero que hagas todo lo que había que hacer para la v7.1 para que la lancemos ya" and answered the batch of four:
+  - **Version 7.1.0 approved** (the number proposed in `docs/07-release.md`; "v7.1" in the owner's words). The 7.0.3-hotfix question is moot: D-023 ships in 7.1.0.
+  - **Guided assistive-technology pass (S-030): ship with the gap recorded.** Accepted shortfall for 7.1.0 in `docs/accessibility.md`; S-030 moves to `docs/sprints/deferred.md` for the next version. AC-48 stays unverified, tagged `ASSISTIVE-TECH`.
+  - **SA-06, SA-13, SA-20 and the Redsys payment through the tunnel (S-037, D-093, D-096): acknowledged, not validated, for 7.1.0.** Each needs a real payment on the owner's test terminals (`CREDENTIAL`). The owner runs them after the release; anything found goes into a 7.1.1. The tunnel leg moves to `deferred.md`.
+  - **Changelog in the assistant's wording**, shown to the owner in the session's summary before the merge — including the advice to delete old Google Pay debug logs (D-058), the Logo setting changes (D-059), D-052's two visible changes and D-053's handling of a return to an already cancelled order (the assistant's choice, now confirmed by this answer).
+  - **Package: `git archive`** (the verified boundary, check 29); the assistant builds the zip and installs it on a clean site. The owner merges to `master`, tags and uploads to WordPress.org SVN. **After publication** the assistant posts the replies (the two WordPress.org forum threads, issues #93 and #112) saying the fix ships in 7.1.0.
+- Supersedes: the open "version number", "needs_validation", D-053 confirmation, release-note wording, accessibility-pass and package-build questions of `docs/07-release.md`, and the 7.0.3-hotfix question in `docs/PROGRESS.md`.
