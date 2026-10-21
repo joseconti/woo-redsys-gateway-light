@@ -926,3 +926,9 @@
 - Evidence: every fix started from a reproduction test seen failing (`StaticAnalysisDefectsTest`, `AcctInfoWithoutLastUpdateTest`, `ShipAddressUsageTest`, `BlocksScriptTranslationTest`); the integration suite 391 tests green; the pre-push selection widened to the entire suite by the build-script change: 216 of 216 green (`f658ebb`).
 - Left: S-096 (account age counted from midnight of the registration day) deferred. `@since` was not added to the `get_acctinfo()` docblock: the next version number is the owner's.
 - Consequence for 7.1.0 (self-audit answer 6): S-065 is commit `f658ebb` on `work/after-7.1.0`, self-contained; if the owner does not accept 7.1.0 without it, it can be cherry-picked onto `develop` before the tag.
+
+## D-105 — Sprint 5 closed: S-034, S-042 and S-096 also fixed on `work/after-7.1.0`
+- Date / phase: 2026-10-21 / Phase 7 (sprint 5, D-103)
+- Decision: S-034 (Inespay `handle_callback()` sets the payment method with `set_payment_method()`, L-004) and S-042 (Google Pay reads the billing name with the order's getters, D-053) fixed; the tests that expected the `is_internal_meta_key` notice no longer do, which was each fix's red. S-096 (account age counted from the registration time instead of its midnight) promoted from `deferred.md` and fixed. `readme.txt` `== Unreleased ==` on the branch lists all seven user-visible changes.
+- Security review: `security-auditor` on a worktree pinned to `ddb4b1b` — no finding in the diff; nothing runs before signature verification, the `get_acctinfo()` query is bound to the logged-in customer. Pre-existing notes filed: Inespay logs its raw callback body before verification when debug is on (added to S-040), and two `get_acctinfo()` notes (added to S-053).
+- Consequence: `work/after-7.1.0` is merged into `develop` by the assistant after the owner tags `v7.1.0`; the next version is planned from it plus `deferred.md`.
