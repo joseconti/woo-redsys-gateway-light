@@ -49,9 +49,11 @@ slices:
       serial_reason: same playground as S-092
   - id: S-034
     title: Inespay handle_callback() should call set_payment_method() instead of writing _payment_method meta
-    status: not-started
+    status: done
     original_hours: 0.5
-    residual_hours: 0.5
+    actual_hours: 0.0131
+    actual_source: measured
+    residual_hours: 0
     change_kind: added
     parent_slice: null
     owns: [S-034]
