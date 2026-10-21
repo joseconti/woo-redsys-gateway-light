@@ -54,7 +54,7 @@
 
 ## Open items
 - Unresolved user questions: for 7.1.0, the two acceptances in "Next action" (D-100) and the upgrade-notice wording (D-102). Closed by D-099 on 2026-10-21: the version, the 7.0.3-hotfix choice (moot), the accessibility pass (accepted shortfall), SA-06/SA-13/SA-20 and the tunnel payment (acknowledged; S-090 after the release), the changelog wording, D-053's choice, how the package is built, and the forum replies (posted after publication). Offered, not required: a second playground on a current PHP 8.x is moot (the ceiling runs PHP 8.4); adding `scripts/playground-setup` to the committed allow-list (D-043).
-- Ready for `master`: **`develop` at the close of this session — release 7.1.0** (candidate `704730a`; later commits change no shipped file). The merge and the tag are the owner's acts.
+- Ready for `master` (parked — waiting on the owner): **`develop` at the close of this session — release 7.1.0** (candidate `704730a`; later commits change no shipped file). The merge and the tag are the owner's acts.
 - Open Design Requests: none — no design system in place
 - Unverified external steps/assets: none
 - Forge issues in progress (parked on the user's release): see `docs/issues.md` — E-001 (#93) and E-002 (#112) fixes landed, unreleased; both await a version bump + release before the reporters can test them. 7 stale issues commented on, left open (never closed by Keel on its own reading of the code, per protocol).
