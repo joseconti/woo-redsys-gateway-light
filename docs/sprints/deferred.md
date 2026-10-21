@@ -31,11 +31,17 @@ items:
     title: Low-severity findings of D-041 item 7 (Inespay absent from redsys-types, on-hold counted as paid, refund URL difference, stray wpml-config key)
     status: not-started
     original_hours: 1.5
-    residual_hours: 1.5
+    residual_hours: 1.25
     change_kind: added
     parent_slice: null
     owns: [S-041]
-    estimate_changes: []
+    estimate_changes:
+      - date: 2026-10-21
+        before_residual_hours: 1.5
+        after_residual_hours: 1.25
+        reason: D-109 — the stray wpml-config key extracted to S-100 (sprint 8); Inespay in redsys-types, on-hold counted as paid and the refund URL stay for the owner
+        decision: D-109
+        reconciliation: R8-01
     target: null
     reason: D-052 — triaged only; none blocks the release of the pending fixes
     depends_on: []
@@ -44,11 +50,17 @@ items:
     title: Hardening notes of the 2026-10-06 security audit (non-findings listed in the local audit report)
     status: not-started
     original_hours: 2
-    residual_hours: 2
+    residual_hours: 1
     change_kind: added
     parent_slice: null
     owns: [S-053]
-    estimate_changes: []
+    estimate_changes:
+      - date: 2026-10-21
+        before_residual_hours: 2
+        after_residual_hours: 1
+        reason: D-109 — get_acctinfo() of a missing user extracted to S-098, the non-array settings option (H-6) to S-099 (sprint 8); H-5 already removed by S-092 (7bbac84)
+        decision: D-109
+        reconciliation: R8-01
     target: null
     reason: D-056 — none has an affected principal; triage with the user after the confirmed findings are fixed. D-065 — the scoped re-audit added 18 notes (local report of the `476d52e` run); one of them, an uncaught error on PHP 8 for a Bizum notification posted without its signature-version field, was fixed as S-064. D-078 — the second pass of the gate read added four (the signature transient deleted before verification; currency, merchant code and terminal of a signed notification not compared; an undefined variable in a debug line of process_refund(); maybe_unserialize() on an option), in the local run of `5e31697`. Sprint 5's security review added: get_acctinfo() with a `$user_id` of a user that does not exist would fatal on get_userdata() false (no caller passes one today), and a shop manager paying someone else's order while logged in gets the 3DS account figures of their own account
     depends_on: []
