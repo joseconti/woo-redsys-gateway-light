@@ -141,3 +141,11 @@
 - Fix: the regex is anchored to the end of the line in this project's `scripts/keel-verify` (D-100); the record is now `R3-01`.
 - Check added: none beyond the fix; to report to Keel so the canonical script carries it.
 - Rule for next time: name reconciliation records so they cannot look like a slice id (`R3-01`), and when a generated Keel script misreads the project, fix it here AND report it upstream — never answer it by editing history.
+
+## L-018 — `keel-time end` and `keel-verify` round the throughput differently
+- Where: sprint 4 close-out (2026-10-21), the session row of S-091 in `docs/sessions.md`.
+- What failed first: `scripts/keel-verify` check 24 — "Throughput is 11.84; Est. h 1.5 / Active h 0.13 is 11.5385" — and `scripts/keel-close` stopped before the push and the hand-off.
+- Cause: `scripts/keel-time end` divides by the unrounded active time (0.1267 h) and writes the row's Active h rounded to 0.13; the check divides by the rounded figure. On a long session the two agree to two decimals; on a seven-minute one they do not.
+- Fix: the row's throughput rewritten as 11.54, the quotient of the figures the row shows; close-out re-run.
+- Check added: none here; a Keel defect to report upstream with L-017 (one of the two scripts should use the other's rounding).
+- Rule for next time: a short session's row can fail check 24 on rounding alone — correct the derived figure to the row's own displayed values, never the measured ones.
