@@ -116,6 +116,24 @@ test.describe( 'AC-47: settings screens', () => {
 		} );
 	}
 
+	// S-082: the secrets are typed into password fields, never shown in clear on the screen.
+	for ( const [ gatewayId, secrets ] of Object.entries( {
+		redsys: [ 'secretsha256', 'customtestsha256' ],
+		bizumredsys: [ 'secretsha256', 'customtestsha256' ],
+		googlepayredirecredsys: [ 'secretsha256', 'customtestsha256' ],
+		inespayredsys: [ 'api_key', 'api_token' ],
+	} ) ) {
+		test( `the secrets of the ${ gatewayId } screen are password fields`, async ( { page } ) => {
+			await logIn( page, 'admin', 'password' );
+			await page.goto( `/wp-admin/admin.php?page=wc-settings&tab=checkout&section=${ gatewayId }` );
+			for ( const key of secrets ) {
+				await expect( page.locator( `#woocommerce_${ gatewayId }_${ key }` ), key ).toHaveAttribute( 'type', 'password' );
+			}
+			// Counterpart: an ordinary field of the same screen is still a text field.
+			await expect( page.locator( `#woocommerce_${ gatewayId }_title` ) ).toHaveAttribute( 'type', 'text' );
+		} );
+	}
+
 	test( 'saving the card screen stores what was typed in woocommerce_redsys_settings, and nothing else changes', async ( { page } ) => {
 		const before = storedSettings( 'redsys' );
 		const typed = 'Typed On The Settings Screen';

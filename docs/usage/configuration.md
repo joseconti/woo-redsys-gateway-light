@@ -39,8 +39,8 @@ Present in `redsys`, `bizumredsys` and `googlepayredirecredsys` unless a note sa
 | `commercename` | Commerce Name | text | empty | Sent as `DS_MERCHANT_MERCHANTNAME`. |
 | `terminal` | Terminal number | text | empty | Sent as `DS_MERCHANT_TERMINAL`. |
 | `not_use_https` | HTTPS SNI Compatibility | checkbox | `no` | When `yes`, Redsys is given the notification URL with `http:` instead of `https:`. Intended for certificates Redsys does not accept; if the site forces HTTPS, the notification URL needs an exception. |
-| `secretsha256` | Encryption secret passphrase SHA-256 | text | empty | The live signing secret from your bank. Signs requests and verifies notifications in live mode. |
-| `customtestsha256` | TEST MODE: Encryption secret passphrase SHA-256 | text | empty | The test signing secret from your bank. Used in test mode; see "Test mode and live mode". |
+| `secretsha256` | Encryption secret passphrase SHA-256 | password | empty | The live signing secret from your bank. Signs requests and verifies notifications in live mode. |
+| `customtestsha256` | TEST MODE: Encryption secret passphrase SHA-256 | password | empty | The test signing secret from your bank. Used in test mode; see "Test mode and live mode". |
 | `redsyslanguage` | Language Gateway | select | `001` (Spanish) | Language of the Redsys page. Ignored when WPML is active — the customer's language is used instead. The card gateway lists 31 languages in its own code; Bizum and Google Pay take the list from `includes/data/languages.php`. |
 | `testmode` | Running in test mode | checkbox | `yes` | Sends customers to the Redsys test host and uses the test secret. **New installations start in test mode.** |
 | `debug` | Debug Log | checkbox | `no` | Writes a detailed log; see "Debug log". |
@@ -76,7 +76,7 @@ Inespay shares none of the Redsys merchant settings.
 | `title` | Title | text | "Inespay Bank Transfer" | Name shown at checkout. |
 | `description` | Description | textarea | "Pay securely via your online banking with Inespay." | Text shown at checkout. |
 | `logo` | Logo | text (URL) | empty | Replaces the bundled icon. Saved as a URL, as for the card gateway. |
-| `api_key` | API Key | text | empty | The API key of your Inespay project. Sent as the `X-Api-Key` header, and used as the key that verifies callback signatures. |
+| `api_key` | API Key | password | empty | The API key of your Inespay project. Sent as the `X-Api-Key` header, and used as the key that verifies callback signatures. |
 | `api_token` | API Token | password | empty | The API token of your Inespay project. Sent as the `Authorization` header. |
 | `creditor_account` | Creditor IBAN (optional) | text | empty | Sent as `creditorAccount` on pay-ins and as `collectingIBAN` on refunds. |
 | `expiration` | Link expiration (minutes) | number, minimum 1 | empty | Sent as `expiration` on pay-ins when filled in. |

@@ -516,13 +516,13 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			),
 			'secretsha256'     => array(
 				'title'       => __( 'Encryption secret passphrase SHA-256', 'woo-redsys-gateway-light' ),
-				'type'        => 'text',
+				'type'        => 'password',
 				'description' => __( 'Encryption secret passphrase SHA-256 provided by your bank.', 'woo-redsys-gateway-light' ),
 				'desc_tip'    => true,
 			),
 			'customtestsha256' => array(
 				'title'       => __( 'TEST MODE: Encryption secret passphrase SHA-256', 'woo-redsys-gateway-light' ),
-				'type'        => 'text',
+				'type'        => 'password',
 				'description' => __( 'Encryption secret passphrase SHA-256 provided by your bank for test mode.', 'woo-redsys-gateway-light' ),
 				'desc_tip'    => true,
 			),

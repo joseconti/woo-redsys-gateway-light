@@ -17,6 +17,7 @@ woocommerce-redsys.php                                  [E] bootstrap: init, tex
 about-redsys.php                                         [E] plugin "about" admin content
 index.php                                                 [E] directory-listing protection stub
 wpml-config.xml                                           [E] WPML admin-text config (two settings sections)
+uninstall.php                                             [E] uninstall: removes the plugin's own options and transients, keeps settings and orders (S-081, D-085)
 LICENSE                                                    [E] GPL-2.0-or-later full text (added during adoption, D-003)
 classes/
   class-wc-gateway-redsys.php                             [E] main Redsys card gateway (redirection), ~1363 lines

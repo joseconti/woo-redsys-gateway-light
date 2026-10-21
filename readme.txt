@@ -101,6 +101,8 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == Unreleased ==
 
+* Tweak: The SHA-256 secrets of the Redsys, Bizum and Google Pay gateways and the Inespay API key are now password fields on the settings screens, so they are not shown in clear.
+* New: Deleting the plugin now removes its own internal data (version and notice options, temporary transients). The gateway settings, including the SHA-256 secrets, are kept, so reinstalling does not require entering them again.
 * Fix: An order in the Failed status that then received a valid payment notification from Redsys, Bizum or Google Pay stayed Failed; it is now completed. An order that is already paid is still never cancelled by a later refused or error notification.
 * Fix: A notification to the Redsys, Bizum or Google Pay gateway whose merchant parameters arrived as a list instead of text wrote an "Array to string conversion" PHP warning. It was already rejected; it is now rejected without the warning.
 * Fix: A notification to the Google Pay gateway whose order number was not text ended in a PHP error (an HTTP 500 on PHP 8), and one to the Bizum gateway wrote a PHP warning. Both were already rejected; they are now rejected without the error.

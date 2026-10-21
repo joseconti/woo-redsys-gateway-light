@@ -338,7 +338,7 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 				),
 				'api_key'          => array(
 					'title'       => __( 'API Key', 'woo-redsys-gateway-light' ),
-					'type'        => 'text',
+					'type'        => 'password',
 					'description' => __( 'API Key from your Inespay project.', 'woo-redsys-gateway-light' ),
 					'desc_tip'    => true,
 				),

@@ -97,6 +97,20 @@ redsyslite_bust_order_cache( $order_id );
 $order = wc_get_order( $order_id ); // Fresh from the database.
 ```
 
+## Uninstall
+
+### `redsyslite_uninstall_site( $shared_too )`
+- **Signature:** `redsyslite_uninstall_site( bool $shared_too = true ): void` (`uninstall.php:70`). Defined only while WordPress runs `uninstall.php` (when the plugin is deleted); not callable at any other time.
+- **What it does:** on the current site, deletes the transients `redsyslite_mark_paid_attempt_*`, which only this plugin uses. With `$shared_too` it also deletes the options `woocommerce-redsys-version`, `woocommerce-redsys-rate`, `hide-new-version-redsys-notice` and `telegram-redsys-notice` and the transients `redsys_signature_*`, `redys_order_temp_*` and `<order id>_redsys_refund` found in the options table — names the premium plugin also uses, so `uninstall.php` passes `false` when `redsyslite_premium_is_installed()` finds it (D-087). Keeps the gateway settings, the payment-token options and the order data (D-085). On a multisite network `uninstall.php` runs it once per site, every site.
+
+```php
+// What uninstall.php does on a single site, after checking WP_UNINSTALL_PLUGIN.
+redsyslite_uninstall_site( ! redsyslite_premium_is_installed() );
+```
+
+### `redsyslite_premium_is_installed()` and `redsyslite_delete_transients_with_prefix( $prefix )`
+- **Signatures:** `redsyslite_premium_is_installed(): bool` (`uninstall.php:30`) — whether a plugin whose main file is `woocommerce-gateway-redsys.php` or whose text domain is `woocommerce-gateway-redsys` is installed, active or not; `redsyslite_delete_transients_with_prefix( string $prefix ): void` (`uninstall.php:49`) — deletes the current site's transients whose name starts with `$prefix`, from the options table. Both exist only during uninstall.
+
 ## Bootstrap and admin
 
 | Function | Signature | Hooked to | What it does |

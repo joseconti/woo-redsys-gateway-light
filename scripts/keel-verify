@@ -145,7 +145,7 @@ else
 	# match first, and if that fails, try each known gateway id as the
 	# dynamic segment and fuzzy-match the two static halves around it.
 	GATEWAY_IDS="redsys bizumredsys googlepayredirecredsys inespayredsys"
-	SEARCH_PATHS="classes/ includes/ woocommerce-redsys.php"
+	SEARCH_PATHS="classes/ includes/ woocommerce-redsys.php uninstall.php"
 
 	ROW_N=0
 	while IFS= read -r line; do
@@ -1948,7 +1948,7 @@ elif not flow_bad:
 # (tests, the playground's HTTP stub, tool configuration).
 section("Package boundary (git archive ships runtime files only)")
 PACKAGE_TOP = {"about-redsys.php", "assets", "classes", "includes", "index.php", "languages", "LICENSE",
-               "readme.txt", "woocommerce-redsys.php", "wpml-config.xml"}
+               "readme.txt", "uninstall.php", "woocommerce-redsys.php", "wpml-config.xml"}
 code, listing, err = run(["sh", "-c", "git archive --worktree-attributes --format=tar HEAD | tar -tf -"])
 packaged = set(line.split("/")[0] for line in listing.split("\n") if line)
 if code != 0 or not packaged:

@@ -366,18 +366,18 @@ slices:
     criteria: []
   - id: S-081
     title: Uninstall removes the plugin's internal data only — woocommerce-redsys-version, woocommerce-redsys-rate, the redsys_signature_* and redys_order_temp_* transients; gateway settings and order meta stay (owner, D-085)
-    status: not-started
+    status: done
     hours: 1
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.0392
+    actual_source: measured
     depends_on: []
     criteria: []
   - id: S-082
     title: The secret fields of the gateway settings screens (SHA-256 secrets, Inespay credentials) are password fields
-    status: not-started
+    status: done
     hours: 0.5
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.0789
+    actual_source: measured
     depends_on: []
     criteria: []
   - id: S-083
@@ -446,3 +446,5 @@ slices:
 - S-079 (done 2026-10-21, D-083): the `readme.txt` line about the order-number fallback said "roughly 1 in 5"; rewritten from a simulation of the 7.0.2 code — about 1 in 10 of fallback cases, only on 8- or 9-digit order IDs, in practice refund confirmations. Measured time excludes the investigation done before the slice opened, in the same session.
 - S-078 (done 2026-10-21, D-084): the shared sanitiser answers `''` for a value that is not a string; red observed, green on the pinned and the ceiling instance one at a time; changelog line added.
 - S-080 (done 2026-10-21, D-086): a paid order stays paid in all four gateways; a `failed` order now takes a later success (it was counted as paid) — `failed` added to the unpaid list; AC-72 added.
+- S-081 (done 2026-10-21, D-087): `uninstall.php` removes the plugin's own options and transients; settings, tokens and orders stay; AC-73.
+- S-082 (done 2026-10-21, D-088): the signing secrets and Inespay's API key are password fields.
