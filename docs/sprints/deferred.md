@@ -73,30 +73,6 @@ items:
     reason: D-072 — found by the gate's self-audit and confirmed on the ceiling instance; today it only affects the fallback label "Inespay Bank Transfer" when the merchant set no title; older than this release
     depends_on: []
     criteria: []
-  - id: S-066
-    title: On WooCommerce 7.4 the Blocks checkout draws the Inespay option for customers outside ES, PT and IT (fallback label, no description, no icon); reproduce, check the ceiling instance, decide
-    status: not-started
-    hours: 1
-    target: null
-    reason: D-074 — found while driving AC-46 (S-060); the classic checkout hides it for the same customer; not checked on a current WooCommerce nor whether such an order can be placed; older than this release
-    depends_on: []
-    criteria: []
-  - id: S-073
-    title: Escape the translated strings of the three redirect forms (the redirect message inside the inline script, the two button labels) and pass the Google Pay form through wp_kses like its siblings
-    status: not-started
-    hours: 1
-    target: null
-    reason: D-078 — hardening, needs a hostile translation file; the forms are what every customer sees on the way to Redsys, so the change wants its own tests and the owner's word on whether it rides in this release; one label carries an intentional entity
-    depends_on: []
-    criteria: []
-  - id: S-074
-    title: ABSPATH guard in woocommerce-redsys.php and includes/class-redsysliteapi.php (the unit suite loads the second without WordPress, so its bootstrap changes with it); decide the generated asset and translation files
-    status: not-started
-    hours: 0.5
-    target: null
-    reason: D-078 — the project's own rule says every PHP file; no exploit, a direct request is a PHP error or nothing; older than this release
-    depends_on: []
-    criteria: []
 ---
 
 # Deferred — wanted, not in the current plan

@@ -332,6 +332,48 @@ slices:
     actual_source: measured
     depends_on: []
     criteria: []
+  - id: S-066
+    title: On WooCommerce 7.4 the Blocks checkout draws the Inespay option for customers outside ES, PT and IT (fallback label, no description, no icon); fix so it is offered only where the classic checkout offers it — moved from deferred.md by the owner's "arregla todo" (2026-10-21, D-085)
+    status: not-started
+    hours: 1
+    depends_on: [S-077]
+    criteria: []
+  - id: S-073
+    title: Escape the translated strings of the three redirect forms (the redirect message inside the inline script, the two button labels) and pass the Google Pay form through wp_kses like its siblings — moved from deferred.md (D-085)
+    status: not-started
+    hours: 1
+    depends_on: []
+    criteria: []
+  - id: S-074
+    title: ABSPATH guard in woocommerce-redsys.php and includes/class-redsysliteapi.php (the unit suite loads the second without WordPress, so its bootstrap changes with it) — moved from deferred.md (D-085)
+    status: not-started
+    hours: 0.5
+    depends_on: []
+    criteria: []
+  - id: S-080
+    title: An order already paid is never cancelled or failed by a later refused, cancelled or error notification, nor by a return to the cancel URL, in any gateway; a signed success on an order the merchant cancelled after payment completes it again (owner, D-085) — verify with tests, fix where it does not hold
+    status: not-started
+    hours: 1.5
+    depends_on: []
+    criteria: []
+  - id: S-081
+    title: Uninstall removes the plugin's internal data only — woocommerce-redsys-version, woocommerce-redsys-rate, the redsys_signature_* and redys_order_temp_* transients; gateway settings and order meta stay (owner, D-085)
+    status: not-started
+    hours: 1
+    depends_on: []
+    criteria: []
+  - id: S-082
+    title: The secret fields of the gateway settings screens (SHA-256 secrets, Inespay credentials) are password fields
+    status: not-started
+    hours: 0.5
+    depends_on: []
+    criteria: []
+  - id: S-083
+    title: Test and declare WordPress 7.1 and WooCommerce 11.1 — the ceiling instance moved to the current releases (PHP 8.4), the whole suite run there, the headers and readme.txt updated (owner, D-085)
+    status: not-started
+    hours: 2
+    depends_on: [S-066, S-073, S-074, S-080, S-081, S-082]
+    criteria: []
 ---
 
 # Sprint 3 — Release preparation for the unreleased security and correctness fixes

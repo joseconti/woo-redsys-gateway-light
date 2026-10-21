@@ -10,19 +10,19 @@
   ],
   "current_sprint": 3,
   "totals": {
-    "estimated_hours": 62.65,
+    "estimated_hours": 70.15,
     "done_hours": 58.4,
     "actual_hours": 29.0009,
-    "remaining_hours": 4.25,
+    "remaining_hours": 11.75,
     "deviation_hours": -29.3991,
     "pace_factor": 0.222252,
-    "projected_remaining_hours": 0.9446,
-    "percent_done": 93.22,
+    "projected_remaining_hours": 2.6115,
+    "percent_done": 83.25,
     "unit": "hours of AI working time plus supervision",
     "spent_unfinished_hours": 0.0386,
-    "slices_total": 59,
+    "slices_total": 66,
     "slices_done": 55,
-    "slices_pending": 4,
+    "slices_pending": 11,
     "slices_dropped": 0,
     "pace_sample": {
       "slices": 38,
@@ -299,19 +299,19 @@
       "goal": "Release preparation for the unreleased security and correctness fixes",
       "status": "in-progress",
       "file": "docs/sprints/sprint-3.md",
-      "estimated_hours": 32.9,
+      "estimated_hours": 40.4,
       "done_hours": 28.65,
       "actual_hours": 4.7834,
-      "remaining_hours": 4.25,
+      "remaining_hours": 11.75,
       "deviation_hours": -23.8666,
       "pace_factor": 0.222252,
-      "projected_remaining_hours": 0.9446,
-      "percent_done": 87.08,
+      "projected_remaining_hours": 2.6115,
+      "percent_done": 70.92,
       "unit": "hours of AI working time plus supervision",
       "spent_unfinished_hours": 0.0386,
-      "slices_total": 41,
+      "slices_total": 48,
       "slices_done": 37,
-      "slices_pending": 4,
+      "slices_pending": 11,
       "slices_dropped": 0,
       "slices": [
         {
@@ -843,6 +843,85 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": []
+        },
+        {
+          "id": "S-066",
+          "title": "On WooCommerce 7.4 the Blocks checkout draws the Inespay option for customers outside ES, PT and IT (fallback label, no description, no icon); fix so it is offered only where the classic checkout offers it — moved from deferred.md by the owner's \"arregla todo\" (2026-10-21, D-085)",
+          "status": "not-started",
+          "hours": 1,
+          "actual_hours": null,
+          "actual_source": null,
+          "depends_on": [
+            "S-077"
+          ],
+          "criteria": []
+        },
+        {
+          "id": "S-073",
+          "title": "Escape the translated strings of the three redirect forms (the redirect message inside the inline script, the two button labels) and pass the Google Pay form through wp_kses like its siblings — moved from deferred.md (D-085)",
+          "status": "not-started",
+          "hours": 1,
+          "actual_hours": null,
+          "actual_source": null,
+          "depends_on": [],
+          "criteria": []
+        },
+        {
+          "id": "S-074",
+          "title": "ABSPATH guard in woocommerce-redsys.php and includes/class-redsysliteapi.php (the unit suite loads the second without WordPress, so its bootstrap changes with it) — moved from deferred.md (D-085)",
+          "status": "not-started",
+          "hours": 0.5,
+          "actual_hours": null,
+          "actual_source": null,
+          "depends_on": [],
+          "criteria": []
+        },
+        {
+          "id": "S-080",
+          "title": "An order already paid is never cancelled or failed by a later refused, cancelled or error notification, nor by a return to the cancel URL, in any gateway; a signed success on an order the merchant cancelled after payment completes it again (owner, D-085) — verify with tests, fix where it does not hold",
+          "status": "not-started",
+          "hours": 1.5,
+          "actual_hours": null,
+          "actual_source": null,
+          "depends_on": [],
+          "criteria": []
+        },
+        {
+          "id": "S-081",
+          "title": "Uninstall removes the plugin's internal data only — woocommerce-redsys-version, woocommerce-redsys-rate, the redsys_signature_* and redys_order_temp_* transients; gateway settings and order meta stay (owner, D-085)",
+          "status": "not-started",
+          "hours": 1,
+          "actual_hours": null,
+          "actual_source": null,
+          "depends_on": [],
+          "criteria": []
+        },
+        {
+          "id": "S-082",
+          "title": "The secret fields of the gateway settings screens (SHA-256 secrets, Inespay credentials) are password fields",
+          "status": "not-started",
+          "hours": 0.5,
+          "actual_hours": null,
+          "actual_source": null,
+          "depends_on": [],
+          "criteria": []
+        },
+        {
+          "id": "S-083",
+          "title": "Test and declare WordPress 7.1 and WooCommerce 11.1 — the ceiling instance moved to the current releases (PHP 8.4), the whole suite run there, the headers and readme.txt updated (owner, D-085)",
+          "status": "not-started",
+          "hours": 2,
+          "actual_hours": null,
+          "actual_source": null,
+          "depends_on": [
+            "S-066",
+            "S-073",
+            "S-074",
+            "S-080",
+            "S-081",
+            "S-082"
+          ],
+          "criteria": []
         }
       ]
     }
@@ -935,36 +1014,6 @@
       "hours": 0.5,
       "target": null,
       "reason": "D-072 — found by the gate's self-audit and confirmed on the ceiling instance; today it only affects the fallback label \"Inespay Bank Transfer\" when the merchant set no title; older than this release",
-      "depends_on": [],
-      "criteria": []
-    },
-    {
-      "id": "S-066",
-      "title": "On WooCommerce 7.4 the Blocks checkout draws the Inespay option for customers outside ES, PT and IT (fallback label, no description, no icon); reproduce, check the ceiling instance, decide",
-      "status": "not-started",
-      "hours": 1,
-      "target": null,
-      "reason": "D-074 — found while driving AC-46 (S-060); the classic checkout hides it for the same customer; not checked on a current WooCommerce nor whether such an order can be placed; older than this release",
-      "depends_on": [],
-      "criteria": []
-    },
-    {
-      "id": "S-073",
-      "title": "Escape the translated strings of the three redirect forms (the redirect message inside the inline script, the two button labels) and pass the Google Pay form through wp_kses like its siblings",
-      "status": "not-started",
-      "hours": 1,
-      "target": null,
-      "reason": "D-078 — hardening, needs a hostile translation file; the forms are what every customer sees on the way to Redsys, so the change wants its own tests and the owner's word on whether it rides in this release; one label carries an intentional entity",
-      "depends_on": [],
-      "criteria": []
-    },
-    {
-      "id": "S-074",
-      "title": "ABSPATH guard in woocommerce-redsys.php and includes/class-redsysliteapi.php (the unit suite loads the second without WordPress, so its bootstrap changes with it); decide the generated asset and translation files",
-      "status": "not-started",
-      "hours": 0.5,
-      "target": null,
-      "reason": "D-078 — the project's own rule says every PHP file; no exploit, a direct request is a PHP error or nothing; older than this release",
       "depends_on": [],
       "criteria": []
     }

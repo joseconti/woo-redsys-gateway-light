@@ -789,3 +789,13 @@
 - Alternatives rejected: guarding at each of the seven call sites (the sanitiser is the one place they share).
 - Supersedes: none
 
+## D-085 — The owner's answers of 2026-10-21: everything open for 7.1 is fixed, compatibility declared
+- Date / phase: 2026-10-21 / Phase 7 preparation (sprint 3)
+- Decision: the owner said "arregla todo, incluida las compatibilidades declaradas con WP y WC". S-066, S-073 and S-074 move from `docs/sprints/deferred.md` into sprint 3; S-080 to S-083 are added. Answers to the questions of `docs/07-release.md`:
+  - A signed success for an order the merchant cancelled after payment **completes it again** (today's behaviour stays). And the reverse **never** happens: an order already marked paid is never cancelled or failed by a later refused, cancelled or error notification — the owner notes that a success can arrive at once and an error later. S-080 proves both, and fixes any path where the second does not hold.
+  - Uninstall removes **the plugin's internal data only** (version, rate flag, its transients); gateway settings, secrets included, and order meta stay so a reinstall needs no bank data (S-081; closes D-071's question).
+  - Test mode **stays as it is** when the shop has no test secret of its own: it verifies with Redsys's public generic test key, which is the key of Redsys's test terminal (closes D-072's question; the threat-model row stays as disclosed).
+  - The secret fields become password fields (S-082). WordPress 7.1 and WooCommerce 11.1 are tested and declared (S-083); the ceiling instance moves to them, on PHP 8.4 because a reporter runs 8.4.
+- Not in scope of this answer, left in `deferred.md`: S-033, S-034, S-040, S-041, S-042, S-053, S-055, S-057, S-065 — named to the owner in the same reply.
+- Supersedes: the open questions of D-071, D-072, D-078 (cancelled order) and D-069 (versions above the declared ones).
+
