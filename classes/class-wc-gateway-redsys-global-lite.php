@@ -54,7 +54,8 @@ class WC_Gateway_Redsys_Global_Lite {
 
 		if ( ! empty( $options ) ) {
 			$redsys_options = maybe_unserialize( $options );
-			if ( array_key_exists( $option, $redsys_options ) ) {
+			// A corrupted or hand-edited settings row may hold anything: only an array has keys.
+			if ( is_array( $redsys_options ) && array_key_exists( $option, $redsys_options ) ) {
 				$option_value = $redsys_options[ $option ];
 				return $option_value;
 			} else {

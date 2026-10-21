@@ -16,7 +16,7 @@
 woocommerce-redsys.php                                  [E] bootstrap: init, textdomain load, version-upgrade notice, admin notices
 about-redsys.php                                         [E] plugin "about" admin content
 index.php                                                 [E] directory-listing protection stub
-wpml-config.xml                                           [E] WPML admin-text config (two settings sections)
+wpml-config.xml                                           [E] WPML admin-text config (the four gateways' title and description, S-100)
 uninstall.php                                             [E] uninstall: removes the plugin's own options and transients, keeps settings and orders (S-081, D-085)
 LICENSE                                                    [E] GPL-2.0-or-later full text (added during adoption, D-003)
 classes/

@@ -88,24 +88,14 @@ class WC_Gateway_Redsys_PSD2_Light {
 	/**
 	 * Get redsys option
 	 *
+	 * One implementation for both helpers: this delegates to the global helper's.
+	 *
 	 * @param string $option Option.
 	 * @param string $gateway Gateway ID.
+	 * @return mixed The option value, or false when absent or the settings are not an array.
 	 */
 	public function get_redsys_option( $option, $gateway ) {
-
-		$options = get_option( 'woocommerce_' . $gateway . '_settings' );
-
-		if ( ! empty( $options ) ) {
-			$redsys_options = maybe_unserialize( $options );
-			if ( array_key_exists( $option, $redsys_options ) ) {
-				$option_value = $redsys_options[ $option ];
-				return $option_value;
-			} else {
-				return false;
-			}
-		} else {
-			return false;
-		}
+		return WCRedL()->get_redsys_option( $option, $gateway );
 	}
 
 	/**
@@ -587,12 +577,13 @@ class WC_Gateway_Redsys_PSD2_Light {
 			 * 04 = Entre 30 y 60días
 			 * 05 = Más de 60 días
 			 */
-		if ( is_user_logged_in() || $user_id ) {
+		if ( is_user_logged_in() ) {
+			$user_id = get_current_user_id();
+		}
+		// An id with no user behind it is a guest: there is no account to describe.
+		$usr_data = $user_id ? get_userdata( $user_id ) : false;
 
-			if ( is_user_logged_in() ) {
-				$user_id = get_current_user_id();
-			}
-			$usr_data         = get_userdata( $user_id );
+		if ( $usr_data ) {
 			// user_registered is stored in GMT; the age counts from that moment, not from its day.
 			$registered_at    = strtotime( $usr_data->user_registered . ' GMT' );
 			$usr_registered   = gmdate( 'Ymd', $registered_at );
@@ -689,7 +680,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 				$acct_info['shipAddressUsageInd'] = $ship_address_usage_ind;
 			}
 		}
-		if ( is_user_logged_in() ) {
+		if ( is_user_logged_in() && $usr_data ) {
 			$acct_info['chAccDate']         = $usr_registered;
 			$acct_info['chAccChange']       = $ch_acc_change;
 			$acct_info['chAccChangeInd']    = $ch_acc_change_ind;

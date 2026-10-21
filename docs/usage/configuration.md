@@ -187,7 +187,7 @@ Everything the plugin keeps. There are no custom tables.
 
 ## Translations
 
-The text domain is `woo-redsys-gateway-light`; translations load from `languages/`, which ships `es_ES`. `wpml-config.xml` registers the card gateway's `title` and `description` as translatable admin texts for WPML — only the card gateway's, plus a `woocommerce_iupay_settings` entry for a gateway this plugin does not contain.
+The text domain is `woo-redsys-gateway-light`; translations load from `languages/`, which ships `es_ES`. `wpml-config.xml` registers the `title` and `description` of the four gateways (card, Bizum, Google Pay, Inespay) as translatable admin texts for WPML. Before S-100 it registered only the card gateway's, plus a `woocommerce_iupay_settings` entry for a gateway this plugin does not contain.
 
 ## External setup
 

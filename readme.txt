@@ -109,6 +109,8 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 * Tweak: Google Pay reads the customer's name through WooCommerce's own methods, so WordPress debug mode no longer reports a notice when the payment page opens.
 * Tweak: A completed Inespay payment sets the order's payment method through WooCommerce's own method, so WordPress debug mode no longer reports a notice.
 * Fix: With debug enabled, a refund of an order without its Redsys order number now writes "Refund Failed: No transaction ID" to the log instead of a PHP warning.
+* Fix: With PHP 8, reading the gateway settings no longer stops with a fatal error when the stored settings are damaged (not a list of values).
+* Fix: With WPML, the title and description of Bizum, Google Pay and Inespay can now be translated, as the card gateway's already could.
 
 == 7.1.0 ==
 
