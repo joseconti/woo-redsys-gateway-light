@@ -1,7 +1,7 @@
 === Payment Gateway for Redsys & WooCommerce Lite ===
 Contributors: j.conti
 Tags: woocommerce, redsys, bizum, google pay, apple pay, inespay
-Requires at least: 4.0
+Requires at least: 5.9
 Tested up to: 7.1
 Requires PHP: 7.0
 Donate link: https://plugins.joseconti.com/product-category/plugins/donaciones/
@@ -101,6 +101,7 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == Unreleased ==
 
+* Readme: "Requires at least" now says WordPress 5.9, the minimum of the WooCommerce version this plugin requires (it said 4.0).
 * Fix: When the same Redsys return reached the order-received page in parallel requests, each could wait and complete the order; now only one does.
 * Fix: With PHP 8, paying by card could stop with a fatal error for a logged-in customer whose account WooCommerce had never saved (for example, an order created by the shop manager and paid from the customer's account).
 * Fix: The 3-D Secure data sent to Redsys now includes when the shipping address was first used, for customers with an account. It was calculated but never sent.
