@@ -162,13 +162,9 @@ class GatewayInespayIpnTest extends WP_UnitTestCase {
 		$order = $this->create_matched_order( 'payin-4', 1.00 );
 		$this->assertNotSame( 'completed', $order->get_status() );
 
-		// Pre-existing issue (not introduced by this test, not fixed here —
-		// see docs/lessons-learned.md L-004): handle_callback() writes
-		// '_payment_method' via the generic update_order_meta() helper
-		// instead of $order->set_payment_method(), which is WooCommerce
-		// internal meta and triggers a doing_it_wrong() notice.
-		$this->setExpectedIncorrectUsage( 'is_internal_meta_key' );
-
+		// L-004 / S-034: the payment method is set through the order's own
+		// setter; writing it as generic meta raised a doing_it_wrong() notice,
+		// which WP_UnitTestCase reports as a failure.
 		$gateway = $this->configured_gateway();
 
 		$fixture                       = $this->build_signed_callback(
@@ -191,6 +187,7 @@ class GatewayInespayIpnTest extends WP_UnitTestCase {
 
 		$order = wc_get_order( $order->get_id() );
 		$this->assertTrue( $order->has_status( array( 'processing', 'completed' ) ) );
+		$this->assertSame( 'inespayredsys', $order->get_payment_method() );
 	}
 
 	public function test_flags_an_order_on_hold_when_the_signed_amount_does_not_match_the_order_total() {

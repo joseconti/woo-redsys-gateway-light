@@ -293,8 +293,6 @@ class GatewayInespayAsBuiltTest extends WP_UnitTestCase {
 	 * AC-41's counterpart: the same callback for the same total in EUR completes the payment.
 	 */
 	public function test_the_same_paid_callback_for_an_order_in_eur_completes_it() {
-		// handle_callback() writes `_payment_method` through the generic meta helper (L-004).
-		$this->setExpectedIncorrectUsage( 'is_internal_meta_key' );
 		$order = $this->create_order( 'payin-41b', 10.00, 'EUR' );
 
 		$this->deliver_signed_callback(
@@ -351,7 +349,6 @@ class GatewayInespayAsBuiltTest extends WP_UnitTestCase {
 	 * S-080's counterpart: a success for an order that failed before completes it.
 	 */
 	public function test_a_paid_callback_for_an_order_that_failed_completes_it() {
-		$this->setExpectedIncorrectUsage( 'is_internal_meta_key' );
 		$order = $this->create_order( 'payin-80-failed' );
 		$order->set_status( 'failed' );
 		$order->save();

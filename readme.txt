@@ -105,6 +105,7 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 * Fix: The 3-D Secure data sent to Redsys now includes when the shipping address was first used, for customers with an account. It was calculated but never sent.
 * Fix: With WPML, a language the plugin does not know now opens the Bizum and Google Pay payment pages in English instead of sending an empty language.
 * Fix: In the Blocks checkout, the Spanish translation of the payment methods' script was never loaded (it showed "Inespay Bank Transfer" untranslated when no title was set).
+* Tweak: A completed Inespay payment sets the order's payment method through WooCommerce's own method, so WordPress debug mode no longer reports a notice.
 * Fix: With debug enabled, a refund of an order without its Redsys order number now writes "Refund Failed: No transaction ID" to the log instead of a PHP warning.
 
 == 7.1.0 ==

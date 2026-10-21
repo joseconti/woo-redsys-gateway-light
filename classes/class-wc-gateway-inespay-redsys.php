@@ -696,7 +696,9 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 				}
 
 				// Store payment meta.
-				WCRedL()->update_order_meta( $order->get_id(), array( '_payment_method' => $this->id ) );
+				// The order's own setter: `_payment_method` is WooCommerce internal meta (L-004).
+				$order->set_payment_method( $this->id );
+				$order->save();
 				WCRedL()->update_order_meta( $order->get_id(), array( '_redsys_done' => 'yes' ) );
 
 				do_action( 'inespay_post_payment_complete', $order->get_id() );
