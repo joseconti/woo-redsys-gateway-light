@@ -100,6 +100,25 @@ slices:
       exclusive_resources: [playground]
       parallel: serial
       serial_reason: same playground as S-092
+  - id: S-095
+    title: get_acctinfo() shipping-address usage, made live by S-092, is computed wrong — days divided by 216000 instead of 86400, and the first-use query matches any customer's order and the current order itself
+    status: not-started
+    original_hours: 0.5
+    residual_hours: 0.5
+    change_kind: added
+    parent_slice: null
+    owns: [S-095]
+    estimate_changes: []
+    depends_on: []
+    criteria: []
+    execution:
+      write_paths: [classes/, tests/]
+      contracts:
+        reads: []
+        writes: []
+      exclusive_resources: [playground]
+      parallel: serial
+      serial_reason: same playground as S-092
 ---
 
 # Sprint 5 — Next-version defect fixes, held on a work branch until v7.1.0 is tagged
