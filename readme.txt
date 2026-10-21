@@ -101,6 +101,7 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == Unreleased ==
 
+* Fix: When the same Redsys return reached the order-received page in parallel requests, each could wait and complete the order; now only one does.
 * Fix: With PHP 8, paying by card could stop with a fatal error for a logged-in customer whose account WooCommerce had never saved (for example, an order created by the shop manager and paid from the customer's account).
 * Fix: The 3-D Secure data sent to Redsys now includes when the shipping address was first used, for customers with an account. It was calculated but never sent.
 * Fix: With WPML, a language the plugin does not know now opens the Bizum and Google Pay payment pages in English instead of sending an empty language.

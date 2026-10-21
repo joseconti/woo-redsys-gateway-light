@@ -64,8 +64,8 @@ $script = plugin_url_redsys() . '/assets/js/frontend/blocks.js';
 
 ### `redsyslite_mark_order_as_paid( $order_id )`
 - **Signature:** `redsyslite_mark_order_as_paid( int $order_id ): void` (`woocommerce-redsys.php:470`).
-- **What it does:** the fallback behind the order-received page (`docs/flows/notification-handling.md`, part C). In this order, and stopping at the first that fails: the query string has `Ds_MerchantParameters`; the function has not processed a signed return for this order in the last 30 seconds; the order exists, belongs to one of the three Redsys-protocol gateways and is unpaid; the gateway's `is_valid_return()` accepts the signature. Only then does it wait 5 seconds, and if the order is still unpaid it hands `Ds_MerchantParameters`, `Ds_Signature` and `Ds_SignatureVersion` to the gateway's `successful_request()`.
-- **Side effects:** clears the order caches. For a return with a valid signature only: sets the transient `redsyslite_mark_paid_attempt_<order id>` for 30 seconds, blocks for 5 seconds, and may update the order. A request without a valid signature costs no wait and does not use up the order's attempt (S-046, D-060).
+- **What it does:** the fallback behind the order-received page (`docs/flows/notification-handling.md`, part C). In this order, and stopping at the first that fails: the query string has `Ds_MerchantParameters`; the function has not processed a signed return for this order in the last 30 seconds; the order exists, belongs to one of the three Redsys-protocol gateways and is unpaid; the gateway's `is_valid_return()` accepts the signature; the return names this order; this request claims the order's 30-second attempt with `redsyslite_claim_transient()` (a parallel request that claimed it first stops this one, S-055). Only then does it wait 5 seconds, and if the order is still unpaid it hands `Ds_MerchantParameters`, `Ds_Signature` and `Ds_SignatureVersion` to the gateway's `successful_request()`.
+- **Side effects:** clears the order caches. For a return with a valid signature only: claims the transient `redsyslite_mark_paid_attempt_<order id>` for 30 seconds, atomically, blocks for 5 seconds, and may update the order. A request without a valid signature costs no wait and does not use up the order's attempt (S-046, D-060).
 - **Errors:** none returned. It reads `$_GET` directly, so it only does something useful in the request it was written for.
 
 ```php
@@ -74,8 +74,19 @@ redsyslite_mark_order_as_paid( $order_id );
 ```
 
 ### `redsyslite_force_mark_order_as_paid_on_thankyou_page()`
-- **Signature:** `(): void` (`woocommerce-redsys.php:584`), attached to `wp_head`.
+- **Signature:** `(): void` (`woocommerce-redsys.php:641`), attached to `wp_head`.
 - **What it does:** does nothing when WooCommerce is not loaded (it is hooked at file scope; S-051). On the order-received page, when the query string has `key` and `Ds_MerchantParameters`, resolves the order from the key and calls `redsyslite_mark_order_as_paid()`.
+
+### `redsyslite_claim_transient( $transient, $expiration )`
+- **Signature:** `redsyslite_claim_transient( string $transient, int $expiration ): bool` (`woocommerce-redsys.php:564`).
+- **What it does:** sets the transient `$transient` (value `1`, lifetime `$expiration` seconds) only when no live one exists, and returns true when this request holds it. `set_transient()` overwrites, so a check followed by a set lets two parallel requests both pass; this is one atomic step. With a persistent object cache it is `wp_cache_add()` in the `transient` group; without one, an `INSERT IGNORE` of the `_transient_timeout_` row, and an expired row is taken again by a single compare-and-swap `UPDATE`. `get_transient()` and `delete_transient()` treat the result as an ordinary transient.
+- **Errors:** none raised; a failed query means "not claimed" (fails closed). With a persistent object cache that refuses `wp_cache_add()`, nothing is ever claimed. A `get_transient()` that finds the previous claim expired deletes it, and can delete one re-taken in the same milliseconds (accepted, S-055 review).
+
+```php
+if ( redsyslite_claim_transient( 'my_job_' . $order_id, 60 ) ) {
+	// Only one request at a time gets here for this order.
+}
+```
 
 ### `redsyslite_allow_cancel_return_for_cancelled_order( $statuses, $order )`
 - **Signature:** `redsyslite_allow_cancel_return_for_cancelled_order( array $statuses, WC_Order|null $order = null ): array` (`woocommerce-redsys.php`), attached to WooCommerce's filter `woocommerce_valid_order_statuses_for_cancel`, priority 10.

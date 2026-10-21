@@ -552,6 +552,11 @@ function redsyslite_mark_order_as_paid( $order_id ) {
  * expired row left behind is taken again by one request only. Either way
  * get_transient() and delete_transient() see the claim as an ordinary transient.
  *
+ * Limits, accepted (S-055 review): a get_transient() that finds the previous
+ * claim expired deletes it, and can delete one taken again in the same
+ * milliseconds; with a persistent object cache that refuses wp_cache_add()
+ * (an outage), no claim is ever granted, so the caller fails closed.
+ *
  * @param string $transient  Transient name, as passed to set_transient().
  * @param int    $expiration Lifetime of the claim in seconds.
  * @return bool True when this request holds the claim.
