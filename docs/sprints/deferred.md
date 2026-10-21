@@ -14,19 +14,6 @@ items:
     reason: D-025 — the user chose to leave it documented and decide later; it is load-bearing for the per-user test mode
     depends_on: []
     criteria: []
-  - id: S-034
-    title: Inespay handle_callback() should call set_payment_method() instead of writing _payment_method meta
-    status: not-started
-    original_hours: 0.5
-    residual_hours: 0.5
-    change_kind: added
-    parent_slice: null
-    owns: [S-034]
-    estimate_changes: []
-    target: null
-    reason: L-004 — low severity, works today; revisit when the success path of handle_callback() is next touched
-    depends_on: []
-    criteria: []
   - id: S-040
     title: Redact the inbound signature and raw notification data from the gateways' debug logs
     status: not-started
@@ -51,19 +38,6 @@ items:
     estimate_changes: []
     target: null
     reason: D-052 — triaged only; none blocks the release of the pending fixes
-    depends_on: []
-    criteria: []
-  - id: S-042
-    title: Google Pay get_redsys_args() reads the billing name through the generic meta API instead of the order's getters (WooCommerce doing_it_wrong notice)
-    status: not-started
-    original_hours: 0.25
-    residual_hours: 0.25
-    change_kind: added
-    parent_slice: null
-    owns: [S-042]
-    estimate_changes: []
-    target: null
-    reason: D-053 — found while testing S-038; the value is still read correctly, only a notice is raised under WP_DEBUG; same class as L-004
     depends_on: []
     criteria: []
   - id: S-053
@@ -105,19 +79,6 @@ items:
     reason: D-060 — both need a valid signature to matter; refactoring the verification head of successful_request() is not a security-fix change
     depends_on: []
     criteria: []
-  - id: S-065
-    title: The Spanish translation of the Blocks checkout script is never loaded — its JSON file is named after the source path, not after the script WordPress loads
-    status: not-started
-    original_hours: 0.5
-    residual_hours: 0.5
-    change_kind: added
-    parent_slice: null
-    owns: [S-065]
-    estimate_changes: []
-    target: null
-    reason: D-072 — found by the gate's self-audit and confirmed on the ceiling instance; today it only affects the fallback label "Inespay Bank Transfer" when the merchant set no title; older than this release
-    depends_on: []
-    criteria: []
   - id: S-030
     title: Guided assistive-technology pass with the user
     status: not-started
@@ -142,19 +103,6 @@ items:
     estimate_changes: []
     target: null
     reason: D-099 — acknowledged, not validated, for 7.1.0; the owner runs the payments after the release and anything found goes into 7.1.1
-    depends_on: []
-    criteria: []
-  - id: S-092
-    title: Low defects found by PHPStan on the 7.1.0 candidate — undefined $result in the no-transaction-ID refund branch (Redsys, Bizum, Google Pay), PSD2 shipAddressUsage fields never sent, two methods that can end without a return
-    status: not-started
-    original_hours: 1
-    residual_hours: 1
-    change_kind: added
-    parent_slice: null
-    owns: [S-092]
-    estimate_changes: []
-    target: null
-    reason: D-102 — found by S-091, none a regression of 7.1.0; each starts from a failing test (D-036)
     depends_on: []
     criteria: []
   - id: S-093
