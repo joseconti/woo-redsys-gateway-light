@@ -350,10 +350,10 @@ slices:
     criteria: []
   - id: S-074
     title: ABSPATH guard in woocommerce-redsys.php and includes/class-redsysliteapi.php (the unit suite loads the second without WordPress, so its bootstrap changes with it) — moved from deferred.md (D-085)
-    status: not-started
+    status: done
     hours: 0.5
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.0189
+    actual_source: measured
     depends_on: []
     criteria: []
   - id: S-080
@@ -448,3 +448,4 @@ slices:
 - S-080 (done 2026-10-21, D-086): a paid order stays paid in all four gateways; a `failed` order now takes a later success (it was counted as paid) — `failed` added to the unpaid list; AC-72 added.
 - S-081 (done 2026-10-21, D-087): `uninstall.php` removes the plugin's own options and transients; settings, tokens and orders stay; AC-73.
 - S-082 (done 2026-10-21, D-088): the signing secrets and Inespay's API key are password fields.
+- S-074 (done 2026-10-21, D-089): `ABSPATH` guard in the main file and the signature class; generated files left as they are, recorded.

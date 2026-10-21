@@ -821,3 +821,8 @@
 - Test changed with the requirement: `GatewaySettingsAsBuiltTest` pinned those fields as `text` (as-built, AC-47); the requirement changed by the owner's decision, so its expected types are now `password` — `OK (16 tests, 244 assertions)`. `docs/usage/configuration.md` updated.
 - What it is and is not: the value is no longer shown on screen and is not offered by the browser's autocomplete as text; WooCommerce still prints it in the field's `value` attribute so a save without retyping keeps it — the page source of the settings screen, open only to users who can manage WooCommerce, still carries it. WooCommerce's password validation trims and unslashes without `wp_kses_post()`, which a Base64 secret does not need.
 
+## D-089 — `ABSPATH` guard in the main file and the signature class (S-074)
+- Date / phase: 2026-10-21 / Phase 5 (sprint 3)
+- Decision: `woocommerce-redsys.php` and `includes/class-redsysliteapi.php` stop at once when `ABSPATH` is not defined. Red (`tests/Unit/DirectAccessTest.php`, each file included by a separate PHP process): the main file → `PHP Fatal error: Uncaught Error: Call to undefined function plugin_dir_url()` with its path; the class file → defined the class; a guarded gateway file printed nothing (counterpart). Green: whole unit suite `OK (41 tests, 78 assertions)`. The unit bootstrap now defines `ABSPATH` before loading the class it tests alone.
+- Left without a guard on purpose, recorded in the threat model: the generated asset and translation files (build output; editing them by hand is a defect) and the silent `index.php` stubs.
+

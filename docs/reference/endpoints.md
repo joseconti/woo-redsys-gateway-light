@@ -88,7 +88,7 @@ The `wc-api` value is matched by WooCommerce, which fires the action `woocommerc
 ### 5. Return to the order-received page
 
 - **URL:** WooCommerce's order-received URL, which the plugin gives Redsys as `DS_MERCHANT_URLOK` with `utm_nooverride=1` added. Redsys appends its own result parameters when it sends the customer back.
-- **Handler:** `redsyslite_force_mark_order_as_paid_on_thankyou_page()` on `wp_head` (`woocommerce-redsys.php:576`), which calls `redsyslite_mark_order_as_paid()` (`:463`).
+- **Handler:** `redsyslite_force_mark_order_as_paid_on_thankyou_page()` on `wp_head` (`woocommerce-redsys.php:580`), which calls `redsyslite_mark_order_as_paid()` (`:467`).
 - **Parameters** (query string):
 
   | Name | Type | Required | Description |
@@ -105,7 +105,7 @@ The `wc-api` value is matched by WooCommerce, which fires the action `woocommerc
 ### 6–7. Admin notice dismissal
 
 - **URL:** any WordPress admin page with `redsys-hide-new-version=hide-new-version-redsys&_redsys_hide_new_version_nonce=<nonce>`, or with `redsys-telegram=telegram-redsys&_redsys_telegram_nonce=<nonce>`. The links are printed inside the notices themselves.
-- **Handlers:** `redsys_lite_add_notice_new_version()` (`woocommerce-redsys.php:228`) and `redsys_lite_ask_for_telegram()` (`:277`), both on `admin_notices`.
+- **Handlers:** `redsys_lite_add_notice_new_version()` (`woocommerce-redsys.php:232`) and `redsys_lite_ask_for_telegram()` (`:281`), both on `admin_notices`.
 - **Effect:** with a valid nonce (actions `redsys_hide_new_version_nonce` and `redsys_telegram_nonce`), stores the option `hide-new-version-redsys-notice` (the current plugin version) or `telegram-redsys-notice` (`yes`), which hides the notice. With an invalid nonce nothing is stored.
 - **Permissions:** the capability `manage_woocommerce` and the nonce. A user without the capability is neither shown the notices nor able to dismiss them (S-047, D-061).
 

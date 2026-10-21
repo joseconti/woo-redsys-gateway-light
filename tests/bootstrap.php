@@ -11,6 +11,12 @@
  * @package WooCommerce Redsys Gateway Light
  */
 
+// The class file stops when WordPress is not loaded (S-074); this suite
+// loads it alone on purpose.
+if ( ! defined( 'ABSPATH' ) ) {
+	define( 'ABSPATH', __DIR__ . '/' );
+}
+
 if ( ! function_exists( 'wp_json_encode' ) ) {
 	/**
 	 * Minimal stand-in for WordPress's wp_json_encode().
