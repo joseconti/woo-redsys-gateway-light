@@ -42,7 +42,7 @@ Environment of the run of 2026-10-06: WordPress 7.0, WooCommerce 7.4, PHP 7.4, C
 - Everything axe cannot test: keyboard order, focus visibility in use, the meaning of what is announced, timing (the payment form submits itself after a moment — WCAG 2.2.1 and 3.2.5 need a person to judge it).
 
 ## Guided assistive-technology pass
-**Not run (S-030).** It needs a person with a screen reader (`ASSISTIVE-TECH`); the assistant cannot drive it. The script below is ready: the assistant gives one step at a time and records the answer per item.
+**Not run for 7.1.0 — an accepted shortfall (D-099).** The owner shipped 7.1.0 without it; S-030 is in `docs/sprints/deferred.md` for the next version. Until it runs, nothing in this project claims conformance from a real assistive-technology pass: what is evidenced is the automated pass above (on the development tree, both ends of the support matrix — D-092, D-101), where the only failures are the four settings scans on WooCommerce's own help-tip markup. It needs a person with a screen reader (`ASSISTIVE-TECH`); the assistant cannot drive it. The script below is ready: the assistant gives one step at a time and records the answer per item.
 
 Preparation: the playground running (`docs/playground.md`), a product in the cart, VoiceOver (macOS, Safari) or NVDA (Windows, Firefox).
 

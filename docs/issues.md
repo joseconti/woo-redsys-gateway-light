@@ -2,13 +2,13 @@
 
 > Living log of forge issues (GitHub, `joseconti/woo-redsys-gateway-light`). Inventory first, one entry per issue worked.
 > Updated the moment an issue is triaged, worked, or closed.
-> Last inbound sweep: 2026-10-21 13:45 (session close — `gh issue list --state all`: six open issues, none new since #112 on 2026-09-16; no new comment; seventeen open Dependabot PRs (#94–#116, development dependencies only), triaged 2026-10-21 by S-089 — all superseded on `develop`, see "Dependabot pull requests" below. Outside the forge, two WordPress.org support threads report D-023 on 7.0.2 — recorded in `docs/PROGRESS.md`; replies drafted, not posted, waiting for the owner)
+> Last inbound sweep: 2026-10-21 15:41 (sprint 3 close — six open issues, no new issue or comment since the 13:45 sweep. Earlier, 13:45, session close — `gh issue list --state all`: six open issues, none new since #112 on 2026-09-16; no new comment; seventeen open Dependabot PRs (#94–#116, development dependencies only), triaged 2026-10-21 by S-089 — all superseded on `develop`, see "Dependabot pull requests" below. Outside the forge, two WordPress.org support threads report D-023 on 7.0.2 — recorded in `docs/PROGRESS.md`; replies drafted, not posted, waiting for the owner)
 
 ## Inventory
 | # | Title | Type | Priority | Status | Entry |
 |---|-------|------|----------|--------|-------|
-| 112 | Mensaje "Your order can no longer be cancelled" al cancelar el usuario el pago en Redsys | bug | medium | resolved (fix implemented, unreleased) | E-002 |
-| 93 | wc_enqueue_js() deprecada desde WooCommerce 10.4 (avisos en la página de pago) | bug | medium | resolved (fix implemented, unreleased) | E-001 |
+| 112 | Mensaje "Your order can no longer be cancelled" al cancelar el usuario el pago en Redsys | bug | medium | resolved (fix ships in 7.1.0, not yet published) | E-002 |
+| 93 | wc_enqueue_js() deprecada desde WooCommerce 10.4 (avisos en la página de pago) | bug | medium | resolved (fix ships in 7.1.0, not yet published) | E-001 |
 | 34 | Falta el text domain | bug | low | resolved (moot — file rewritten since) | — |
 | 21 | Posible error en string | bug | low | won't fix (dead code, not used in Lite) | — |
 | 12 | PHP Fatal error: Uncaught Error: Call to a member function update_meta_data() on bool | bug | high | resolved (already fixed in shipped code) | — |

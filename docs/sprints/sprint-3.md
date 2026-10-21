@@ -2,7 +2,7 @@
 schema: keel.sprint/2
 sprint: 3
 goal: Release preparation for the unreleased security and correctness fixes
-status: in-progress
+status: done
 scope_reconciliations:
   - id: R3-01
     date: 2026-10-21
@@ -94,9 +94,9 @@ slices:
     criteria: []
   - id: S-037
     title: Remaining one-time verifications of the Keel scaffolding (Stop hook after a session restart, timing report over a real multi-session slice, a real push through pre-push); the tunnel payment extracted to S-090 (D-099)
-    status: not-started
+    status: done
     original_hours: 0.5
-    residual_hours: 0.25
+    residual_hours: 0
     change_kind: added
     parent_slice: null
     owns: [S-037]
@@ -107,7 +107,7 @@ slices:
         reason: D-099 — the Redsys test-terminal payment through the tunnel is acknowledged for 7.1.0 and moves to deferred as S-090
         decision: D-099
         reconciliation: R3-01
-    actual_hours: null
+    actual_hours: 0
     actual_source: estimated
     depends_on: [S-036]
     criteria: []
@@ -303,14 +303,14 @@ slices:
     criteria: []
   - id: S-032
     title: Phase 7 release gate on the candidate (full suite, version proposed to the user, package hygiene)
-    status: in-progress
+    status: done
     original_hours: 2
-    residual_hours: 2
+    residual_hours: 0
     change_kind: added
     parent_slice: null
     owns: [S-032]
     estimate_changes: []
-    actual_hours: 0.0386
+    actual_hours: 0.5644
     actual_source: measured
     depends_on: [S-036, S-027, S-028, S-029, S-031, S-035, S-039, S-052, S-054, S-056]
     criteria: []
