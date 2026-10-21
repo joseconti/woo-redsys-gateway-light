@@ -324,6 +324,14 @@ slices:
     actual_source: measured
     depends_on: [S-076]
     criteria: []
+  - id: S-079
+    title: The changelog line about the order-number fallback (readme.txt, Unreleased) overstated it — rewritten from a simulation of the 7.0.2 code; no shipped code changed
+    status: done
+    hours: 0.25
+    actual_hours: 0.0058
+    actual_source: measured
+    depends_on: []
+    criteria: []
 ---
 
 # Sprint 3 — Release preparation for the unreleased security and correctness fixes
@@ -378,3 +386,5 @@ slices:
 - S-077 (in progress, D-082): the floor is observed — a guest in the US sees Inespay in the Blocks checkout and the Store API refuses the order (HTTP 400); a guest who types a Spanish address there sees it with the fallback label and no icon and can place the order. The ceiling is not observed. Worked without its clock while S-076's agents ran: its time is in the session row.
 - S-078 (in progress, nothing written): located by reading only — `RedsysLiteAPI::sanitize_merchant_parameters()` casts its argument to a string. No test, no code change.
 - Session close, 2026-10-06 at about 23:25, asked for by the owner: no inbound issue sweep — the last one was at 21:52, inside the 24-hour interval (`gh issue list` at 23:10 showed the same six open issues, none updated since). The next chat is not chained: the owner opens it.
+- Session of 2026-10-21, 11:28 — a WordPress.org support thread reports D-023 on 7.0.2 (fixed on `develop`, unreleased); the owner's decision (7.0.3 hotfix or 7.1.0) and the forum reply are recorded in `docs/PROGRESS.md`. S-079 added and done.
+- S-079 (done 2026-10-21, D-083): the `readme.txt` line about the order-number fallback said "roughly 1 in 5"; rewritten from a simulation of the 7.0.2 code — about 1 in 10 of fallback cases, only on 8- or 9-digit order IDs, in practice refund confirmations. Measured time excludes the investigation done before the slice opened, in the same session.

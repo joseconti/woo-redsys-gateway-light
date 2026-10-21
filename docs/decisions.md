@@ -775,3 +775,10 @@
 - No shipped code changed in this session.
 - Supersedes: none. Completes D-078's "The three files changed by S-072 were not re-read by an auditor after the change".
 
+## D-083 — The changelog line about the order-number fallback corrected (S-079)
+- Date / phase: 2026-10-21 / Phase 7 preparation (sprint 3)
+- Decision: at the owner's request ("que la gente se va a pensar lo que no es"), the `readme.txt` Unreleased line that said "roughly 1 in 5" delayed or retried notifications could resolve to the wrong order is rewritten. A simulation of the 7.0.2 `prepare_order_number()`/`clean_order_number()` over all 999 random prefixes shows: the fallback (`ltrim( substr( $n, 3 ), '0' )`) is wrong only when the prefix has 1 or 2 digits (99 of 999, about 1 in 10) AND the order ID has 8 or more digits (with fewer, the characters it drops are padding zeros: a 5-digit ID is right 999 of 999, a 9-digit one wrong 99 of 999). The fallback runs only when the 1-hour transient is gone. The owner notes a payment notification an hour late is practically non-existent; refund confirmations, however, reuse the payment's `Ds_Order` (`_payment_order_number_redsys`) and arrive after the transient has expired, so in 7.0.2 they took the fallback as a rule — that is the realistic reach, and the line says so. IDs of 10+ digits are the separate line of D-033.
+- Why: the old figure overstated the reach and would alarm users about something that did not happen to them.
+- Alternatives rejected: dropping the line (the refund case on 8–9-digit stores was real).
+- Supersedes: the wording of D-024 item 3 ("roughly 1 in 5"), not the fix of D-026.
+

@@ -129,7 +129,7 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 * Fix: The final signature check on the order-received page (successful_request()) was verifying test-mode payments against the wrong secret for Bizum and Google Pay, so a genuinely valid test-mode payment could be left unmarked as paid with no error shown.
 * Fix: Removed an unauthenticated, repeatable 5-second delay on the order-received page; it is now rate-limited per order.
 * Fix: Bizum and Google Pay no longer risk a fatal error when a payment notification references an order that does not exist.
-* Fix: Corrected the internal order-number mapping used to match delayed or retried notifications to their order — previously, roughly 1 in 5 such notifications could resolve to the wrong order.
+* Fix: When the temporary record that links a Redsys order number to its order had expired, the fallback that worked out the order could pick the wrong one on stores whose order IDs have 8 or 9 digits (about 1 in 10 of those cases). In practice this reached refund confirmations, which arrive after that record has expired; payment notifications arrive in time. Stores with order IDs of up to 7 digits were never affected.
 * Fix: Signature comparisons now use a constant-time comparison across all gateways.
 * Fix: An Inespay refund-confirmation notification could be mislabeled as a completed payment; it is now correctly ignored once the order is already paid.
 * Fix: Inespay's transaction-limit check no longer truncates decimals in the cart total, so a configured limit (e.g. 200) is now correctly enforced against totals like 200.50.
