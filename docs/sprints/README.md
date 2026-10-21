@@ -27,8 +27,8 @@ The contract is Keel's `references/project-state.md`: "Sprint files (Phase 5) â€
 | [2](sprint-2.md) | Keel v5.9.0 to v6.5.0 post-update reconciliation | done | 7 / 7 | 9.75 | 9.75 | 4.22 | 0 | 0 | 100 |
 | [3](sprint-3.md) | Release preparation for the unreleased security and correctness fixes | done | 52 / 52 | 49.65 | 49.65 | 7.03 | 0 | 0 | 100 |
 | [4](sprint-4.md) | Work independent of the owner's 7.1.0 release block â€” evidence only, no shipped file changes while develop is the candidate | done | 1 / 1 | 1.5 | 1.5 | 0.1 | 0 | 0 | 100 |
-| [5](sprint-5.md) | Next-version defect fixes on the work branch work/after-7.1.0, merged into develop only after the owner tags v7.1.0 | in-progress | 0 / 4 | 2.25 | 0 | 0 | 2.25 | 0.4 | 0 |
-| **Total** | | | 71 / 75 | 83.15 | 80.9 | 31.34 | 2.25 | 0.4 | 97.3 |
+| [5](sprint-5.md) | Next-version defect fixes on the work branch work/after-7.1.0, merged into develop only after the owner tags v7.1.0 | in-progress | 0 / 5 | 2.75 | 0 | 0 | 2.75 | 0.49 | 0 |
+| **Total** | | | 71 / 76 | 83.65 | 80.9 | 31.34 | 2.75 | 0.49 | 96.7 |
 
 All figures are hours of AI working time plus supervision. Contingency is not included, and neither is the backlog in [`deferred.md`](deferred.md) (9 items, 10.75 h). Pace factor: 0.1786 (52 measured slices). Balance: reconciled.
 <!-- keel-plan:index:end -->
