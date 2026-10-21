@@ -34,3 +34,4 @@ slices:
 - Notes: opened 2026-10-21 after the owner's answers (D-106). Hours are AI working time plus supervision.
 - Close-out:
 - S-097 (done 2026-10-21, D-106): `f658ebb` brought onto `develop`, its changelog line under `== 7.1.0 ==`; the 280-character upgrade notice applied; the shipped-file diff against `704730a` is the translation JSON and `readme.txt`; 205 of 205 tests green (entire suite, widened by the build-script change).
+- Session close (2026-10-21): estimate total updated to sprint 6 (85.15 h); inbound issue sweep clean; token-ledger and sessions rows written. Suppression count 150 against the 149 recorded at sprint 3: this session's diff adds none (`git diff ebb48d9` carries no suppression comment), so the growth predates it — to be traced at the next sprint close.
