@@ -850,7 +850,7 @@
           "status": "not-started",
           "hours": 1,
           "actual_hours": null,
-          "actual_source": null,
+          "actual_source": "estimated",
           "depends_on": [
             "S-077"
           ],
@@ -862,7 +862,7 @@
           "status": "not-started",
           "hours": 1,
           "actual_hours": null,
-          "actual_source": null,
+          "actual_source": "estimated",
           "depends_on": [],
           "criteria": []
         },
@@ -872,7 +872,7 @@
           "status": "not-started",
           "hours": 0.5,
           "actual_hours": null,
-          "actual_source": null,
+          "actual_source": "estimated",
           "depends_on": [],
           "criteria": []
         },
@@ -882,7 +882,7 @@
           "status": "not-started",
           "hours": 1.5,
           "actual_hours": null,
-          "actual_source": null,
+          "actual_source": "estimated",
           "depends_on": [],
           "criteria": []
         },
@@ -892,7 +892,7 @@
           "status": "not-started",
           "hours": 1,
           "actual_hours": null,
-          "actual_source": null,
+          "actual_source": "estimated",
           "depends_on": [],
           "criteria": []
         },
@@ -902,7 +902,7 @@
           "status": "not-started",
           "hours": 0.5,
           "actual_hours": null,
-          "actual_source": null,
+          "actual_source": "estimated",
           "depends_on": [],
           "criteria": []
         },
@@ -912,7 +912,7 @@
           "status": "not-started",
           "hours": 2,
           "actual_hours": null,
-          "actual_source": null,
+          "actual_source": "estimated",
           "depends_on": [
             "S-066",
             "S-073",
