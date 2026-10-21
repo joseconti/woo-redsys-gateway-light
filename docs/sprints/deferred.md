@@ -118,19 +118,6 @@ items:
     reason: D-102 — self-audit answer 1; the tools ran once outside the repository; installing them changes composer.json and the playground, so it waits for the tag
     depends_on: []
     criteria: []
-  - id: S-096
-    title: get_acctinfo() counts the account age from midnight of the registration day (the date is formatted to Ymd before the minutes are computed), so "just created" (chAccAgeInd 02) is reached only shortly after midnight
-    status: not-started
-    original_hours: 0.25
-    residual_hours: 0.25
-    change_kind: added
-    parent_slice: null
-    owns: [S-096]
-    estimate_changes: []
-    target: null
-    reason: found by S-094's test on 2026-10-21; a 3DS indicator precision issue, no error; not in sprint 5's scope
-    depends_on: []
-    criteria: []
 ---
 
 # Deferred — wanted, not in the current plan

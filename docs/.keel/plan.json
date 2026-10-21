@@ -13,13 +13,13 @@
   "current_sprint": 5,
   "reconciliation_status": "reconciled",
   "totals": {
-    "original_estimated_hours": 84.15,
-    "completed_original_hours": 83.9,
-    "actual_hours": 32.5742,
+    "original_estimated_hours": 84.4,
+    "completed_original_hours": 84.15,
+    "actual_hours": 32.6828,
     "remaining_hours": 0.25,
-    "deviation_hours": -51.3258,
-    "pace_factor": 0.191504,
-    "projected_remaining_hours": 0.0479,
+    "deviation_hours": -51.4672,
+    "pace_factor": 0.192631,
+    "projected_remaining_hours": 0.0482,
     "reconciliation_status": "reconciled",
     "scope_delta": {
       "added_scope_hours": -1.25,
@@ -29,17 +29,17 @@
     "percent_done": 99.7,
     "unit": "hours of AI working time plus supervision",
     "spent_unfinished_hours": 0,
-    "slices_total": 78,
-    "slices_done": 76,
+    "slices_total": 79,
+    "slices_done": 77,
     "slices_pending": 1,
     "slices_dropped": 1,
     "slices_unreconciled": 0,
     "pace_sample": {
-      "slices": 57,
-      "estimated_hours": 53.65,
-      "actual_hours": 10.2742,
-      "deviation_hours": -43.3758,
-      "deviation_percent": -80.85,
+      "slices": 58,
+      "estimated_hours": 53.9,
+      "actual_hours": 10.3828,
+      "deviation_hours": -43.5172,
+      "deviation_percent": -80.74,
       "provisional": false
     }
   },
@@ -54,7 +54,7 @@
       "actual_hours": 20,
       "remaining_hours": 0,
       "deviation_hours": 0,
-      "pace_factor": 0.191504,
+      "pace_factor": 0.192631,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -290,7 +290,7 @@
       "actual_hours": 4.2175,
       "remaining_hours": 0,
       "deviation_hours": -5.5325,
-      "pace_factor": 0.191504,
+      "pace_factor": 0.192631,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -454,7 +454,7 @@
       "actual_hours": 7.0276,
       "remaining_hours": 0,
       "deviation_hours": -42.6224,
-      "pace_factor": 0.191504,
+      "pace_factor": 0.192631,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -1675,7 +1675,7 @@
       "actual_hours": 0.0989,
       "remaining_hours": 0,
       "deviation_hours": -1.4011,
-      "pace_factor": 0.191504,
+      "pace_factor": 0.192631,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -1732,24 +1732,24 @@
       "goal": "Next-version defect fixes on the work branch work/after-7.1.0, merged into develop only after the owner tags v7.1.0",
       "status": "in-progress",
       "file": "docs/sprints/sprint-5.md",
-      "original_estimated_hours": 3.25,
-      "completed_original_hours": 3,
-      "actual_hours": 1.2302,
+      "original_estimated_hours": 3.5,
+      "completed_original_hours": 3.25,
+      "actual_hours": 1.3388,
       "remaining_hours": 0.25,
-      "deviation_hours": -1.7698,
-      "pace_factor": 0.191504,
-      "projected_remaining_hours": 0.0479,
+      "deviation_hours": -1.9112,
+      "pace_factor": 0.192631,
+      "projected_remaining_hours": 0.0482,
       "reconciliation_status": "reconciled",
       "scope_delta": {
         "added_scope_hours": 0,
         "extracted_hours": 0,
         "explicit_residual_reestimate_hours": 0
       },
-      "percent_done": 92.31,
+      "percent_done": 92.86,
       "unit": "hours of AI working time plus supervision",
       "spent_unfinished_hours": 0,
-      "slices_total": 6,
-      "slices_done": 5,
+      "slices_total": 7,
+      "slices_done": 6,
       "slices_pending": 1,
       "slices_dropped": 0,
       "slices_unreconciled": 0,
@@ -1856,17 +1856,17 @@
         {
           "id": "S-042",
           "title": "Google Pay get_redsys_args() reads the billing name through the generic meta API instead of the order's getters (WooCommerce doing_it_wrong notice)",
-          "status": "not-started",
+          "status": "done",
           "original_hours": 0.25,
-          "residual_hours": 0.25,
+          "residual_hours": 0,
           "change_kind": "added",
           "parent_slice": null,
           "owns": [
             "S-042"
           ],
           "estimate_changes": [],
-          "actual_hours": null,
-          "actual_source": null,
+          "actual_hours": 0.1086,
+          "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
           "execution": {
@@ -1931,6 +1931,38 @@
           "estimate_changes": [],
           "actual_hours": 0.2967,
           "actual_source": "measured",
+          "depends_on": [],
+          "criteria": [],
+          "execution": {
+            "write_paths": [
+              "classes/",
+              "tests/"
+            ],
+            "contracts": {
+              "reads": [],
+              "writes": []
+            },
+            "exclusive_resources": [
+              "playground"
+            ],
+            "parallel": "serial",
+            "serial_reason": "same playground as S-092"
+          }
+        },
+        {
+          "id": "S-096",
+          "title": "get_acctinfo() counts the account age from midnight of the registration day (the date is formatted to Ymd before the minutes are computed), so \"just created\" (chAccAgeInd 02) is reached only shortly after midnight",
+          "status": "not-started",
+          "original_hours": 0.25,
+          "residual_hours": 0.25,
+          "change_kind": "added",
+          "parent_slice": null,
+          "owns": [
+            "S-096"
+          ],
+          "estimate_changes": [],
+          "actual_hours": null,
+          "actual_source": null,
           "depends_on": [],
           "criteria": [],
           "execution": {
@@ -2123,23 +2155,6 @@
       "estimate_changes": [],
       "target": null,
       "reason": "D-102 — self-audit answer 1; the tools ran once outside the repository; installing them changes composer.json and the playground, so it waits for the tag",
-      "depends_on": [],
-      "criteria": []
-    },
-    {
-      "id": "S-096",
-      "title": "get_acctinfo() counts the account age from midnight of the registration day (the date is formatted to Ymd before the minutes are computed), so \"just created\" (chAccAgeInd 02) is reached only shortly after midnight",
-      "status": "not-started",
-      "original_hours": 0.25,
-      "residual_hours": 0.25,
-      "change_kind": "added",
-      "parent_slice": null,
-      "owns": [
-        "S-096"
-      ],
-      "estimate_changes": [],
-      "target": null,
-      "reason": "found by S-094's test on 2026-10-21; a 3DS indicator precision issue, no error; not in sprint 5's scope",
       "depends_on": [],
       "criteria": []
     }
