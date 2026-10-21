@@ -1,11 +1,11 @@
 {
 	"$schema": "https://raw.githubusercontent.com/WordPress/gutenberg/trunk/schemas/json/wp-env.schema.json",
-	"core": "https://wordpress.org/wordpress-7.0.7.zip",
-	"phpVersion": "8.3",
+	"core": "https://wordpress.org/wordpress-7.1.3.zip",
+	"phpVersion": "8.4",
 	"port": 8890,
 	"testsPort": 8891,
 	"plugins": [
-		"https://downloads.wordpress.org/plugin/woocommerce.10.9.4.zip",
+		"https://downloads.wordpress.org/plugin/woocommerce.11.2.1.zip",
 		"."
 	],
 	"mappings": {

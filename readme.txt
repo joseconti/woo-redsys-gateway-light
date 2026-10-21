@@ -2,14 +2,14 @@
 Contributors: j.conti
 Tags: woocommerce, redsys, bizum, google pay, apple pay, inespay
 Requires at least: 4.0
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.0
 Donate link: https://plugins.joseconti.com/product-category/plugins/donaciones/
 Stable tag: 7.0.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 7.4
-WC tested up to: 10.9
+WC tested up to: 11.2
 
 Add Redsys Gateway, BIZUM, and Apple/Google Pay redirection to WooCommerce. Lite version of the premium Redsys plugin on WooCommerce.com.
 
@@ -101,6 +101,7 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == Unreleased ==
 
+* Tweak: Tested up to WordPress 7.1 and WooCommerce 11.2 (checked on PHP 8.4).
 * Fix: In the Blocks checkout, Inespay was shown to customers outside Spain, Portugal and Italy (on older WooCommerce versions, with a generic label and no icon). It is now offered only for an address in those countries, as in the classic checkout.
 * Tweak: The translated texts of the Redsys, Bizum and Google Pay redirect pages (button, cancel link and redirect message) are now escaped, and the Google Pay page filters its form like the other two.
 * Tweak: The main plugin file and the Redsys signature class now stop at once when requested directly, outside WordPress.

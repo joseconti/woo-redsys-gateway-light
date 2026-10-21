@@ -4,8 +4,8 @@
 
 ## Stack & versions
 - PHP — `Requires PHP: 7.0` declared in `readme.txt` (not declared in the main plugin file header — a gap, see `docs/04-adoption-audit.md`)
-- WordPress — `Tested up to: 7.0`
-- WooCommerce — `WC requires at least: 7.4`, `WC tested up to: 10.9`
+- WordPress — `Tested up to: 7.1` (S-083, D-092)
+- WooCommerce — `WC requires at least: 7.4`, `WC tested up to: 11.2` (S-083, D-092)
 - Composer — **dev-only**: `composer.json` requires `phpunit/phpunit ^9.6` and `yoast/phpunit-polyfills ^2.0` under `require-dev` (added with the first test suites, D-016/D-018). No runtime PHP dependency is installed or shipped; `vendor/` is gitignored
 - Front-end build: `@wordpress/scripts` (`^36.0.0`, webpack 5 inside it), `@woocommerce/dependency-extraction-webpack-plugin` (`^5.1.0`), `cssnano` + `postcss` for the stylesheets (D-055). The Blocks script's JSX is compiled to `createElement()` from `@wordpress/element` so the built script depends on the `wp-element` handle, never on `react-jsx-runtime` (WordPress 6.6+ only).
 - Coding standard: `phpcs.xml` — `WooCommerce-Core` + `WordPress-Extra` ruleset, `testVersion 5.6-`, `minimum_supported_wp_version 4.7`

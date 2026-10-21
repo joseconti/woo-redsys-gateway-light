@@ -55,11 +55,12 @@ starting, so the "pinned" environment was not the one being tested (L-008).
 
 ## The ceiling instance (the other end of the support matrix)
 
-`.wp-env.ceiling.json` is a second, independent instance: WordPress 7.0.7
-(the newest 7.0.x, the plugin's `Tested up to`), WooCommerce 10.9.4 (the
-newest 10.9.x, its `WC tested up to`) and PHP 8.3, on ports 8890 and 8891.
+`.wp-env.ceiling.json` is a second, independent instance: WordPress 7.1.3
+(the newest 7.1.x, the plugin's `Tested up to`), WooCommerce 11.2.1 (the
+newest 11.2.x, its `WC tested up to`) and PHP 8.4, on ports 8890 and 8891
+(moved from 7.0.7 / 10.9.4 / 8.3 in S-083, D-092).
 It runs beside the pinned one; neither replaces the other. A fresh
-WooCommerce 10.9 store uses the High-Performance Order Storage on the
+WooCommerce 11.2 store uses the High-Performance Order Storage on the
 development site, and the tests site (PHPUnit) uses the legacy storage, so
 the two suites cover both.
 

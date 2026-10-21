@@ -381,11 +381,11 @@ slices:
     depends_on: []
     criteria: []
   - id: S-083
-    title: Test and declare WordPress 7.1 and WooCommerce 11.1 — the ceiling instance moved to the current releases (PHP 8.4), the whole suite run there, the headers and readme.txt updated (owner, D-085)
-    status: not-started
+    title: Test and declare WordPress 7.1 and WooCommerce 11.2 (11.1 when planned; 11.2.1 was current on the day) — the ceiling instance moved to the current releases (PHP 8.4), the whole suite run there, the headers and readme.txt updated (owner, D-085)
+    status: done
     hours: 2
-    actual_hours: null
-    actual_source: estimated
+    actual_hours: 0.1417
+    actual_source: measured
     depends_on: [S-066, S-073, S-074, S-080, S-081, S-082]
     criteria: []
 ---
@@ -451,3 +451,4 @@ slices:
 - S-074 (done 2026-10-21, D-089): `ABSPATH` guard in the main file and the signature class; generated files left as they are, recorded.
 - S-073 (done 2026-10-21, D-090): the translated strings of the three redirect forms are escaped; Google Pay's form goes through `wp_kses()`.
 - S-066 (done 2026-10-21, D-091): Inespay offered in the Blocks checkout only for ES, PT and IT, from one list; S-077 dropped — its question was answered by the owner (D-085).
+- S-083 (done 2026-10-21, D-092): ceiling moved to WordPress 7.1.3, WooCommerce 11.2.1, PHP 8.4; whole suite there (browser 63 of 67, the four known help-tip scans); `Tested up to: 7.1`, `WC tested up to: 11.2`.

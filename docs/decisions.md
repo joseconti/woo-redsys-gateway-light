@@ -838,3 +838,8 @@
 - S-077 (observe the issue on the ceiling and what a customer is shown) is `dropped`: it gathered facts for a decision the owner has now taken (fix it, D-085), and the new test runs on the moved ceiling in S-083. What it had already observed on the floor stays in D-082.
 - Not checked: switching the country inside the Blocks address form and watching Inespay appear or disappear live — the form differs between WooCommerce 7.4 and 11; the rule is the same function either way.
 
+## D-092 — WordPress 7.1 and WooCommerce 11.2 tested and declared (S-083)
+- Date / phase: 2026-10-21 / Phase 7 preparation (sprint 3)
+- Decision: the owner asked for the declared compatibility to be brought up to date (D-085). On that day the current releases were WordPress 7.1.3 and WooCommerce 11.2.1 (read from the WordPress.org APIs; the 11.1 of D-069 had been overtaken), so the ceiling instance (`.wp-env.ceiling.json`) moved from 7.0.7 / 10.9.4 / PHP 8.3 to 7.1.3 / 11.2.1 / PHP 8.4 — PHP 8.4 because a support reporter runs it. Result, one instance at a time (L-014), at the tree of S-066 (`03d5258`): unit `OK (41 tests, 78 assertions)`, integration `OK (371 tests, 2111 assertions)`, browser `63 passed`, `4 failed` — the four settings scans on WooCommerce's help-tip markup (`aria-prohibited-attr` on `span.woocommerce-help-tip`), the same four as on 10.9 and not the plugin's markup (`docs/accessibility.md`). The headers say `Tested up to: 7.1` and `WC tested up to: 11.2` (`woocommerce-redsys.php`, `readme.txt`). The floor (WordPress 7.0, WooCommerce 7.4, PHP 7.4) is unchanged.
+- Not checked: the guided assistive-technology pass on 11.2 (S-030); the lifecycle rehearsal on the versioned package (S-032).
+
