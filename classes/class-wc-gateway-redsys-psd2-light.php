@@ -593,10 +593,10 @@ class WC_Gateway_Redsys_PSD2_Light {
 				$user_id = get_current_user_id();
 			}
 			$usr_data         = get_userdata( $user_id );
-			$usr_registered   = $usr_data->user_registered;
-			$dt               = new DateTime( $usr_registered );
-			$usr_registered   = $dt->format( 'Ymd' );
-			$minu_registered  = intval( ( strtotime( 'now' ) - strtotime( $usr_registered ) ) / 60 );
+			// user_registered is stored in GMT; the age counts from that moment, not from its day.
+			$registered_at    = strtotime( $usr_data->user_registered . ' GMT' );
+			$usr_registered   = gmdate( 'Ymd', $registered_at );
+			$minu_registered  = intval( ( time() - $registered_at ) / 60 );
 			$days_registered  = intval( $minu_registered / 1440 );
 
 			if ( $minu_registered < 20 ) {
