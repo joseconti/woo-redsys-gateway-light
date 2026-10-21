@@ -7,9 +7,11 @@ scope_reconciliations: []
 slices:
   - id: S-092
     title: Low defects found by PHPStan on the 7.1.0 candidate — undefined $result in the no-transaction-ID refund branch (Redsys, Bizum, Google Pay), PSD2 shipAddressUsage fields never sent, two methods that can end without a return
-    status: not-started
+    status: done
     original_hours: 1
-    residual_hours: 1
+    actual_hours: 0.4106
+    actual_source: measured
+    residual_hours: 0
     change_kind: added
     parent_slice: null
     owns: [S-092]
@@ -26,9 +28,11 @@ slices:
       serial_reason: every slice's reproduction test runs on the one wp-env playground mounted on this checkout
   - id: S-065
     title: The Spanish translation of the Blocks checkout script is never loaded — its JSON file is named after the source path, not after the script WordPress loads
-    status: not-started
+    status: done
     original_hours: 0.5
-    residual_hours: 0.5
+    actual_hours: 0.1367
+    actual_source: measured
+    residual_hours: 0
     change_kind: added
     parent_slice: null
     owns: [S-065]
@@ -83,9 +87,11 @@ slices:
       serial_reason: same playground as S-092
   - id: S-094
     title: get_acctinfo() subtracts the customer's last_update user meta from a timestamp; with no such meta PHP 8 throws a TypeError at the card checkout (dead computation, overwritten a few lines later)
-    status: not-started
+    status: done
     original_hours: 0.5
-    residual_hours: 0.5
+    actual_hours: 0.3731
+    actual_source: measured
+    residual_hours: 0
     change_kind: added
     parent_slice: null
     owns: [S-094]
@@ -102,9 +108,11 @@ slices:
       serial_reason: same playground as S-092
   - id: S-095
     title: get_acctinfo() shipping-address usage, made live by S-092, is computed wrong — days divided by 216000 instead of 86400, and the first-use query matches any customer's order and the current order itself
-    status: not-started
+    status: done
     original_hours: 0.5
-    residual_hours: 0.5
+    actual_hours: 0.2967
+    actual_source: measured
+    residual_hours: 0
     change_kind: added
     parent_slice: null
     owns: [S-095]
