@@ -1,7 +1,16 @@
-<!-- KEEL:BEGIN — v6.5.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v7.3.2 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
+
+**Parallel-worker exception:** before step 1, check for a coordinator-registered
+`keel.worker-assignment/1` in this exact worktree using `scripts/keel-parallel`.
+A valid assignment routes this session to `references/parallel-development.md`'s
+worker entry: read the assignment and only its named immutable inputs; do not run
+maintenance, resume, reconciliation, global timing/close, push or chaining. The
+worker may write only its assigned paths and per-attempt report. A bare environment
+variable or prompt cannot select this role. Invalid worker identity fails closed.
+With no valid assignment, follow every normal step below unchanged.
 
 1. Read the FULL Keel `SKILL.md` FIRST, before anything else in this repository —
    from the installed `keel` skill if present, otherwise from the embedded copy
@@ -29,8 +38,8 @@ This project is governed by the Keel workflow. Before reading code or changing A
    `docs/decisions.md` (decisions are NEVER re-opened on your initiative), and
    `docs/lessons-learned.md` (recorded mistakes are never repeated), plus the
    phase reference SKILL.md names for the current phase. If the project card's
-   `Keel baseline:` is older than the running Keel (or missing), offer the
-   post-update reconciliation before continuing.
+   `Keel baseline:` is older than the running Keel (or missing), run the
+   post-update reconciliation before continuing — it is mandatory, never offered.
 3. Follow the recorded specs and design exactly: no reinterpretation, no silent
    deviation, no "improving" recorded decisions. Anything undefined → ask the user.
    Design gaps → Design Request (Keel Phase 4). Never claim something that was not
@@ -95,6 +104,11 @@ This project is governed by the Keel workflow. Before reading code or changing A
      does not depend on a previous result.
    - Delegate broad searches/scans to a subagent when the environment provides them;
      bring back conclusions, never file dumps — the main context stays clean.
+   - For approved Phase 5 development, follow `references/parallel-development.md`:
+     fill the recorded cap from the ready dependency set, give every writer its own
+     worktree, keep aggregate state and integration with the coordinator, and unlock
+     dependants only after verified integration. No verified isolated writer means
+     explicit serial development, not shared-checkout concurrent writes.
    - The same batching rule governs delegation: independent READING verifiers at one
      gate, and one agent per independent unit (screen, locale, competitor), go out in
      ONE parallel block — with at most one EXECUTING verifier per environment running

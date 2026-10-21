@@ -60,6 +60,7 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 - Docs theme: [keel-docs-theme vX.Y.Z vendored in guide/_theme/ / n/a until Phase 6 — per references/guide-theme.md]
 - Test-first policy: [pure-logic / pure-logic + acceptance / none (D-0XX) / n/a — <why> (only where the project ships no executable product at all, e.g. a documentation or instruction package)] — asked once at Phase 2 step 4e, default `pure-logic`; decides whether pure logic (and, on the wider value, each slice's acceptance criterion) gets its test written and seen failing BEFORE the code. Never re-asked. Two rules hold at EVERY value including `none`: a bug fix starts from a failing reproduction test, and a test derived from an AC-nn or a reproduced bug is never edited to make it pass. Per references/test-automation.md ("When the test is written")
 - Push test scope: [affected — the default, written with the card and never asked / full (D-0XX) — only on the user's explicit request to run the whole suite on every push] — per `references/test-automation.md` ("Which tests run when"): on `affected`, every test point and every push run the selection `scripts/keel-affected-tests` derives from the diff, and the ENTIRE suite runs at the Phase 7 gate on the release candidate. `n/a — <why>` only where the project ships no executable product. Never switched to `full` by inference ("it is a small project", "the suite is fast today")
+- Parallel development: [auto; max_workers: max / auto; max_workers: N (user ceiling, D-0XX) / off (D-0XX)] — settled once before launching paid or writing workers. `max` (the default) runs as many writers as the session can sustain, resolved at every kickoff. `auto` uses the rolling scheduler only with a verified isolated writing backend; lack of one falls back to serial with the exact reason. `Autonomy`, chaining and reviewer agents do not answer this choice (`references/parallel-development.md`)
 - Sprints: [on — the default, written when the state files are created and never asked / off (D-0XX) — only on the user's explicit statement that they do not want sprints] — per SKILL.md "Sprints are the ledger of all work": on `on`, every unit of work in every phase and entry mode is a slice with its hours BEFORE it starts, and the commit that finishes it sets `done`, writes `actual_hours` and regenerates `docs/.keel/plan.json`. Never switched off by inference ("it is small", "it is only an audit", "we are in maintenance")
 - Durability: [git remote <name> <url> / synced folder <service> / both / repo but NO remote — <what is pending> / NONE — accepted risk (D-0XX)] — per SKILL.md "Work never lives only on this machine": the work must survive this computer. Asked as Question 0 of the session-start setup batch, before anything is created. The ANSWER is never re-asked, but the two facts behind it (a repository exists; it has a remote or the tree replicates off the machine) are re-verified every session — a remote can be removed and a folder can leave sync without anyone noticing
 - Autonomy: [automatic — Keel does not ask, and does every merge to develop and every push itself | not automatic — Keel asks every time and pushes only what was explicitly requested] / issues: [after-sprint|on-request|n/a no forge] / Issue sweep interval: [Xh — default 24h; n/a unless after-sprint] / Issue capture: [on — a problem the user reports becomes a forge issue before the work starts | off | n/a no forge] — the session-start setup batch (SKILL.md), asked once and applied silently thereafter. Everything hangs off the first value; it is never inferred per action. `Issue sweep interval:` gates the kickoff-side check in `references/phase-5-development.md` ("Sprint kickoff") against `docs/issues.md`'s `Last inbound sweep:` line. The MODE lives in a per-machine file (`.claude/settings.local.json` is gitignored, so a fresh checkout has none) while this line is the recorded DECISION, so a new machine gets the file written without re-asking
@@ -97,7 +98,7 @@ Keep it to roughly one page. Detail lives in the linked files, never accumulated
 Last updated: [date — phase/step]
 ```
 
-Update rules: mark a phase `done` only when its definition of done passed (reported ✓/✗ to the user). `parked — <why>` is a recognized project status: set it when the user parks or discards the project — at the Phase 1 verdict or at any later point; the artifacts stay in place, never deleted, so the project can be resumed or revisited cold. "Next action" must always be executable by a fresh session with no other context. Never let PROGRESS.md drift from reality — a stale state file is worse than none. One deliberate exception to "the session updates it at the moment of change": when work is fanned out over git worktrees, only the session owning the MAIN tree writes this file, and a worker writes a report instead — see "Fan-out over worktrees" below, which records why.
+Update rules: mark a phase `done` only when its definition of done passed (reported ✓/✗ to the user). `parked — <why>` is a recognized project status: set it when the user parks or discards the project — at the Phase 1 verdict or at any later point; the artifacts stay in place, never deleted, so the project can be resumed or revisited cold. "Next action" must always be executable by a fresh session with no other context. Never let PROGRESS.md drift from reality — a stale state file is worse than none. One deliberate exception to "the session updates it at the moment of change": a validated writing worker never edits aggregate state; it returns a versioned report and the coordinator applies contributions during integration (`references/parallel-development.md`).
 
 Deferred items are the living list of consciously postponed WORK — a definition-of-done ✗ the user accepted, a performance finding accepted as-is — each entry carrying a severity and a review trigger ("revisit when touching X", "before release"). This is the greenfield counterpart of adoption's fix-now / fix-when-touched / accepted triage: `docs/decisions.md` logs the DECISION to defer; this list tracks the work until its trigger fires or the user closes it.
 
@@ -241,7 +242,7 @@ sprint lives in the body. A reader parses the first and never the second.
 
 ```
 ---
-schema: keel.sprint/1
+schema: keel.sprint/2
 sprint: 3
 goal: OAuth + PKCE end to end
 status: in-progress            # not-started | in-progress | done | dropped
@@ -249,14 +250,28 @@ slices:
   - id: S-014
     title: Authorization code exchange
     status: done                # same enum
-    hours: 1.5                  # AI working time + supervision (SKILL.md's unit rule)
-    actual_hours: 1.25          # same unit, MEASURED: the slice's intervals in the clock log minus pauses, written by
+    original_hours: 1.5         # approved estimate at creation; immutable (AI working time + supervision)
+    residual_hours: 0           # current estimate of unbuilt scope; 0 only when done/dropped
+    change_kind: added          # added | extracted | re-estimated
+    parent_slice: null          # required for extracted; otherwise null
+    owns: [AC-07, AC-08]        # requirements owned exclusively by this counted slice
+    estimate_changes: []        # append-only: before/after residual, reason, date, decision/reference
+    actual_hours: 1.25          # same unit, MEASURED: the slice's OWN intervals in the clock log minus pauses (a worker's
+                                # own elapsed working time when a worker built it; intervals of different slices may overlap), written by
                                 # scripts/keel-time — cumulative and partial while in-progress, final in the done commit;
                                 # null until the slice is first worked
     actual_source: measured     # measured | estimated — estimated only where no clock could be read (NO-EXECUTION)
                                 # or for an actual backfilled from before the clock existed, and always said so
     depends_on: [S-011]         # ids, never titles
     criteria: [AC-07, AC-08]    # the AC-nn this slice satisfies
+    execution:
+      write_paths: [src/oauth/, tests/oauth/]
+      contracts:
+        reads: [session-v1]
+        writes: [oauth-token-v1]
+      exclusive_resources: [test-db-default]
+      parallel: eligible        # eligible | serial
+      serial_reason: null       # required when parallel is serial
 ---
 
 # Sprint 3 — OAuth + PKCE end to end
@@ -285,6 +300,34 @@ fact has exactly one author.**
    two implementations of one rule eventually disagree. The human index table is generated in the
    same pass.
 
+### Scope ownership and residual estimates (UNBREAKABLE)
+
+Each executable slice stores three independent facts: `original_hours` (the approved estimate when
+created), `residual_hours` (the current estimate of its unbuilt scope), and `actual_hours` (measured
+or explicitly estimated elapsed work). `original_hours` is immutable; a correction creates an
+append-only `estimate_changes` entry with `before_residual_hours`, `after_residual_hours`, reason,
+date and decision/reference. `actual_hours` never changes a residual automatically.
+
+`change_kind: added` means genuinely new scope; `extracted` means scope already represented by a
+named `parent_slice`; `re-estimated` changes only the residual estimate. An extracted slice must
+declare `parent_slice` and exclusive `owns` requirement IDs. In the **same checkpoint**, its parent
+loses those IDs from `owns`, both residual estimates are written, and the plan records a
+`scope_reconciliation` (`remaining_before`, `completed_residual`, `added_scope`,
+`explicit_residual_reestimates`, `remaining_after`, affected slice IDs and reason) with the
+before/after balance and any explicit re-estimate delta. A grouping
+container has `residual_hours: 0` and is not counted; a counted parent and any counted descendant
+may never own the same requirement. Do not infer ownership from titles or subtract a child's original
+estimate from a parent mechanically: estimate the genuinely unbuilt remainder.
+
+For each plan update, record and verify:
+
+`remaining_before - completed_residual + added_scope + explicit_residual_reestimates = remaining_after`.
+
+An unchanged-scope split therefore conserves remaining work. Completing an extracted child removes
+its then-current residual; it does not subtract its elapsed actual from the parent. If old slices
+cannot be mapped to exclusive requirements, `plan.json` sets `reconciliation_status: unreconciled`
+and the balance is labelled as such, rather than presented as a reliable completion estimate.
+
 **Percentages are NEVER stored — they are computed from hours.** The plan is explicitly not a closed
 contract: items are added, removed and moved. A hand-written `%` is therefore wrong the first time
 anything changes, and wrong in silence. Hours are the single stored unit; every percentage is a
@@ -310,11 +353,13 @@ phase or entry mode that happens. And the commit that finishes a slice is the co
 it no longer discovers.
 
 **What `plan.json` carries, computed at generation time and never stored in the sources:** for each
-sprint and for the whole plan — `estimated_hours` (every slice not `dropped`), `done_hours` (the
-estimates of `done` slices), `actual_hours` (the actuals of `done` slices), `remaining_hours` (the
-estimates of every slice neither `done` nor `dropped`), `deviation_hours` (`actual_hours` minus
-`done_hours`), `pace_factor`, `projected_remaining_hours` (defined below), `percent_done` (from
-`done_hours` over `estimated_hours`), and `unit`. Contingency and
+sprint and for the whole plan — `original_estimated_hours` (every slice not `dropped`),
+`completed_original_hours` (original estimates of `done` slices), `actual_hours` (actuals of `done`
+slices), `remaining_hours` (sum of `residual_hours` for every slice neither `done` nor `dropped`),
+`deviation_hours` (`actual_hours` minus `completed_original_hours`), `pace_factor`,
+`projected_remaining_hours` (defined below), `reconciliation_status`, `scope_delta` (added scope,
+extraction and explicit re-estimates separately), `percent_done` (from completed original over
+original estimate), and `unit`. Contingency and
 `deferred.md` are excluded from all of them, as above.
 
 **How "what is left?" / "how long until it is done?" is answered (UNBREAKABLE).** It is a question,
@@ -323,13 +368,18 @@ drift — and reply, before and instead of any work:
 
 ```
 Sprint 4 — <goal>: 2 slices pending, 3.5 h left
-  S-030 <title> — 1.5 h
+  S-030 <title> — 1.5 h residual
   S-031 <title> — 2 h
 Sprint 5 — <goal>: 6 h
-Total left: 9.5 h of AI working time plus supervision (contingency not included)
+Total left: 9.5 h of AI working time plus supervision (contingency not included; reconciled)
 So far: 4 slices done, 6 h estimated, 7.25 h actual (+1.25 h, +20.8 %)
 Projection if the observed pace continues: 11.48 h left (factor 1.2083; 4 measured slices)
 ```
+
+Under parallel development (the card says `auto` and the sprint's effective cap is above 1) the last
+line uses the throughput basis from `docs/sessions.md` and names it — e.g. `Projection if the observed
+throughput continues: 2.2 h wall-clock (basis: throughput — 3 parallel sessions)` — with the effort
+pace kept as a calibration line, per "The session report".
 
 In the conversation's language, with the unit stated on the total. If the same message also asks for
 work, this comes first in the same reply. On `Sprints: off` the answer is `docs/PROGRESS.md`'s open
@@ -342,20 +392,26 @@ At EVERY session close, and whenever remaining time is requested, show both the 
 projection. These are AI working hours plus supervision, not a calendar completion date. The
 projection is labelled **"if the observed pace continues"** and never replaces or rewrites the plan.
 
+**The rules below define the effort basis (`pace`).** When work runs in parallel the elapsed-time
+projection uses the throughput basis instead — estimated hours finished per active wall-clock hour,
+from `docs/sessions.md` — and the report states which basis it used ("The session report" below).
+`plan.json` keeps `pace_factor` and `projected_remaining_hours` as effort figures in both cases; a
+summed-effort figure is never presented as the time left on the wall.
+
 Compute from the sprint sources, once per completed slice across ALL sessions:
 
-- Eligible slices: `status: done`, `actual_source: measured`, positive estimated `hours`, and
+- Eligible slices: `status: done`, `actual_source: measured`, positive `original_hours`, and
   non-negative numeric `actual_hours`. Exclude dropped, deferred, unfinished and estimated-source
   slices. A slice completed over several sessions contributes its full cumulative actual once.
-- `pace_factor = sum(eligible actual_hours) / sum(eligible hours)`. The cumulative deviation on
-  this same sample is `sum(actual_hours) - sum(hours)` and `(pace_factor - 1) × 100 %`.
+- `pace_factor = sum(eligible actual_hours) / sum(eligible original_hours)`. The cumulative deviation on
+  this same sample is `sum(actual_hours) - sum(original_hours)` and `(pace_factor - 1) × 100 %`.
   Never average session percentages or divide a partial session's time by its whole planned scope.
 - `projected_remaining_hours = remaining_hours × pace_factor`. Compute the plan-wide factor and
   use it for the current sprint, later sprints and the total. State the number of eligible slices
   and the estimated/actual totals behind it; a small sample is labelled provisional.
-- Preserve the definition of `remaining_hours`: estimates of slices neither done nor dropped.
-  Time spent on an unfinished slice is shown separately; never subtract it silently from the
-  baseline or the projection. An explicit re-estimate of outstanding scope is a plan update.
+- Preserve the definition of `remaining_hours`: residual estimates of slices neither done nor
+  dropped. Time spent on an unfinished slice is shown separately; never subtract it silently from
+  the baseline or the projection. An explicit re-estimate of outstanding scope is a recorded plan update.
 - With no eligible slices, `pace_factor` and the projection are `null`, printed as
   **"unavailable — no measured completed work"**. If no work remains, the projection is 0 h even
   without a factor. With `Sprints: off`, say **"unavailable — no time plan"**, but still show the
@@ -368,6 +424,23 @@ Compute from the sprint sources, once per completed slice across ALL sessions:
 `report` reads up-to-date sources without writing. The report and the appended session row use the
 same remaining hours and factor. Session totals count intervals within this session; finished-slice
 comparisons use each slice's entire lifetime. Keep these distinct when a slice spans sessions.
+
+### Migration and mechanical verification
+
+Existing `hours` values are historical approved estimates: migrate each to `original_hours`, preserve
+the value in its migration record, and set `residual_hours` only after reviewing the unbuilt scope.
+Do not derive the residual from `actual_hours`, child estimates, or elapsed clock time. Until every
+open legacy slice has exclusive `owns` requirements and an explicit residual, emit
+`reconciliation_status: unreconciled` and retain the legacy balance only as an unreconciled baseline.
+
+`scripts/keel-verify` must fail a changed/new plan when: a slice lacks numeric non-negative
+`original_hours` or `residual_hours`; a done/dropped slice has non-zero residual; an extracted slice
+lacks its parent, ownership, or same-checkpoint reconciliation; a parent/child or two counted slices
+own the same requirement; a residual change has no `estimate_changes` record; or the recorded balance
+equation does not hold. It must also exercise these regressions: an unchanged-scope split conserves
+the balance; completing an extracted child reduces only its residual; genuine added scope increases
+the balance explicitly; re-estimation preserves original estimates and actuals; and a measured pace
+outlier may raise the conditional projection while remaining residual work falls.
 
 **The bookkeeping files** — the only paths whose commits do not need a plan update — are exactly
 `docs/sprints/`, `docs/.keel/`, `docs/PROGRESS.md`, `docs/sessions.md` and `docs/token-ledger.md`.
@@ -384,7 +457,8 @@ one of these is mechanical:
 | Every `depends_on` resolves, and resolves to the SAME sprint or an EARLIER one | This is the rule "nothing depends on something not yet built", made executable instead of hoped for |
 | No `depends_on` points at an item still in `deferred.md` | Same rule, the case that actually happens |
 | `docs/.keel/plan.json` matches its sources | A derived file that drifted shows a confident lie to every reader; drift fails the run |
-| Phase 5 hours in `docs/estimate.md` equal the sum of the plan's slice hours | One set of hours, not two |
+| Phase 5 approved hours in `docs/estimate.md` equal the sum of the plan's `original_hours`; current remaining work is the separate residual total | Original approval, residual scope and actuals are different facts |
+| Every counted slice has exclusive ownership; every extraction and residual change has its same-checkpoint reconciliation and balance equation | A split cannot leave parent scope counted twice |
 | A slice that left a sprint is in `deferred.md` or carries `status: dropped` with its D-entry | Removable without a trace means the plan shrinks itself and "what is left" looks excellent |
 | The card carries `Sprints:`; `off` cites a real D-entry. Every row below is skipped only under a valid `off` | The default is not a question, and an opt-out nobody recorded is an inference |
 | At least one `docs/sprints/sprint-<N>.md` exists | Work with no plan is the measured defect this row closes |
@@ -393,7 +467,8 @@ one of these is mechanical:
 | `docs/PROGRESS.md` "Current position" names a slice id that exists and is neither `done` nor `dropped`, unless every slice is closed | A position that points at nothing cannot be resumed, and cannot be timed |
 | Every `actual_source` is `measured` or `estimated`; every `done` slice marked `measured` is listed in the `Done` column of at least one `docs/sessions.md` row | A "measured" figure no session ever recorded was typed, and a typed figure labelled as measured is the exact lie the clock exists to end |
 | Every `docs/sessions.md` row: `End` is not before `Start`, and `Deviation h` equals `Actual h` minus `Est. h` (±0.05) | A deviation that is not the difference of its own columns was written, not computed |
-| Every new session row records `Active h = Wall-clock h - Paused h`, and a numeric projection equals `Left after h × Pace factor` (±0.05 h); unavailable values carry the reason in `Notes` | Both remaining figures and the measured session duration must survive the close, not only appear in conversation |
+| Every new session row records `Active h` no greater than `Wall-clock h`, and equal to `Wall-clock h - Paused h` when `Max concurrency` is 1 or absent; a numeric projection equals `Left after h × Pace factor` on basis `pace`, and `Left after h ÷ (Σ Est. h ÷ Σ Active h over rows up to this one with Max concurrency above 1)` on basis `throughput` (±0.05 h); unavailable values carry the reason in `Notes` | Both remaining figures, the measured session duration and the basis must survive the close, not only appear in conversation |
+| Overlapping slice intervals are VALID: no check fails because `Actual h` or `Slice h` exceeds `Active h`, because two slices were open at once, or because a worker interval falls inside a pause; a row with `Max concurrency` above 1 and `Projection basis: pace` must say why in `Notes` | The single-open-slice assumption is the measured defect: under parallel work it turned 48.25 estimated hours into 2.92 measured ones |
 | `plan.json` carries the factor and projection computed from eligible completed slices, with nulls only under the unavailable-data rules | A guessed pace or an average of percentages is not the observed cumulative deviation |
 | `.gitignore` carries `docs/.keel/clock.jsonl` | The raw clock changes at every boundary; committed, it dirties the tree between commits and trips every clean-tree check |
 
@@ -421,17 +496,46 @@ dependencies. Every subcommand reads `date -u +%Y-%m-%dT%H:%M:%SZ` itself and ap
 {"schema":"keel.clock/1","event":"session-end","at":"2026-09-16T16:40:00Z","session":"2026-09-16T14:24:15Z"}
 ```
 
+A slice a writing worker built is recorded from the worker's OWN observed interval, at integration,
+with `source: worker`, its `attempt`, and the worker's own `paused_seconds`:
+
+```
+{"schema":"keel.clock/1","event":"slice-start","at":"2026-09-16T14:30:02Z","session":"2026-09-16T14:24:15Z","slice":"S-032","source":"worker","attempt":"S-032-a1"}
+{"schema":"keel.clock/1","event":"slice-end","at":"2026-09-16T15:41:37Z","session":"2026-09-16T14:24:15Z","slice":"S-032","source":"worker","attempt":"S-032-a1","status":"done","paused_seconds":0}
+```
+
 `event` is a closed enum: `session-start`, `slice-start`, `slice-end`, `pause`, `resume`,
 `session-end`. `status` on `slice-end` is `done`, `in-progress` or `blocked`. Timestamps are UTC in
-the file and local time in everything printed.
+the file and local time in everything printed. Lines are appended in the order they are recorded, not
+in the order of their `at`: a worker's pair arrives after the fact and is paired by slice and attempt.
+
+**Slice intervals may overlap (UNBREAKABLE).** Each slice is measured from its OWN intervals and
+nothing else: opening one slice never closes another, and `slice-end` closes only the slice it names.
+The clock once assumed one open slice per session and closed every other slice at each `slice-start`;
+under parallel development each slice then kept only the minutes until the coordinator's next
+`slice-start`, and a real project measured 22 finished slices estimated at 48.25 h as 2.92 h (−94 %)
+inside a 4.86 h session. Single-writer work keeps its behaviour explicitly, never implicitly: when the
+card says `Parallel development: off`, or the current sprint's resolved effective cap is 1 (serial
+fallback), `slice-start` runs in exclusive mode and WRITES a `slice-end … in-progress` line for every
+other open slice before opening the new one, so the log itself says what happened.
+
+**The arithmetic is a shipped, tested helper, never re-derived per project.** Generate
+`scripts/keel-clock` beside `scripts/keel-time` as an executable byte-for-byte copy of the installed
+skill's `scripts/keel_clock.py` (standard library, Python 3.9+; never install Python silently). It
+appends events (`slice-start [--exclusive]`, `slice-end`, `record-worker`) and measures them
+(`report`), emitting JSON. `keel-time` reads the clock, decides the mode from the card and the sprint,
+calls it, writes the sprint frontmatter and prints. Where Python 3 is not available, `keel-time`
+implements the same rules and must reproduce `tests/test_session_clock.py`'s scenarios by hand before it
+is called generated.
 
 | Subcommand | What it does |
 |---|---|
 | `start [--plan S-030,S-031]` | Closes any session this log left open, at its LAST recorded event, and writes that session's row marked `unterminated`. Opens the new session. `--plan` defaults to the open slices in queue order from `docs/.keel/plan.json`, up to the one in `docs/PROGRESS.md`'s position and those after it that the session names. Prints the start block. |
-| `slice-start <id>` | Opens an interval for the slice. A slice already open in this session is closed first, as `in-progress`. |
-| `slice-end <id> --status <s>` | Closes the interval and writes the slice's cumulative `actual_hours` and `actual_source: measured` into its sprint file's frontmatter, so the value lands in the commit that records the slice. Prints estimated vs measured. |
-| `pause <reason>` / `resume` | Brackets every wait on the person. Paused time is subtracted from any interval it falls inside. |
-| `end` | Closes open intervals as `in-progress`, writes their partial `actual_hours`, appends the session's row to `docs/sessions.md`, and prints the mandatory session report including baseline and projected remaining hours. |
+| `slice-start <id>` | Opens an interval for the slice and leaves every other open slice open. Starting a slice that is already open is a no-op. In exclusive (single-writer) mode, as defined above, it first writes `slice-end … in-progress` for each other open slice. |
+| `slice-end <id> --status <s>` | Closes THIS slice's interval only and writes its cumulative `actual_hours` and `actual_source: measured` into its sprint file's frontmatter, so the value lands in the commit that records the slice. Prints estimated vs measured. A slice with no open interval is an error, never a silent zero. |
+| `slice-record <id> --result <worker-result.json> --status <s>` | Used by the coordinator at integration for a slice a worker built: appends the worker's own `started_at`/`finished_at` pair with `source: worker`, its attempt and `paused_seconds` (idempotent per attempt), then writes `actual_hours` exactly as `slice-end` does. The coordinator does not also `slice-start` that slice: dispatch → integration includes queueing and review, which is not the slice's working time. |
+| `pause <reason>` / `resume` | Brackets every wait on the person. Paused time is subtracted from every coordinator interval it falls inside — all open slices, not one — and from the session's active time except where a worker kept working through it. A worker's own waits are its `paused_seconds`. |
+| `end` | Closes open intervals as `in-progress`, writes their partial `actual_hours`, appends the session's row to `docs/sessions.md`, and prints the mandatory session report including both wall-clock and summed slice hours, the throughput, and baseline and projected remaining hours with the projection's basis. |
 | `report` | Prints the report for the session so far, writing nothing. |
 
 **Cumulative across sessions.** A slice worked in three sessions carries the sum of its intervals from
@@ -461,7 +565,8 @@ slice is added first and appears in this block.
 ### The session report — printed at the end of every session, unprompted
 
 ```
-Session — 16:24 → 18:40 CEST (2 h 16 min wall-clock, 18 min paused, 1 h 58 min active)
+Session — 16:24 → 18:54 CEST (2 h 30 min wall-clock, 18 min paused, 2 h 12 min active)
+Slice hours (sum of each slice's own intervals): 2.2 h · max concurrency 1 (serial)
 Planned at start: S-030, S-031 — 3.5 h
 Done:
   S-030 <title> — estimated 1.5 h, measured 1.2 h (−0.3 h)
@@ -470,9 +575,21 @@ Not finished:
 Unplanned, added this session:
   S-034 <title> — estimated 0.5 h, measured 0.4 h (−0.1 h)
 Deviation on finished work: estimated 2 h → measured 1.6 h (−0.4 h, −20 %)
+Throughput: 2 h estimated finished in 2.2 h active (0.91 estimated h per wall-clock h)
 Left according to plan: sprint 4 — 1 slice, 2 h · total 8 h
 Cumulative measured finished work: estimated 2 h → measured 1.6 h (−20 %, factor 0.8; 2 slices)
-Projection if the observed pace continues: sprint 4 — 1.6 h · total 6.4 h (provisional sample)
+Projection if the observed pace continues (basis: pace — serial work): sprint 4 — 1.6 h · total 6.4 h (provisional sample)
+```
+
+The same session with parallel workers — the shape is identical, two figures change meaning:
+
+```
+Session — 16:24 → 18:54 CEST (2 h 30 min wall-clock, 18 min paused, 2 h 12 min active)
+Slice hours (sum of each slice's own intervals): 9.6 h · max concurrency 6 (parallel) — worker elapsed working time, overlapping
+...
+Throughput: 11 h estimated finished in 2.2 h active (5 estimated h per wall-clock h)
+Projection if the observed throughput continues (basis: throughput — 3 parallel sessions, 26 h estimated in 5.9 h active): total 1.7 h wall-clock
+Effort pace on finished work: factor 0.87 (9 slices) — calibration of each slice's estimate, not elapsed time
 ```
 
 All fields above are mandatory at every close, without waiting for the user to ask. Show the
@@ -481,6 +598,30 @@ actual hours only for the same completed scope. The cumulative deviation used fo
 is shown separately from this session's finished-work deviation. When a figure is unavailable,
 keep its line and explain the reason. Even a session with no completed slices shows active time,
 planned hours, remaining planned hours and the cumulative projection or its unavailability.
+
+**Wall-clock and slice hours are different facts and both are shown.** Wall-clock is the session's
+window, start → end; active is that window minus the person's pauses, plus any paused stretch a
+worker kept working through. Slice hours are the sum of every slice's own intervals: under parallel
+work they overlap, exceed the active time, and are labelled as worker elapsed working time — never
+presented as elapsed time. Per-slice `actual_hours` and the per-slice deviation compare each slice's
+own working time with its own estimate; that calibrates estimates whether or not work ran in parallel.
+
+**Throughput is what elapsed time depends on.** It is the estimated hours of the slices finished this
+session (a slice finished here counts its whole original estimate) divided by the session's active
+hours. **The projection's basis is stated every time:**
+
+- `throughput` — when this session's slice intervals overlapped (max concurrency above 1), or the card
+  says `Parallel development: auto` and the sprint's resolved effective cap is above 1: projected
+  remaining wall-clock = `remaining_hours ÷ cumulative throughput`, where the cumulative throughput is
+  `Σ Est. h ÷ Σ Active h` over every `docs/sessions.md` row whose `Max concurrency` is above 1,
+  including this one (a parallel session that finished nothing counts; it lowers the figure). The
+  sample is stated. With no such sample yet, fall back to `pace` and say "throughput unavailable — no
+  parallel session has finished estimated work; pace projection is effort hours, not elapsed time".
+- `pace` — serial work: `remaining_hours × pace_factor`, exactly as in "Remaining-time projection".
+- `none` — no work remains (0 h).
+
+The effort pace factor is still shown under parallel work as a calibration line; it is never
+multiplied into an elapsed-time figure there, because summed effort is not elapsed time.
 
 Every figure is AI working time plus supervision, and the report says so once. A negative deviation
 is reported as plainly as a positive one: the point is calibration, not blame. Where the deviation on
@@ -495,19 +636,26 @@ line on why, so the next estimate of that kind of slice starts from the measured
 > One row per working session, appended by `scripts/keel-time end`. Times come from the system clock,
 > never from the model. Hours are AI working time plus supervision.
 
-| Start | End | Wall-clock h | Paused h | Planned (slices, est. h) | Done | Est. h | Actual h | Deviation h | Not finished (h spent) | Left after h | Active h | Pace factor | Projected left h | Notes |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Start | End | Wall-clock h | Paused h | Planned (slices, est. h) | Done | Est. h | Actual h | Deviation h | Not finished (h spent) | Left after h | Active h | Pace factor | Projected left h | Slice h | Max concurrency | Throughput | Projection basis | Notes |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 ```
 
-`Active h` is wall-clock minus pauses; `Pace factor` is the plan-wide measured cumulative ratio;
-`Projected left h` is `Left after h × Pace factor`. Missing data is written `—` with the reason in
+`Active h` is wall-clock minus pauses, plus paused time a worker worked through; `Pace factor` is the
+plan-wide measured cumulative ratio; `Slice h` is the sum of every slice's own intervals in this
+session; `Max concurrency` is the largest number of slice intervals open at once; `Throughput` is
+this session's `Est. h ÷ Active h`; `Projection basis` is `pace`, `throughput` or `none`.
+`Projected left h` is `Left after h × Pace factor` on `pace` and `Left after h ÷ cumulative
+throughput` on `throughput` (the rule above). Missing data is written `—` with the reason in
 `Notes`, following the projection rules. On upgrade, add these columns and leave historical cells
 `—` marked `legacy — projection not recorded`; do not reconstruct a historical projection from
 current plan data. Old rows remain valid; all new rows must carry the fields or a stated reason.
+A row with no `Max concurrency` is serial by default and never enters the throughput sample.
 
 `Done` lists slice ids; `Est. h` and `Actual h` are the sums over those slices; `Notes` carries
-`unterminated` or `estimated — no clock` where either applies. Append-only. Phase 7's token
-reconciliation reads its totals for the hours half of the deviation against the estimate.
+`unterminated` or `estimated — no clock` where either applies. **Overlap is valid:** `Actual h` and
+`Slice h` may exceed `Active h` when `Max concurrency` is above 1, and no check fails a row for it.
+Append-only. Phase 7's token reconciliation reads its totals for the hours half of the deviation
+against the estimate.
 
 ## The end-to-end verification contract
 
@@ -593,7 +741,8 @@ Everything in this skill that a program parses without a model follows ONE conve
 writes one parser and one version check rather than one per artifact:
 
 - **Location:** `docs/.keel/<name>.json` (or `.jsonl`). `docs/` holds documents for people;
-  `docs/.keel/` holds the machine's copy. `docs/.keel/slices/<n>.json` was already here.
+  `docs/.keel/` holds the machine's copy. Worker attempts use the nested, versioned path
+  `docs/.keel/slices/<run-id>/<slice-id>/<attempt-id>.json`.
 - **`schema` is mandatory and self-identifying:** `keel.<name>/<n>` — `keel.plan/1`,
   `keel.e2e-status/1`, `keel.sprint/1`. A bare integer does not say what it is the schema OF, which
   is worthless the moment a reader handles two artifacts.
@@ -996,7 +1145,7 @@ The answer is not a longer rule, and it is not a checklist for the session to ti
 
 The order is the contract, and it is the order for a reason — **every commit happens before the hand-off is written, never after**:
 
-0. **`scripts/keel-time end`** — reads the clock, writes the partial `actual_hours` of every open slice and the session's row in `docs/sessions.md`, and prints the session report, so both land in step 1's commit and the report is part of what the close prints. A session that carries on past this close opens a new session with `scripts/keel-time start`.
+0. **`scripts/keel-time end`** — reads the clock, writes the partial `actual_hours` of every open slice (several may be open at once; each is closed on its own interval, none is charged another's time) and the session's row in `docs/sessions.md`, and prints the session report, so both land in step 1's commit and the report is part of what the close prints. A session that carries on past this close opens a new session with `scripts/keel-time start`.
 1. **Confidential-data scan, then commit everything outstanding.** Nothing is left uncommitted, ever (SKILL.md, "Work never lives only on this machine").
 2. **`scripts/keel-verify`**, output captured. Non-zero → stop here and report; a sprint does not close broken.
 3. **Merge to the integration branch and push** — in automatic mode without asking, per the card's `Autonomy:`. Outside it, list what stays unpushed.
@@ -1020,7 +1169,8 @@ One allow-list entry: `Bash(./scripts/keel-close:*)`.
 until it fails: **they all describe a session that DECIDES it is finished.** The close-out contract,
 the launcher, the lane and the launch receipts are each reached by a session that has concluded its
 work and is closing out. A turn that simply ENDS — no decision, no close-out, no hand-off — passes
-through none of them.
+through none of them. (The hook never reads the clock's intervals: several open slices, and worker
+intervals that overlap them, are a normal state under parallel development and never a reason to block.)
 
 **Measured, and it is a different failure from the stale hand-off in `keel-close`.** On one project
 the launch receipts recorded not a single chain fire across a seventeen-hour window in which `git
@@ -1358,96 +1508,28 @@ It is NOT run at every sprint close. The close runs Section A+B, which is static
 **And the reason it can be trusted to say READY: it is the same source as the contract.** The rows above are generated from the numbered `keel-continue` contract and the four `start` gates in this file — one row per requirement — so a requirement added here without a row is a release bug in the same way a manifest row missing its reference is. `scripts/keel-verify` checks that the script exists and that its row count matches.
 
 
-## Fan-out over worktrees — who writes the state, and how a worker reports
+## Historical v5 fan-out notes — superseded, never execute
 
-A session may dispatch several workers into git worktrees to work on independent slices at once. Everything in this section was measured; it applies to any such fan-out, and none of it requires a second chat with a role (see "Designs measured and rejected" below).
+This section preserves measurements that explain the rejected designs below. **None of its commands, report schemas, ownership rules or completion signals is an active instruction.** The sole authoritative development-worker contract is `references/parallel-development.md`: it replaces this original batch dispatch with capability-based isolated workers, a rolling scheduler, coordinator-owned aggregate state, versioned assignments/results, bounded process observation and post-merge verification. Keep the historical incidents because they prevent regressions; never use their obsolete mechanics to launch work.
 
-### Dispatching a worker
-
-One worktree and one branch per slice, then one process per worker, launched from the main tree's session after the sprint kickoff approved the slices:
-
-```bash
-git worktree add -q ../w<N> -b slice-<N>
-mkdir -p ../w<N>/.claude && cp .claude/settings.local.json ../w<N>/.claude/   # see below — it does NOT travel
-"$KEEL_CLI" --session-id <uuid> --model <model> -p --permission-mode auto \
-  "$(cat ../slice-<N>.prompt)" > ../w<N>.log 2>&1 &
-```
-
-**`$KEEL_CLI` is resolved, never assumed.** The dispatch needs the assistant's own CLI on this machine, and the bare word `claude` is a probe rather than an answer — resolve it per the corroboration rule in `references/test-automation.md` ("Detection rules that are not obvious"), which covers both the shell whose `PATH` hides an installed binary and the binary that is present but cannot run. A session running under Claude Code already holds the answer in `CLAUDE_CODE_EXECPATH`, an absolute path that works with no `PATH` at all. If no working CLI can be resolved, the fan-out does not happen: say so and build the sprint's slices in this session, serially, which is a slower plan and not a degraded one.
-
-**`--session-id <uuid>` assigns the id up front** instead of looking it up afterwards, so the dispatcher knows every worker's id before it starts. The log file is for post-mortem reading, never for detecting completion (see the report section below).
-
-**`--permission-mode auto`, and NOT `bypassPermissions` (UNBREAKABLE).** An earlier version of this dispatch used `bypassPermissions` on the grounds that it is what lets an unattended worker finish. **That premise is false, and it was measured: `bypassPermissions` asks for confirmation EVERY time** — entering it is itself a gated act, so instead of removing prompts it guarantees one, and an unattended worker sits waiting for an answer nobody will give. It therefore breaks precisely the automation it was chosen to enable, which is the worst kind of wrong flag: it fails in the direction of looking like a hang rather than an error.
-
-The safety argument points the same way, and would be sufficient on its own. `bypassPermissions` evaluates no permission rules at all, `deny` included. That put the skill in direct contradiction with itself: the session-start step writes a `deny` block precisely to keep `rm -rf /*`, `sudo *` and `curl * | sh` out of reach, and then the fan-out handed that exemption to the only sessions that are simultaneously **parallel, unattended, and writing to real branches** — the worst place in the whole skill to remove a barrier, and the one where nobody is watching to notice. `auto` keeps the worker moving through everything the allow-list covers and keeps the `deny` block enforced.
-
-**The honest cost of that swap, stated rather than discovered:** `auto` is not a drop-in. A worker in `-p` mode that reaches an action the allow-list does not cover cannot be asked, so that call is refused and the slice may fail. That is the correct failure direction — a refused call surfaces in the worker's report and its log and is fixed by extending the allow-list, whereas an unattended `sudo` is not fixed by anything. So: if workers stall, **extend the project's allow-list; never go back to bypassing.** And the fan-out's other three preconditions stand unchanged, because they were never a substitute for this one: dispatched only from a session with a person in it, only over slices approved at the kickoff, only into worktrees of this repository.
-
-**A worktree does NOT inherit the permission settings, and this is the part that silently undoes everything above.** `.claude/settings.local.json` is gitignored — that is what makes it machine-local — so `git worktree add` produces a clean checkout **without it**. A worker launched there falls back to user-level configuration: no project `deny` block, no project `env.PATH`, no project allow-list. The rule that was just enforced on the flag would be quietly absent in the directory. So the dispatch **copies the file into each worktree before launching**, as in the command above, and a dispatch that skips that step is not dispatching under the project's rules whatever flag it passes. Verify it landed: the file's absence is invisible at runtime and shows up only as a worker mysteriously blocked, or mysteriously unblocked.
-
-### The living state is written by the session that owns the MAIN tree — and by nobody else
-
-This **inverts** the rule that governs everywhere else in this file ("update state at the moment of change"), so it is recorded as a deliberate decision with its reason rather than left as an exception someone will treat as an oversight.
-
-- **The session in the main tree writes `docs/PROGRESS.md`**, after each merge, as always.
-- **A worker in a worktree never writes it.** Not a line. The prohibition goes in the worker's own prompt, in those words.
-
-The measurement: with three worktrees where each worker touched its own code file AND `docs/PROGRESS.md`, the code merged clean every time and `PROGRESS.md` conflicted in **100% of merges — N−1 times for N workers**, and not on one line but on the whole structured block. With the workers writing only their own report path instead, three merges produced **zero conflicts** and `PROGRESS.md` was left intact for the main session to rewrite.
-
-**`.gitattributes` with `merge=union` is not the fix and must not be reached for.** With two branches that only APPEND it works; a Keel `PROGRESS.md` is REWRITTEN — phase, version, position — and union merging then produces a clean merge and a corrupt file: two contradictory `**Fase actual:**`/`Phase:` lines, two `## Log` headings, and no conflict marker anywhere. A silent wrong answer is worse than a conflict.
-
-### The worker's report — `docs/.keel/slices/<n>.json`
-
-What a worker writes instead, committed on its own branch, one path per worker so two never touch the same file:
-
-```json
-{ "slice": "3", "status": "blocked", "branch": "slice-3", "commit": "4416bf5",
-  "needs_user": "What should divide(a, b) do when b is 0?" }
-```
-
-`status` is `done` or `blocked`. A `blocked` report is **not merged**: the branch and its worktree stay untouched, the question goes to the user in the chat where a person actually is, and the main session records the block in `PROGRESS.md`. That escalation is the whole reason a fan-out is driven from a session with a human in it — a worker that invents an answer to a product question is the failure this prevents.
-
-Two things the report deliberately is not. **Not stdout:** a `claude -p` worker writes nothing until it finishes, so a working worker and a dead one both show an empty log (measured: 0 lines while both were working). **Not the transcript:** it belongs to the process rather than to the project, and a transcript resumed after an interruption gains a fabricated `Continue from where you left off.` turn that nobody wrote.
-
-### The close-out contract — this order, and the order is the point
-
-Every worker prompt ends with these four steps in exactly this sequence:
-
-1. `git add -A && git commit -m "slice <N>: …"`
-2. Write `docs/.keel/slices/<N>.json` and commit it.
-3. Signal completion **atomically**: `printf '<N> done\n' > <signal>.tmp && mv <signal>.tmp <signal>.done`.
-4. Finish.
-
-The signal comes LAST so that **an existing signal implies committed work, never the reverse**. It is written by rename because a rename cannot be observed half-written, which a direct `>` redirect can. The dispatching session waits on the signal file — one blocking call with a ceiling (`until [ -f <signal>.done ]; do sleep 5; done`), which costs one line of context however long it takes.
-
-### The slice prompt is self-sufficient, and is not a continuation prompt
-
-Each worker receives a complete prompt that starts with the ABSOLUTE path of ITS worktree, states that no other directory may be touched, forbids reading or writing `docs/PROGRESS.md`, and carries the task in full. It reads no state file. There is also a mechanical reason the hand-off cannot get confused with a slice prompt: `docs/continuation-prompt.md` is gitignored, so a fresh worktree does not contain one at all (measured). The party that needs a hand-off is the session that owns the main tree, never the workers.
-
-**What needs serialising is the merge, not the slice.** Three worktrees give three different `git rev-parse --show-toplevel` values and therefore three legitimate lanes, exactly as the single-lane lock already intends. Since only the main session merges, the main tree's lane already covers the thing that must not happen twice at once; nothing about the lock changes for this.
-
-### Seeing which sessions are live — `claude agents --json`
-
-The supported way to enumerate live sessions, replacing any parsing of `*.jsonl` transcripts. It returns one object per session with `pid`, `cwd`, `kind`, `sessionId`, `name` and a status of `idle` or busy — enough to discover sessions, spot a dead one, and tell whether one is working. It needs no TTY and is scriptable.
-
-Two caveats, both measured, both load-bearing:
-
-- **`-p` (print) sessions do NOT appear** — only interactive and `--bg` ones. So it is not a completion detector for `-p` workers; the done-signal file is.
-- **`--session-id <uuid>` lets the launcher assign the id up front**, so whoever dispatches a worker already knows its id without looking it up.
+The obsolete launch commands and report/signal schemas were removed in v7.0.0 so a model cannot
+mistake measured history for an executable fallback. The measurements retained below still explain
+why Keel uses one ordinary coordinator, isolated worktrees and structured results, but all current
+execution details live only in `references/parallel-development.md`.
 
 ## Designs measured and rejected — do not re-propose
 
 Each of these was built or probed on a real machine and failed for a reason that will not change by trying again. They are recorded so the next session finds the result before spending the round that produces it a second time.
 
-- **A "chat director" — a second chat whose role is orchestrating worker chats. Abandoned as a design.** It works: a prototype ran three slices with three workers, merged without conflicts, wrote the state itself, and escalated a product question instead of inventing an answer. It still does not earn its scaffolding. Measured, it costs **≈7k tokens of context per slice in a toy project and 15–20k in a real one** (a `PROGRESS.md` of 4–18 KB read and rewritten every slice is what fills it, not the waiting loop — that is one Bash call returning one line however long it blocks), which degrades the director **between the 6th and the 9th slice**. It has no cost accounting, no cancellation and no concurrency cap, all to obtain parallelism that native subagents and workflows already provide with all three. Its one genuine advantage — a chat with a person in it, which can be asked a question and can answer — is obtained by something far smaller: **one ordinary Keel session that, in a single turn, dispatches N workers into worktrees, waits for their signals and merges**, exactly as this section describes. The chat where the person is, is the chat you are already working in.
+- **A "chat director" — a second chat whose role is orchestrating worker chats. Abandoned as a design.** It works: a prototype ran three slices with three workers, merged without conflicts, wrote the state itself, and escalated a product question instead of inventing an answer. It still does not earn its scaffolding. Measured, it costs **≈7k tokens of context per slice in a toy project and 15–20k in a real one** (a `PROGRESS.md` of 4–18 KB read and rewritten every slice is what fills it, not the waiting loop — that is one Bash call returning one line however long it blocks), which degrades the director **between the 6th and the 9th slice**. It has no cost accounting, no cancellation and no concurrency cap, all to obtain parallelism the ordinary coordinator can provide through the bounded, versioned contract in `references/parallel-development.md`. The chat where the person is, is the coordinator chat.
 - **Delivering a message into a live session with `claude --resume`.** There is no mailbox. `--resume` starts a NEW process that reads the transcript from disk and writes to the same file: against an idle session the target's window sees nothing, and against a session mid-turn the transcript FORKS, a `Continue from where you left off.` / `No response requested.` pair that nobody wrote is fabricated, and the message is **silently lost** from the resumable history. It is also scoped to the current directory's slug, so a worker in a worktree could not reach a session in the main tree even if the mechanism worked. Workers report through their file, and nothing else.
-- **Closing another session's window from a script.** Measured on macOS with Terminal.app: `close` takes **40–78 seconds** with no confirmation and no error either way, so the caller cannot know whether it happened without polling; it is a hard kill that runs **no cleanup hooks at all** (three signal traps were installed and none fired, and the log file was never created); and because the holder can therefore never release its lane, an orphaned lock is guaranteed rather than exceptional. Killing the child instead leaves the window open with an idle shell. Opening an unrequested window was already placed behind the user's decision; closing one is more destructive and its mechanics are worse. **Do not do it, not even opt-in.** The defensible version, if it is ever wanted, is `kill -TERM` on a worker whose done-signal already exists — the commit is guaranteed by the close-out order — leaving the window open; even that needs an explicit lane release, which is specified for the arriving session and not for a third party.
+- **Closing another session's window from a script.** Measured on macOS with Terminal.app: `close` takes **40–78 seconds** with no confirmation and no error either way, so the caller cannot know whether it happened without polling; it is a hard kill that runs **no cleanup hooks at all** (three signal traps were installed and none fired, and the log file was never created); and because the holder can therefore never release its lane, an orphaned lock is guaranteed rather than exceptional. Killing the child instead leaves the window open with an idle shell. **Do not do it, not even opt-in.** Current worker cancellation targets only the registered owned process group and retains claims when termination cannot be confirmed (`references/parallel-development.md`).
 
 ## Context & cache discipline (how every session works)
 
 These rules exist so sessions are cheap, deterministic, and cache-friendly. Follow them literally.
 
-1. **Fixed session-start reading order, and `docs/continuation-prompt.md` comes FIRST.** Before the state files, check whether that file exists — it is the freshest pointer in the project and the cheapest read there is, and checking it is what makes a bare "continue" enough to restart the work. If it exists, run `scripts/keel-handoff-verify` (never compose those checks inline) and act on the verdict: **`CONTINUE`** → it names the exact position and the next action, so the session starts there instead of re-deriving it; **`STOP`** → the file is discarded as a courier and the session resumes from the committed state files instead, saying in one line that it did and why — a stale or foreign hand-off must never paralyse a session, it must only lose its authority. If the file is absent, that is ordinary (it is gitignored, so a fresh clone has none) and the order below simply proceeds. **The hand-off is a courier, never an authority:** where it and the committed state disagree, `docs/PROGRESS.md` wins and the divergence is stated. Then read in this exact order and nothing more: `docs/PROGRESS.md` → `docs/decisions.md` → `docs/lessons-learned.md` → the current phase's reference file → only the inputs PROGRESS.md names for the current position. On a runnable project, the first test point of the session also runs `scripts/keel-doctor --check` and boots the playground from `docs/playground.md` (the freshness stamp) — a session that assumes the environment still works is a session whose green results mean nothing. **And on any project whose card is not `Chaining: off`, the same moment runs `scripts/keel-chain-check`** — for the same reason and against the other mechanism the session will depend on without looking at it again: the chain is verified at the START of the session, where a `NOT READY` row still has hours in which to be fixed, instead of at the close, where it has none. A `NOT READY` here is reported with its rows and fixed as ordinary work; it never blocks the session's actual task. The same order every session keeps context predictable and maximizes prompt-cache reuse. While reading PROGRESS.md, compare the card's `Keel baseline:` with the running Keel version — if it is older or missing, offer the post-update reconciliation (see below) before continuing. In the same pass, re-verify the card's `Durability:` line against reality — two cheap commands (`git rev-parse --git-dir`, `git remote -v`) plus the project's absolute path; a card that claims a remote the repo no longer has, or a `NONE` that is now covered, is corrected on the spot and the user is told in one line (SKILL.md "Work never lives only on this machine"). A recorded `NONE — accepted risk` is not re-litigated.
+1. **Fixed session-start reading order, and `docs/continuation-prompt.md` comes FIRST.** Before the state files, check whether that file exists — it is the freshest pointer in the project and the cheapest read there is, and checking it is what makes a bare "continue" enough to restart the work. If it exists, run `scripts/keel-handoff-verify` (never compose those checks inline) and act on the verdict: **`CONTINUE`** → it names the exact position and the next action, so the session starts there instead of re-deriving it; **`STOP`** → the file is discarded as a courier and the session resumes from the committed state files instead, saying in one line that it did and why — a stale or foreign hand-off must never paralyse a session, it must only lose its authority. If the file is absent, that is ordinary (it is gitignored, so a fresh clone has none) and the order below simply proceeds. **The hand-off is a courier, never an authority:** where it and the committed state disagree, `docs/PROGRESS.md` wins and the divergence is stated. Then read in this exact order and nothing more: `docs/PROGRESS.md` → `docs/decisions.md` → `docs/lessons-learned.md` → the current phase's reference file → only the inputs PROGRESS.md names for the current position. On a runnable project, the first test point of the session also runs `scripts/keel-doctor --check` and boots the playground from `docs/playground.md` (the freshness stamp) — a session that assumes the environment still works is a session whose green results mean nothing. **And on any project whose card is not `Chaining: off`, the same moment runs `scripts/keel-chain-check`** — for the same reason and against the other mechanism the session will depend on without looking at it again: the chain is verified at the START of the session, where a `NOT READY` row still has hours in which to be fixed, instead of at the close, where it has none. A `NOT READY` here is reported with its rows and fixed as ordinary work; it never blocks the session's actual task. The same order every session keeps context predictable and maximizes prompt-cache reuse. While reading PROGRESS.md, compare the card's `Keel baseline:` with the running Keel version — if it is older or missing, run the post-update reconciliation (see below) before continuing — mandatory, never offered. In the same pass, re-verify the card's `Durability:` line against reality — two cheap commands (`git rev-parse --git-dir`, `git remote -v`) plus the project's absolute path; a card that claims a remote the repo no longer has, or a `NONE` that is now covered, is corrected on the spot and the user is told in one line (SKILL.md "Work never lives only on this machine"). A recorded `NONE — accepted risk` is not re-litigated.
 2. **Read each static reference once per session.** Phase references and templates do not change mid-session — never re-read a file already loaded in this conversation; rely on the copy in context. Single exception: immediately after a Keel update, the copies in context belong to the old version — re-read the new `SKILL.md` and the current phase's reference (see "Post-update reconciliation").
 3. **Orient by state, not by scanning code.** The project's shape lives in `docs/03-technical-plan.md` (code map, conventions), `docs/architecture.md` (once it exists), and `docs/api/INDEX.md`. A session that needs to know "where is X / does Y exist" consults these first, then opens the one specific file it needs. Tree-wide code exploration is a signal that the state files are incomplete — fix the state files, don't normalize the scanning.
 4. **Surgical code reads.** When code must be read, read the specific file/function the state points to — not whole directories "for context".
@@ -1482,10 +1564,19 @@ The project root carries the Keel block below in TWO files, always: `CLAUDE.md` 
 One tool needs a third step: **Gemini CLI reads `GEMINI.md`, not `AGENTS.md`, by default.** If the user works with Gemini CLI, ask once and record the pick: mirror the same block in `GEMINI.md` (a third copy of the lock, refreshed with the others), or commit a `.gemini/settings.json` whose `context.fileName` includes `AGENTS.md` (no third copy to maintain). Either satisfies the lock.
 
 ```
-<!-- KEEL:BEGIN — v6.5.0 do not remove: binds every AI/session in this repo to the Keel workflow -->
+<!-- KEEL:BEGIN — v7.3.2 do not remove: binds every AI/session in this repo to the Keel workflow -->
 # Keel protocol (mandatory for ANY assistant working in this repository)
 
 This project is governed by the Keel workflow. Before reading code or changing ANYTHING:
+
+**Parallel-worker exception:** before step 1, check for a coordinator-registered
+`keel.worker-assignment/1` in this exact worktree using `scripts/keel-parallel`.
+A valid assignment routes this session to `references/parallel-development.md`'s
+worker entry: read the assignment and only its named immutable inputs; do not run
+maintenance, resume, reconciliation, global timing/close, push or chaining. The
+worker may write only its assigned paths and per-attempt report. A bare environment
+variable or prompt cannot select this role. Invalid worker identity fails closed.
+With no valid assignment, follow every normal step below unchanged.
 
 1. Read the FULL Keel `SKILL.md` FIRST, before anything else in this repository —
    from the installed `keel` skill if present, otherwise from the embedded copy
@@ -1513,8 +1604,8 @@ This project is governed by the Keel workflow. Before reading code or changing A
    `docs/decisions.md` (decisions are NEVER re-opened on your initiative), and
    `docs/lessons-learned.md` (recorded mistakes are never repeated), plus the
    phase reference SKILL.md names for the current phase. If the project card's
-   `Keel baseline:` is older than the running Keel (or missing), offer the
-   post-update reconciliation before continuing.
+   `Keel baseline:` is older than the running Keel (or missing), run the
+   post-update reconciliation before continuing — it is mandatory, never offered.
 3. Follow the recorded specs and design exactly: no reinterpretation, no silent
    deviation, no "improving" recorded decisions. Anything undefined → ask the user.
    Design gaps → Design Request (Keel Phase 4). Never claim something that was not
@@ -1579,6 +1670,11 @@ This project is governed by the Keel workflow. Before reading code or changing A
      does not depend on a previous result.
    - Delegate broad searches/scans to a subagent when the environment provides them;
      bring back conclusions, never file dumps — the main context stays clean.
+   - For approved Phase 5 development, follow `references/parallel-development.md`:
+     fill the recorded cap from the ready dependency set, give every writer its own
+     worktree, keep aggregate state and integration with the coordinator, and unlock
+     dependants only after verified integration. No verified isolated writer means
+     explicit serial development, not shared-checkout concurrent writes.
    - The same batching rule governs delegation: independent READING verifiers at one
      gate, and one agent per independent unit (screen, locale, competitor), go out in
      ONE parallel block — with at most one EXECUTING verifier per environment running
@@ -1642,7 +1738,7 @@ A Keel update changes the workflow; it does not automatically change the project
 - Immediately after the session-start update check (SKILL.md "Update check") replaces any copy, when the session is working inside a Keel project.
 - On resume, when the project card's `Keel baseline:` is older than the running Keel version — or the line is missing (legacy project: treat the baseline as unknown and reconcile).
 
-Never skip it silently. If the user defers it, record `Reconciliation pending vX → vY` in PROGRESS.md open items so every later session re-offers it.
+**It is mandatory, after EVERY update — it runs, it is not offered (UNBREAKABLE).** Nobody chooses whether a project is reconciled: the update is what makes it due, and it runs immediately, before any other work in the session. The rows it proposes remain the user's to apply or decline (step 4); the reconciliation itself, and its standing checks, are not. The only thing that may go first is a production hotfix already under way (`references/maintenance.md`): record `Reconciliation pending vX → vY` in PROGRESS.md open items, ship the fix, and run the reconciliation right after it — before the tag and before any other work.
 
 ### The procedure
 
@@ -1653,15 +1749,25 @@ Never skip it silently. If the user defers it, record `Reconciliation pending vX
    **Then run the conformance sweep — mechanically, from the manifest, not from memory (BLOCKING).** `MANIFEST.md` Table 1 is the ABSOLUTE parity check: walk EVERY row, decide whether it applies at this project's position under its recorded conditions, and give it a state. `MANIFEST.md` Table 3 adds the per-version action list for every version newer than the baseline — each action is a row too. Write the result to `docs/keel-conformance.md` (create it if this project predates it): one line per applicable requirement with exactly one state — `present` (and where), `missing`, `declined` (with its `docs/decisions.md` entry), or `n/a` (with the condition that excludes it). A row with no state is an unfinished sweep, and an unfinished sweep is not a reconciliation.
 
    This exists because the failure mode is specific and repeated: an update is announced, part of the delta is applied, the rest is quietly not, and nobody notices until the user asks why something is missing. Deriving the list from the manifest instead of from what the session recalls makes that impossible — the assistant cannot forget a row it is reading off a table.
+   **Then run the standing checks (below) — every reconciliation, whatever the versions involved.**
 4. **Present ONE batched catch-up plan — containing EVERY `missing` row, without curation.** What would be created or refreshed, which new questions need answers, what the new version requires versus what is optional, each with its one-line cost. The user approves, trims, or defers, row by row. Optional mechanisms stay optional: reconciliation asks their never-asked question (e.g. the assistant config package for a project older than v1.10.0) — it never force-installs. But **the assistant never decides on the user's behalf that a row is not worth mentioning**: applying is the user's choice, proposing is not optional. Anything the user declines becomes a `declined` row with its D-entry, so a refusal is a decision on the record and a gap can never be mistaken for one.
 5. **Apply.** Refresh the lock block between its delimiters (user OK — the existing safely-updatable mechanism); create missing files/directories from their templates; add new project-card lines without touching the rest; ask the batched questions and record their D-entries; run new one-time verifications where they apply.
 6. **Record and report.** One D-entry — `Keel vX → vY reconciliation: applied …; declined …` — update `Keel baseline:` to the running version, save the finished `docs/keel-conformance.md`, and update PROGRESS.md at the moment, as always. Then **report the sweep to the user in full**: applied / declined / not applicable, one line each, with the totals. A reconciliation reported as "done" without that table is a claim, and this skill does not accept claims.
+
+### Standing checks — every reconciliation, from v7.3.0 on (NOT optional, NOT declinable)
+
+These run in EVERY post-update reconciliation, whether or not the versions crossed mention them in `MANIFEST.md` Table 3 — a later update that says nothing about them still runs them. Each one is checked against the disk, fixed on the spot when it fails, and reported in the sweep table. Neither can be `declined`; they are not part of the catch-up plan the user trims.
+
+1. **Claude Code agent teams flag.** Where Claude Code is in use — the running session is Claude Code, or Claude Code is an accepted tool on the card — `.claude/settings.local.json` at the repository root must carry `"env": { "CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS": "1" }`. Read the file: missing file, missing key, or any value other than `"1"` → merge the key per `references/keel-maintenance.md` ("Agent teams flag"), never overwriting anything else, and say it takes effect at the next Claude Code start. An unparsable file is not rewritten: the check stays `missing`, the reconciliation is not complete, and the user gets the exact line to add. Where Claude Code is not in use, the row is `n/a` with that condition.
+2. **Parallel development at full capacity, never a leftover 2.** Read the card's `Parallel development:` line. `auto; max_workers: max` → `present`. `auto; max_workers: <N>` → look in `docs/decisions.md` for an entry where the USER chose that number as a ceiling: found → `present (user ceiling, D-0XX)`; not found → rewrite the line to `auto; max_workers: max`, say so in one line, and record it in the reconciliation's D-entry. Then check the active sprint plan: an effective cap stated without the observed limit that set it, or a cap of 2 carried over from the old default, is re-resolved per `references/parallel-development.md` ("Policy and capability gate") at the next kickoff and the plan updated. An open parallel run's journal is never hand-edited; the next run takes the resolved cap. `off` with its D-entry stays `off` — that is the user's decision — and the line in the report says so.
+
+The reconciliation is not complete, and `Keel baseline:` does not advance, while either check is failing.
 
 ### Rules
 
 - **Nothing already decided is re-opened.** Reconciliation adds what the new version introduces. If something new conflicts with a recorded decision, surface it — the recorded decision wins until the user explicitly reverses it (a new D-entry).
 - **No phase is re-run.** Completed phases stay completed; new questions are asked standalone and recorded, never by replaying the phase.
-- **It never blocks urgent work.** Deferring is legitimate — but it is recorded as pending, never forgotten.
+- **Only a production hotfix already under way goes first.** Everything else waits for the reconciliation; the hotfix records it as pending and it runs right after the fix.
 - **`Keel baseline:` advances ONLY by completing a reconciliation** (or is stamped at creation — Phase 1 step 0a / adoption step 2 — with the running version). A skill update alone never advances it: an advanced baseline over an unapplied catch-up would hide exactly the gap this mechanism exists to close.
 
 ## Archiving (`docs/old/`) — what moves, what never moves
@@ -1680,6 +1786,6 @@ These NEVER move while the project is alive: `PROGRESS.md`, `decisions.md`, `les
 - From Phase 5: `docs/api/INDEX.md` exists and matches the docs; sprint files follow the template.
 - Every session opened with `scripts/keel-time start` and its block before any work, and ended with `scripts/keel-time end` and its report shown; `docs/sessions.md` has its row, every `actual_hours` came from the clock or carries `actual_source: estimated`, and `docs/.keel/clock.jsonl` is gitignored.
 - Any session ending mid-work produced a continuation prompt — and so did every sprint close, whether or not the session stopped there, with `docs/continuation-prompt.md` left CURRENT rather than describing a commit the work has since moved past.
-- Where work was fanned out over worktrees: only the main tree's session wrote `docs/PROGRESS.md`, every worker left its `docs/.keel/slices/<n>.json` report committed on its own branch, every done-signal was written after its commit, and no `blocked` report was merged.
-- The project card carries `Keel baseline:`; a completed reconciliation updated it and left its D-entry; a deferred one is listed in PROGRESS.md open items.
+- Where parallel writing ran: each assignment validated repository/cwd/branch/base/scope, every attempt left its versioned committed result, review and integration evidence are distinct, only the coordinator changed aggregate state, and no dependency unlocked before successful integration verification.
+- The project card carries `Keel baseline:`; a completed reconciliation updated it and left its D-entry, and both standing checks passed; one held back by a production hotfix is listed in PROGRESS.md open items.
 - Any reconciliation read `MANIFEST.md`, ran the full conformance sweep (Table 1 parity plus Table 3's per-version delta) and left `docs/keel-conformance.md` complete — every applicable row `present`, `declined` with its D-entry, or `n/a` with its condition. Every `missing` row reached the batched plan and ended in a user decision; the sweep table was reported to the user in full.

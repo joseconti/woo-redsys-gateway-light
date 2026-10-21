@@ -1438,3 +1438,219 @@ restamp the lock version (its text is unchanged).
 **Minor update. Reconciliation:** `MANIFEST.md` Table 3, v6.5.0. Cap local workers, register any
 browser MCP at project level with its flags, regenerate the doctor rows; restamp the lock version
 (its text is unchanged).
+
+
+## 6.6.0
+
+### Changed
+
+- **Planning now distinguishes approved scope, current unbuilt scope and elapsed work.** Every
+  executable slice has immutable `original_hours`, explicit `residual_hours`, and separate
+  `actual_hours`; historical actuals and approved estimates are never rewritten to make a balance
+  fall.
+- **A split is a same-checkpoint reconciliation.** Extracted work declares its parent and exclusive
+  requirement ownership; the parent loses that ownership in the same plan update, and the balance
+  records completion, genuine additions and explicit residual re-estimates separately. Counted
+  parent/child scope may not overlap. Grouping containers are uncounted.
+- **Remaining time is honest about its evidence.** A split with unchanged scope conserves remaining
+  work. Time spent on an unfinished item is shown separately and never deducted automatically. A
+  legacy plan stays `unreconciled` until unbuilt requirements and residuals are explicitly mapped.
+  The conditional pace projection may legitimately rise after a measured outlier while remaining
+  residual scope falls.
+- **Generated plan tooling is now required to verify the contract.** `keel-verify` checks ownership,
+  residual change history, same-checkpoint reconciliation and the explained balance equation; E25
+  covers split conservation, child completion, genuine additions, re-estimation and pace outliers.
+
+**Minor update. Reconciliation:** `MANIFEST.md` Table 3, v6.6.0. Migrate legacy estimates without
+inventing residuals, reconcile open parent/child scope as planned work, regenerate the plan/timing/
+verification scripts, and refresh the lock block.
+
+
+## 7.0.0
+
+### Hardened during pre-release review
+
+- Cross-worktree coordination now uses a shared POSIX file lock in the canonical Git common directory
+  and a persistent run-owner registry. Two runs cannot independently claim the same integration branch;
+  a worktree/branch cannot be assigned to two live attempts.
+- Registered assignments and approved scope are snapshotted. Historical completed slices do not require
+  migration, future sprints are not dispatched, and accounting updates cannot forge dependency completion.
+- Launch is registered under the lock before another caller can dispatch. Failed/blocked attempts retain
+  claims until explicit quiescent resolution; retry is bounded. Worker role checks validate actual cwd and
+  committed, staged, unstaged and untracked paths.
+- Candidate checks execute in a separate clean worktree. Integration acceptance requires evidence produced
+  by `verify-integration`, the actual promoted branch head and worker/report ancestry. Fabricated commit
+  strings, altered evidence and branch movement cannot unlock dependencies.
+- Regression coverage now includes simultaneous real local processes writing and committing in worktrees,
+  candidate verification/merge, launch races, assignment substitution, migration, and failure recovery.
+  These fixtures exercise Git/process behavior; model backends still require their own smoke acceptance.
+
+### Added
+
+- **Dependency-aware parallel development.** Approved independent slices now enter a rolling queue:
+  ready work fills free slots immediately, while dependants unlock only after their prerequisite is
+  integrated and verified. The ordinary project session remains the sole coordinator and state writer.
+- **Executable scheduler contract.** The standard-library `scripts/keel_parallel.py` validates the DAG,
+  ownership, shared resources and semantic contracts; locks claims atomically; validates Git worktree
+  identity; rejects symlink escapes and aggregate-state writes; records results, reviews and integration
+  idempotently; reconciles dead workers; and launches verified CLI adapters with explicit cwd/deadlines.
+- **Versioned worker artifacts.** `keel.sprint/2`, `keel.worker-assignment/1` and
+  `keel.worker-result/1` carry exact scope, repository identity, evidence, state contributions and timing.
+  Runtime journals stay gitignored; per-attempt result reports remain committed.
+- **Deterministic regression suite.** Local Git/worktree fixtures cover the A/B/C rolling queue,
+  dependency errors, path/resource/contract collisions, wrong branches, symlink escapes, review gating,
+  idempotence, explicit cwd, bounded cancellation and paths containing spaces. CI runs it with bytecode
+  disabled before a release can pass.
+
+### Changed
+
+- Capability discovery now tests what the current session can actually isolate and observe: native writing
+  workers first, a verified unattended CLI adapter second, and an explicit serial fallback otherwise.
+  Product names, reviewer-agent config and continuation launchers are not treated as worker capability.
+- Worker role entry, timing, verification and close rules are separate from ordinary-session duties.
+  Workers cannot update aggregate state, push, release or chain; the coordinator applies structured
+  contributions in the serialized integration transaction and re-runs affected post-merge checks.
+- Parallel accounting reports elapsed run duration, summed worker effort, coordinator time and available
+  token/cost counters separately. Scheduling never changes approved scope or estimates.
+- The obsolete v5 launch commands and numeric report/signal format were removed from active documentation,
+  eliminating a contradictory fallback path.
+
+**Major update. Reconciliation:** `MANIFEST.md` Table 3, v7.0.0. Existing serial projects continue
+unchanged. Projects opting into parallel writing migrate only their active sprint, scaffold the helper and
+runtime ignores, verify one isolated backend, and refresh the portability lock.
+
+## 7.1.0
+
+### Fixed
+
+- Static-analysis runs that fail before analysing their target now have an explicit
+  `BLOCKED — ENVIRONMENT` verdict. Their launcher or socket error cannot be reported
+  as a code finding or merged into a passing result.
+- The canonical command's exit status, first failure line, scope and missing
+  capability must be recorded. An alternate sequential/no-parallel run may diagnose
+  the code separately, but is not equivalent unless the technical plan says so and
+  never changes the blocked canonical invocation into PASS.
+- Phase 7 now requires every mandatory canonical static-analysis command to run on
+  the candidate before release evidence is accepted.
+
+**Minor update. Reconciliation:** `MANIFEST.md` Table 3, v7.1.0. No new project
+artifact or card line; apply the evidence classification at the next test point and
+refresh the portability lock.
+
+## 7.2.0
+
+### Added
+
+- **Inbound tunnel (`references/inbound-tunnel.md`).** A playground on `localhost` can now receive
+  calls from outside — payment notifications, webhooks, a URL a third party fetches, a remote client
+  connecting to a local server — through a public HTTPS tunnel, Cloudflare quick tunnel by default,
+  a named tunnel or a recorded substitute when the hostname must be stable. Keel no longer asks for
+  a deployment to an online server only to be reachable, and reachability is no longer a reason to
+  delegate a flow or to forge the inbound request.
+- **`scripts/playground-tunnel`**, generated at the Phase 5 scaffold when the technical plan lists an
+  inbound call: open and wait, `--url` to attach to a tunnel already open, `--restore`. It points the
+  playground's public base URL at the tunnel, applies a playground-only proxy-scheme shim, and
+  restores `localhost` on every exit path. It never ships.
+- **The live drive (`references/test-automation.md`).** At every slice's test point the assistant
+  also uses the new or changed behaviour for real: a real browser (Playwright) against the running
+  playground, nothing mocked, the real third-party sandbox on the other end, through the tunnel when
+  that third party calls back. It runs beside the end-to-end tests and never replaces them; what it
+  finds becomes a failing test first.
+- Technical-plan `Inbound calls` inventory (Phase 2), negative-control evidence for each inbound
+  flow, exposure rules for a tunnelled playground, and the handling of a session whose permissions
+  forbid opening an ingress (the user launches, the assistant attaches and drives the rest).
+
+### Changed
+
+- A gateway's sandbox payment, asynchronous notification included, is now a driven flow. `CREDENTIAL`
+  covers only test credentials that belong to the user; a publicly reachable webhook is no longer
+  part of it.
+- "e2e green" is not a valid value for the `Real run in playground` evidence cell.
+- The release linter checks that the tunnel contract and the live-drive rule are present.
+
+**Minor update. Reconciliation:** `MANIFEST.md` Table 3, v7.2.0. One conditional project artifact
+(`scripts/playground-tunnel`), no new card line; refresh the portability lock.
+
+## 7.3.0
+
+### Added
+
+- **Claude Code agent teams are always enabled.** Whenever Claude Code is in use, the session-start
+  setup merges `env.CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS: "1"` into `.claude/settings.local.json`,
+  whatever the automatic-mode answer: the key grants no permission and only makes the native
+  orchestration available to parallel development. It takes effect at the next Claude Code start,
+  and the kickoff probe still verifies the capability before any worker relies on it.
+
+### Changed
+
+- **Parallel development runs as many workers as the session can sustain.** The project card
+  default becomes `Parallel development: auto; max_workers: max`. At every kickoff the effective
+  cap resolves to the largest number of concurrent writers the observed limits allow (session agent
+  budget, backend limit, an explicit user ceiling, shared resources), and the sprint plan names the
+  limit that set it. A `max_workers: 2` left by v7.x without a decision choosing it migrates to `max`.
+- **The post-update reconciliation is mandatory.** After every Keel update it runs immediately,
+  before any other work; it is never offered, skipped or left for a later session. Only a production
+  hotfix already under way goes first, and the reconciliation runs right after it. The portability
+  lock now says the reconciliation runs rather than that it is offered.
+- **Two standing checks run in every reconciliation, from this version on**, whether or not the
+  versions crossed mention them, and neither can be declined: the Claude Code agent teams flag is
+  present in `.claude/settings.local.json` wherever Claude Code is in use, and the card's
+  `Parallel development:` is at `max_workers: max` unless the user chose a ceiling in a D-entry.
+  A failing check is fixed on the spot, and `Keel baseline:` does not advance until both pass.
+- The release linter checks all three contracts (checks 13, 14 and 15); eval scenarios E28, E29
+  and E30.
+
+**Minor update. Reconciliation (mandatory):** `MANIFEST.md` Table 3, v7.3.0. No new file, no new
+card line; the two standing checks merge the flag into `.claude/settings.local.json` and migrate an
+undecided `max_workers`; refresh the portability lock.
+
+## 7.3.1
+
+### Fixed
+
+- **The session clock measures parallel development.** `scripts/keel-time slice-start` closed every
+  other open slice before opening the new one, so with parallel writers each slice kept only the
+  minutes until the coordinator's next boundary: a real project measured 22 finished slices estimated
+  at 48.25 h as 2.92 h (−94 %) inside a 4.86 h session, and the deviation and projection followed.
+  Slice intervals now overlap; `slice-end` closes only its own slice; single-writer projects keep an
+  explicit exclusive mode that writes its closes into the log. A slice a worker built is recorded at
+  integration from the worker's own `started_at`/`finished_at`/`paused_seconds` (`slice-record`).
+- **The session report shows wall-clock and summed slice hours apart**, with maximum concurrency and
+  throughput (estimated hours finished per active wall-clock hour). The remaining-time projection uses
+  cumulative throughput when work runs in parallel and the effort pace otherwise, and states its basis.
+  `keel-verify`, `keel-close` and the stop hook accept overlapping intervals.
+
+### Added
+
+- `scripts/keel_clock.py` — the canonical, standard-library interval arithmetic, copied to projects as
+  `scripts/keel-clock`; `tests/test_session_clock.py`; release-linter check 16.
+
+**Patch update. Reconciliation:** `MANIFEST.md` Table 3, v7.3.1. One new script (`scripts/keel-clock`),
+regenerate `scripts/keel-time`, four new `docs/sessions.md` columns, no new card line; refresh the
+portability lock.
+
+## 7.3.2
+
+### Fixed
+
+- **Parallel workers no longer run test suites.** Each writing worker ran its tests — browser suites
+  included — and the coordinator re-ran affected tests at every integration, so a sprint with many
+  workers ran many suites at once: memory and CPU saturated, everything slowed down and sessions
+  failed or stalled, making parallel development slower than serial. Workers now develop and run only
+  cheap static checks over their own paths (lint, syntax, types); they still write the tests their
+  criteria need. Integration checks run the cheap checks over the combination.
+- **The full suite runs once per batch.** When no worker is in flight, the coordinator runs the
+  project's full verification once on a clean checkout at the integration head. A failure is fixed by
+  the coordinator when that is faster, or by relaunching only the necessary workers as fix slices,
+  and the batch runs again. A sprint closes only on a verified batch.
+
+### Added
+
+- `scripts/keel-parallel verify-batch` — runs the full verification once, refuses while any worker is
+  in flight, and records `keel.batch-evidence/1` (commit, covered slices, pass or fail, log) in the run.
+- A per-repository test lane: `verify-integration` and `verify-batch` never run two suites at once.
+- `scripts/keel-parallel status` and `reconcile` report `batch.state` (`verified`, `pending`, `failed`,
+  `nothing-integrated`); `reconcile` clears an interrupted batch.
+
+**Patch update. Reconciliation:** `MANIFEST.md` Table 3, v7.3.2. Copy the new helper over
+`scripts/keel-parallel`; no new file, no new card line; refresh the portability lock.

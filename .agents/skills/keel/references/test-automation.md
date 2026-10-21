@@ -23,6 +23,7 @@ Why this is a hard rule and not a preference: a human walking a flow is slow, is
 | Work | Non-negotiable because |
 |---|---|
 | Starting, seeding, resetting and stopping the environment | It is a documented command; running it is the assistant's job by definition |
+| Opening and closing the inbound tunnel that lets an external service call the playground, and driving the flow that depends on it (`references/inbound-tunnel.md`) | Reachability is a command, not a credential; a flow that stops where the outside world must answer has not been tested |
 | Filling every form field — text, select, checkbox, radio, date, file upload, rich editors | This is the single most common thing wrongly handed to the user, and every driver in this file does it natively |
 | Clicking, tapping, hovering, dragging, scrolling, keyboard navigation | Same |
 | Asserting what the interface shows — success text, validation errors, empty states, permission denials | The assertion is the test; a human eyeball is not an assertion |
@@ -383,7 +384,7 @@ Driving a browser through an MCP server (the Playwright MCP, `@playwright/mcp`) 
 - **Closed at the end of every test.** A driven check through the MCP ends with `browser_close`, success or failure — the same discipline as a fixture's teardown. On the shared endpoint it closes this session's pages and context, not the browser the other sessions are using.
 - **Orphans are reaped, not tolerated.** A Playwright browser whose parent is PID 1 belongs to no session any more. The doctor lists them (below) and its `--fix` kills exactly those PIDs after the user's OK. The blunt equivalent, `pkill -f ms-playwright`, kills every Playwright-launched browser on the machine, the ones live sessions are driving included — use it only when no session is driving a browser, and say so before running it.
 
-**The test runner multiplies the same way, and on a measured laptop it was the bigger half.** One `playwright test` run starts `workers` browsers at once (by default half the CPU cores), each with its renderer, GPU and network processes, plus one `ffmpeg` per worker while `video` is on; one run on the measured machine held about 2 GB, with no MCP involved at all. Four sessions each running their suite is four times that. So the local worker count is capped from the config rather than left to the default — `workers: process.env.CI ? undefined : Number(process.env.PW_WORKERS ?? 2)` — and the cap is recorded in the technical plan's `## Testing` block beside the run mode. Lowering it costs wall-clock, never coverage: the recording stays on and every test still runs. Where several sessions on one machine must run browser suites, they take turns through the same "one executing verifier per environment" rule rather than all running at once.
+**The test runner multiplies the same way, and on a measured laptop it was the bigger half.** One `playwright test` run starts `workers` browsers at once (by default half the CPU cores), each with its renderer, GPU and network processes, plus one `ffmpeg` per worker while `video` is on; one run on the measured machine held about 2 GB, with no MCP involved at all. Four sessions each running their suite is four times that. So the local worker count is capped from the config rather than left to the default — `workers: process.env.CI ? undefined : Number(process.env.PW_WORKERS ?? 2)` — and the cap is recorded in the technical plan's `## Testing` block beside the run mode. Lowering it costs wall-clock, never coverage: the recording stays on and every test still runs. Where several sessions on one machine must run browser suites, they take turns through the same "one executing verifier per environment" rule rather than all running at once. Parallel development workers are the extreme case and never run a suite at all: the coordinator runs it once per batch, after the work is integrated, through a single test lane (`references/parallel-development.md`, "Testing: one full verification per batch").
 
 This is the machine-wide face of the fan-out rule's "at most ONE executing verifier per environment" (`references/assistant-config.md`, "Parallel fan-out"): the laptop's memory is an environment too, and a session count that does not fit it is a concurrency cap, not a reason to buy RAM.
 
@@ -413,6 +414,29 @@ Driving without reading back is half a test. A page can look correct and be thro
 - **Android:** `adb logcat`, plus `adb shell uiautomator dump` for the view hierarchy when a locator fails.
 - **Everywhere:** attach the evidence to the test result rather than pasting it into chat. Chat is not an artifact.
 
+## The live drive — every new feature is used for real, beside its tests
+
+A green end-to-end suite is a claim made by the same session that wrote the code, and it can be wrong in ways the suite cannot see:
+
+- It asserts only what its author thought to assert. A misunderstanding of the requirement lands in the code and in the test together, and they agree.
+- It stubs, intercepts or fakes the third party, so it proves the handler against the assistant's idea of the provider and not against the provider.
+- It starts from an ideal seeded state and takes the shortest path a script can take, which is rarely the path a person takes.
+- A locator matches something other than what was meant, or the assertion holds for a reason unrelated to the feature.
+- It passes with a whole leg missing, because nothing in it waited for that leg: the order is created and the test ends before the notification that would have paid it.
+
+So the suite is necessary and is never the whole verification. **At every slice's test point, every new or changed behaviour is also driven live by the assistant**, as a person would use it:
+
+- **A real browser against the running playground.** Playwright, through a throwaway script or the project's browser MCP, on the same installation the suite uses. A project with a browser surface always has Playwright installed for this, from the scaffold, whether or not the slice adds a committed test. Headless by default with video and trace recorded, so it does not take the user's screen and leaves an artifact behind.
+- **Nothing mocked.** No route interception, no stubbed provider, no forged callback. The real third-party sandbox is on the other end, and when that third party calls back, it reaches the playground through `scripts/playground-tunnel` (`references/inbound-tunnel.md`). A drive with the provider intercepted is not a live drive.
+- **From where a user starts to the final state**, then a look around at what the interface does not show: the record in the admin or the database, the product's debug log, the e-mail that was sent, the state on the third party's side where its sandbox exposes it. The read-back duty above applies in full.
+- **The neighbours, briefly.** One pass over what the change could have disturbed on the same screens, because a live drive is where an unrelated breakage is seen.
+
+**Both, never one in place of the other.** The suite is the regression net and stays: it runs unattended at every push and at the release. The live drive is discovery: it finds what nobody wrote a test for. Whatever it finds becomes a failing test first and a fix second (the bug-reproduction rule), so the suite learns from every drive. Where the suite stubs a third party for determinism, at least one driven path per integration runs unstubbed, marked to run only when the tunnel is up and skipping with a stated reason otherwise.
+
+**Scope and cost.** The live drive covers the slice's new and changed behaviour, not the whole product; the full walk belongs to the sprint close and the Phase 7 gate. On a surface with no browser the rule is the same with that surface's driver: the tool called over the protocol, the command run in a real PTY, the app on its simulator.
+
+**Evidence.** The `Real run in playground` cell of `docs/05-test-points.md` records what was driven, the final state observed and the artifact path. "e2e green" is not a value for that cell: it belongs in the evidence of the automated test, and the two cells answer different questions.
+
 ## Static checks and sniffers — also the assistant's job
 
 Code review by tooling is driving too, and it runs on every slice, not once before release:
@@ -423,6 +447,33 @@ Code review by tooling is driving too, and it runs on every slice, not once befo
 - **Everywhere:** the project's formatter runs and its output is committed, so formatting never appears in a review diff.
 
 Every one of these has an exact command in `docs/03-technical-plan.md` §Tooling commands, runs in the same test point as the tests, and its output is recorded. A finding is a slice defect, not a note for later. Suppressions are narrow, carry a written reason, and are counted at every sprint close so the count can only go down deliberately.
+
+### A tool that did not analyse is not a result (UNBREAKABLE)
+
+Classify every static-check invocation before using its output. There are only three
+states: **PASS** (the command completed and the tool reports no findings),
+**FINDINGS** (the command completed and the tool analysed its target, reporting
+findings), and **BLOCKED — ENVIRONMENT** (the tool could not reach analysis because
+its process, runner, transport, socket, permissions, dependency, configuration or
+other prerequisite failed first). A non-zero exit code alone does not distinguish
+the last two; the recorded output and the stage at which it stopped do.
+
+`BLOCKED — ENVIRONMENT` is neither PASS nor FINDINGS. Do not turn its launcher
+message into a code defect, and do not claim that the target was analysed. Record the
+exact canonical command, exit status, the earliest failure line, the affected scope,
+and the missing capability in the test-point evidence. Re-run the command after a
+safe in-scope repair or a documented environment change. Until it runs, the affected
+leg is `⚠ unverified — NO-EXECUTION` only when this session cannot supply the
+missing capability; otherwise it remains a blocking environment defect to fix, not a
+delegation to the user.
+
+An alternate mode (for example PHPStan's sequential/no-parallel mode after a local
+socket failure) is diagnostic evidence only unless the technical plan explicitly
+declares it equivalent for that command, configuration and target scope. It may
+separate code findings from a launcher failure, but it never converts the failed
+canonical invocation into PASS. Record the alternate command and its scope beside
+the blocked run, then run every still-required canonical command before accepting a
+slice or release result. Never merge reports from the two runs into one verdict.
 
 ## Accessibility is part of driving, not a separate errand
 
@@ -466,7 +517,8 @@ With those two in place the check is trivial and honest: every `AC-nn` in the sp
 
 Recorded here so it is never rediscovered as a surprise mid-project:
 
-- **A real payment through a live gateway.** Offline methods (cash on delivery, cheque, bank transfer) are fully drivable and are what the end-to-end purchase test uses. Stripe, PayPal and WooPayments need the user's own test credentials, outbound network, and a publicly reachable webhook — that leg is `CREDENTIAL`.
+- **A real payment through a live gateway.** Offline methods (cash on delivery, cheque, bank transfer) are fully drivable and are what the baseline end-to-end purchase test uses. A gateway's SANDBOX is drivable as well, asynchronous notification included, through the inbound tunnel (`references/inbound-tunnel.md`): a publicly reachable webhook is no longer a reason to delegate anything. What stays `CREDENTIAL` is obtaining test credentials that belong to the user, where the gateway does not publish shared ones; what stays `PRODUCTION-RISK` is the live leg.
+- **Opening an ingress in a session whose permissions forbid it.** That guard is deliberate and is not worked around. The user runs the one launch command, the assistant attaches to the open tunnel and drives the rest: the partial `NO-EXECUTION` case, covering the launch alone.
 - **XCUITest without macOS.** `xcodebuild` is a macOS binary and the simulator runtime only loads under macOS. There is no emulation, no port, no workaround — only a real Mac, a hosted macOS runner, or a device farm (which is a hosted Mac with extra steps). On Windows or Linux the Apple section of the plan is inexecutable and the doctor says so and stops.
 - **A native Windows UI test on a headless runner.** UIA needs a live interactive session.
 - **A real assistive-technology pass.** A screen reader tells you what a blind user hears, and no audit reproduces that.
@@ -479,6 +531,7 @@ Recorded here so it is never rediscovered as a surprise mid-project:
 - Where the project has a browser surface driven through an MCP, the server is registered at project level only, headless and isolated (or attached to one shared browser through `--cdp-endpoint`), every driven check ends with `browser_close`, and the doctor's three browser-MCP rows are generated.
 - Every acceptance criterion with a user-visible surface has a driven test that fills the real fields and asserts what the interface shows — not an instruction for the user.
 - Console errors, failed requests, 5xx responses and platform logs are read back and fail the test.
+- Every slice's new or changed behaviour was also driven live against the running playground with nothing mocked, through the inbound tunnel where an external system calls back, and its `Real run in playground` cell says what was observed.
 - The automated accessibility pass runs per screen and per state, inside the same driven tests.
 - Static analysis and sniffers run at every test point with recorded output and a tracked suppression count.
 - Every test point and every push ran the affected selection from `scripts/keel-affected-tests` (or the full suite on `Push test scope: full`), enforced by `.githooks/pre-push`, with its `scope:` line in the evidence; no empty selection passed for a diff that touched source; the entire suite ran on the release candidate at every release.

@@ -13,7 +13,7 @@
 - i18n: multi — base English, shipped locale `es_ES`, mechanism `load_plugin_textdomain()` + `__()`/`_e()` family, text domain `woo-redsys-gateway-light`
 - Installed base: **in production with real users** — distributed on WordPress.org, current version 7.0.2, active changelog with real security fixes (signature/HMAC hardening in 7.0.1/7.0.2)
 - Design system: one-off / n/a — plain hand-written CSS, no design system (D-009)
-- Keel portability: lock + embedded v6.5.0 (both trees replaced and verified file-for-file 2026-10-06, D-034; lock block restamped v6.5.0)
+- Keel portability: lock + embedded v7.3.2 (both trees replaced and verified file-for-file 2026-10-21, lock block refreshed v7.3.2 — D-093)
 - Assistant config: full (tools: claude) — rules (`.claude/rules/`) + agents (`.claude/agents/`) + confidential-data pre-commit gate (`.githooks/pre-commit`, active via `core.hooksPath`) + committed allow-list and Stop hook (`.claude/settings.json`, confirmed by the user); MCP n/a (the plan defines no development MCP servers); CI not accepted (D-039, D-043)
 - Models: orchestrator=session model (chained chats launch with opus, D-037) / reviewer=sonnet / mechanical=haiku (tools: claude) (D-043)
 - Keel baseline: v6.5.0 (reconciled 2026-10-06, D-049)
@@ -31,6 +31,7 @@
 - Test-first policy: pure-logic (D-036)
 - Push test scope: affected — the default, never asked
 - Sprints: on — the default, never asked
+- Parallel development: auto; max_workers: max (owner, D-093)
 - Security audit: required — money moves, and the IPN/callback endpoints (`?wc-api=WC_Gateway_<id>`) are reachable from outside (derived, D-040)
 - CI runs on: n/a — no forge CI
 

@@ -61,7 +61,7 @@ slices:
     depends_on: [S-036]
     criteria: []
   - id: S-037
-    title: Remaining one-time verifications of the Keel scaffolding (Stop hook after a session restart, timing report over a real multi-session slice, a real push through pre-push)
+    title: Remaining one-time verifications of the Keel scaffolding (Stop hook after a session restart, timing report over a real multi-session slice, a real push through pre-push; and, deferred here by the owner in D-093, one Redsys test-terminal payment whose notification URL is the playground tunnel)
     status: not-started
     hours: 0.5
     actual_hours: null
@@ -387,6 +387,46 @@ slices:
     actual_hours: 0.1417
     actual_source: measured
     depends_on: [S-066, S-073, S-074, S-080, S-081, S-082]
+    criteria: []
+  - id: S-084
+    title: Keel v6.5.0 → v7.3.2 post-update reconciliation — embedded trees replaced, lock block refreshed, MANIFEST Table 1 + Table 3 sweep into docs/keel-conformance.md, standing checks, Keel baseline advanced
+    status: in-progress
+    hours: 1.5
+    actual_hours: null
+    actual_source: estimated
+    depends_on: []
+    criteria: []
+  - id: S-085
+    title: Keel v6.6.0 split-work estimates — hours → original_hours in every sprint file and deferred.md, residual_hours and reconciliation_status on open slices, keel-plan/keel-time/keel-verify regenerated, plan.json regenerated (owner, D-093)
+    status: not-started
+    hours: 3
+    actual_hours: null
+    actual_source: estimated
+    depends_on: []
+    criteria: []
+  - id: S-086
+    title: Keel v7.3.1 parallel-aware clock — a keel-clock script copied from keel_clock.py, keel-time slice-start/slice-record, docs/sessions.md new columns, keel-verify accepts overlap and checks projection basis (owner, D-093)
+    status: not-started
+    hours: 1.5
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-085]
+    criteria: []
+  - id: S-087
+    title: Keel v7.2.0 inbound tunnel — inbound-call inventory in docs/03-technical-plan.md, a playground-tunnel script, doctor row, docs/playground.md section (owner, D-093)
+    status: not-started
+    hours: 1.5
+    actual_hours: null
+    actual_source: estimated
+    depends_on: []
+    criteria: []
+  - id: S-088
+    title: Keel v7.0.0/v7.3.0 parallel development enabled (auto; max_workers: max) — a keel-parallel script copied from keel_parallel.py, sprint schema v2 for the active sprint, docs/.keel/parallel/ gitignored, backend probe recorded (owner, D-093)
+    status: not-started
+    hours: 2.5
+    actual_hours: null
+    actual_source: estimated
+    depends_on: [S-085]
     criteria: []
 ---
 
