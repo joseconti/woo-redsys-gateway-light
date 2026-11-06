@@ -40,6 +40,7 @@ slices:
     status: not-started
     original_hours: 1
     residual_hours: 1
+    actual_source: measured
     change_kind: added
     parent_slice: null
     owns: [S-102]
