@@ -750,11 +750,17 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		foreach ( $redsys_args as $key => $value ) {
 			$form_inputs[] = '<input type="hidden" name="' . $key . '" value="' . esc_attr( $value ) . '" />';
 		}
+		/**
+		 * Filters the spinner image of the "redirecting" overlay (WooCommerce's own filter).
+		 *
+		 * @param string $url URL of the spinner image.
+		 */
+		$loader_url = apply_filters( 'woocommerce_ajax_loader_url', WC()->plugin_url() . '/assets/images/select2-spinner.gif' );
 		wp_add_inline_script(
 			'woocommerce',
 			'jQuery( function( $ ) {
 		$("body").block({
-			message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', WC()->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . esc_js( esc_html__( 'Thank you for your order. We are now redirecting you to Redsys to make the payment.', 'woo-redsys-gateway-light' ) ) . '\",
+			message: "<img src=\"' . esc_url( $loader_url ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . esc_js( esc_html__( 'Thank you for your order. We are now redirecting you to Redsys to make the payment.', 'woo-redsys-gateway-light' ) ) . '\",
 			overlayCSS:
 			{
 				background: "#fff",

@@ -240,8 +240,18 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$logo_url = $this->get_option( 'logo' );
 		if ( ! empty( $logo_url ) ) {
 			$logo_url   = $this->get_option( 'logo' );
+			/**
+			 * Filters the checkout icon URL of the Redsys card gateway.
+			 *
+			 * @param string $icon_url URL of the icon: the logo set in the settings, or the bundled one.
+			 */
 			$this->icon = apply_filters( 'woocommerce_' . $this->id . '_icon', $logo_url );
 		} else {
+			/**
+			 * Filters the checkout icon URL of the Redsys card gateway.
+			 *
+			 * @param string $icon_url URL of the icon: the logo set in the settings, or the bundled one.
+			 */
 			$this->icon = apply_filters( 'woocommerce_' . $this->id . '_icon', REDSYS_PLUGIN_URL . 'assets/images/redsys.png' );
 		}
 		// WooCommerce prints the icon inside an image tag without escaping it.
@@ -699,6 +709,11 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'redsys', 'DS_MERCHANT_PAYMETHODS: ' . $this->payoptions );
 			$this->log->add( 'redsys', 'DS_MERCHANT_MODULE: ' . $merchant_module );
 		}
+			/**
+			 * Filters the request fields sent to Redsys for a card payment, before they are signed.
+			 *
+			 * @param array $redsys_args Request fields, keyed by Redsys parameter name.
+			 */
 			$redsys_args = apply_filters( 'woocommerce_redsys_args', $redsys_args );
 			return $redsys_args;
 	}
@@ -732,11 +747,17 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				foreach ( $redsys_args as $key => $value ) {
 					$form_inputs .= '<input type="hidden" name="' . $key . '" value="' . esc_attr( $value ) . '" />';
 				}
+				/**
+				 * Filters the spinner image of the "redirecting" overlay (WooCommerce's own filter).
+				 *
+				 * @param string $url URL of the spinner image.
+				 */
+				$loader_url = apply_filters( 'woocommerce_ajax_loader_url', WC()->plugin_url() . '/assets/images/select2-spinner.gif' );
 				wp_add_inline_script(
 					'woocommerce',
 					'jQuery( function( $ ) {
 				$("body").block({
-					message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', WC()->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . esc_js( esc_html__( 'Thank you for your order. We are now redirecting you to Servired/RedSys to make the payment.', 'woo-redsys-gateway-light' ) ) . '\",
+					message: "<img src=\"' . esc_url( $loader_url ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . esc_js( esc_html__( 'Thank you for your order. We are now redirecting you to Servired/RedSys to make the payment.', 'woo-redsys-gateway-light' ) ) . '\",
 					overlayCSS:
 					{
 						background: "#fff",
@@ -771,11 +792,17 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 				foreach ( $redsys_args as $key => $value ) {
 					$form_inputs[] = '<input type="hidden" name="' . $key . '" value="' . esc_attr( $value ) . '" />';
 				}
+				/**
+				 * Filters the spinner image of the "redirecting" overlay (WooCommerce's own filter).
+				 *
+				 * @param string $url URL of the spinner image.
+				 */
+				$loader_url = apply_filters( 'woocommerce_ajax_loader_url', WC()->plugin_url() . '/assets/images/select2-spinner.gif' );
 				wp_add_inline_script(
 					'woocommerce',
 					'jQuery( function( $ ) {
 				$("body").block({
-					message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', WC()->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . esc_js( esc_html__( 'Thank you for your order. We are now redirecting you to Servired/RedSys to make the payment.', 'woo-redsys-gateway-light' ) ) . '\",
+					message: "<img src=\"' . esc_url( $loader_url ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . esc_js( esc_html__( 'Thank you for your order. We are now redirecting you to Servired/RedSys to make the payment.', 'woo-redsys-gateway-light' ) ) . '\",
 					overlayCSS:
 					{
 						background: "#fff",
@@ -918,6 +945,11 @@ class WC_Gateway_Redsys extends WC_Payment_Gateway {
 		$post = stripslashes_deep( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( $this->check_ipn_request_is_valid() ) {
 			header( 'HTTP/1.1 200 OK' );
+			/**
+			 * Fires after a notification to this gateway passes signature verification.
+			 *
+			 * @param array $post The notification's POST fields, slashes stripped.
+			 */
 			do_action( 'valid_' . $this->id . '_standard_ipn_request', $post );
 		} else {
 			wp_die( 'Do not access this page directly (Redsys redirección Lite)' );

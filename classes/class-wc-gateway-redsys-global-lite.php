@@ -869,6 +869,11 @@ class WC_Gateway_Redsys_Global_Lite {
 
 		$status = array();
 		$status = redsys_return_status_paid();
+		/**
+		 * Filters the order statuses (without the wc- prefix) returned by get_status_pending().
+		 *
+		 * @param array $status Order statuses.
+		 */
 		return apply_filters( 'redsys_status_pending', $status );
 	}
 	/**
