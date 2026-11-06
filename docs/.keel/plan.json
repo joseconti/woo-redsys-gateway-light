@@ -12,30 +12,31 @@
     "docs/sprints/sprint-7.md",
     "docs/sprints/sprint-8.md",
     "docs/sprints/sprint-9.md",
+    "docs/sprints/sprint-10.md",
     "docs/sprints/deferred.md"
   ],
   "current_sprint": 9,
   "reconciliation_status": "reconciled",
   "totals": {
-    "original_estimated_hours": 89.4,
+    "original_estimated_hours": 90.4,
     "completed_original_hours": 88.4,
     "actual_hours": 33.4028,
-    "remaining_hours": 1,
+    "remaining_hours": 2,
     "deviation_hours": -54.9972,
     "pace_factor": 0.190934,
-    "projected_remaining_hours": 0.1909,
+    "projected_remaining_hours": 0.3819,
     "reconciliation_status": "reconciled",
     "scope_delta": {
-      "added_scope_hours": 1.5,
+      "added_scope_hours": 2.5,
       "extracted_hours": 1.75,
       "explicit_residual_reestimate_hours": 0
     },
-    "percent_done": 98.88,
+    "percent_done": 97.79,
     "unit": "hours of AI working time plus supervision",
     "spent_unfinished_hours": 0,
-    "slices_total": 86,
+    "slices_total": 87,
     "slices_done": 84,
-    "slices_pending": 1,
+    "slices_pending": 2,
     "slices_dropped": 1,
     "slices_unreconciled": 0,
     "pace_sample": {
@@ -2337,6 +2338,69 @@
           }
         }
       ]
+    },
+    {
+      "sprint": 10,
+      "goal": "Keel v7.3.2 to v7.5.0 post-update reconciliation (D-112)",
+      "status": "in-progress",
+      "file": "docs/sprints/sprint-10.md",
+      "original_estimated_hours": 1,
+      "completed_original_hours": 0,
+      "actual_hours": 0,
+      "remaining_hours": 1,
+      "deviation_hours": 0,
+      "pace_factor": 0.190934,
+      "projected_remaining_hours": 0.1909,
+      "reconciliation_status": "reconciled",
+      "scope_delta": {
+        "added_scope_hours": 1,
+        "extracted_hours": 0,
+        "explicit_residual_reestimate_hours": 0
+      },
+      "percent_done": 0,
+      "unit": "hours of AI working time plus supervision",
+      "spent_unfinished_hours": 0,
+      "slices_total": 1,
+      "slices_done": 0,
+      "slices_pending": 1,
+      "slices_dropped": 0,
+      "slices_unreconciled": 0,
+      "slices": [
+        {
+          "id": "S-103",
+          "title": "Keel v7.5.0 embedded in both trees, lock block refreshed, keel-parallel replaced, Playground host card line, standing checks 1-3, machines lease check, conformance sweep against MANIFEST.md",
+          "status": "in-progress",
+          "original_hours": 1,
+          "residual_hours": 1,
+          "change_kind": "added",
+          "parent_slice": null,
+          "owns": [
+            "S-103"
+          ],
+          "estimate_changes": [],
+          "actual_hours": null,
+          "actual_source": null,
+          "depends_on": [],
+          "criteria": [],
+          "execution": {
+            "write_paths": [
+              ".claude/skills/keel/",
+              ".agents/skills/keel/",
+              "CLAUDE.md",
+              "AGENTS.md",
+              "scripts/keel-parallel",
+              "docs/"
+            ],
+            "contracts": {
+              "reads": [],
+              "writes": []
+            },
+            "exclusive_resources": [],
+            "parallel": "serial",
+            "serial_reason": "one bookkeeping slice on develop"
+          }
+        }
+      ]
     }
   ],
   "scope_reconciliations": [
@@ -2389,6 +2453,20 @@
       "explicit_residual_reestimates": 0,
       "remaining_after": 1.5,
       "file": "docs/sprints/sprint-9.md"
+    },
+    {
+      "id": "R10-01",
+      "date": "2026-11-06",
+      "reason": "D-112 — the owner asked to update Keel; S-103 added",
+      "slices": [
+        "S-103"
+      ],
+      "remaining_before": 0,
+      "completed_residual": 0,
+      "added_scope": 1,
+      "explicit_residual_reestimates": 0,
+      "remaining_after": 1,
+      "file": "docs/sprints/sprint-10.md"
     }
   ],
   "deferred": [
