@@ -31,12 +31,12 @@ The contract is Keel's `references/project-state.md`: "Sprint files (Phase 5) â€
 | [6](sprint-6.md) | Apply the owner's pre-tag answers to the 7.1.0 candidate (D-106) | done | 1 / 1 | 0.75 | 0.75 | 0.1 | 0 | 0 | 100 |
 | [7](sprint-7.md) | Next-version work independent of the owner's 7.1.0 release block, on work/after-7.1.0 (D-103) | done | 1 / 1 | 1.5 | 1.5 | 0.26 | 0 | 0 | 100 |
 | [8](sprint-8.md) | Mechanical defects extracted from the S-053 and S-041 notes, independent of the owner's 7.1.0 release block, on work/after-7.1.0 (D-109) | done | 3 / 3 | 1.25 | 1.25 | 0.24 | 0 | 0 | 100 |
-| [9](sprint-9.md) | Static-analysis hygiene independent of the owner's 7.1.0 release block, on work/after-7.1.0 (D-111) | in-progress | 1 / 2 | 1.5 | 0.5 | 0.01 | 1 | 0.19 | 33.3 |
+| [9](sprint-9.md) | Static-analysis hygiene independent of the owner's 7.1.0 release block, on work/after-7.1.0 (D-111) | in-progress | 1 / 2 | 1.5 | 0.5 | 0.01 | 1 | 0.18 | 33.3 |
 | [10](sprint-10.md) | Keel v7.3.2 to v7.5.0 post-update reconciliation (D-112) | done | 1 / 1 | 1 | 1 | 0.05 | 0 | 0 | 100 |
-| [11](sprint-11.md) | Move the playground from wp-env/Docker to the shared Parallels VM keel-development (D-114) | in-progress | 0 / 1 | 3 | 0 | 0 | 3 | 0.57 | 0 |
-| **Total** | | | 85 / 87 | 93.4 | 89.4 | 33.46 | 4 | 0.75 | 95.7 |
+| [11](sprint-11.md) | Move the playground from wp-env/Docker to the shared Parallels VM keel-development (D-114) | done | 1 / 1 | 3 | 3 | 0.34 | 0 | 0 | 100 |
+| **Total** | | | 86 / 87 | 93.4 | 92.4 | 33.79 | 1 | 0.18 | 98.9 |
 
-All figures are hours of AI working time plus supervision. Contingency is not included, and neither is the backlog in [`deferred.md`](deferred.md) (8 items, 8 h). Pace factor: 0.1886 (66 measured slices). Balance: reconciled.
+All figures are hours of AI working time plus supervision. Contingency is not included, and neither is the backlog in [`deferred.md`](deferred.md) (8 items, 8 h). Pace factor: 0.1849 (67 measured slices). Balance: reconciled.
 <!-- keel-plan:index:end -->
 
 ## Related files

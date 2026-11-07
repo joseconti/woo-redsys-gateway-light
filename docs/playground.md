@@ -1,156 +1,226 @@
 # Playground — local WordPress + WooCommerce environment
 
-> last verified: 2026-10-06 — rebuilt from nothing (`npx wp-env destroy`,
-> `npx wp-env start`, `scripts/playground-setup`) on `@wordpress/env` 11.16.0:
-> PHP 7.4.33, WordPress 7.0, WooCommerce 7.4.0, and the whole suite green
-> (8 unit, 36 integration, 7 e2e). See D-051 and L-008.
+> last verified: 2026-11-07 — on the shared Parallels VM `keel-development`
+> (D-114, S-104), at the tree of that day:
 >
-> Earlier, 2026-08-01: step 6 below (fail-closed notification check) was
-> driven for real — two fabricated POSTs to `?wc-api=WC_Gateway_redsys` were
-> rejected with HTTP 500 and the order stayed `wc-pending`. Step 7 (a real
-> Redsys sandbox round trip) remains `⚠ unverified — CREDENTIAL`.
+> - **Floor, `wrgl`** (PHP 7.4, WordPress 7.0, WooCommerce 7.4.0): the full
+>   suite green — unit `OK (41 tests, 78 assertions)`, integration
+>   `OK (410 tests, 2190 assertions)`, browser `67 passed` (1.2 min; the same
+>   suite took 2.8 min on wp-env).
+> - **Ceiling, `wrgl-ceiling`** (PHP 8.4, WordPress 7.1.3, WooCommerce
+>   11.2.1): unit `OK` (41 tests), integration `OK` (410 tests), browser
+>   `63 passed, 4 failed` — the four admin settings-form axe scans
+>   (`aria-prohibited-attr` on WooCommerce's own `.woocommerce-help-tip`
+>   markup), the same four recorded on wp-env (S-083, `docs/accessibility.md`).
+>   Nothing newly red.
+> - The inbound tunnel (`scripts/playground-tunnel`) has **not** been driven
+>   since the move: `⚠ unverified since D-114`.
+>
+> Earlier, 2026-08-01, on wp-env: step 6 below (fail-closed notification
+> check) was driven for real — two fabricated POSTs to
+> `?wc-api=WC_Gateway_redsys` were rejected with HTTP 500 and the order stayed
+> `wc-pending`. Step 7 (a real Redsys sandbox round trip) remains
+> `⚠ unverified — CREDENTIAL`.
 
-This project uses [`@wordpress/env`](https://developer.wordpress.org/block-editor/reference-guides/packages/packages-env/) (`wp-env`), configured at the repo root
-in `.wp-env.json`. It runs WordPress + WooCommerce + this plugin inside Docker
-containers — nothing is installed on your machine beyond Node.js and Docker
-itself.
+The playground is two WordPress sites on the shared Parallels virtual machine
+`keel-development`, driven by `scripts/keel-site` (the authority for every
+command below; `scripts/keel-site --help` lists them). It replaced
+`@wordpress/env` (wp-env, Docker) on 2026-11-07 (D-114); `.wp-env.json` and
+`.wp-env.ceiling.json` no longer exist and there is no Docker in the test path.
+
+The sites are ordinary hosting tenants — files, a database, a PHP-FPM pool
+running as the site's own Unix user, `open_basedir`, no root — which is the
+environment a WordPress plugin actually runs on.
+
+## The rule that comes first: never beside the premium plugin
+
+**The Lite plugin is never active, nor even installed, on the same site as
+the premium plugin `woocommerce-gateway-redsys` (WooCommerce Redsys Gateway)**
+(owner's rule, D-114). On `keel-development` the premium plugin has its own
+tenant, `redsys`. `scripts/keel-site` refuses `reset` and `test` on a site of
+this project where the premium plugin is installed, `create` stops there too,
+and `scripts/keel-site doctor` reports `premium plugin PRESENT` for it. Never
+install it on `wrgl` or `wrgl-ceiling` to "compare" anything.
+
+## The two sites
+
+| Site | Role | PHP | WordPress | WooCommerce | URL |
+|---|---|---|---|---|---|
+| `wrgl` | floor — the default | 7.4 | 7.0 | 7.4.0 | `http://10.211.55.9:8101` |
+| `wrgl-ceiling` | ceiling | 8.4 | 7.1.3 | 11.2.1 | `http://10.211.55.9:8102` |
+
+The address is the VM's, as `scripts/keel-site url` prints it (it reads it
+from the VM on every call); the host reaches it directly. Choose the site with
+`--site <name>` or the environment variable `KEEL_SITE`; with neither, every
+command acts on `wrgl`.
+
+The floor is pinned deliberately: WordPress 7.0 and WooCommerce 7.4.0 are what
+`woocommerce-redsys.php`'s header and `readme.txt` declare
+(`WC requires at least: 7.4`). PHP is 7.4, one step above the plugin's stated
+`Requires PHP: 7.0`, because WooCommerce 7.4 itself requires PHP >= 7.4; PHP
+7.0 is declared plugin-side but is not realistically testable against a
+current WooCommerce. The ceiling is the other end of the support matrix:
+WordPress 7.1.3 (the newest 7.1.x, the plugin's `Tested up to`) and
+WooCommerce 11.2.1 (the newest 11.2.x, its `WC tested up to`), on PHP 8.4
+(S-083, D-092). Both sites set `AUTOMATIC_UPDATER_DISABLED` and
+`WP_AUTO_UPDATE_CORE=false`: without that a pinned site updated itself within
+minutes (L-008).
+
+**How the code gets there.** The repository is the read-only Parallels share
+`wrgl`, bind-mounted at `wp-content/plugins/woo-redsys-gateway-light` of each
+site by the VM's `keel-mounts` service (it survives reboots). An edit on the
+host is live on both sites at once; nothing is copied. `vendor/` is installed
+on the host (`composer install`) and the VM reads it through the share.
+
+**Dev-only must-use plugins.** `.wp-env-mu-plugins/` keeps its historical
+name because the records cite it. Each site's `mu-plugins` holds only a
+loader, `keel-repo-mu-plugins.php`, that requires the repository's
+`.wp-env-mu-plugins/*.php`: the Inespay HTTP stub always, and the tunnel's
+HTTPS shim while a tunnel is up. The directory is `export-ignore`: it never
+ships.
 
 ## Prerequisites
 
-- Docker Desktop (or Docker Engine / Colima) running.
-- Node.js >= 18 and npm.
-- Run `scripts/keel-doctor --check` first — it verifies both, plus that the
-  Docker daemon actually responds (not just that the CLI is installed).
+- Parallels Desktop Pro or Business (`prlctl` must answer) and the VM
+  `keel-development`. Keel never installs Parallels.
+- Node.js and npm (for Playwright), and Composer on the host (for `vendor/`).
+- Run `scripts/keel-doctor --check` first. Its rows: Parallels (`prlctl`),
+  the `keel-development` VM, the playground sites (`wrgl`, `wrgl-ceiling`:
+  HTTP 200, plugin mounted, premium plugin absent), npx, PHPUnit in `vendor/`,
+  `@playwright/test`, `axe-core`, Playwright Chromium, and the optional ones.
 
 ## Start it
 
 ```
-npx wp-env start
-scripts/playground-setup
+composer install          # on the host, once and after composer.lock changes
+scripts/keel-site start   # starts the VM if it is not running, re-runs keel-mounts, prints the URL
+scripts/keel-site doctor  # both sites: HTTP code, mount, premium plugin, WordPress/WooCommerce versions
 ```
 
-`scripts/playground-setup` is needed once per fresh instance (after the
-first start, `npx wp-env clean all` or `npx wp-env destroy`) and is safe to
-re-run: it activates this plugin in both environments (wp-env does not do it
-reliably, L-002), installs PHPUnit into `vendor/`, and applies everything
-under "One-time environment setup" below.
-
-First run downloads the pinned WordPress core (7.0) and WooCommerce (7.4.0,
-the plugin's declared `WC requires at least` version) into local Docker
-volumes. Subsequent starts are fast — everything is
-cached in Docker volumes.
-
-WordPress 7.0 and WooCommerce 7.4.0 are pinned deliberately: they are what
-`woocommerce-redsys.php`'s header and `readme.txt` actually declare support
-for (`Tested up to: 7.0`, `WC requires at least: 7.4`). Testing against a
-newer "latest" would not prove anything about the versions the plugin
-promises to work on. PHP is pinned to 7.4 in `.wp-env.json` — one step above
-the plugin's stated `Requires PHP: 7.0` floor — because WooCommerce 7.4 itself
-requires PHP >= 7.4; PHP 7.0 is declared plugin-side but is not realistically
-testable against a current WooCommerce.
-
-`.wp-env.json` also switches WordPress's automatic updater off. Without it
-the development site updated itself from 7.0 to 7.1.2 within minutes of
-starting, so the "pinned" environment was not the one being tested (L-008).
-
-## The ceiling instance (the other end of the support matrix)
-
-`.wp-env.ceiling.json` is a second, independent instance: WordPress 7.1.3
-(the newest 7.1.x, the plugin's `Tested up to`), WooCommerce 11.2.1 (the
-newest 11.2.x, its `WC tested up to`) and PHP 8.4, on ports 8890 and 8891
-(moved from 7.0.7 / 10.9.4 / 8.3 in S-083, D-092).
-It runs beside the pinned one; neither replaces the other. A fresh
-WooCommerce 11.2 store uses the High-Performance Order Storage on the
-development site, and the tests site (PHPUnit) uses the legacy storage, so
-the two suites cover both.
-
-```
-npx wp-env start --config .wp-env.ceiling.json
-WP_ENV_CONFIG=.wp-env.ceiling.json scripts/playground-setup
-npx wp-env run --config .wp-env.ceiling.json cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && vendor/bin/phpunit"
-npx wp-env run --config .wp-env.ceiling.json tests-cli bash -c "cd wp-content/plugins/woo-redsys-gateway-light && vendor/bin/phpunit -c phpunit-integration.xml.dist"
-WP_ENV_CONFIG=.wp-env.ceiling.json PLAYGROUND_URL=http://localhost:8890 npx playwright test
-```
-
-The browser suite needs both variables: `PLAYGROUND_URL` is where the browser goes, and `WP_ENV_CONFIG` is where the specs that prepare an order through `wp-env run` prepare it (three specs since S-059 and S-060). With the first alone they create their orders in the pinned instance and fail here (seen on 2026-10-06, S-071: 18 failed).
-
-Run `scripts/playground-setup` again after the integration suite and before
-the browser suite: the integration suite leaves the tests site with no
-plugin active. `scripts/keel-affected-tests` and the pre-push hook drive the
-pinned instance only; the ceiling is run by hand, at the release gate.
-
-Last run, 2026-10-06 at the tree of S-072 (D-079): unit `OK (34 tests, 71
-assertions)`, integration `OK (344 tests, 2012 assertions)`, browser `42
-passed, 5 failed` — four are the settings-form accessibility scans, on
-WooCommerce's own help-tip markup (`docs/accessibility.md`), and one is the
-Inespay case of `checkout-blocks-other-gateways.spec.js`, which fails about
-one run in four here: the country it sets through the classic checkout does
-not always reach the Blocks page.
-
-The PHP version (8.3) is the assistant's pick and was not asked. WordPress
-7.1.3 and WooCommerce 11.1.2 were current on that day and are NOT covered:
-the instance tests what the plugin declares, not what is newest.
+`scripts/keel-site stop` changes nothing on purpose: the VM is shared with
+other projects and is never suspended from here.
 
 ## What you get
 
-- **Site URL:** http://localhost:8888
-- **Admin URL:** http://localhost:8888/wp-admin
-- **Admin username:** `admin`
-- **Admin password:** `password`
-- **Test-suite site (used for automated tests, not for browsing):** http://localhost:8889
+- **Site URL:** `scripts/keel-site url` (floor: `http://10.211.55.9:8101`,
+  ceiling: `http://10.211.55.9:8102`)
+- **Admin URL:** the site URL + `/wp-admin`
+- **Admin username / password:** `admin` / `password`
 
-These are `wp-env`'s own well-known defaults — throwaway, local-only
-credentials with no relation to any real account. They only ever protect a
-disposable Docker container on your own machine; never reuse them anywhere
-real, and never point this environment at a public URL.
+These are throwaway, local-only credentials on a synthetic site with no real
+data; never reuse them anywhere real. While a tunnel is open (below) they also
+protect a public URL, which is why only test keys ever go in front of it.
 
-## Reset it
+Other commands, all non-interactive:
 
 ```
-npx wp-env clean all
+scripts/keel-site wp <args>       # WP-CLI on the site, as the site's user, with the site's PHP
+scripts/keel-site sql <query>     # MariaDB on the site's database
+scripts/keel-site list            # every site on the VM: versions, port, disk, last use
 ```
 
-Wipes the database back to a fresh install (WordPress + WooCommerce +
-this plugin active, no other content) without tearing down the containers.
-For a full teardown and rebuild:
+## Seed and reset
 
 ```
-npx wp-env destroy
-npx wp-env start
+scripts/keel-site reset                       # floor
+scripts/keel-site --site wrgl-ceiling reset   # ceiling
 ```
 
-## Stop it
+`reset` checks the premium-plugin rule, rewrites the mu-plugin loader and runs
+the seed, `scripts/playground-setup`, on that site only. The seed is
+idempotent and does everything under "One-time environment setup" below:
+activates WooCommerce and this plugin, sets pretty permalinks, creates the
+Test Product (it must be post 10), the Transaction Limit product and the
+Blocks checkout page, sets the classic checkout page, opens the store to
+guests, configures the four gateways in test mode and turns the Inespay HTTP
+stub on. It stops with an error if `vendor/bin/phpunit` is missing.
+
+## Rebuild a site from nothing
 
 ```
-npx wp-env stop
+scripts/keel-site --site <name> retire   # vhost, PHP-FPM pool, mount, databases and their user, Unix user
+scripts/keel-site --site <name> create   # rebuilds it, seeds it and warms the tests database
 ```
 
-## Reading the WordPress debug log
+`create` builds the vhost, the PHP-FPM pool running as the site's own user,
+the site database and a separate tests database, downloads the pinned
+WordPress and WooCommerce, writes the mu-plugin loader, checks the bind mount,
+installs the WordPress test library of the same version as the site's
+`wp-tests` directory, runs `reset`, and runs the integration suite once
+because the first run on an empty tests database is not representative. If the
+share is not visible in the guest it stops and says how to add it; it never
+restarts `prltoolsd` in place, which would unmount every other tenant.
 
-`.wp-env.json` sets `WP_DEBUG_LOG: true`, so PHP notices, warnings and
-fatals land in the container's `wp-content/debug.log`. Read it with:
+## Running the tests
+
+Unit and integration suites run on the VM as the site's Unix user, with the
+site's PHP, `--do-not-cache-result` (the source is read-only there), and
+`WP_TESTS_DIR` set to the site's own `wp-tests` directory, on the tests
+database. The browser suite runs on the host, headless, against
+`scripts/keel-site url` (`playwright.config.js` computes `baseURL`;
+`PLAYGROUND_URL` overrides it).
+
+Floor:
 
 ```
-npx wp-env run cli tail -n 100 wp-content/debug.log
+scripts/keel-site test unit
+scripts/keel-site test integration
+scripts/keel-site test integration tests/Integration/RefundAsBuiltTest.php   # one or more files
+npx playwright test
 ```
 
-A flow that "looks fine" while the debug log gained a notice or a fatal has
-not actually passed — always check this after driving a flow, not only when
-something visibly breaks.
+Ceiling — the same commands with the site selected; `KEEL_SITE` reaches
+`playwright.config.js` and the specs that prepare data through WP-CLI
+(`scripts/keel-site --site $KEEL_SITE wp ...`, which replaced `WP_ENV_CONFIG`):
+
+```
+KEEL_SITE=wrgl-ceiling scripts/keel-site test unit
+KEEL_SITE=wrgl-ceiling scripts/keel-site test integration
+KEEL_SITE=wrgl-ceiling npx playwright test
+```
+
+`scripts/keel-affected-tests --run` (the pre-push hook) and
+`scripts/keel-affected-tests --full --run` (the release gate) run unit and
+integration through `scripts/keel-site test`, and the browser suite with
+Playwright on the host, against the floor unless `KEEL_SITE` says otherwise.
+Before running, they check `prlctl` and `scripts/keel-site doctor` and exit
+non-zero naming the fix. The ceiling is run by hand at the release gate.
+
+## Reading the logs
+
+Both sites set `WP_DEBUG` and `WP_DEBUG_LOG` (with `WP_DEBUG_DISPLAY` off).
+Each site has two logs on the VM:
+
+- WordPress: `/srv/keel/sites/<site>/public/wp-content/debug.log`
+- PHP (the site's PHP-FPM pool): `/srv/keel/sites/<site>/php-error.log`
+
+```
+prlctl exec keel-development tail -n 100 /srv/keel/sites/wrgl/public/wp-content/debug.log
+prlctl exec keel-development tail -n 100 /srv/keel/sites/wrgl/php-error.log
+```
+
+(Replace `wrgl` with `wrgl-ceiling` for the ceiling.) A flow that "looks fine"
+while the debug log gained a notice or a fatal has not actually passed —
+always check this after driving a flow, not only when something visibly
+breaks.
+
+PHP lint at the floor's PHP: `prlctl exec keel-development php7.4 -l
+/srv/keel/sites/wrgl/public/wp-content/plugins/woo-redsys-gateway-light/<file>`,
+or `php -l <file>` on the host for the host's PHP.
 
 ## Try it yourself — step by step
 
 Everything below except the marked `⚠ unverified — CREDENTIAL` step can be
-walked with zero external accounts: it is all local, disposable, and
-resettable with `npx wp-env clean all`.
+walked with zero external accounts: it is all local, synthetic, and
+resettable with `scripts/keel-site reset`.
 
-1. **Start the environment:** `npx wp-env start`, then open
-   http://localhost:8888/wp-admin and log in with `admin` / `password`.
+1. **Start the environment:** `scripts/keel-site start`, then open the URL it
+   prints + `/wp-admin` and log in with `admin` / `password`.
 2. **Confirm WooCommerce and the plugin are active:** Plugins → Installed
    Plugins should show "WooCommerce" and "Payment Gateway for Redsys &
-   WooCommerce Lite" both active (this project's `.wp-env.json` activates
-   both automatically on first start — if either shows inactive, activate it
-   manually here).
+   WooCommerce Lite" both active (the seed activates both — if either shows
+   inactive, run `scripts/keel-site reset`). "WooCommerce Redsys Gateway"
+   (the premium plugin) must **not** be listed at all.
 3. **Add a product:** Products → Add New, give it a name and a price
    (e.g. "Test product", €10.00), Publish it.
 4. **Open the gateway settings:** WooCommerce → Settings → Payments. The
@@ -161,9 +231,7 @@ resettable with `npx wp-env clean all`.
    confirms the settings screens render without a PHP fatal.
 5. **Confirm the gateway appears at checkout:** add the test product to the
    cart, go to Checkout, and confirm at least one Redsys payment method is
-   listed among the payment options (it will show as configured-but-unusable
-   until a merchant code/secret key is entered — that is expected without
-   real credentials).
+   listed among the payment options.
 6. **Verify the fail-closed notification behaviour (no credentials
    needed):** this is the highest-value thing to verify locally, and it does
    not need a real Redsys account. Per `docs/threat-model.md`, the plugin's
@@ -175,7 +243,7 @@ resettable with `npx wp-env clean all`.
      `Processing`/`Pending payment` status.
    - Send a fabricated, unsigned POST to the notification endpoint, e.g.:
      ```
-     curl -i -X POST "http://localhost:8888/?wc-api=WC_Gateway_redsys" \
+     curl -i -X POST "$(scripts/keel-site url)/?wc-api=WC_Gateway_redsys" \
        --data "Ds_Order=000000001&Ds_Response=0000&Ds_Signature=not-a-real-signature&Ds_SignatureVersion=HMAC_SHA256_V1&Ds_MerchantParameters=bm90LXJlYWwtcGFyYW1z"
      ```
    - Reload the order in WooCommerce admin (Orders → that order) and confirm
@@ -205,31 +273,30 @@ generated Redsys payment form — using Playwright/Chromium. It never lets a
 real request reach `*.redsys.es` (every such request is intercepted and
 aborted), so it proves the plugin's own checkout → signed-form chain works
 without depending on Redsys's live infrastructure or needing a real
-merchant contract. **Real run, 2026-08-01: 1 passed.** Mutation-tested for
+merchant contract. **Real run, 2026-08-01 (wp-env): 1 passed.** Mutation-tested for
 real: temporarily corrupted the merchant code sent in the form (`DS_MERCHANT_MERCHANTCODE`),
 confirmed the test failed on the expected assertion, reverted, confirmed it
 passed again.
 
 ### One-time environment setup (done by `scripts/playground-setup`)
 
-The commands below are what the script runs; they are kept here as the
-explanation of each step, not as something to type.
+The commands below are what the seed runs (through `scripts/keel-site wp`, on
+the site `KEEL_SITE` names); they are kept here as the explanation of each
+step, not as something to type. `scripts/keel-site reset` runs the seed.
 
-This project's `wp-env` starts with plain (`?p=123`) permalinks and no
-payment gateway configured, neither of which the classic WooCommerce
-checkout page needs to render correctly for a human clicking through the
-admin — but the e2e test visits pretty URLs (`/checkout/`) and needs a
-gateway to select. Run once after `npx wp-env start` (or after
-`npx wp-env clean all`):
+A fresh site starts with plain (`?p=123`) permalinks and no payment gateway
+configured, neither of which the classic WooCommerce checkout page needs to
+render correctly for a human clicking through the admin — but the e2e test
+visits pretty URLs (`/checkout/`) and needs a gateway to select:
 
 ```
-npx wp-env run cli wp rewrite structure '/%postname%/'
-npx wp-env run cli wp rewrite flush --hard
-npx wp-env run cli wp option update woocommerce_redsys_settings --format=json \
+scripts/keel-site wp rewrite structure '/%postname%/'
+scripts/keel-site wp rewrite flush --hard
+scripts/keel-site wp option update woocommerce_redsys_settings --format=json \
   '{"enabled":"yes","title":"Redsys","description":"Pay with card via Redsys","customer":"999008881","commercename":"Test Shop","payoptions":"T","terminal":"1","not_use_https":"no","lwvactive":"no","orderdo":"processing","secretsha256":"sq7HjrUOBfKmC576ILgskD5srU870gJ7","customtestsha256":"","redsyslanguage":"002","testmode":"yes","debug":"no"}'
-npx wp-env run cli wp option update woocommerce_bizumredsys_settings --format=json \
+scripts/keel-site wp option update woocommerce_bizumredsys_settings --format=json \
   '{"enabled":"yes","title":"Bizum","description":"Pay via Bizum you can pay with your Bizum account.","customer":"999008881","commercename":"Test Shop","terminal":"1","orderdo":"processing","not_use_https":"no","secretsha256":"sq7HjrUOBfKmC576ILgskD5srU870gJ7","customtestsha256":"","redsyslanguage":"002","testmode":"yes","debug":"no"}'
-npx wp-env run cli wp option update woocommerce_googlepayredirecredsys_settings --format=json \
+scripts/keel-site wp option update woocommerce_googlepayredirecredsys_settings --format=json \
   '{"enabled":"yes","title":"Google Pay","description":"Pay via GPay you can pay with your Google account.","customer":"999008881","commercename":"Test Shop","terminal":"1","not_use_https":"no","secretsha256":"sq7HjrUOBfKmC576ILgskD5srU870gJ7","customtestsha256":"","redsyslanguage":"002","testmode":"yes","testshowgateway":[""],"debug":"no"}'
 ```
 
@@ -253,24 +320,29 @@ customers), not a bug. `[""]` is the value that satisfies the class's own
 "show to everyone" branch; see D-027 (`docs/decisions.md`) for the full
 trace of why this was needed.
 
-All three gateways are enabled simultaneously in this playground, so none of
+All gateways are enabled simultaneously in this playground, so none of
 them is WooCommerce's auto-selected/hidden "only one gateway" case — every
 e2e spec explicitly selects its own gateway's radio button.
 
-The checkout specs add post ID 10 ("Test Product") to the cart. On a fresh
-install IDs 1 to 9 are taken by the defaults, so the script creates that
-product first and stops with an error if it did not get ID 10 — which
-happens when something else was created before it; reset with
-`npx wp-env clean all` and run the script again.
+The checkout specs add post ID 10 ("Test Product") to the cart. `create`
+removes the navigation post WordPress 7 adds on install, so on a fresh site
+IDs 1 to 9 are the defaults and the seed creates that product first; it stops
+with an error if the product did not get ID 10 — which happens when something
+else was created before it. Rebuild the site then (`retire`, then `create`).
+
+The seed also replaces the checkout page's content with the classic
+`[woocommerce_checkout]` shortcode and sets `woocommerce_coming_soon` to `no`:
+a current WooCommerce (the ceiling) creates the checkout page with the
+Checkout block and starts the store in "coming soon" mode. Neither changes
+anything on WooCommerce 7.4.
 
 #### WooCommerce Blocks checkout page (for `checkout-blocks-redsys.spec.js`)
 
-The default Checkout page uses the classic `[woocommerce_checkout]`
-shortcode. A second page using the WooCommerce Blocks `Checkout` block is
-needed for the Blocks-checkout e2e test:
+A second page using the WooCommerce Blocks `Checkout` block is needed for the
+Blocks-checkout e2e test; the seed creates it (or rewrites its content):
 
 ```
-npx wp-env run cli wp post create --post_type=page \
+scripts/keel-site wp post create --post_type=page \
   --post_title="Checkout Blocks" --post_name="checkout-blocks" \
   --post_status=publish \
   --post_content='<!-- wp:woocommerce/checkout --><div class="wp-block-woocommerce-checkout"></div><!-- /wp:woocommerce/checkout -->'
@@ -285,16 +357,16 @@ version of this file claimed the opposite.
 
 Inespay's `process_payment()` makes a real server-side API call
 (`apiflow.inespay.com`) during checkout, which Playwright cannot intercept
-in the browser. `.wp-env-mu-plugins/inespay-http-stub.php` — mapped into
-`wp-content/mu-plugins` via `.wp-env.json`'s `mappings` key, dev/test infra
-only, never shipped in the plugin — fakes that API response, but only when
+in the browser. `.wp-env-mu-plugins/inespay-http-stub.php` — loaded by the
+site's mu-plugin loader (`keel-repo-mu-plugins.php`), dev/test infra only,
+never shipped in the plugin — fakes that API response, but only when
 explicitly turned on:
 
 ```
-npx wp-env run cli wp option update redsyslite_e2e_stub_inespay yes
-npx wp-env run cli wp option update woocommerce_inespayredsys_settings --format=json \
+scripts/keel-site wp option update redsyslite_e2e_stub_inespay yes
+scripts/keel-site wp option update woocommerce_inespayredsys_settings --format=json \
   '{"enabled":"yes","title":"Inespay Bank Transfer","description":"Pay via instant bank transfer.","api_key":"e2e-test-api-key","api_token":"e2e-test-api-token","testmode":"yes","transactionlimit":"200","debug":"no"}'
-npx wp-env run cli wp wc product create --user=1 --name="E2E Transaction Limit Product" --type=simple --regular_price=200.50 --porcelain
+scripts/keel-site wp wc product create --user=1 --name="E2E Transaction Limit Product" --type=simple --regular_price=200.50 --porcelain
 ```
 
 `api_key`/`api_token` are dummy values — the stub intercepts the request
@@ -311,58 +383,67 @@ created by the command above, added to the cart by its slug
 exist for `inespay-transaction-limit.spec.js`'s fractional-total coverage of
 `disable_inespay()` — see D-030 (`docs/decisions.md`).
 
-#### Mutation-testing gotcha: the `wordpress` container caches PHP via opcache
+#### Mutation-testing gotcha: opcache can serve the old bytecode
 
-If you mutation-test a PHP change (temporarily break something, confirm a
-test fails, revert, confirm it passes again) and the "should now be green"
-run still shows the OLD (corrupted) behavior even though the file on disk is
-confirmed reverted, **don't re-suspect the revert** — opcache in the
-persistent `wordpress` container can cache the corrupted bytecode across a
-same-second file edit. Fix: `docker restart <project>-wordpress-1` (find the
-exact name with `docker ps`), then re-run. See L-005 in
-`docs/lessons-learned.md` for the full diagnosis (this does NOT affect
-PHPUnit, which runs as a fresh short-lived CLI process every time).
+On wp-env, a reverted PHP mutation kept failing until the `wordpress`
+container was restarted: opcache had cached the corrupted bytecode across a
+same-second file edit (L-005). If a "should now be green" run still shows the
+old behaviour while the file on disk is confirmed reverted, don't re-suspect
+the revert — suspect the site's PHP-FPM opcache. On `keel-development` the
+equivalent is reloading the site's PHP-FPM service
+(`prlctl exec keel-development systemctl reload php7.4-fpm` for the floor,
+`php8.4-fpm` for the ceiling) — `⚠ unverified since D-114`: not reproduced
+on the VM yet. PHPUnit is not affected: it runs as a fresh CLI process every
+time.
 
 ### Running it
 
 ```
-npm install          # once, installs @playwright/test
+npm install                                   # once, installs @playwright/test
 npx playwright install --with-deps chromium   # once, downloads the browser
-npx wp-env start      # if not already running
-npx playwright test   # or: npm run test:e2e
+scripts/keel-site start                       # if the VM is not running
+npx playwright test                           # or: npm run test:e2e
 ```
 
 ## Inbound tunnel (Redsys/Inespay notifications reaching the playground)
 
-The playground lives on `localhost`, so Redsys and Inespay cannot send their
-server-to-server notification to it. Without a tunnel, a sandbox payment stops
-at "pending". `scripts/playground-tunnel` opens a public HTTPS URL that forwards
-to the playground for as long as the exercise lasts. The inventory of the four
-notification endpoints is in `docs/03-technical-plan.md` → "Inbound calls".
-It needs `cloudflared` (`brew install cloudflared`). `scripts/keel-doctor`
-reports it as an optional row.
+> `⚠ unverified since D-114`: the script was adapted to the VM, but no
+> tunnel has been opened since the move — the session that migrated the
+> playground was not permitted to open a public tunnel. Treat everything in
+> this section as the script's design, not as a driven result.
+
+The playground lives on the VM's private address, so Redsys and Inespay
+cannot send their server-to-server notification to it. Without a tunnel, a
+sandbox payment stops at "pending". `scripts/playground-tunnel` opens a public
+HTTPS URL that forwards to the playground for as long as the exercise lasts.
+The inventory of the four notification endpoints is in
+`docs/03-technical-plan.md` → "Inbound calls". It needs `cloudflared`
+(`brew install cloudflared`), which runs on the **host** and forwards to the
+site's VM address. `scripts/keel-doctor` reports it as an optional row.
+`KEEL_SITE` picks the site (default `wrgl`).
 
 ```
 scripts/playground-tunnel                 # open a Cloudflare quick tunnel, point WordPress at it, wait
 scripts/playground-tunnel --url <https>   # point WordPress at a tunnel you already opened
-scripts/playground-tunnel --restore       # back to http://localhost:8888 (safe to repeat)
+scripts/playground-tunnel --restore       # back to the site's own URL (scripts/keel-site url); safe to repeat
 ```
 
 **What it changes while it is open:**
 
-- `WP_HOME` and `WP_SITEURL` in the playground's `wp-config.php` are set to
-  the tunnel URL. Every gateway builds its notification URL from that address,
-  so `DS_MERCHANT_MERCHANTURL` (Redsys, Bizum, Google Pay) and Inespay's
-  `notifUrl` now carry the tunnel hostname. The script prints the four
-  endpoints.
+- `WP_HOME` and `WP_SITEURL` in the site's `wp-config.php` are set to the
+  tunnel URL (through `scripts/keel-site wp config set`). Every gateway builds
+  its notification URL from that address, so `DS_MERCHANT_MERCHANTURL`
+  (Redsys, Bizum, Google Pay) and Inespay's `notifUrl` now carry the tunnel
+  hostname. The script prints the four endpoints.
 - A playground-only must-use plugin,
-  `.wp-env-mu-plugins/keel-playground-tunnel-https.php`, tells WordPress the
-  request is HTTPS when the tunnel says so (`X-Forwarded-Proto`). It never
-  ships: `.wp-env-mu-plugins/` is `export-ignore`.
-- While the tunnel is open, the playground (including `/wp-admin`) is
-  reachable through it by anyone who has the URL, with the `admin` /
-  `password` credentials above. That is why the script refuses to start while
-  any enabled gateway is out of test mode. Only test keys go in front of it,
+  `.wp-env-mu-plugins/keel-playground-tunnel-https.php`, is written into the
+  repository (the site's mu-plugin loader picks it up) and tells WordPress
+  the request is HTTPS when the tunnel says so (`X-Forwarded-Proto`). It
+  never ships: `.wp-env-mu-plugins/` is `export-ignore`.
+- While the tunnel is open, the site (including `/wp-admin`) is reachable
+  through it by anyone who has the URL, with the `admin` / `password`
+  credentials above. That is why the script refuses to start while any
+  enabled gateway is out of test mode. Only test keys go in front of it,
   such as the public Redsys test key `scripts/playground-setup` writes. Don't
   paste the URL into commits, issues or public notes.
 - Leave the Redsys gateways' "not use https" option off. It rewrites the
@@ -372,27 +453,36 @@ scripts/playground-tunnel --restore       # back to http://localhost:8888 (safe 
 `kill -TERM <pid>` (the PID is printed). From a shell that started with
 SIGINT ignored (a background job, an assistant's tool shell), only TERM
 reaches the trap. Every exit path closes the tunnel, deletes the HTTPS
-plugin and puts `WP_HOME`/`WP_SITEURL` back on `http://localhost:8888`.
-That includes the tunnel dying on its own, the URL never appearing (it
-gives up after `PLAYGROUND_TUNNEL_TIMEOUT` seconds, default 30, and prints
+plugin and puts `WP_HOME`/`WP_SITEURL` back on the site's own URL. That
+includes the tunnel dying on its own, the URL never appearing (it gives up
+after `PLAYGROUND_TUNNEL_TIMEOUT` seconds, default 30, and prints
 cloudflared's last lines), and a failed switch. After a `kill -9`, or after
 `--url`, run `scripts/playground-tunnel --restore`. Never leave a tunnel
 open between sessions. A playground still pointing at a dead hostname
 looks like a product bug.
 
 Exit codes: 0 done, 2 could not run. It exits 2 without changing anything
-in these cases: the playground is not answering, port 8888 belongs to
-another checkout's wp-env, `cloudflared` is missing, a gateway is out of
-test mode, or `~/.cloudflared/config.yml` exists. That last file is yours
-and the script never edits it. Open your own tunnel and use `--url`.
+in these cases: `scripts/keel-site` gives no address for the site, nothing
+answers on it, WP-CLI does not answer on it, `cloudflared` is missing, a
+gateway is out of test mode, or `~/.cloudflared/config.yml` exists. That last
+file is yours and the script never edits it. Open your own tunnel and use
+`--url`.
 
 **Last real run: none yet.** The script's exit paths were exercised against
-stand-ins for `npx wp-env` and `cloudflared` (S-087). No public tunnel to the
-playground has been opened. The one provider acceptance check, a Redsys
-test-terminal payment whose notification URL is on the tunnel, is deferred to
-S-037 by the owner (D-093). Until it runs, it is unknown whether Redsys
-accepts a `trycloudflare.com` notification URL. If it does not, the next step
-is a named tunnel, not a deployment.
+stand-ins for wp-env and `cloudflared` before the move (S-087). No public
+tunnel to the playground has been opened, on wp-env or on the VM. The one
+provider acceptance check, a Redsys test-terminal payment whose notification
+URL is on the tunnel, is deferred to S-037 by the owner (D-093). Until it
+runs, it is unknown whether Redsys accepts a `trycloudflare.com` notification
+URL. If it does not, the next step is a named tunnel, not a deployment.
+
+## History
+
+- Until 2026-11-07 the playground was `@wordpress/env` (wp-env) on Docker:
+  `.wp-env.json` (floor, ports 8888/8889) and `.wp-env.ceiling.json`
+  (ceiling, ports 8890/8891). Last verified there on 2026-10-06, rebuilt from
+  nothing on `@wordpress/env` 11.16.0 (D-051, L-008). D-114 replaced it with
+  the two sites above.
 
 ## What this playground does NOT verify
 
@@ -400,8 +490,10 @@ is a named tunnel, not a deployment.
   live test environment (`CREDENTIAL`, step 7 above).
 - Anything requiring HTTPS-only behaviour that Redsys's real endpoints may
   enforce — this local environment is plain HTTP (the inbound tunnel above
-  serves it over HTTPS, but no Redsys run through it has happened yet:
-  S-037, D-093).
-- Email deliverability of WooCommerce order emails (no SMTP is configured in
-  `.wp-env.json`; add a mail-catching plugin if that becomes relevant to a
-  future slice).
+  would serve it over HTTPS, but no tunnel has been opened yet: S-037, D-093,
+  and `⚠ unverified since D-114`).
+- Email deliverability of WooCommerce order emails (no SMTP is configured on
+  the sites; add a mail-catching plugin if that becomes relevant to a future
+  slice).
+- Anything about the premium plugin `woocommerce-gateway-redsys`: by rule it
+  is never on these sites (D-114).

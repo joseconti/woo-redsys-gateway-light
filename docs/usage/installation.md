@@ -15,7 +15,7 @@
 | Store currency | one of the currencies in `includes/data/allowed-currencies.php` for the three Redsys-protocol gateways; EUR for Inespay | code |
 | A merchant contract | Redsys credentials from your bank (card, Bizum, Google Pay) or an Inespay project (bank transfer) | external |
 
-The declared floors are what the plugin states, not what has been tested: the project's own playground runs WordPress 7.0, WooCommerce 7.4.0 and PHP 7.4 (`.wp-env.json`), and PHP 7.0 cannot be tested against a current WooCommerce (`docs/playground.md`).
+The declared floors are what the plugin states, not what has been tested: the project's floor playground site `wrgl` runs WordPress 7.0, WooCommerce 7.4.0 and PHP 7.4 (`scripts/keel-site`), and PHP 7.0 cannot be tested against a current WooCommerce (`docs/playground.md`).
 
 The notification URLs must be reachable from the internet by Redsys and Inespay. A site behind HTTP authentication, a maintenance page or a firewall that blocks them will take payments that never confirm.
 
@@ -55,8 +55,8 @@ npm run build      # the same, then the translations
 
 - `npm run build` runs `npm run build:assets` and then `npm run i18n:build`, which needs WP-CLI on the path (`package.json`).
 - The plugin loads the minified stylesheets and script. Set `SCRIPT_DEBUG` to `true` in `wp-config.php` to load the readable files instead.
-- PHP test dependencies are installed with Composer inside the playground container; the exact commands are in `docs/03-technical-plan.md` (Testing) and `docs/playground.md`.
-- To run the plugin locally, use the playground: `npx wp-env start` (`docs/playground.md`).
+- PHP test dependencies are installed with `composer install` on the host, and the playground sites read `vendor/` through the shared folder; the exact commands are in `docs/03-technical-plan.md` (Testing) and `docs/playground.md`.
+- To run the plugin locally, use the playground: `scripts/keel-site start` (`docs/playground.md`).
 
 The built file `assets/js/frontend/blocks.js` is what the Blocks checkout loads. Edit the source and rebuild; never edit the built file.
 
