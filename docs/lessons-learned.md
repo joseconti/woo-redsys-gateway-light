@@ -149,3 +149,11 @@
 - Fix: the row's throughput rewritten as 11.54, the quotient of the figures the row shows; close-out re-run.
 - Check added: none here; a Keel defect to report upstream with L-017 (one of the two scripts should use the other's rounding).
 - Rule for next time: a short session's row can fail check 24 on rounding alone — correct the derived figure to the row's own displayed values, never the measured ones.
+
+## L-019 — A reading agent audits whatever branch the shared checkout is on when it reads
+- Where: sprint 5 (2026-10-21), the security review of `work/after-7.1.0`.
+- What failed first: the `security-auditor` agent reported the pre-change code — the session had switched the checkout to `develop` for a bookkeeping commit while the agent was reading, and the agent (Read/Grep/Glob only) cannot check out a branch.
+- Cause: product work on a work branch and bookkeeping on `develop` share one checkout; a background reader has no pinned view.
+- Fix: the audit re-run on a detached, read-only worktree (`git worktree add --detach /tmp/redsys-audit-wt <commit>`) plus the diff written to a file.
+- Check added: none mechanical.
+- Rule for next time: a background reading agent gets a worktree pinned to the commit it reviews, never the live checkout, whenever the session may switch branches while it runs.

@@ -1,152 +1,111 @@
-# Keel conformance — Payment Gateway for Redsys & WooCommerce Lite
+# Keel conformance
 
-> Sweep of 2026-10-21 · Keel v7.3.2 · commit `704730a` (branch `develop`) · position: Phase 7 release gate for 7.1.0 in progress (S-032) · **totals: 137 rows — 102 present · 0 missing · 9 declined · 26 n/a** (Table 1: 84 `T1-nn` rows, 4 declined sub-rows, 15 card-line rows; Table 3: 34 rows)
->
-> Sources, and only these: the disk of this repository, `.claude/skills/keel/MANIFEST.md` (Tables 1 and 3) and `docs/decisions.md`. Conditions from the project card: Website intent no (D-005), Client budget no (D-010), User guide declined (D-013), Assistant config full for claude only, CI not accepted (D-039), MCP n/a, Security audit required (D-040), Parallel development auto; max_workers: max (D-093), Chaining start (D-015), Sprints on, adopted project, no `E2E:` line. Phases 3 and 4 n/a (pre-existing UI, no design contract).
+Swept 2026-11-06 against `MANIFEST.md` v7.5.0 (`.claude/skills/keel/MANIFEST.md`), baseline v7.3.2 → v7.5.0 (reconciliation D-112, sprint 10, S-103).
 
-## Table 1 — project inventory
+Sources used, and only these: the disk, `MANIFEST.md` (Table 1 in full, Table 3 rows v7.4.0 and v7.5.0) and `docs/decisions.md`. The previous sweep was not read.
 
-| Id | Requirement | State | Evidence / decision / excluding condition |
-|---|---|---|---|
-| T1-01 | `docs/PROGRESS.md` | present | `docs/PROGRESS.md` |
-| T1-02 | `docs/decisions.md` | present | D-001 … D-099 |
-| T1-03 | `docs/lessons-learned.md` | present | `docs/lessons-learned.md` |
-| T1-04 | `docs/sessions.md` | present | rows through 2026-10-21, v7.3.1 columns present (D-094) |
-| T1-05 | `scripts/keel-time` | present | executable (D-094) |
-| T1-06 | `scripts/keel-clock` (byte copy of `keel_clock.py`) | present | `cmp` identical to `.claude/skills/keel/scripts/keel_clock.py` (D-094) |
-| T1-07 | `docs/.keel/clock.jsonl` (gitignored) | present | on disk, untracked, listed in `.gitignore` |
-| T1-08 | Off-machine durability | present | `origin` → github.com/joseconti/woo-redsys-gateway-light; card `Durability:` |
-| T1-09 | A clean working tree at every block close | present | `git status` clean at `704730a`, work on `develop` |
-| T1-10 | `CLAUDE.md` + `AGENTS.md` portability lock | present | both stamped `KEEL:BEGIN — v7.3.2`, blocks identical (D-093) |
-| T1-11 | Gemini CLI lock mirror | n/a | Gemini CLI not in use (card: tools claude) |
-| T1-12 | Embedded skill trees (claude + agents) | present | `.claude/skills/keel/` and `.agents/skills/keel/` v7.3.2, `diff -rq` empty (D-093) |
-| T1-13 | Competitive landscape document | declined | D-035 |
-| T1-14 | `docs/01-discovery.md` incl. Environment & test drivers | present | §"Environment & test drivers (step 5a preflight)" |
-| T1-15 | `docs/estimate.md` | present | `docs/estimate.md` |
-| T1-16 | `docs/token-ledger.md` | present | rows through 2026-10-21 |
-| T1-17 | `docs/02-functional-spec.md` with AC-nn IDs | present | `docs/02-functional-spec.md` |
-| T1-18 | `docs/03-technical-plan.md` incl. Environment requirements | present | code map with markers; §"Environment requirements"; §"Inbound calls" |
-| T1-19 | `docs/threat-model.md` | present | delivery states + "Not defended" table |
-| T1-20 | `docs/flows/` | present | 6 flow files |
-| T1-21 | Client budget document | n/a | `Client budget: no` (D-010) |
-| T1-22 | Spec reference artifacts directory | n/a | the spec records no reference artifacts |
-| T1-23 | Rubrics directory | n/a | no rubric domain accepted |
-| T1-24 | Design references directory | n/a | the user holds no visual references (no design system, D-009) |
-| T1-25 | Assistant rules `.claude/rules/` | present | code-style, docs-discipline, security (D-039) |
-| T1-26 | Assistant subagents `.claude/agents/` | present | 6 agents (D-039, D-043) |
-| T1-27 | Design brief | n/a | Phase 3 n/a — pre-existing UI, no design contract |
-| T1-28 | Design handoff directory | n/a | Phase 4 n/a — pre-existing UI, no design contract |
-| T1-29 | Build spec | n/a | Phase 4 n/a — pre-existing UI, no design contract |
-| T1-30 | Design Request register | n/a | no Design Request has appeared |
-| T1-31 | `.gitignore` + `.gitattributes` | present | mandatory ignores incl. `CLAUDE.local.md`, `docs/.keel/clock.jsonl`, `.keel-update-check`, `docs/continuation-prompt.md`, `docs/.keel/parallel/`; `export-ignore` boundary (S-032) |
-| T1-32 | `docs/sprints/` | present | sprint-1, sprint-2 (`keel.sprint/1`), sprint-3 (`keel.sprint/2`, D-095) |
-| T1-33 | `docs/sprints/deferred.md` | present | `keel.deferred/1`; holds S-030, S-090 (D-099) |
-| T1-34 | `docs/.keel/plan.json` | present | `keel.plan/2` from `scripts/keel-plan` (D-094) |
-| T1-35 | `scripts/keel-parallel` (byte copy) | present | `cmp` identical to `keel_parallel.py` (D-095) |
-| T1-36 | Parallel coordinator journal directory | n/a | no parallel run yet — serial fallback, effective cap 1 (D-095); ignore line in place |
-| T1-37 | Committed worker-result reports | n/a | no parallel writing worker has run (D-095) |
-| T1-38 | `docs/05-test-points.md` with Criterion / Coverage / Red first | present | header row of `docs/05-test-points.md` |
-| T1-39 | `docs/api/INDEX.md` | present | `docs/api/INDEX.md` |
-| T1-40 | `docs/keel-conformance.md` | present | this file |
-| T1-41 | `docs/playground.md` | present | `last verified: 2026-10-06`; tunnel section (D-096) |
-| T1-42 | `scripts/keel-verify` | present | `scripts/keel-verify` |
-| T1-43 | `scripts/playground-tunnel` | present | D-096 — payment notifications are external callers |
-| T1-44 | `scripts/keel-affected-tests` | present | `scripts/keel-affected-tests` |
-| T1-45 | `.githooks/pre-push` + `core.hooksPath` | present | `core.hooksPath` = `<repo>/.githooks` |
-| T1-46 | `scripts/keel-doctor` | present | plus `scripts/keel-tools/claude.doctor.sh` |
-| T1-47 | Build/minify script (name per the technical plan) | present | `bin/build-assets.js` + `npm run build:assets`, as named in `docs/03-technical-plan.md` (D-054) |
-| T1-48 | `scripts/keel-handoff-verify` | present | plus its allow-list entry in `.claude/settings.json` |
-| T1-49 | Single-lane lock (`Chaining: start`) | present | implemented in `scripts/keel-handoff-verify` ("Single-lane lock", `--release`) |
-| T1-50 | Tool registry row `scripts/keel-tools/claude.sh` | present | `scripts/keel-tools/claude.sh` |
-| T1-51 | `scripts/keel-continue` | present | plus allow-list entry |
-| T1-52 | `scripts/keel-close` | present | plus allow-list entry |
-| T1-53 | `.githooks/post-commit` + `core.hooksPath` | present | deletes only the hand-off; observed on a real commit (D-048) |
-| T1-54 | `scripts/keel-stop-hook` + Stop registration | present | `.claude/settings.json` `hooks.Stop`; real blocks observed (D-048), and on 2026-10-21 ~14:43 a fresh session's turn was blocked on an unpushed commit (S-037) |
-| T1-55 | `scripts/keel-session-pid.sh` | present | sourced |
-| T1-55a | Tunnel proven by a real provider payment through it | declined | D-099 — acknowledged for 7.1.0; S-090 in `deferred.md` (D-096) |
-| T1-56 | `scripts/keel-chain-check` | present | plus allow-list entry; `--smoke` observed (D-048) |
-| T1-57 | Chaining model card line | present | `Chaining model: opus` (D-037) |
-| T1-58 | Chain verified card line | present | 2026-10-06, tier start, Keel 6.5.0, checksum `b8796f66873c0ff2` matches `scripts/keel-continue` (D-093, D-097) |
-| T1-59 | `.githooks/pre-commit` | present | confidential-data gate, active via `core.hooksPath` |
-| T1-60 | Permission allow-list `.claude/settings.json` | present | D-043 |
-| T1-61 | CI workflow | declined | D-039 (card `CI runs on: n/a`) |
-| T1-62 | MCP registration | n/a | the technical plan defines no development MCP servers (D-039) |
-| T1-63 | `docs/architecture.md` | present | `docs/architecture.md` |
-| T1-64 | `docs/api/`, `docs/usage/`, `docs/reference/` | present | all three directories |
-| T1-65 | `docs/security.md` | present | `docs/security.md` |
-| T1-66 | `docs/accessibility.md` | present | automated pass recorded (S-029, S-056, D-067) |
-| T1-66a | Allow-list entry for running the Stop hook by hand | declined | D-048 (with D-043) — the harness invokes the hook |
-| T1-67 | `README.md` | present | `README.md` |
-| T1-68 | End-user guide directory | declined | D-013 (`User guide: declined for now`) |
-| T1-69 | Guide theme, brand layer and marker | n/a | no guide (D-013); card `Docs theme: n/a` |
-| T1-70 | `docs/07-release.md` | present | being completed in this gate (S-032, in progress; version approved D-099) |
-| T1-71 | `docs/security-audit.md` | present | runs of 2026-10-06; card `Security audit: required` (D-040) |
-| T1-72 | `docs/security-audit/` listed in `.gitignore` | present | `.gitignore` line `docs/security-audit/` |
-| T1-73 | Phase 8 site docs set | n/a | Website intent no (D-005) |
-| T1-74 | Site art direction | n/a | Website intent no (D-005) |
-| T1-75 | Cross-project art ledger | n/a | Website intent no (D-005) |
-| T1-76 | Site launch report | n/a | Website intent no (D-005) |
-| T1-77 | Site operations document | n/a | Website intent no (D-005) |
-| T1-78 | E2E status file | n/a | the card carries no `E2E:` line |
-| T1-78a | Guided assistive-technology pass | declined | D-099 — accepted shortfall for 7.1.0; S-030 in `deferred.md`; AC-48 `ASSISTIVE-TECH` |
-| T1-79 | E2E history file | n/a | the card carries no `E2E:` line (optional even where it exists) |
-| T1-80 | `docs/issues.md` with Last inbound sweep | present | sweep 2026-10-21 13:45 |
-| T1-81 | Archive directory | n/a | archiving has not started |
-| T1-82 | `docs/04-adoption-audit.md` | present | adopted project |
-| T1-83 | Agent teams flag in `.claude/settings.local.json` (standing check 1) | present | `env.CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS` = "1" (D-093) |
-| T1-83a | SA-06, SA-13, SA-20 observations resolved | declined | D-099 — acknowledged, deferred after the release (S-090) |
-| T1-84 | `Parallel development:` auto; max_workers: max (standing check 2) | present | card line (D-093) |
-| T1-C1 | Project-card line `Keel portability:` | present | `docs/PROGRESS.md` project card |
-| T1-C2 | Project-card line `Assistant config:` | present | `docs/PROGRESS.md` project card |
-| T1-C3 | Project-card line `Models:` | present | `docs/PROGRESS.md` project card |
-| T1-C4 | Project-card line `Keel baseline:` | present | `docs/PROGRESS.md` project card |
-| T1-C5 | Project-card line `Client budget:` | present | `docs/PROGRESS.md` project card |
-| T1-C6 | Project-card line `User guide:` | present | `docs/PROGRESS.md` project card |
-| T1-C7 | Project-card line `Docs theme:` | present | `docs/PROGRESS.md` project card |
-| T1-C8 | Project-card line `Chaining:` | present | `docs/PROGRESS.md` project card |
-| T1-C9 | Project-card line `Issue sweep interval:` | present | `docs/PROGRESS.md` project card |
-| T1-C10 | Project-card line `Test-first policy:` | present | `docs/PROGRESS.md` project card |
-| T1-C11 | Project-card line `Sprints:` | present | `docs/PROGRESS.md` project card |
-| T1-C12 | Project-card line `Push test scope:` | present | `docs/PROGRESS.md` project card |
-| T1-C13 | Project-card line `Security audit:` | present | `docs/PROGRESS.md` project card |
-| T1-C14 | Project-card line `Parallel development:` | present | `docs/PROGRESS.md` project card |
-| T1-C15 | Project-card line `Durability:` | present | `docs/PROGRESS.md` project card |
+Position at the sweep: Phase 5 scaffold complete, Phase 6 in progress, Phase 7 release 7.1.0 candidate on `develop` waiting on the owner. Phases 3/4 n/a (no design contract), Phase 8 n/a (D-005). Card: `Sprints: on`, `Chaining: start`, `Parallel development: auto; max_workers: max`, `Security audit: required`, `Client budget: no`, `User guide:` declined (D-013), `Assistant config:` full for Claude only (D-039, D-043).
 
-## Table 3 — per-version actions v6.6.0 … v7.3.2 (baseline was v6.5.0; reconciled 2026-10-21, D-093 … D-097)
+## Table 1 — what the project must contain
 
-| Id | Action | State | Evidence / decision / excluding condition |
-|---|---|---|---|
-| T3-v6.6.0-1 | Migrate legacy hours to `original_hours` | present | D-094 |
-| T3-v6.6.0-2 | Map ownership and estimate `residual_hours` | present | D-094 (plan `reconciled`) |
-| T3-v6.6.0-3 | Regenerate keel-time, plan generator, keel-verify | present | D-094 |
-| T3-v6.6.0-4 | Reconcile parent/child decompositions | present | D-094 (none existed) |
-| T3-v6.6.0-5 | Restamp the lock | present | D-093 (v7.3.2) |
-| T3-v7.0.0-1 | Add the Parallel development card line | present | D-093 |
-| T3-v7.0.0-2 | Active sprint to `keel.sprint/2` | present | D-095 |
-| T3-v7.0.0-3 | Copy keel-parallel, gitignore the journal | present | D-095 |
-| T3-v7.0.0-4 | Probe the writing backend, record serial fallback | present | D-095 (effective cap 1) |
-| T3-v7.0.0-5 | Worker-aware locks and hooks | present | D-095 |
-| T3-v7.0.0-6 | Integrate only after validation and review | n/a | no worker has been integrated — serial fallback (D-095) |
-| T3-v7.0.0-7 | Keep elapsed, worker effort and coordinator time separate | present | D-094, D-095 |
-| T3-v7.0.0-8 | Restamp the lock | present | D-093 |
-| T3-v7.1.0-1 | Static-analysis evidence classified PASS / FINDINGS / BLOCKED | n/a | forward evidence rule; no static-analysis run recorded since the reconciliation (D-097); applies at this gate's runs (S-032) |
-| T3-v7.1.0-2 | Restamp the lock | present | D-093 |
-| T3-v7.2.0-1 | Inventory inbound calls | present | `docs/03-technical-plan.md` §"Inbound calls" (D-096) |
-| T3-v7.2.0-2 | Generate playground-tunnel, doctor row, playground section | present | D-096 |
-| T3-v7.2.0-3 | Provider acceptance of the tunnel URL tested by hand once | declined | D-099 — deferred after the release (S-090; D-093, D-096) |
-| T3-v7.2.0-4 | Re-examine reachability-only delegations through the tunnel | declined | D-099 — tunnel leg deferred (S-090; D-096) |
-| T3-v7.2.0-5 | Every slice's new behaviour driven live in the playground | n/a | forward rule; no shipped-behaviour slice since the update (S-089 dev-dependencies only, D-098) |
-| T3-v7.3.0-1 | Run the reconciliation | present | D-093, D-097 |
-| T3-v7.3.0-2 | Standing check 1 — agent teams flag | present | D-093 |
-| T3-v7.3.0-3 | Standing check 2 — max_workers: max | present | D-093 |
-| T3-v7.3.0-4 | Effective cap resolved at kickoff | present | D-095 (sprint 3: cap 1, no verified backend) |
-| T3-v7.3.0-5 | Restamp the lock | present | D-093 |
-| T3-v7.3.1-1 | Copy keel-clock | present | D-094 |
-| T3-v7.3.1-2 | Regenerate keel-time | present | D-094 |
-| T3-v7.3.1-3 | New sessions.md columns | present | D-094 |
-| T3-v7.3.1-4 | keel-verify accepts overlapping intervals | present | D-094 |
-| T3-v7.3.2-1 | Copy keel-parallel with verify-batch | present | D-095 |
-| T3-v7.3.2-2 | Worker test_commands only cheap static checks | n/a | no worker dispatched — serial fallback (D-095) |
-| T3-v7.3.2-3 | Integration checks cheap; full suite once per batch | n/a | no worker dispatched — serial fallback (D-095) |
-| T3-v7.3.2-4 | Worker-role branch of stop hook / controls | present | D-095 |
-| T3-v7.3.2-5 | Refresh the lock stamp | present | D-093 |
+| ID | Requirement | Required from | State | Where / condition |
+|---|---|---|---|---|
+| T1-01 | `docs/PROGRESS.md` | Phase 1 step 0a | present | `docs/PROGRESS.md` with project card, phase status, position |
+| T1-02 | `docs/decisions.md` | Phase 1 step 0a | present | `docs/decisions.md` (D-001 … D-112) |
+| T1-03 | `docs/lessons-learned.md` | Phase 1 step 0a | present | `docs/lessons-learned.md` |
+| T1-04 | `docs/sessions.md` | Phase 1 step 0a | present | `docs/sessions.md` (`Sprints: on`) |
+| T1-05 | `scripts/keel-time` | Phase 1 step 0a / v6.0.0 reconciliation | present | `scripts/keel-time` |
+| T1-06 | `scripts/keel-clock` | With keel-time | present | `scripts/keel-clock` |
+| T1-07 | `docs/.keel/clock.jsonl` (gitignored) | First keel-time start | present | `docs/.keel/clock.jsonl` on disk, ignored by `.gitignore` line 56 |
+| T1-08 | Off-machine durability (Git remote) | Phase 1 step 0a | present | `origin` → github.com/joseconti/woo-redsys-gateway-light; card line `Durability:` |
+| T1-09 | Clean working tree at every block close, work on `develop` | Phase 1 step 0a | present | branch `develop` exists and is published; last block close (5417086) committed; this reconciliation's changes are committed at its own close |
+| T1-10 | `CLAUDE.md` + `AGENTS.md` lock | Phase 1 step 0a | present | `CLAUDE.md` and `AGENTS.md` line 1, `KEEL:BEGIN — v7.5.0`, cleanup contract included |
+| T1-11 | Gemini CLI lock mirror (GEMINI.md or context.fileName) | Phase 1 step 0a | n/a | the user does not work with Gemini CLI — single assistant, Claude Code only (D-008) |
+| T1-12 | `.claude/skills/keel/` + `.agents/skills/keel/` | Phase 1 step 0a | present | both trees at v7.5.0, identical; card line `Keel portability:` |
+| T1-13 | docs/00-competitive-landscape.md | Phase 1 step 0 | declined | competitive scan declined explicitly by the user (D-035) |
+| T1-14 | `docs/01-discovery.md` | Phase 1 | present | `docs/01-discovery.md` (adopted as-built) |
+| T1-15 | `docs/estimate.md` | Phase 1 close | present | `docs/estimate.md` |
+| T1-16 | `docs/token-ledger.md` | Phase 1 close | present | `docs/token-ledger.md` |
+| T1-17 | `docs/02-functional-spec.md` | Phase 2 | present | `docs/02-functional-spec.md` |
+| T1-18 | `docs/03-technical-plan.md` | Phase 2 | present | `docs/03-technical-plan.md` |
+| T1-19 | `docs/threat-model.md` | Phase 2 | present | `docs/threat-model.md` |
+| T1-20 | `docs/flows/` | Phase 2 | present | `docs/flows/` |
+| T1-21 | docs/budget.md | Phase 2 close | n/a | `Client budget: no` (D-010) |
+| T1-22 | docs/spec-references/ | Phase 2 | n/a | the spec records no `## Reference artifacts` section |
+| T1-23 | docs/rubrics/ | Phase 2 | n/a | no rubric domain was accepted (none recorded in the spec or decisions) |
+| T1-24 | docs/design/references/ | Phase 2 | n/a | no design references held — pre-existing UI, no design contract (Phases 3/4 n/a, D-009) |
+| T1-25 | Assistant rules, one container per accepted tool | Phase 2 close | present | `.claude/rules/` (code-style, docs-discipline, security); only Claude accepted (D-039) |
+| T1-26 | Assistant subagents, per capable tool | Phase 2 close | present | `.claude/agents/` (6 agents) (D-039, D-043) |
+| T1-27 | docs/design/DESIGN-BRIEF.md | Phase 3 | n/a | Phase 3 n/a — pre-existing UI, no design contract (D-009) |
+| T1-28 | docs/design/design-handoff/ | Phase 4 start | n/a | Phase 4 n/a — no design contract (D-009) |
+| T1-29 | docs/BUILD-SPEC.md | Phase 4 | n/a | Phase 4 n/a — no design contract (D-009) |
+| T1-30 | docs/design/design-requests/ | Phase 4 | n/a | no Design Request has ever appeared (Phases 3/4 n/a) |
+| T1-31 | `.gitignore` + `.gitattributes` | Phase 5 scaffold | present | both at the repo root |
+| T1-32 | `docs/sprints/` | Phase 5 §0 | present | `docs/sprints/` sprint-1 … sprint-10 (`Sprints: on`) |
+| T1-33 | `docs/sprints/deferred.md` | With the first sprint file | present | `docs/sprints/deferred.md` |
+| T1-34 | `docs/.keel/plan.json` | With the first sprint file | present | `docs/.keel/plan.json` |
+| T1-35 | `scripts/keel-parallel` | Phase 5 scaffold / reconciliation | present | `scripts/keel-parallel` = v7.5.0 `keel_parallel.py` (`Parallel development: auto`, Python 3 available) |
+| T1-36 | docs/.keel/parallel/ | First parallel run | n/a | `Parallel development: auto`, but no parallel run has happened yet (none recorded) |
+| T1-37 | docs/.keel/slices/run/slice/attempt.json | First writing-worker result | n/a | no parallel writing worker has ever run |
+| T1-38 | `docs/05-test-points.md` | Phase 5 | present | `docs/05-test-points.md` |
+| T1-39 | `docs/api/INDEX.md` | Phase 5 first slice | present | `docs/api/INDEX.md` |
+| T1-40 | `docs/keel-conformance.md` | Phase 1 step 0a / every reconciliation | present | this file, rewritten by this sweep |
+| T1-41 | `docs/playground.md` | Phase 5 scaffold | present | `docs/playground.md` (project can be run: wp-env) |
+| T1-42 | `scripts/keel-verify` | Phase 5 scaffold | present | `scripts/keel-verify` |
+| T1-43 | `scripts/playground-tunnel` | Phase 5 scaffold | present | `scripts/playground-tunnel` — Redsys/Inespay notifications call the plugin from outside |
+| T1-44 | scripts/keel-site | Phase 5 scaffold | n/a | card `Playground host:` is `docker`, not `parallels-shared` (migration awaiting owner, D-112) |
+| T1-45 | `scripts/keel-affected-tests` | Phase 5 scaffold | present | `scripts/keel-affected-tests` (PHPUnit + Playwright suite) |
+| T1-46 | `.githooks/pre-push` + core.hooksPath | Phase 5 scaffold | present | `.githooks/pre-push`; `core.hooksPath` set to the repository's `.githooks` |
+| T1-47 | `scripts/keel-doctor` | Phase 5 scaffold | present | `scripts/keel-doctor` |
+| T1-48 | Build/minify script (name per technical plan) | Phase 5 scaffold | present | `bin/build-assets.js` driven by `package.json` (`build:css`, `check:css`) plus `wp-scripts build` |
+| T1-49 | `scripts/keel-handoff-verify` | Phase 5 scaffold | present | `scripts/keel-handoff-verify` |
+| T1-50 | Single-lane lock taken by keel-handoff-verify | Phase 5 scaffold | present | lane logic inside `scripts/keel-handoff-verify` (`Chaining: start`) |
+| T1-51 | `scripts/keel-tools/` row file per accepted assistant | Phase 5 scaffold | present | `scripts/keel-tools/claude.sh` + `scripts/keel-tools/claude.doctor.sh` |
+| T1-52 | `scripts/keel-continue` | Phase 5 scaffold | present | `scripts/keel-continue` |
+| T1-53 | `scripts/keel-close` | Phase 5 scaffold | present | `scripts/keel-close` |
+| T1-54 | `.githooks/post-commit` + core.hooksPath | Phase 5 scaffold | present | `.githooks/post-commit`; `core.hooksPath` set |
+| T1-55 | `scripts/keel-stop-hook` + Stop hook registration | Phase 5 scaffold | present | `scripts/keel-stop-hook`, registered under `Stop` in `.claude/settings.json` |
+| T1-56 | `scripts/keel-session-pid.sh` | Phase 5 scaffold | present | `scripts/keel-session-pid.sh` |
+| T1-57 | `scripts/keel-chain-check` | Phase 5 scaffold | present | `scripts/keel-chain-check` |
+| T1-58 | `Chaining model:` card line | Phase 1 step 0a | present | card: `Chaining model:` opus (D-037) |
+| T1-59 | `Chain verified:` card line | Phase 5 scaffold | present | card: `Chain verified:` 2026-10-06, tier start |
+| T1-60 | `.githooks/pre-commit` | Phase 5 scaffold | present | `.githooks/pre-commit` (confidential-data gate, D-039) |
+| T1-61 | Permission allow-lists per capable tool | Phase 5 scaffold | present | `.claude/settings.json` (confirmed by the user, D-043) |
+| T1-62 | CI workflow | Phase 5 scaffold | declined | forge CI not accepted (D-039, D-043) |
+| T1-63 | MCP registration per capable tool | Phase 5 scaffold | n/a | the technical plan defines no development MCP servers (card `Assistant config:`) |
+| T1-64 | `docs/architecture.md` | Phase 6 | present | `docs/architecture.md` |
+| T1-65 | `docs/api/`, `docs/usage/`, `docs/reference/` | Phase 6 | present | all three directories exist (Phase 6 in progress) |
+| T1-66 | `docs/security.md` | Phase 6 | present | `docs/security.md` |
+| T1-67 | `docs/accessibility.md` | Phase 6 | present | `docs/accessibility.md` |
+| T1-68 | `README.md` | Phase 6 | present | `README.md` at the repo root |
+| T1-69 | guide/ | Phase 6 | declined | end-user guide declined for now (D-013) |
+| T1-70 | guide/_theme/ + guide/brand/ + keel-docs-theme meta | Phase 6 | declined | no guide (D-013); card `Docs theme:` n/a |
+| T1-71 | `docs/07-release.md` | Phase 7 | present | `docs/07-release.md` (7.1.0 candidate) |
+| T1-72 | `docs/security-audit.md` | Phase 7 | present | `docs/security-audit.md` (`Security audit: required`, D-040) |
+| T1-73 | docs/security-audit/ listed in `.gitignore` | First audit run | present | `.gitignore` line 59 |
+| T1-74 | site-docs directory | Phase 8 | n/a | no website intent (D-005) |
+| T1-75 | site-docs art-direction.md | Phase 8 design handoff | n/a | no website intent (D-005) |
+| T1-76 | ~/.keel/art-ledger.md | Phase 8 art direction close | n/a | no website intent (D-005) |
+| T1-77 | site-docs launch-report.md | Phase 8 launch | n/a | no website intent (D-005) |
+| T1-78 | site-docs operations.md | Phase 8 launch | n/a | no website intent (D-005) |
+| T1-79 | docs/.keel/e2e-status.json | Phase 5 onward | n/a | the project card carries no `E2E:` line |
+| T1-80 | docs/.keel/e2e-history.jsonl | Alongside the status file | n/a | optional, and there is no `E2E:` card line |
+| T1-81 | `docs/issues.md` | First forge contact | present | `docs/issues.md` (GitHub issues accessed) |
+| T1-82 | docs/old/ | First sprint close | n/a | archiving has not started |
+| T1-83 | `docs/04-adoption-audit.md` | Adoption step 5 | present | `docs/04-adoption-audit.md` (adopted project) |
+| T1-84 | env CLAUDE_CODE_EXPERIMENTAL_AGENTS_TEAMS = 1 in .claude/settings.local.json | Session-start setup | present | machine-local settings.local.json of the main checkout, line 21 (gitignored, not in this worktree) |
+| T1-85 | `Parallel development:` auto; max_workers: max on the card | Session-start setup / reconciliation | present | card: `Parallel development:` auto; max_workers: max (D-093) |
+
+## Table 3 — per-version actions, v7.3.2 → v7.5.0
+
+| ID | Action | Version | State | Where / condition |
+|---|---|---|---|---|
+| T3-740-1 | Copy `keel_parallel.py` over `scripts/keel-parallel` (new reap-worktrees) | v7.4.0 | present | `scripts/keel-parallel` replaced with the v7.5.0 copy (superset), D-112 |
+| T3-740-2 | Add card line `Playground host:` filled from detection | v7.4.0 | present | card: `Playground host:` docker (wp-env), Parallels usable (D-112) |
+| T3-740-3 | Parallels migration row (prlctl works, playground on Docker) | v7.4.0 | missing | awaiting owner decision (D-112) — project passes the hosting test for parallels-shared; migration proposed, not yet accepted or refused |
+| T3-740-4 | Standing check 3: card line, migration row, reap-worktrees once per repository | v7.4.0 | present | card line present; migration row raised (T3-740-3); reap-worktrees ran 2026-11-06, nothing to retire (D-112) |
+| T3-740-5 | scripts/keel-site for parallels-shared; partner sites in the technical plan | v7.4.0 | n/a | `Playground host:` is docker, not parallels-shared; no partner sites |
+| T3-750-1 | Refresh the lock block (cleanup contract) | v7.5.0 | present | `CLAUDE.md` + `AGENTS.md` stamped v7.5.0 with the cleanup contract (D-112) |
+| T3-750-2 | Copy `keel_parallel.py` over `scripts/keel-parallel` (sweep, sweep-hook, sweep-install) | v7.5.0 | present | `scripts/keel-parallel` = v7.5.0 (D-112) |
+| T3-750-3 | Lease on each of this project's own Parallels/Docker machines, or propose deleting unneeded ones | v7.5.0 | n/a | the project currently owns no Docker containers or Parallels VMs |
+| T3-750-4 | Run sweep-install once per machine and register the session-start command | v7.5.0 | present | already registered on this machine: a SessionStart hook runs the Keel sweep |

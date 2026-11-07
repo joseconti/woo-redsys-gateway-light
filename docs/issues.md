@@ -2,7 +2,7 @@
 
 > Living log of forge issues (GitHub, `joseconti/woo-redsys-gateway-light`). Inventory first, one entry per issue worked.
 > Updated the moment an issue is triaged, worked, or closed.
-> Last inbound sweep: 2026-10-21 15:41 (sprint 3 close — six open issues, no new issue or comment since the 13:45 sweep. Earlier, 13:45, session close — `gh issue list --state all`: six open issues, none new since #112 on 2026-09-16; no new comment; seventeen open Dependabot PRs (#94–#116, development dependencies only), triaged 2026-10-21 by S-089 — all superseded on `develop`, see "Dependabot pull requests" below. Outside the forge, two WordPress.org support threads report D-023 on 7.0.2 — recorded in `docs/PROGRESS.md`; replies drafted, not posted, waiting for the owner)
+> Last inbound sweep: 2026-10-21 17:05 (sprint 6 close — `gh issue list`: the same six open issues, none updated since 2026-09-16; nothing new). Before it, 2026-10-21 15:41 (sprint 3 close — six open issues, no new issue or comment since the 13:45 sweep. Earlier, 13:45, session close — `gh issue list --state all`: six open issues, none new since #112 on 2026-09-16; no new comment; seventeen open Dependabot PRs (#94–#116, development dependencies only), triaged 2026-10-21 by S-089 — all superseded on `develop`, see "Dependabot pull requests" below. Outside the forge, two WordPress.org support threads report D-023 on 7.0.2 — recorded in `docs/PROGRESS.md`; replies drafted, not posted, waiting for the owner)
 
 ## Inventory
 | # | Title | Type | Priority | Status | Entry |
