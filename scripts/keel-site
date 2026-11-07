@@ -1,0 +1,320 @@
+#!/usr/bin/env python3
+"""keel-site — this project's tenants on the shared Parallels VM `keel-development` (S-104, D-114).
+
+Replaces wp-env (Keel references/parallels-development.md, "What replaces wp-env"). Two sites,
+the support matrix's two ends, each with its own vhost, PHP-FPM pool running as its own Unix user,
+database and database user, WordPress test library and tests database, and open_basedir:
+
+  wrgl          floor    PHP 7.4, WordPress 7.0,   WooCommerce 7.4.0   (port 8101) — the default
+  wrgl-ceiling  ceiling  PHP 8.4, WordPress 7.1.3, WooCommerce 11.2.1  (port 8102)
+
+The repository reaches both through the read-only Parallels share `wrgl`, bind-mounted at
+wp-content/plugins/woo-redsys-gateway-light by the VM's keel-mounts service (it survives reboots).
+The dev-only must-use plugins in .wp-env-mu-plugins/ (historical name) are loaded through a one-file loader in
+each site's mu-plugins, so they are read from the repository and never copied.
+
+THE LITE PLUGIN NEVER SHARES A SITE WITH THE PREMIUM PLUGIN (D-114): `woocommerce-gateway-redsys`
+has its own tenant (`redsys`). `create`, `reset`, `doctor` and `test` refuse a site of this project
+where the premium plugin is installed.
+
+Every command is non-interactive, says what it did and exits non-zero on failure. The site is
+chosen with --site <name>, or KEEL_SITE, defaulting to the floor site `wrgl`.
+
+  start | stop | url | wp <args> | sql <args> | create | reset | retire | list | doctor
+  test unit|integration [<test file> ...]
+"""
+import argparse
+import os
+import secrets
+import shlex
+import subprocess
+import sys
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+VM = 'keel-development'
+SHARE = 'wrgl'
+SLUG = 'woo-redsys-gateway-light'
+PREMIUM = 'woocommerce-gateway-redsys'
+MU_DIR = '.wp-env-mu-plugins'  # historical name (D-114): the records cite it
+SITES = {
+    'wrgl': {'php': '7.4', 'wp': '7.0', 'wc': '7.4.0', 'port': 8101},
+    'wrgl-ceiling': {'php': '8.4', 'wp': '7.1.3', 'wc': '11.2.1', 'port': 8102},
+}
+DEFAULT_SITE = 'wrgl'
+
+
+class Site:
+    def __init__(self, name):
+        if name not in SITES:
+            raise SystemExit(f'keel-site: unknown site {name!r}; this project has {", ".join(SITES)}.')
+        self.name = name
+        self.__dict__.update(SITES[name])
+        self.user = f'ks-{name}'
+        self.db = 'ks_' + name.replace('-', '_')
+        self.root = f'/srv/keel/sites/{name}'
+        self.public = f'{self.root}/public'
+        self.plugin = f'{self.public}/wp-content/plugins/{SLUG}'
+        self.tests_dir = f'{self.root}/wp-tests'
+
+
+def prl_exec(cmd, capture=True):
+    """prlctl exec, retrying only its own transient failure (255 + PrlJob_, measured on this VM)."""
+    res = None
+    for _ in range(5):
+        res = subprocess.run(['prlctl', 'exec', VM, 'bash -lc ' + shlex.quote(cmd)], text=True,
+                             capture_output=capture)
+        if res.returncode == 255 and 'PrlJob_' in ((res.stderr or '') + (res.stdout or '')):
+            subprocess.run(['sleep', '1'])
+            continue
+        return res
+    return res
+
+
+def vm(cmd, check=True):
+    res = prl_exec(cmd)
+    if check and res.returncode != 0:
+        sys.stderr.write(res.stdout + res.stderr)
+        raise SystemExit(f'keel-site: FAILED on the VM ({res.returncode}): {cmd[:160]}')
+    return res.stdout
+
+
+def vm_status():
+    out = subprocess.run(['prlctl', 'status', VM], text=True, capture_output=True, check=True).stdout
+    return out.strip().rsplit(' ', 1)[-1]
+
+
+def ip():
+    return vm('hostname -I').split()[0]
+
+
+def url(s):
+    return f'http://{ip()}:{s.port}'
+
+
+def wp_cmd(s, args):
+    # WP-CLI runs on the SITE's PHP, never the VM default: WooCommerce 7.4 on PHP 8.4 floods
+    # every answer with deprecation notices that are not this site's behaviour.
+    return (f'cd {s.public} && sudo -u {s.user} php{s.php} /usr/local/bin/wp --path={s.public} '
+            + ' '.join(shlex.quote(a) for a in args))
+
+
+def guard_premium(s):
+    """D-114: the Lite plugin is never active, nor even installed, beside the premium plugin."""
+    if vm(f'test -e {s.public}/wp-content/plugins/{PREMIUM} && echo yes || true').strip() == 'yes':
+        raise SystemExit(f'keel-site: {s.name} has {PREMIUM} installed. The Lite plugin never shares a site '
+                         f'with the premium plugin (D-114); the premium plugin has its own tenant `redsys`. '
+                         f'Remove it from {s.name} before anything else runs here.')
+
+
+def cmd_start(s, _):
+    if vm_status() != 'running':
+        subprocess.run(['prlctl', 'start', VM], check=True)
+    vm('/usr/local/sbin/keel-mounts')
+    print(f'keel-site: {VM} running; {s.name} at {url(s)}')
+
+
+def cmd_stop(s, _):
+    print(f'keel-site: nothing to stop for {s.name}; {VM} is shared and stays up '
+          '(suspend it with prlctl only when no project needs it).')
+
+
+def cmd_url(s, _):
+    print(url(s))
+
+
+def cmd_wp(s, ns):
+    res = prl_exec(wp_cmd(s, ns.args))
+    sys.stdout.write(res.stdout)
+    sys.stderr.write(res.stderr)
+    raise SystemExit(res.returncode)
+
+
+def cmd_sql(s, ns):
+    res = prl_exec(f'mariadb {s.db} -e ' + shlex.quote(' '.join(ns.args)))
+    sys.stdout.write(res.stdout)
+    sys.stderr.write(res.stderr)
+    raise SystemExit(res.returncode)
+
+
+def mu_loader(s):
+    """The one file in the site's mu-plugins: loads the repository's dev-only must-use plugins."""
+    loader = (f"<?php\n// keel-site (D-114): loads {MU_DIR}/*.php from the repository; dev-only, never shipped.\n"
+              f"foreach ( glob( WP_CONTENT_DIR . '/plugins/{SLUG}/{MU_DIR}/*.php' ) ?: array() as $keel_mu ) {{\n"
+              "\trequire_once $keel_mu;\n}\n")
+    vm(f'mkdir -p {s.public}/wp-content/mu-plugins && find {s.public}/wp-content/mu-plugins -maxdepth 1 -name "*.php" -delete '
+       f'&& printf %s {shlex.quote(loader)} > {s.public}/wp-content/mu-plugins/keel-repo-mu-plugins.php '
+       f'&& chown -R {s.user}: {s.public}/wp-content/mu-plugins')
+
+
+def cmd_create(s, _):
+    cmd_start(s, None)
+    if not prl_exec(f'ls -A /media/psf/{SHARE} 2>/dev/null | head -1').stdout.strip():
+        raise SystemExit(f'keel-site: /media/psf/{SHARE} is not visible in the guest. Add the read-only share '
+                         f'({REPO}) with prlctl and reboot {VM} when no other project is using it — never '
+                         'restart prltoolsd in place, it unmounts every other tenant.')
+    if vm(f'test -d {s.public}/wp-includes && echo yes || true').strip() == 'yes':
+        raise SystemExit(f'keel-site: {s.name} already exists; use reset, or retire first.')
+    pw = secrets.token_hex(12)
+    vm(f'''set -e
+id {s.user} >/dev/null 2>&1 || useradd --system --create-home --home-dir {s.root} --shell /usr/sbin/nologin {s.user}
+chmod 750 {s.root}; usermod -a -G {s.user} www-data; setfacl -m u:www-data:rx {s.root}
+mkdir -p {s.public} {s.tests_dir}; chown {s.user}: {s.public} {s.tests_dir}; chmod 755 {s.public}
+printf 'php={s.php}\\nwp={s.wp}\\nwc={s.wc}\\nport={s.port}\\nshare={SHARE}\\nslug={SLUG}\\n' > {s.root}/site.env
+printf 'path: {s.public}\\napache_modules:\\n  - mod_rewrite\\n' > {s.root}/wp-cli.yml; chown {s.user}: {s.root}/wp-cli.yml
+mariadb -e "CREATE DATABASE IF NOT EXISTS {s.db} CHARACTER SET utf8mb4; CREATE DATABASE IF NOT EXISTS {s.db}_tests CHARACTER SET utf8mb4; CREATE USER IF NOT EXISTS '{s.db}'@'localhost' IDENTIFIED BY '{pw}'; GRANT ALL ON {s.db}.* TO '{s.db}'@'localhost'; GRANT ALL ON {s.db}_tests.* TO '{s.db}'@'localhost'; FLUSH PRIVILEGES;"
+cat > /etc/php/{s.php}/fpm/pool.d/{s.name}.conf <<POOL
+[{s.name}]
+user = {s.user}
+group = {s.user}
+listen = /run/php/{s.user}.sock
+listen.owner = www-data
+listen.group = www-data
+pm = ondemand
+pm.max_children = 6
+php_admin_value[open_basedir] = {s.root}:/media/psf/{SHARE}:/tmp:/usr/share/php
+php_admin_value[error_log] = {s.root}/php-error.log
+POOL
+cat > /etc/apache2/sites-available/{s.name}.conf <<VHOST
+Listen {s.port}
+<VirtualHost *:{s.port}>
+  DocumentRoot {s.public}
+  <Directory {s.public}>
+    AllowOverride All
+    Require all granted
+  </Directory>
+  <FilesMatch \\.php$>
+    SetHandler "proxy:unix:/run/php/{s.user}.sock|fcgi://{s.name}"
+  </FilesMatch>
+  ErrorLog \\${{APACHE_LOG_DIR}}/{s.name}-error.log
+</VirtualHost>
+VHOST
+a2ensite -q {s.name}; systemctl reload php{s.php}-fpm; systemctl reload apache2
+''')
+    wp = lambda *a: vm(wp_cmd(s, list(a)))
+    wp('core', 'download', f'--version={s.wp}', '--skip-content')
+    wp('config', 'create', f'--dbname={s.db}', f'--dbuser={s.db}', f'--dbpass={pw}', '--dbhost=localhost', '--skip-check')
+    for k, v in (('WP_DEBUG', 'true'), ('WP_DEBUG_LOG', 'true'), ('WP_DEBUG_DISPLAY', 'false'), ('SCRIPT_DEBUG', 'true'),
+                 ('AUTOMATIC_UPDATER_DISABLED', 'true'), ('WP_AUTO_UPDATE_CORE', 'false')):
+        wp('config', 'set', k, v, '--raw')
+    wp('core', 'install', f'--url={url(s)}', f'--title={s.name}', '--admin_user=admin', '--admin_password=password',
+       '--admin_email=admin@example.test', '--skip-email')
+    # WordPress 7+ adds a wp_navigation post on install; the e2e specs expect the Test Product at ID 10.
+    vm(f"mariadb {s.db} -e \"DELETE FROM wp_posts WHERE post_type='wp_navigation'; ALTER TABLE wp_posts AUTO_INCREMENT=1;\"")
+    vm(f'mkdir -p {s.plugin} {s.public}/wp-content/themes {s.public}/wp-content/uploads && chown -R {s.user}: {s.public}/wp-content')
+    wp('plugin', 'install', f'https://downloads.wordpress.org/plugin/woocommerce.{s.wc}.zip')
+    mu_loader(s)
+    vm('/usr/local/sbin/keel-mounts')
+    if vm(f'mountpoint -q {s.plugin} && echo yes || true').strip() != 'yes':
+        raise SystemExit('keel-site: the plugin bind mount is missing; the site would answer 200 without the plugin.')
+    # WordPress test library of the same version, and its config on the tests database.
+    vm(f'''set -e
+cd /tmp && rm -rf wpdev-{s.name} && mkdir wpdev-{s.name} && cd wpdev-{s.name}
+svn export -q https://develop.svn.wordpress.org/tags/{s.wp}/tests/phpunit/includes includes
+svn export -q https://develop.svn.wordpress.org/tags/{s.wp}/tests/phpunit/data data
+rm -rf {s.tests_dir}/includes {s.tests_dir}/data && mv includes data {s.tests_dir}/ && cd /tmp && rm -rf wpdev-{s.name}
+cat > {s.tests_dir}/wp-tests-config.php <<CFG
+<?php
+define('ABSPATH', '{s.public}/');
+define('WP_DEFAULT_THEME', 'default');
+define('WP_TESTS_DOMAIN', 'example.org');
+define('WP_TESTS_EMAIL', 'admin@example.org');
+define('WP_TESTS_TITLE', 'Test Blog');
+define('WP_PHP_BINARY', 'php{s.php}');
+define('DB_NAME', '{s.db}_tests'); define('DB_USER', '{s.db}'); define('DB_PASSWORD', '{pw}');
+define('DB_HOST', 'localhost'); define('DB_CHARSET', 'utf8'); define('DB_COLLATE', '');
+\\$table_prefix = 'wptests_';
+CFG
+chown -R {s.user}: {s.tests_dir}
+''')
+    cmd_reset(s, None)
+    # The first integration run on an empty tests database installs WooCommerce and is not
+    # representative (measured): warm it up, and count results from the second run on.
+    run_phpunit(s, 'integration', [], quiet=True)
+    print(f'keel-site: {s.name} created at {url(s)} (admin / password); tests database warmed')
+
+
+def cmd_reset(s, _):
+    """Known state: the seed (scripts/playground-setup). Touches this site only."""
+    guard_premium(s)
+    mu_loader(s)
+    res = subprocess.run([str(REPO / 'scripts/playground-setup')], cwd=REPO, env={**os.environ, 'KEEL_SITE': s.name})
+    if res.returncode != 0:
+        raise SystemExit('keel-site: seed failed')
+    print(f'keel-site: {s.name} seeded')
+
+
+def cmd_retire(s, _):
+    vm(f'''set -e
+mountpoint -q {s.plugin} && umount {s.plugin} || true
+a2dissite -q {s.name} || true; rm -f /etc/apache2/sites-available/{s.name}.conf /etc/php/{s.php}/fpm/pool.d/{s.name}.conf
+systemctl reload apache2; systemctl reload php{s.php}-fpm
+mariadb -e "DROP DATABASE IF EXISTS {s.db}; DROP DATABASE IF EXISTS {s.db}_tests; DROP USER IF EXISTS '{s.db}'@'localhost';"
+gpasswd -d www-data {s.user} >/dev/null 2>&1 || true
+id {s.user} >/dev/null 2>&1 && userdel -r {s.user} 2>/dev/null || true
+getent group {s.user} >/dev/null && groupdel {s.user} || true
+rm -rf {s.root}
+''')
+    others = [n for n in SITES if n != s.name and vm(f'test -d /srv/keel/sites/{n} && echo y || true').strip()]
+    if not others:
+        subprocess.run(['prlctl', 'set', VM, '--shf-host-del', SHARE], check=False)
+    print(f'keel-site: {s.name} retired (vhost, pool, mount, databases and user, Unix user and group'
+          + (', share' if not others else '; share kept for ' + ', '.join(others)) + ')')
+
+
+def cmd_list(s, _):
+    print(vm('for e in /srv/keel/sites/*/site.env; do d=$(dirname $e); echo "$(basename $d): $(tr "\\n" " " < $e)'
+             'disk=$(du -sh $d | cut -f1) last-use=$(date -r $d/php-error.log +%F 2>/dev/null || echo -)"; done'), end='')
+
+
+def cmd_doctor(s, _):
+    print('vm:', vm_status(), '| disk:', vm('df -h / --output=used,size,pcent | tail -1').strip(), '(cap 120 GB)')
+    bad = 0
+    for name in SITES:
+        t = Site(name)
+        code = vm(f'curl -s -o /dev/null -w "%{{http_code}}" http://127.0.0.1:{t.port}/', check=False).strip()
+        mount = vm(f'mountpoint -q {t.plugin} && echo mounted || echo MISSING', check=False).strip()
+        premium = vm(f'test -e {t.public}/wp-content/plugins/{PREMIUM} && echo PRESENT || echo absent', check=False).strip()
+        vers = vm(wp_cmd(t, ['eval', 'echo get_bloginfo("version")." WC ".WC()->version;']), check=False).strip()
+        print(f'{name}: http {code} | plugin {mount} | premium plugin {premium} | WP {vers} | PHP {t.php} | {url(t)}')
+        bad |= code != '200' or mount != 'mounted' or premium != 'absent'
+    raise SystemExit(1 if bad else 0)
+
+
+def run_phpunit(s, suite, files, quiet=False):
+    guard_premium(s)
+    cfg = '-c phpunit-integration.xml.dist ' if suite == 'integration' else ''
+    base = (f'cd {s.plugin} && sudo -u {s.user} env WP_TESTS_DIR={s.tests_dir} '
+            f'php{s.php} vendor/bin/phpunit --do-not-cache-result {cfg}')
+    if files:
+        cmd = 'rc=0; ' + ' '.join(f'{base}{shlex.quote(f)} || rc=1;' for f in files) + ' exit $rc'
+    else:
+        cmd = base
+    if not quiet:
+        print(f'$ [{s.name}] {cmd}')
+    res = prl_exec(cmd, capture=quiet)
+    return res.returncode
+
+
+def cmd_test(s, ns):
+    if ns.suite not in ('unit', 'integration'):
+        raise SystemExit('keel-site test: unit|integration [<test file> ...]')
+    raise SystemExit(run_phpunit(s, ns.suite, ns.files))
+
+
+parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+parser.add_argument('--site', default=os.environ.get('KEEL_SITE') or DEFAULT_SITE)
+sub = parser.add_subparsers(dest='command', required=True)
+for name, fn in {'start': cmd_start, 'stop': cmd_stop, 'url': cmd_url, 'create': cmd_create, 'reset': cmd_reset,
+                 'retire': cmd_retire, 'list': cmd_list, 'doctor': cmd_doctor}.items():
+    sub.add_parser(name).set_defaults(run=fn)
+for name, fn in {'wp': cmd_wp, 'sql': cmd_sql}.items():
+    p = sub.add_parser(name)
+    p.add_argument('args', nargs=argparse.REMAINDER)
+    p.set_defaults(run=fn)
+p = sub.add_parser('test')
+p.add_argument('suite')
+p.add_argument('files', nargs='*')
+p.set_defaults(run=cmd_test)
+ns = parser.parse_args()
+ns.run(Site(ns.site), ns)

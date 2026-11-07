@@ -6,7 +6,7 @@ const { test, expect } = require( '@playwright/test' );
  * registered in the Blocks checkout with their title, description and icon.
  *
  * checkout-blocks-redsys.spec.js proves the card gateway there; this spec
- * proves the other three, in the wp-env playground (docs/playground.md),
+ * proves the other three, in the playground (scripts/keel-site) (docs/playground.md),
  * on the "Checkout Blocks" page. What each gateway is expected to show is
  * read from the data the plugin hands the Blocks checkout for it, then
  * looked for in the rendered payment options.

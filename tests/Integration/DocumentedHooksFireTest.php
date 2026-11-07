@@ -15,7 +15,7 @@
  *
  * Slice S-075 (self-audit: a documented extension point with no test).
  *
- * Runs only inside wp-env's tests-cli container — see
+ * Runs only on a playground site (scripts/keel-site test integration) — see
  * tests/bootstrap-integration.php.
  *
  * @package WooCommerce Redsys Gateway Light

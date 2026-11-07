@@ -5,7 +5,7 @@
  * there. The browser half — the three options as a customer sees them — is
  * tests/e2e/checkout-blocks-other-gateways.spec.js.
  *
- * Runs only inside wp-env's tests-cli container — see
+ * Runs only on a playground site (scripts/keel-site test integration) — see
  * tests/bootstrap-integration.php.
  *
  * @package WooCommerce Redsys Gateway Light

@@ -1,32 +1,24 @@
 #!/usr/bin/env bash
-# One-time setup of a fresh wp-env instance for the test suites
-# (docs/playground.md, "One-time environment setup"). Idempotent: safe to
-# re-run. Run after `npx wp-env start` or `npx wp-env clean all`.
+# Seed of a playground site on the shared VM keel-development (docs/playground.md,
+# "One-time environment setup"; D-114). Idempotent: safe to re-run. `scripts/keel-site
+# reset` runs it; KEEL_SITE selects the site (wrgl = floor, the default; wrgl-ceiling).
 #
 # The gateway secret below is Redsys's public generic test key (D-042).
 set -u
 
 PLUGIN="woo-redsys-gateway-light"
 TEST_KEY="sq7HjrUOBfKmC576ILgskD5srU870gJ7"
+SITE="${KEEL_SITE:-wrgl}"
 
-# WP_ENV_CONFIG selects another instance (the ceiling one, docs/playground.md).
-wpenv_run() { if [ -n "${WP_ENV_CONFIG:-}" ]; then npx wp-env run --config "$WP_ENV_CONFIG" "$@"; else npx wp-env run "$@"; fi; }
-wp() { wpenv_run cli wp "$@" 2>/dev/null; }
-step() { echo "playground-setup: $*"; }
-die() { echo "playground-setup: FAILED — $*" >&2; exit 1; }
+wp() { "$(dirname "$0")/keel-site" --site "$SITE" wp "$@" 2>/dev/null; }
+step() { echo "playground-setup [$SITE]: $*"; }
+die() { echo "playground-setup [$SITE]: FAILED — $*" >&2; exit 1; }
 
-# wp-env does not reliably activate this plugin itself (L-002).
-for env in cli tests-cli; do
-	# WooCommerce first: the plugin's `Requires Plugins` header refuses otherwise
-	# (the integration suite leaves the tests site with nothing active).
-	wpenv_run "$env" wp plugin activate woocommerce "$PLUGIN" >/dev/null 2>&1 || die "could not activate $PLUGIN in $env (is wp-env running?)"
-done
-step "plugin active in both environments"
+# WooCommerce first: the plugin's `Requires Plugins` header refuses otherwise.
+wp plugin activate woocommerce "$PLUGIN" >/dev/null || die "could not activate $PLUGIN (scripts/keel-site doctor)"
+step "plugin active"
 
-if [ ! -x vendor/bin/phpunit ]; then
-	wpenv_run cli bash -c "cd wp-content/plugins/$PLUGIN && composer install --no-interaction" >/dev/null 2>&1 || die "composer install"
-	step "PHPUnit installed in vendor/"
-fi
+[ -x vendor/bin/phpunit ] || die "PHPUnit is not in vendor/ — run composer install on the host (the VM reads vendor/ through the share)"
 
 wp rewrite structure '/%postname%/' >/dev/null || die "permalinks"
 wp rewrite flush --hard >/dev/null
@@ -38,7 +30,7 @@ if ! wp post list --post_type=product --name=test-product --format=ids | grep -q
 	wp wc product create --user=1 --name="Test Product" --type=simple --regular_price=10 --porcelain >/dev/null || die "Test Product"
 fi
 TEST_ID=$(wp post list --post_type=product --name=test-product --format=ids | tr -d '[:space:]')
-[ "$TEST_ID" = "10" ] || die "Test Product has ID '$TEST_ID', the e2e specs expect 10 — run 'npx wp-env clean all' and re-run this script"
+[ "$TEST_ID" = "10" ] || die "Test Product has ID '$TEST_ID', the e2e specs expect 10 — rebuild the site: scripts/keel-site --site $SITE retire && scripts/keel-site --site $SITE create"
 step "Test Product is post 10"
 
 if ! wp post list --post_type=product --name=e2e-transaction-limit-product --format=ids | grep -q '[0-9]'; then
@@ -77,4 +69,4 @@ wp option update woocommerce_inespayredsys_settings --format=json \
 	'{"enabled":"yes","title":"Inespay Bank Transfer","description":"Pay via instant bank transfer.","api_key":"e2e-test-api-key","api_token":"e2e-test-api-token","testmode":"yes","transactionlimit":"200","debug":"no"}' >/dev/null || die "inespay settings"
 step "four gateways configured (test mode); Inespay HTTP stub on"
 
-echo "playground-setup: done"
+echo "playground-setup [$SITE]: done"

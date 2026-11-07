@@ -9,7 +9,7 @@
  * and off, an allowed currency and one that is not — so a harness that
  * could not tell them apart would fail one side.
  *
- * Runs only inside wp-env's tests-cli container — see
+ * Runs only on a playground site (scripts/keel-site test integration) — see
  * tests/bootstrap-integration.php.
  *
  * @package WooCommerce Redsys Gateway Light

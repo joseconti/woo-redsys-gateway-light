@@ -10,7 +10,7 @@
  * fabricated POSTs (2026-08-01) — this test suite automates the same
  * cases so they run on every future change instead of only once, by hand.
  *
- * Runs only inside wp-env's tests-cli container — see
+ * Runs only on a playground site (scripts/keel-site test integration) — see
  * tests/bootstrap-integration.php.
  *
  * @package WooCommerce Redsys Gateway Light

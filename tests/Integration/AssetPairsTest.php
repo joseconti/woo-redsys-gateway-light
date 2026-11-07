@@ -3,7 +3,7 @@
  * Slice S-027: every shipped stylesheet and script exists as a readable
  * source plus a minified file, and production loads the minified one.
  *
- * Runs only inside wp-env's tests-cli container — see
+ * Runs only on a playground site (scripts/keel-site test integration) — see
  * tests/bootstrap-integration.php.
  *
  * @package WooCommerce Redsys Gateway Light
@@ -48,7 +48,7 @@ class AssetPairsTest extends WP_UnitTestCase {
 	public function test_the_suffix_is_min_unless_script_debug_is_on() {
 		// SCRIPT_DEBUG is a constant, so one run sees one branch. The suite runs as
 		// production does; the readable branch is driven in the playground, where
-		// .wp-env.json turns SCRIPT_DEBUG on (tests/e2e/checkout-blocks-redsys.spec.js).
+		// The playground sites turn SCRIPT_DEBUG on (scripts/keel-site create) (tests/e2e/checkout-blocks-redsys.spec.js).
 		$this->assertFalse( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG );
 		$this->assertSame( '.min', redsyslite_asset_suffix() );
 	}

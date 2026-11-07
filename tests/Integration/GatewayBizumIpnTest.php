@@ -14,7 +14,7 @@
  * exercises the plain case (no override, no test-mode-per-user), which is
  * what a real production notification hits.
  *
- * Runs only inside wp-env's tests-cli container — see
+ * Runs only on a playground site (scripts/keel-site test integration) — see
  * tests/bootstrap-integration.php.
  *
  * @package WooCommerce Redsys Gateway Light

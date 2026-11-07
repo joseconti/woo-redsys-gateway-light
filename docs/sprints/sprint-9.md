@@ -37,8 +37,9 @@ slices:
       serial_reason: two small slices on one work branch
   - id: S-102
     title: PHPCS findings of D-102 that have one fix and change no behaviour — the 19 hooks without a hook comment, 7 alignments, 3 doc lines in lower case, the mt_rand() fallback annotated
-    status: not-started
+    status: in-progress
     original_hours: 1
+    actual_hours: 0
     residual_hours: 1
     actual_source: measured
     change_kind: added

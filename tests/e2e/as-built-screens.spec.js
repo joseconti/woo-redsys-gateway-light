@@ -1,6 +1,7 @@
 // @ts-check
 const { test, expect } = require( '@playwright/test' );
 const { execFileSync } = require( 'child_process' );
+const KEEL_SITE_BIN = require( 'path' ).join( __dirname, '../../scripts/keel-site' );
 
 /**
  * The screens behind AC-15, AC-47, AC-49, AC-55 and AC-56 (slice S-060), in a
@@ -41,9 +42,9 @@ const SHOP_MANAGER = 'e2e-shop-manager';
  * @return {string} Its output.
  */
 function wp( ...args ) {
-	// WP_ENV_CONFIG selects the instance under test (docs/playground.md).
-	const instance = process.env.WP_ENV_CONFIG ? [ '--config', process.env.WP_ENV_CONFIG ] : [];
-	return execFileSync( 'npx', [ 'wp-env', 'run', ...instance, 'cli', 'wp', ...args ], { stdio: [ 'ignore', 'pipe', 'pipe' ] } ).toString();
+	// KEEL_SITE selects the site under test (docs/playground.md, D-114).
+	const instance = process.env.KEEL_SITE ? [ '--site', process.env.KEEL_SITE ] : [];
+	return execFileSync( KEEL_SITE_BIN, [ ...instance, 'wp', ...args ], { stdio: [ 'ignore', 'pipe', 'pipe' ] } ).toString();
 }
 
 /**

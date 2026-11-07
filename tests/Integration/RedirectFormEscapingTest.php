@@ -6,7 +6,7 @@
  * out of the script. The Google Pay page passes its form through wp_kses() like
  * its siblings. Slice S-073 (D-078).
  *
- * Runs only inside wp-env's tests-cli container — see
+ * Runs only on a playground site (scripts/keel-site test integration) — see
  * tests/bootstrap-integration.php.
  *
  * @package WooCommerce Redsys Gateway Light

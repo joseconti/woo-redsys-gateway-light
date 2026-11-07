@@ -6,6 +6,7 @@ const { test, expect } = require( '@playwright/test' );
 // S-071).
 const EMPTY_CART = /Your cart is currently empty[.!]/;
 const { execFileSync } = require( 'child_process' );
+const KEEL_SITE_BIN = require( 'path' ).join( __dirname, '../../scripts/keel-site' );
 
 /**
  * What the card, Bizum and Google Pay gateways do with a notification that
@@ -37,9 +38,9 @@ const GATEWAYS = {
  * @return {any} Parsed answer.
  */
 function fixture( ...args ) {
-	// WP_ENV_CONFIG selects the instance under test (docs/playground.md).
-	const instance = process.env.WP_ENV_CONFIG ? [ '--config', process.env.WP_ENV_CONFIG ] : [];
-	const out = execFileSync( 'npx', [ 'wp-env', 'run', ...instance, 'cli', 'wp', 'eval-file', FIXTURE, ...args ], { stdio: [ 'ignore', 'pipe', 'pipe' ] } ).toString();
+	// KEEL_SITE selects the site under test (docs/playground.md, D-114).
+	const instance = process.env.KEEL_SITE ? [ '--site', process.env.KEEL_SITE ] : [];
+	const out = execFileSync( KEEL_SITE_BIN, [ ...instance, 'wp', 'eval-file', FIXTURE, ...args ], { stdio: [ 'ignore', 'pipe', 'pipe' ] } ).toString();
 	const line = out.split( '\n' ).find( ( l ) => l.startsWith( 'E2E-JSON:' ) );
 	if ( ! line ) {
 		throw new Error( `The fixture gave no answer for: ${ args.join( ' ' ) }\n${ out }` );

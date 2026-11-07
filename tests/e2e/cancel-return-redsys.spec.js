@@ -1,9 +1,10 @@
 // @ts-check
 const { test, expect } = require( '@playwright/test' );
 const { execFileSync } = require( 'child_process' );
+const KEEL_SITE_BIN = require( 'path' ).join( __dirname, '../../scripts/keel-site' );
 
 /**
- * Forge issue 112 (slice S-038), driven end to end in the wp-env playground
+ * Forge issue 112 (slice S-038), driven end to end in the playground (scripts/keel-site)
  * (docs/playground.md): a guest starts a Redsys payment, Redsys cancels the
  * order server to server, and the customer comes back through the exact
  * DS_MERCHANT_URLKO the plugin signed.
@@ -58,10 +59,10 @@ test( 'a customer returning from a payment Redsys cancelled is told the order wa
 	expect( new URL( urlKo ).searchParams.get( 'order_id' ) ).toBe( orderId );
 
 	// What the notification handler does when Redsys reports the payment refused or abandoned.
-	// WP_ENV_CONFIG selects the instance under test (docs/playground.md);
+	// KEEL_SITE selects the site under test (docs/playground.md, D-114);
 	// without it the order would be looked up in the pinned one.
-	const instance = process.env.WP_ENV_CONFIG ? [ '--config', process.env.WP_ENV_CONFIG ] : [];
-	execFileSync( 'npx', [ 'wp-env', 'run', ...instance, 'cli', 'wp', 'eval', `wc_get_order( ${ Number( orderId ) } )->update_status( 'cancelled', 'Cancelled by Redsys' );` ], { stdio: 'pipe' } );
+	const instance = process.env.KEEL_SITE ? [ '--site', process.env.KEEL_SITE ] : [];
+	execFileSync( KEEL_SITE_BIN, [ ...instance, 'wp', 'eval', `wc_get_order( ${ Number( orderId ) } )->update_status( 'cancelled', 'Cancelled by Redsys' );` ], { stdio: 'pipe' } );
 
 	await page.goto( urlKo );
 

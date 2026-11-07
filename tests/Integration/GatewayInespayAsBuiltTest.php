@@ -7,7 +7,7 @@
  * test scaffold turns into a WPDieException, so they run in-process. The
  * Inespay API is never reached: `pre_http_request` answers in its place.
  *
- * Runs only inside wp-env's tests-cli container — see
+ * Runs only on a playground site (scripts/keel-site test integration) — see
  * tests/bootstrap-integration.php.
  *
  * @package WooCommerce Redsys Gateway Light

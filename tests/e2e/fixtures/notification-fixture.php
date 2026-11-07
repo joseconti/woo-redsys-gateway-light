@@ -2,7 +2,7 @@
 /**
  * Fixture for tests/e2e/notification-outcomes.spec.js and
  * tests/e2e/as-built-screens.spec.js, run with
- * `wp eval-file` inside the wp-env `cli` container.
+ * `wp eval-file` on the playground site (`scripts/keel-site wp`).
  *
  * The notification handlers of the card, Bizum and Google Pay gateways end
  * in a bare `exit` on several paths (amount mismatch, already paid), so

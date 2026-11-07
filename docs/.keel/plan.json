@@ -13,30 +13,31 @@
     "docs/sprints/sprint-8.md",
     "docs/sprints/sprint-9.md",
     "docs/sprints/sprint-10.md",
+    "docs/sprints/sprint-11.md",
     "docs/sprints/deferred.md"
   ],
   "current_sprint": 9,
   "reconciliation_status": "reconciled",
   "totals": {
-    "original_estimated_hours": 90.4,
+    "original_estimated_hours": 93.4,
     "completed_original_hours": 89.4,
     "actual_hours": 33.4561,
-    "remaining_hours": 1,
+    "remaining_hours": 4,
     "deviation_hours": -55.9439,
     "pace_factor": 0.188607,
-    "projected_remaining_hours": 0.1886,
+    "projected_remaining_hours": 0.7544,
     "reconciliation_status": "reconciled",
     "scope_delta": {
-      "added_scope_hours": 2.5,
+      "added_scope_hours": 5.5,
       "extracted_hours": 1.75,
       "explicit_residual_reestimate_hours": 0
     },
-    "percent_done": 98.89,
+    "percent_done": 95.72,
     "unit": "hours of AI working time plus supervision",
     "spent_unfinished_hours": 0,
-    "slices_total": 87,
+    "slices_total": 88,
     "slices_done": 85,
-    "slices_pending": 1,
+    "slices_pending": 2,
     "slices_dropped": 1,
     "slices_unreconciled": 0,
     "pace_sample": {
@@ -2307,7 +2308,7 @@
         {
           "id": "S-102",
           "title": "PHPCS findings of D-102 that have one fix and change no behaviour — the 19 hooks without a hook comment, 7 alignments, 3 doc lines in lower case, the mt_rand() fallback annotated",
-          "status": "not-started",
+          "status": "in-progress",
           "original_hours": 1,
           "residual_hours": 1,
           "change_kind": "added",
@@ -2316,7 +2317,7 @@
             "S-102"
           ],
           "estimate_changes": [],
-          "actual_hours": null,
+          "actual_hours": 0,
           "actual_source": "measured",
           "depends_on": [
             "S-101"
@@ -2401,6 +2402,70 @@
           }
         }
       ]
+    },
+    {
+      "sprint": 11,
+      "goal": "Move the playground from wp-env/Docker to the shared Parallels VM keel-development (D-114)",
+      "status": "in-progress",
+      "file": "docs/sprints/sprint-11.md",
+      "original_estimated_hours": 3,
+      "completed_original_hours": 0,
+      "actual_hours": 0,
+      "remaining_hours": 3,
+      "deviation_hours": 0,
+      "pace_factor": 0.188607,
+      "projected_remaining_hours": 0.5658,
+      "reconciliation_status": "reconciled",
+      "scope_delta": {
+        "added_scope_hours": 3,
+        "extracted_hours": 0,
+        "explicit_residual_reestimate_hours": 0
+      },
+      "percent_done": 0,
+      "unit": "hours of AI working time plus supervision",
+      "spent_unfinished_hours": 0,
+      "slices_total": 1,
+      "slices_done": 0,
+      "slices_pending": 1,
+      "slices_dropped": 0,
+      "slices_unreconciled": 0,
+      "slices": [
+        {
+          "id": "S-104",
+          "title": "Playground on parallels-shared — scripts/keel-site for the wrgl (floor) and wrgl-ceiling sites, the test runner, doctor, setup, tunnel and Playwright moved off wp-env, full suite on both sites compared with Docker, then this project's Docker resources removed; the Lite plugin never shares a site with the premium plugin",
+          "status": "in-progress",
+          "original_hours": 3,
+          "residual_hours": 3,
+          "change_kind": "added",
+          "parent_slice": null,
+          "owns": [
+            "S-104"
+          ],
+          "estimate_changes": [],
+          "actual_hours": null,
+          "actual_source": null,
+          "depends_on": [],
+          "criteria": [],
+          "execution": {
+            "write_paths": [
+              "scripts/",
+              "playwright.config.js",
+              "tests/",
+              "docs/",
+              ".gitattributes"
+            ],
+            "contracts": {
+              "reads": [],
+              "writes": []
+            },
+            "exclusive_resources": [
+              "keel-development"
+            ],
+            "parallel": "serial",
+            "serial_reason": "one shared VM, one test lane"
+          }
+        }
+      ]
     }
   ],
   "scope_reconciliations": [
@@ -2467,6 +2532,20 @@
       "explicit_residual_reestimates": 0,
       "remaining_after": 1,
       "file": "docs/sprints/sprint-10.md"
+    },
+    {
+      "id": "R11-01",
+      "date": "2026-11-07",
+      "reason": "D-114 — the owner approved the migration; S-104 added",
+      "slices": [
+        "S-104"
+      ],
+      "remaining_before": 1,
+      "completed_residual": 0,
+      "added_scope": 3,
+      "explicit_residual_reestimates": 0,
+      "remaining_after": 4,
+      "file": "docs/sprints/sprint-11.md"
     }
   ],
   "deferred": [

@@ -9,7 +9,7 @@
  * a Store API request (the Blocks checkout), and nothing checked it again
  * when the payment was actually started.
  *
- * Runs only inside wp-env's tests-cli container — see
+ * Runs only on a playground site (scripts/keel-site test integration) — see
  * tests/bootstrap-integration.php.
  *
  * @package WooCommerce Redsys Gateway Light

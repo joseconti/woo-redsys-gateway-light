@@ -53,7 +53,7 @@ Position at the sweep: Phase 5 scaffold complete, Phase 6 in progress, Phase 7 r
 | T1-41 | `docs/playground.md` | Phase 5 scaffold | present | `docs/playground.md` (project can be run: wp-env) |
 | T1-42 | `scripts/keel-verify` | Phase 5 scaffold | present | `scripts/keel-verify` |
 | T1-43 | `scripts/playground-tunnel` | Phase 5 scaffold | present | `scripts/playground-tunnel` — Redsys/Inespay notifications call the plugin from outside |
-| T1-44 | scripts/keel-site | Phase 5 scaffold | n/a | card `Playground host:` is `docker`, not `parallels-shared` (migration awaiting owner, D-112) |
+| T1-44 | scripts/keel-site | Phase 5 scaffold | present | `scripts/keel-site` — sites `wrgl` and `wrgl-ceiling` on keel-development (D-114) |
 | T1-45 | `scripts/keel-affected-tests` | Phase 5 scaffold | present | `scripts/keel-affected-tests` (PHPUnit + Playwright suite) |
 | T1-46 | `.githooks/pre-push` + core.hooksPath | Phase 5 scaffold | present | `.githooks/pre-push`; `core.hooksPath` set to the repository's `.githooks` |
 | T1-47 | `scripts/keel-doctor` | Phase 5 scaffold | present | `scripts/keel-doctor` |
@@ -101,10 +101,10 @@ Position at the sweep: Phase 5 scaffold complete, Phase 6 in progress, Phase 7 r
 | ID | Action | Version | State | Where / condition |
 |---|---|---|---|---|
 | T3-740-1 | Copy `keel_parallel.py` over `scripts/keel-parallel` (new reap-worktrees) | v7.4.0 | present | `scripts/keel-parallel` replaced with the v7.5.0 copy (superset), D-112 |
-| T3-740-2 | Add card line `Playground host:` filled from detection | v7.4.0 | present | card: `Playground host:` docker (wp-env), Parallels usable (D-112) |
-| T3-740-3 | Parallels migration row (prlctl works, playground on Docker) | v7.4.0 | missing | awaiting owner decision (D-112) — project passes the hosting test for parallels-shared; migration proposed, not yet accepted or refused |
+| T3-740-2 | Add card line `Playground host:` filled from detection | v7.4.0 | present | card: `Playground host:` parallels-shared (D-112, D-114) |
+| T3-740-3 | Parallels migration row (prlctl works, playground on Docker) | v7.4.0 | present | accepted by the owner and done 2026-11-07 (D-114, S-104); this project's Docker resources removed by name |
 | T3-740-4 | Standing check 3: card line, migration row, reap-worktrees once per repository | v7.4.0 | present | card line present; migration row raised (T3-740-3); reap-worktrees ran 2026-11-06, nothing to retire (D-112) |
-| T3-740-5 | scripts/keel-site for parallels-shared; partner sites in the technical plan | v7.4.0 | n/a | `Playground host:` is docker, not parallels-shared; no partner sites |
+| T3-740-5 | scripts/keel-site for parallels-shared; partner sites in the technical plan | v7.4.0 | present | `scripts/keel-site` (D-114); no partner sites — the plugin calls nothing else on the VM, and the premium plugin's tenant `redsys` is deliberately separate |
 | T3-750-1 | Refresh the lock block (cleanup contract) | v7.5.0 | present | `CLAUDE.md` + `AGENTS.md` stamped v7.5.0 with the cleanup contract (D-112) |
 | T3-750-2 | Copy `keel_parallel.py` over `scripts/keel-parallel` (sweep, sweep-hook, sweep-install) | v7.5.0 | present | `scripts/keel-parallel` = v7.5.0 (D-112) |
 | T3-750-3 | Lease on each of this project's own Parallels/Docker machines, or propose deleting unneeded ones | v7.5.0 | n/a | the project currently owns no Docker containers or Parallels VMs |

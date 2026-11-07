@@ -6,7 +6,7 @@
  * no longer be cancelled. Each test was written and seen failing against
  * the code as it was before its fix.
  *
- * Runs only inside wp-env's tests-cli container — see
+ * Runs only on a playground site (scripts/keel-site test integration) — see
  * tests/bootstrap-integration.php.
  *
  * @package WooCommerce Redsys Gateway Light

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# playground-tunnel — let Redsys/Inespay reach the wp-env playground
+# playground-tunnel — let Redsys/Inespay reach the playground site on keel-development
 # (Keel references/inbound-tunnel.md; docs/playground.md "Inbound tunnel";
 # inventory in docs/03-technical-plan.md "Inbound calls"). D-093.
 #
@@ -8,11 +8,11 @@
 #                                           playground, point WordPress at it,
 #                                           print the URL and the four
 #                                           notification endpoints, wait.
-#                                           Ctrl-C closes it and restores localhost.
+#                                           Ctrl-C closes it and restores the site URL.
 #   scripts/playground-tunnel --url <https> Point WordPress at a tunnel that is
 #                                           ALREADY open (opens nothing). Undo
 #                                           with --restore.
-#   scripts/playground-tunnel --restore     Point WordPress back at localhost.
+#   scripts/playground-tunnel --restore     Point WordPress back at the site URL.
 #                                           Idempotent.
 #
 # Exit codes: 0 done, 2 could not run. Nothing is installed by this script
@@ -20,16 +20,16 @@
 #
 # What "pointing" means here (the three settings of the inbound-tunnel contract):
 #   1. Public base URL: the WP_HOME and WP_SITEURL constants in wp-config.php,
-#      via `wp config set` inside the cli container. Every gateway builds its
+#      via `scripts/keel-site wp config set` on the site. Every gateway builds its
 #      notification URL from home_url(), so this is the one switch.
 #   2. Proxy scheme: a must-use plugin trusting X-Forwarded-Proto: https is
-#      written to .wp-env-mu-plugins/ (mapped to wp-content/mu-plugins) while
-#      the tunnel is up and deleted on restore. Playground-only: that directory
+#      written to .wp-env-mu-plugins/ (loaded by the site's mu-plugin loader,
+#      D-114) while the tunnel is up and deleted on restore. Playground-only: that directory
 #      is export-ignored and never ships.
 #   3. Host allow-list: WordPress has none; nothing to change.
 #
 # Exposure: while a tunnel is up, anyone with its URL reaches this playground
-# (admin/password included). Only the synthetic wp-env playground is ever
+# (admin/password included). Only the synthetic playground site is ever
 # tunnelled, and the script refuses to run while any enabled gateway is out of
 # test mode. Do not paste the URL into commits, issues or public notes.
 #
@@ -38,8 +38,9 @@
 # assistant's tool shell) cannot trap it — POSIX forbids it — so from there
 # use TERM. SIGKILL cannot be trapped by anything: run --restore after it.
 #
-# WP_ENV_CONFIG selects another instance (the ceiling one), as in
-# scripts/playground-setup. PLAYGROUND_TUNNEL_TIMEOUT bounds the URL poll
+# KEEL_SITE selects the site (wrgl = floor, the default; wrgl-ceiling), as in
+# scripts/playground-setup. cloudflared runs on the host and forwards to the
+# site's address on the VM, which the host reaches directly. PLAYGROUND_TUNNEL_TIMEOUT bounds the URL poll
 # (seconds, default 30).
 
 set -u
@@ -73,27 +74,20 @@ case "${1:-}" in
 	*) usage >&2; exit 2 ;;
 esac
 
-# --- the playground's port, read from its own configuration ---------------
-CONFIG="${WP_ENV_CONFIG:-.wp-env.json}"
-[ -f "$CONFIG" ] || fail "no $CONFIG in $(pwd) — this script drives this repository's wp-env playground"
-json_port() { [ -f "$1" ] && sed -n 's/^[[:space:]]*"port"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$1" | head -1; }
-PORT=""
-[ -z "${WP_ENV_CONFIG:-}" ] && PORT=$(json_port .wp-env.override.json)
-[ -n "$PORT" ] || PORT=$(json_port "$CONFIG")
-[ -n "$PORT" ] || PORT="${WP_ENV_PORT:-8888}" # wp-env's documented default
-LOCAL="http://localhost:$PORT"
+# --- the site under test and its own address --------------------------------
+SITE="${KEEL_SITE:-wrgl}"
+LOCAL=$(scripts/keel-site --site "$SITE" url 2>/dev/null)
+[ -n "$LOCAL" ] || fail "scripts/keel-site gave no address for $SITE — see: scripts/keel-site doctor"
 
-wpenv_run() { if [ -n "${WP_ENV_CONFIG:-}" ]; then npx wp-env run --config "$WP_ENV_CONFIG" "$@"; else npx wp-env run "$@"; fi; }
-wp() { wpenv_run cli wp "$@" 2>/dev/null; }
+wp() { scripts/keel-site --site "$SITE" wp "$@" 2>/dev/null; }
 
 # --- preflight: nothing changes until all of this holds ---------------------
 preflight_playground() {
 	command -v curl >/dev/null 2>&1 || fail "curl not found"
 	code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$LOCAL/" 2>/dev/null)
-	[ -n "$code" ] && [ "$code" != "000" ] || fail "nothing answers on $LOCAL — start the playground: npx wp-env start"
-	# The port answering is not enough: it must be THIS repository's instance.
+	[ -n "$code" ] && [ "$code" != "000" ] || fail "nothing answers on $LOCAL — start the VM: scripts/keel-site start"
 	CURRENT=$(wp option get home | tr -d '\r')
-	[ -n "$CURRENT" ] || fail "wp-env has no running instance for $(pwd) (another checkout's playground may hold port $PORT) — npx wp-env start"
+	[ -n "$CURRENT" ] || fail "WP-CLI does not answer on $SITE — see: scripts/keel-site doctor"
 }
 
 preflight_sandbox() {

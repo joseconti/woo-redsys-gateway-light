@@ -3,7 +3,7 @@ const { test, expect } = require( '@playwright/test' );
 
 /**
  * Checkout smoke test: guest checkout with the Inespay (bank transfer)
- * gateway, through WordPress + WooCommerce + this plugin in the wp-env
+ * gateway, through WordPress + WooCommerce + this plugin in the playground
  * playground (docs/playground.md).
  *
  * Unlike the other three gateways, Inespay's process_payment() makes a real
