@@ -14,29 +14,30 @@
     "docs/sprints/sprint-9.md",
     "docs/sprints/sprint-10.md",
     "docs/sprints/sprint-11.md",
+    "docs/sprints/sprint-12.md",
     "docs/sprints/deferred.md"
   ],
   "current_sprint": 9,
   "reconciliation_status": "reconciled",
   "totals": {
-    "original_estimated_hours": 93.4,
-    "completed_original_hours": 92.4,
-    "actual_hours": 33.7919,
+    "original_estimated_hours": 93.9,
+    "completed_original_hours": 92.9,
+    "actual_hours": 34.2919,
     "remaining_hours": 1,
     "deviation_hours": -58.6081,
     "pace_factor": 0.184906,
     "projected_remaining_hours": 0.1849,
     "reconciliation_status": "reconciled",
     "scope_delta": {
-      "added_scope_hours": 5.5,
+      "added_scope_hours": 6,
       "extracted_hours": 1.75,
       "explicit_residual_reestimate_hours": 0
     },
-    "percent_done": 98.93,
+    "percent_done": 98.94,
     "unit": "hours of AI working time plus supervision",
     "spent_unfinished_hours": 0,
-    "slices_total": 88,
-    "slices_done": 86,
+    "slices_total": 89,
+    "slices_done": 87,
     "slices_pending": 1,
     "slices_dropped": 1,
     "slices_unreconciled": 0,
@@ -2466,6 +2467,67 @@
           }
         }
       ]
+    },
+    {
+      "sprint": 12,
+      "goal": "Rebuild recipe for this project's machines and the shared VM keel-development (Keel machine recipe)",
+      "status": "done",
+      "file": "docs/sprints/sprint-12.md",
+      "original_estimated_hours": 0.5,
+      "completed_original_hours": 0.5,
+      "actual_hours": 0.5,
+      "remaining_hours": 0,
+      "deviation_hours": 0,
+      "pace_factor": 0.184906,
+      "projected_remaining_hours": 0,
+      "reconciliation_status": "reconciled",
+      "scope_delta": {
+        "added_scope_hours": 0.5,
+        "extracted_hours": 0,
+        "explicit_residual_reestimate_hours": 0
+      },
+      "percent_done": 100,
+      "unit": "hours of AI working time plus supervision",
+      "spent_unfinished_hours": 0,
+      "slices_total": 1,
+      "slices_done": 1,
+      "slices_pending": 0,
+      "slices_dropped": 0,
+      "slices_unreconciled": 0,
+      "slices": [
+        {
+          "id": "S-105",
+          "title": "docs/machines/ — this project's recipe for wrgl and wrgl-ceiling, plus the shared VM's recipe and provisioning scripts (base revision 2026-11-10-1) moved in from ~/Parallels/keel-development-kit",
+          "status": "done",
+          "original_hours": 0.5,
+          "residual_hours": 0,
+          "change_kind": "added",
+          "parent_slice": null,
+          "owns": [
+            "S-105"
+          ],
+          "estimate_changes": [],
+          "actual_hours": 0.5,
+          "actual_source": "estimated",
+          "depends_on": [],
+          "criteria": [],
+          "execution": {
+            "write_paths": [
+              "docs/machines/",
+              "docs/PROGRESS.md"
+            ],
+            "contracts": {
+              "reads": [],
+              "writes": []
+            },
+            "exclusive_resources": [
+              "keel-development"
+            ],
+            "parallel": "serial",
+            "serial_reason": "documents one shared VM"
+          }
+        }
+      ]
     }
   ],
   "scope_reconciliations": [
@@ -2546,6 +2608,20 @@
       "explicit_residual_reestimates": 0,
       "remaining_after": 4,
       "file": "docs/sprints/sprint-11.md"
+    },
+    {
+      "id": "R12-01",
+      "date": "2026-11-10",
+      "reason": "the owner asked that every machine be rebuildable from documents in each repository; S-105 added",
+      "slices": [
+        "S-105"
+      ],
+      "remaining_before": 1,
+      "completed_residual": 0.5,
+      "added_scope": 0.5,
+      "explicit_residual_reestimates": 0,
+      "remaining_after": 1,
+      "file": "docs/sprints/sprint-12.md"
     }
   ],
   "deferred": [
