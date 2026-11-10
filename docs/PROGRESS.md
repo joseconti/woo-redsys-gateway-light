@@ -18,6 +18,7 @@
 - Models: orchestrator=session model (chained chats launch with opus, D-037) / reviewer=sonnet / mechanical=haiku (tools: claude) (D-043)
 - Keel baseline: v7.5.0 (reconciled 2026-11-06, D-112)
 - Playground host: parallels-shared — sites `wrgl` (floor) and `wrgl-ceiling` (ceiling) on `keel-development`, driven by `scripts/keel-site` (D-114). The Lite plugin never shares a site with the premium plugin `woocommerce-gateway-redsys` (owner's rule, D-114)
+- Machine recipe: `docs/machines/recipe.md` (this project's sites), with the shared VM's recipe and provisioning scripts in `docs/machines/keel-development/recipe.md` (base revision 2026-11-10-1) — never proven by a rebuild yet
 - Website intent: no (D-005)
 - Client budget: no (D-010)
 - User guide: declined for now (D-013) — readme.txt covers it

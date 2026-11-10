@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# Unattended build of the shared VM keel-development (recipe: ../recipe.md, step 1).
+set -euo pipefail
+VM=keel-development
+# The Ubuntu Server 24.04.5 arm64 ISO: pass its path, or it is downloaded once into ~/Parallels/iso/ (persistent).
+ISO="${KEEL_ISO:-$HOME/Parallels/iso/ubuntu-24.04.5-live-server-arm64.iso}"
+ISO_URL="https://cdimage.ubuntu.com/releases/24.04.5/release/ubuntu-24.04.5-live-server-arm64.iso"
+ISO_CHECKSUM="f12484464c7d4d73e2167e0a7dbda1e669f8fae9bcf778dc0944937034b320cb"
+[ -f "$ISO" ] || { mkdir -p "$(dirname "$ISO")"; curl -fL -o "$ISO" "$ISO_URL"; }
+[ "$(shasum -a 256 "$ISO" | cut -d' ' -f1)" = "$ISO_CHECKSUM" ] || { echo "ISO checksum mismatch: $ISO"; exit 1; }
+# The cloud-init seed is a build input used only during the install and detached after it.
+SEEDDIR=$(mktemp -d); SEED="$SEEDDIR/cidata.iso"; trap 'rm -rf "$SEEDDIR"' EXIT
+IDFILE="$HOME/.ssh/keel_development"; U=keel
+SSH=(-i "$IDFILE" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=5)
+state(){ prlctl status "$VM" 2>/dev/null | awk '{print $NF}'; }
+ip(){ prlctl list -f -o ip_configured,name 2>/dev/null | awk -v v="$VM" '$2==v&&$1!="-"{print $1}' | cut -d, -f1; }
+prlctl list -i "$VM" >/dev/null 2>&1 && { echo exists; exit 1; }
+[ -f "$IDFILE" ] || ssh-keygen -q -t ed25519 -N '' -C keel-development -f "$IDFILE"
+d=$(mktemp -d); h=$(openssl passwd -6 "$(openssl rand -hex 16)")  # unknown password: login is by key, sudo is passwordless
+cat > "$d/user-data" <<Y
+#cloud-config
+autoinstall:
+  version: 1
+  interactive-sections: []
+  locale: en_US.UTF-8
+  keyboard: {layout: es}
+  timezone: Europe/Madrid
+  identity: {hostname: keel-development, username: $U, password: '$h'}
+  ssh:
+    install-server: true
+    allow-pw: false
+    authorized-keys: ['$(cat "$IDFILE.pub")']
+  storage: {layout: {name: direct}}
+  updates: security
+  late-commands:
+    - echo '$U ALL=(ALL) NOPASSWD:ALL' > /target/etc/sudoers.d/90-$U
+    - chmod 440 /target/etc/sudoers.d/90-$U
+  shutdown: poweroff
+Y
+echo "instance-id: keel-development" > "$d/meta-data"
+rm -f "$SEED"; hdiutil makehybrid -quiet -iso -joliet -default-volume-name cidata -o "$SEED" "$d"; rm -rf "$d"
+prlctl create "$VM" --distribution ubuntu >/dev/null
+prlctl set "$VM" --cpus 4 --memsize 8192 >/dev/null
+prlctl set "$VM" --device-set hdd0 --size 122880 >/dev/null 2>&1 || true
+prlctl set "$VM" --device-set cdrom0 --image "$ISO" --connect >/dev/null
+prlctl set "$VM" --device-add cdrom --image "$SEED" --connect >/dev/null
+prlctl set "$VM" --device-bootorder "cdrom0 hdd0" >/dev/null
+prlctl set "$VM" --startup-view headless >/dev/null 2>&1 || true
+prlctl start "$VM" >/dev/null
+sleep 150
+case "$(state)" in suspended|paused) prlctl resume "$VM" >/dev/null;; esac
+for c in 21 18 31 28; do prlctl send-key-event "$VM" --scancode $c --event press >/dev/null; prlctl send-key-event "$VM" --scancode $c --event release >/dev/null; sleep .3; done
+for _ in $(seq 180); do case "$(state)" in stopped) break;; suspended|paused) prlctl resume "$VM" >/dev/null||true;; esac; sleep 10; done
+[ "$(state)" = stopped ] || { echo "install timed out"; prlctl capture "$VM" --file "$HOME/Parallels/keel-development-install-timeout.png" || true; exit 1; }
+prlctl set "$VM" --device-set cdrom0 --disconnect >/dev/null
+prlctl set "$VM" --device-del cdrom1 >/dev/null 2>&1 || true
+prlctl set "$VM" --device-bootorder "hdd0" >/dev/null
+prlctl start "$VM" >/dev/null
+for _ in $(seq 60); do i=$(ip); if [ -n "$i" ] && ssh "${SSH[@]}" "$U@$i" true 2>/dev/null; then break; fi; i=; sleep 10; done
+[ -n "${i:-}" ] || { echo "no ssh after install"; exit 1; }
+ssh "${SSH[@]}" "$U@$i" 'sudo -n true && lsb_release -ds && uname -m'
+echo "READY $i"
