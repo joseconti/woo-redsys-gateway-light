@@ -2,7 +2,7 @@
 schema: keel.sprint/2
 sprint: 13
 goal: 7.1.0 carries the next-version work — work/after-7.1.0 folded into the release, readme changelog unified, develop is the new candidate (D-115)
-status: in-progress
+status: done
 scope_reconciliations:
   - id: R13-01
     date: 2026-11-13
@@ -16,11 +16,11 @@ scope_reconciliations:
 slices:
   - id: S-106
     title: Fold the Unreleased changelog into 7.1.0, merge work/after-7.1.0 into develop, full suite on the new candidate (floor and ceiling)
-    status: in-progress
+    status: done
     original_hours: 1.5
-    actual_hours: 0
+    actual_hours: 0.17
     actual_source: measured
-    residual_hours: 1.5
+    residual_hours: 0
     change_kind: added
     parent_slice: null
     owns: [S-106]
@@ -40,3 +40,4 @@ slices:
 # Sprint 13 — 7.1.0 carries the next-version work
 
 - Acceptance: readme.txt has no Unreleased section and every line of it under == 7.1.0 ==, once; develop contains work/after-7.1.0; the full suite is green on the candidate. Hours are AI working time plus supervision.
+- Close-out: S-106 done 2026-11-13 (14:55–15:05, measured). Full suite GREEN on the new candidate (docs/07-release.md). S-102 stays in progress in sprint 9.

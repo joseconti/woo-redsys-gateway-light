@@ -15,38 +15,39 @@
     "docs/sprints/sprint-10.md",
     "docs/sprints/sprint-11.md",
     "docs/sprints/sprint-12.md",
+    "docs/sprints/sprint-13.md",
     "docs/sprints/deferred.md"
   ],
   "current_sprint": 9,
   "reconciliation_status": "reconciled",
   "totals": {
-    "original_estimated_hours": 93.9,
-    "completed_original_hours": 92.9,
-    "actual_hours": 34.2919,
+    "original_estimated_hours": 95.4,
+    "completed_original_hours": 94.4,
+    "actual_hours": 34.4619,
     "remaining_hours": 1,
-    "deviation_hours": -58.6081,
-    "pace_factor": 0.184906,
-    "projected_remaining_hours": 0.1849,
+    "deviation_hours": -59.9381,
+    "pace_factor": 0.183219,
+    "projected_remaining_hours": 0.1832,
     "reconciliation_status": "reconciled",
     "scope_delta": {
-      "added_scope_hours": 6,
+      "added_scope_hours": 7.5,
       "extracted_hours": 1.75,
       "explicit_residual_reestimate_hours": 0
     },
-    "percent_done": 98.94,
+    "percent_done": 98.95,
     "unit": "hours of AI working time plus supervision",
     "spent_unfinished_hours": 0,
-    "slices_total": 89,
-    "slices_done": 87,
+    "slices_total": 90,
+    "slices_done": 88,
     "slices_pending": 1,
     "slices_dropped": 1,
     "slices_unreconciled": 0,
     "pace_sample": {
-      "slices": 67,
-      "estimated_hours": 62.15,
-      "actual_hours": 11.4919,
-      "deviation_hours": -50.6581,
-      "deviation_percent": -81.51,
+      "slices": 68,
+      "estimated_hours": 63.65,
+      "actual_hours": 11.6619,
+      "deviation_hours": -51.9881,
+      "deviation_percent": -81.68,
       "provisional": false
     }
   },
@@ -61,7 +62,7 @@
       "actual_hours": 20,
       "remaining_hours": 0,
       "deviation_hours": 0,
-      "pace_factor": 0.184906,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -297,7 +298,7 @@
       "actual_hours": 4.2175,
       "remaining_hours": 0,
       "deviation_hours": -5.5325,
-      "pace_factor": 0.184906,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -461,7 +462,7 @@
       "actual_hours": 7.0276,
       "remaining_hours": 0,
       "deviation_hours": -42.6224,
-      "pace_factor": 0.184906,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -1682,7 +1683,7 @@
       "actual_hours": 0.0989,
       "remaining_hours": 0,
       "deviation_hours": -1.4011,
-      "pace_factor": 0.184906,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -1744,7 +1745,7 @@
       "actual_hours": 1.4502,
       "remaining_hours": 0,
       "deviation_hours": -2.0498,
-      "pace_factor": 0.184906,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2000,7 +2001,7 @@
       "actual_hours": 0.1014,
       "remaining_hours": 0,
       "deviation_hours": -0.6486,
-      "pace_factor": 0.184906,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2068,7 +2069,7 @@
       "actual_hours": 0.2556,
       "remaining_hours": 0,
       "deviation_hours": -1.2444,
-      "pace_factor": 0.184906,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2133,7 +2134,7 @@
       "actual_hours": 0.2397,
       "remaining_hours": 0,
       "deviation_hours": -1.0103,
-      "pace_factor": 0.184906,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2259,8 +2260,8 @@
       "actual_hours": 0.0119,
       "remaining_hours": 1,
       "deviation_hours": -0.4881,
-      "pace_factor": 0.184906,
-      "projected_remaining_hours": 0.1849,
+      "pace_factor": 0.183219,
+      "projected_remaining_hours": 0.1832,
       "reconciliation_status": "reconciled",
       "scope_delta": {
         "added_scope_hours": 1.5,
@@ -2351,7 +2352,7 @@
       "actual_hours": 0.0533,
       "remaining_hours": 0,
       "deviation_hours": -0.9467,
-      "pace_factor": 0.184906,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2414,7 +2415,7 @@
       "actual_hours": 0.3358,
       "remaining_hours": 0,
       "deviation_hours": -2.6642,
-      "pace_factor": 0.184906,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2478,7 +2479,7 @@
       "actual_hours": 0.5,
       "remaining_hours": 0,
       "deviation_hours": 0,
-      "pace_factor": 0.184906,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2525,6 +2526,69 @@
             ],
             "parallel": "serial",
             "serial_reason": "documents one shared VM"
+          }
+        }
+      ]
+    },
+    {
+      "sprint": 13,
+      "goal": "7.1.0 carries the next-version work — work/after-7.1.0 folded into the release, readme changelog unified, develop is the new candidate (D-115)",
+      "status": "done",
+      "file": "docs/sprints/sprint-13.md",
+      "original_estimated_hours": 1.5,
+      "completed_original_hours": 1.5,
+      "actual_hours": 0.17,
+      "remaining_hours": 0,
+      "deviation_hours": -1.33,
+      "pace_factor": 0.183219,
+      "projected_remaining_hours": 0,
+      "reconciliation_status": "reconciled",
+      "scope_delta": {
+        "added_scope_hours": 1.5,
+        "extracted_hours": 0,
+        "explicit_residual_reestimate_hours": 0
+      },
+      "percent_done": 100,
+      "unit": "hours of AI working time plus supervision",
+      "spent_unfinished_hours": 0,
+      "slices_total": 1,
+      "slices_done": 1,
+      "slices_pending": 0,
+      "slices_dropped": 0,
+      "slices_unreconciled": 0,
+      "slices": [
+        {
+          "id": "S-106",
+          "title": "Fold the Unreleased changelog into 7.1.0, merge work/after-7.1.0 into develop, full suite on the new candidate (floor and ceiling)",
+          "status": "done",
+          "original_hours": 1.5,
+          "residual_hours": 0,
+          "change_kind": "added",
+          "parent_slice": null,
+          "owns": [
+            "S-106"
+          ],
+          "estimate_changes": [],
+          "actual_hours": 0.17,
+          "actual_source": "measured",
+          "depends_on": [],
+          "criteria": [],
+          "execution": {
+            "write_paths": [
+              "readme.txt",
+              "docs/PROGRESS.md",
+              "docs/decisions.md",
+              "docs/07-release.md"
+            ],
+            "contracts": {
+              "reads": [],
+              "writes": []
+            },
+            "exclusive_resources": [
+              "keel-development"
+            ],
+            "parallel": "serial",
+            "serial_reason": "the release candidate and the one test lane"
           }
         }
       ]
@@ -2622,6 +2686,20 @@
       "explicit_residual_reestimates": 0,
       "remaining_after": 1,
       "file": "docs/sprints/sprint-12.md"
+    },
+    {
+      "id": "R13-01",
+      "date": "2026-11-13",
+      "reason": "D-115 — the owner asked for develop to carry the correct version and a fixed readme.txt so they can release now; S-106 added",
+      "slices": [
+        "S-106"
+      ],
+      "remaining_before": 1,
+      "completed_residual": 0,
+      "added_scope": 1.5,
+      "explicit_residual_reestimates": 0,
+      "remaining_after": 2.5,
+      "file": "docs/sprints/sprint-13.md"
     }
   ],
   "deferred": [

@@ -35,9 +35,10 @@ The contract is Keel's `references/project-state.md`: "Sprint files (Phase 5) â€
 | [10](sprint-10.md) | Keel v7.3.2 to v7.5.0 post-update reconciliation (D-112) | done | 1 / 1 | 1 | 1 | 0.05 | 0 | 0 | 100 |
 | [11](sprint-11.md) | Move the playground from wp-env/Docker to the shared Parallels VM keel-development (D-114) | done | 1 / 1 | 3 | 3 | 0.34 | 0 | 0 | 100 |
 | [12](sprint-12.md) | Rebuild recipe for this project's machines and the shared VM keel-development (Keel machine recipe) | done | 1 / 1 | 0.5 | 0.5 | 0.5 | 0 | 0 | 100 |
-| **Total** | | | 87 / 88 | 93.9 | 92.9 | 34.29 | 1 | 0.18 | 98.9 |
+| [13](sprint-13.md) | 7.1.0 carries the next-version work â€” work/after-7.1.0 folded into the release, readme changelog unified, develop is the new candidate (D-115) | done | 1 / 1 | 1.5 | 1.5 | 0.17 | 0 | 0 | 100 |
+| **Total** | | | 88 / 89 | 95.4 | 94.4 | 34.46 | 1 | 0.18 | 99 |
 
-All figures are hours of AI working time plus supervision. Contingency is not included, and neither is the backlog in [`deferred.md`](deferred.md) (8 items, 8 h). Pace factor: 0.1849 (67 measured slices). Balance: reconciled.
+All figures are hours of AI working time plus supervision. Contingency is not included, and neither is the backlog in [`deferred.md`](deferred.md) (8 items, 8 h). Pace factor: 0.1832 (68 measured slices). Balance: reconciled.
 <!-- keel-plan:index:end -->
 
 ## Related files

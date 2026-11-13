@@ -60,6 +60,9 @@ Re-read at `704730a` by `security-auditor` row by row. Present-tense rows hold o
 - Automated: both ends of the support matrix (D-092, D-101); the only failures are the four scans of WooCommerce's help-tip markup — `docs/accessibility.md`. Not run on the installed distributable.
 - Real assistive technology: **not run — accepted shortfall for 7.1.0** (D-099), recorded in `docs/accessibility.md`; S-030 deferred.
 
+## New candidate (D-115, 2026-11-13)
+The owner asked for 7.1.0 to carry the next-version work: `work/after-7.1.0` (sprints 5, 7, 8, 9 and S-102's comment-only docblocks) merged into `develop`, and the `== Unreleased ==` changelog folded into `== 7.1.0 ==`. Full suite on this candidate, 2026-11-13: floor `wrgl` (PHP 7.4, WP 7.0, WC 7.4.0) GREEN — 41 unit, 410 integration, 67 browser (`scripts/keel-affected-tests --full --run`); ceiling `wrgl-ceiling` (PHP 8.4, WP 7.1.3, WC 11.2.1) GREEN — 41 unit, 410 integration. The ceiling browser suite was not re-run (its known shortfall is the four help-tip axe scans, D-101).
+
 ## Issues closed by this release
 `docs/issues.md`: #93 (E-001) and #112 (E-002), shipping in 7.1.0. Two WordPress.org support threads report D-023, shipping in 7.1.0. Replies are posted by the assistant after publication (D-099); no issue is closed by the assistant.
 
