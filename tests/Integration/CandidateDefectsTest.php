@@ -4,7 +4,7 @@
  * docs/decisions.md D-041 (slice S-035). Each one was written and seen
  * failing against the code as it was before its fix.
  *
- * Runs only inside wp-env's tests-cli container — see
+ * Runs only on a playground site (scripts/keel-site test integration) — see
  * tests/bootstrap-integration.php.
  *
  * @package WooCommerce Redsys Gateway Light
@@ -258,11 +258,6 @@ class CandidateDefectsTest extends WP_UnitTestCase {
 		$gateway->testmode     = 'no';
 		$gateway->debug        = 'yes';
 		$gateway->log          = new Redsyslite_Test_Recording_Logger();
-
-		if ( 'WC_Gateway_GooglePay_Redirection_Redsys' === $gateway_class ) {
-			// Pre-existing and deferred (S-042): this class reads the billing name through the generic meta API.
-			$this->setExpectedIncorrectUsage( 'is_internal_meta_key' );
-		}
 
 		$args = $gateway->get_redsys_args( $order );
 

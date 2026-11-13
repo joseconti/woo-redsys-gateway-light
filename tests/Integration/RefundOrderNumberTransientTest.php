@@ -12,7 +12,7 @@
  * re-save that mapping with a longer TTL (24h) before asking Redsys for
  * the refund, so the confirmation IPN can resolve it reliably.
  *
- * Runs only inside wp-env's tests-cli container — see
+ * Runs only on a playground site (scripts/keel-site test integration) — see
  * tests/bootstrap-integration.php.
  *
  * @package WooCommerce Redsys Gateway Light

@@ -15,7 +15,7 @@
  * for the fix. test_rejects_the_notification_when_no_secret_is_configured()
  * below is what would have caught this before it shipped.
  *
- * Runs only inside wp-env's tests-cli container — see
+ * Runs only on a playground site (scripts/keel-site test integration) — see
  * tests/bootstrap-integration.php.
  *
  * @package WooCommerce Redsys Gateway Light

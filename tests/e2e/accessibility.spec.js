@@ -5,7 +5,7 @@ const path = require( 'path' );
 
 /**
  * Automated accessibility pass (WCAG 2.2 AA, D-007) over the markup this
- * plugin contributes, run with axe-core inside the wp-env playground
+ * plugin contributes, run with axe-core inside the playground (scripts/keel-site)
  * (docs/playground.md, docs/accessibility.md).
  *
  * Each test scans ONE screen in ONE state and limits axe to the region the

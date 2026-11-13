@@ -12,8 +12,8 @@
 	<exclude-pattern>*.js</exclude-pattern>
 
 	<!-- Configs -->
-	<config name="minimum_supported_wp_version" value="4.7" />
-	<config name="testVersion" value="5.6-" />
+	<config name="minimum_supported_wp_version" value="5.9" />
+	<config name="testVersion" value="7.0-" />
 
 	<!-- Rules -->
 	<rule ref="WooCommerce-Core">
@@ -40,6 +40,14 @@
 		<exclude name="Squiz.PHP.EmbeddedPhp" />
 	</rule>
 
+	<rule ref="WordPress.WP.Capabilities">
+		<properties>
+			<property name="custom_capabilities" type="array">
+				<element value="manage_woocommerce"/>
+			</property>
+		</properties>
+	</rule>
+
 	<rule ref="PHPCompatibility">
 		<exclude-pattern>tests/</exclude-pattern>
 	</rule>
@@ -47,11 +55,20 @@
 	<rule ref="WordPress.Security.EscapeOutput">
 		<properties>
 			<!-- e.g. body_class, the_content, the_excerpt -->
-			<property name="customAutoEscapedFunctions" type="array" value="0=>woocommerce_wp_select,1=>wcs_help_tip,2=>admin_url,3=>wc_price"/>
+			<property name="customAutoEscapedFunctions" type="array">
+				<element value="woocommerce_wp_select"/>
+				<element value="wcs_help_tip"/>
+				<element value="admin_url"/>
+				<element value="wc_price"/>
+			</property>
 			<!-- e.g. esc_attr, esc_html, esc_url-->
-			<property name="customEscapingFunctions" type="array" value="0=>wcs_json_encode,1=>htmlspecialchars,2=>wp_kses_allow_underscores"/>
+			<property name="customEscapingFunctions" type="array">
+				<element value="wcs_json_encode"/>
+				<element value="htmlspecialchars"/>
+				<element value="wp_kses_allow_underscores"/>
+			</property>
 			<!-- e.g. _deprecated_argument, printf, _e-->
-			<property name="customPrintingFunctions" type="array" value=""/>
+			<property name="customPrintingFunctions" type="array"/>
 		</properties>
 	</rule>
 

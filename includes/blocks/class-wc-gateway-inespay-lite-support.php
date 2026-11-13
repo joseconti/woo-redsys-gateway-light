@@ -102,8 +102,18 @@ final class WC_Gateway_Inespay_Lite_Support extends AbstractPaymentMethodType {
 	public function get_payment_method_data() {
 		$logo_url = WCRedL()->get_redsys_option( 'logo', 'inespayredsys' );
 		if ( ! empty( $logo_url ) ) {
+			/**
+			 * Filters the checkout icon URL of Inespay.
+			 *
+			 * @param string $icon_url URL of the icon: the logo set in the settings, or the bundled one.
+			 */
 			$icon = apply_filters( 'woocommerce_inespayredsys_icon', $logo_url );
 		} else {
+			/**
+			 * Filters the checkout icon URL of Inespay.
+			 *
+			 * @param string $icon_url URL of the icon: the logo set in the settings, or the bundled one.
+			 */
 			$icon = apply_filters( 'woocommerce_inespayredsys_icon', REDSYS_PLUGIN_URL . 'assets/images/inespay.svg' );
 		}
 		return array(

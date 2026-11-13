@@ -88,24 +88,14 @@ class WC_Gateway_Redsys_PSD2_Light {
 	/**
 	 * Get redsys option
 	 *
+	 * One implementation for both helpers: this delegates to the global helper's.
+	 *
 	 * @param string $option Option.
 	 * @param string $gateway Gateway ID.
+	 * @return mixed The option value, or false when absent or the settings are not an array.
 	 */
 	public function get_redsys_option( $option, $gateway ) {
-
-		$options = get_option( 'woocommerce_' . $gateway . '_settings' );
-
-		if ( ! empty( $options ) ) {
-			$redsys_options = maybe_unserialize( $options );
-			if ( array_key_exists( $option, $redsys_options ) ) {
-				$option_value = $redsys_options[ $option ];
-				return $option_value;
-			} else {
-				return false;
-			}
-		} else {
-			return false;
-		}
+		return WCRedL()->get_redsys_option( $option, $gateway );
 	}
 
 	/**
@@ -564,9 +554,12 @@ class WC_Gateway_Redsys_PSD2_Light {
 	/**
 	 * Get Acct Info
 	 *
-	 * @param obj   $order Order Object.
-	 * @param array $user_data_3ds User data 3DS array.
-	 * @param int   $user_id User ID can be false.
+	 * Builds the EMV 3-D Secure block the card gateway sends as Ds_Merchant_EMV3DS.
+	 *
+	 * @param WC_Order    $order         Order Object.
+	 * @param array|false $user_data_3ds User data 3DS array, merged in first.
+	 * @param int|false   $user_id       User ID can be false.
+	 * @return string JSON-encoded EMV3DS data.
 	 */
 	public function get_acctinfo( $order, $user_data_3ds = false, $user_id = false ) {
 
@@ -584,19 +577,18 @@ class WC_Gateway_Redsys_PSD2_Light {
 			 * 04 = Entre 30 y 60días
 			 * 05 = Más de 60 días
 			 */
-		if ( is_user_logged_in() || $user_id ) {
+		if ( is_user_logged_in() ) {
+			$user_id = get_current_user_id();
+		}
+		// An id with no user behind it is a guest: there is no account to describe.
+		$usr_data = $user_id ? get_userdata( $user_id ) : false;
 
-			if ( is_user_logged_in() ) {
-				$user_id = get_current_user_id();
-			}
-			$usr_data         = get_userdata( $user_id );
-			$usr_registered   = $usr_data->user_registered;
-			$dt               = new DateTime( $usr_registered );
-			$usr_registered   = $dt->format( 'Ymd' );
-			$last_update      = get_user_meta( $user_id, 'last_update', true );
-			$minu_registered  = intval( ( strtotime( 'now' ) - strtotime( $usr_registered ) ) / 60 );
+		if ( $usr_data ) {
+			// user_registered is stored in GMT; the age counts from that moment, not from its day.
+			$registered_at    = strtotime( $usr_data->user_registered . ' GMT' );
+			$usr_registered   = gmdate( 'Ymd', $registered_at );
+			$minu_registered  = intval( ( time() - $registered_at ) / 60 );
 			$days_registered  = intval( $minu_registered / 1440 );
-			$account_modified = intval( ( ( strtotime( 'now' ) - $last_update ) ) / DAY_IN_SECONDS );
 
 			if ( $minu_registered < 20 ) {
 				$ch_acc_age_ind = '02';
@@ -608,10 +600,12 @@ class WC_Gateway_Redsys_PSD2_Light {
 				$ch_acc_age_ind = '05';
 			}
 
-			$customer         = new WC_Customer( $user_id );
-			$dt               = new DateTime( $customer->get_date_modified() );
-			$ch_acc_change    = $dt->format( 'Ymd' );
-			$account_modified = intval( ( strtotime( 'now' ) - strtotime( $customer->get_date_modified() ) ) / 60 );
+			$customer      = new WC_Customer( $user_id );
+			$date_modified = $customer->get_date_modified();
+			// An account WooCommerce never saved has no modification date: its last change is its creation.
+			$changed_at       = $date_modified ? $date_modified->getTimestamp() : strtotime( $usr_data->user_registered . ' GMT' );
+			$ch_acc_change    = gmdate( 'Ymd', $changed_at );
+			$account_modified = intval( ( time() - $changed_at ) / 60 );
 			$n_days           = intval( $account_modified / 1440 );
 
 			if ( $account_modified < 20 ) {
@@ -640,7 +634,12 @@ class WC_Gateway_Redsys_PSD2_Light {
 					'shipping_city'      => $order->get_shipping_city(),
 					'shipping_postcode'  => $order->get_shipping_postcode(),
 					'shipping_country'   => $order->get_shipping_country(),
+					// The first use is this customer's earliest earlier order to this address.
+					'customer_id'        => $user_id,
+					'exclude'            => array( $order->get_id() ),
+					'orderby'            => 'date',
 					'order'              => 'ASC',
+					'limit'              => 1,
 					'paginate'           => true,
 				);
 				$orders = wc_get_orders( $args );
@@ -648,7 +647,7 @@ class WC_Gateway_Redsys_PSD2_Light {
 				if ( $orders->total > 0 ) {
 					$order_data         = $orders->orders[0]->get_data();
 					$ship_address_usage = $order_data['date_created']->date( 'Ymd' );
-					$days               = intval( ( ( strtotime( 'now' ) - strtotime( $orders->orders[0]->get_date_created() ) ) / MINUTE_IN_SECONDS ) / HOUR_IN_SECONDS );
+					$days               = intval( ( time() - $orders->orders[0]->get_date_created()->getTimestamp() ) / DAY_IN_SECONDS );
 					$this->debug( '$ship_address_usage: ' . $ship_address_usage );
 					if ( $days < 30 ) {
 						$this->debug( '$ship_address_usage_ind = 02' );
@@ -675,12 +674,13 @@ class WC_Gateway_Redsys_PSD2_Light {
 			'chAccAgeInd' => $ch_acc_age_ind,
 		);
 		if ( $order->has_shipping_address() ) {
-			if ( isset( $acct_info['shipAddressUsage'] ) && isset( $acct_info['shipAddressUsageInd'] ) ) {
+			// Computed only for a customer with an account; a guest has no shipping history.
+			if ( isset( $ship_address_usage, $ship_address_usage_ind ) ) {
 				$acct_info['shipAddressUsage']    = $ship_address_usage;
 				$acct_info['shipAddressUsageInd'] = $ship_address_usage_ind;
 			}
 		}
-		if ( is_user_logged_in() ) {
+		if ( is_user_logged_in() && $usr_data ) {
 			$acct_info['chAccDate']         = $usr_registered;
 			$acct_info['chAccChange']       = $ch_acc_change;
 			$acct_info['chAccChangeInd']    = $ch_acc_change_ind;

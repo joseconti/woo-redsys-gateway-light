@@ -1,7 +1,7 @@
 === Payment Gateway for Redsys & WooCommerce Lite ===
 Contributors: j.conti
 Tags: woocommerce, redsys, bizum, google pay, apple pay, inespay
-Requires at least: 4.0
+Requires at least: 5.9
 Tested up to: 7.1
 Requires PHP: 7.0
 Donate link: https://plugins.joseconti.com/product-category/plugins/donaciones/
@@ -101,6 +101,16 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == 7.1.0 ==
 
+* Readme: "Requires at least" now says WordPress 5.9, the minimum of the WooCommerce version this plugin requires (it said 4.0).
+* Fix: When the same Redsys return reached the order-received page in parallel requests, each could wait and complete the order; now only one does.
+* Fix: With PHP 8, paying by card could stop with a fatal error for a logged-in customer whose account WooCommerce had never saved (for example, an order created by the shop manager and paid from the customer's account).
+* Fix: The 3-D Secure data sent to Redsys now includes when the shipping address was first used, for customers with an account. It was calculated but never sent.
+* Fix: With WPML, a language the plugin does not know now opens the Bizum and Google Pay payment pages in English instead of sending an empty language.
+* Tweak: Google Pay reads the customer's name through WooCommerce's own methods, so WordPress debug mode no longer reports a notice when the payment page opens.
+* Tweak: A completed Inespay payment sets the order's payment method through WooCommerce's own method, so WordPress debug mode no longer reports a notice.
+* Fix: With debug enabled, a refund of an order without its Redsys order number now writes "Refund Failed: No transaction ID" to the log instead of a PHP warning.
+* Fix: With PHP 8, reading the gateway settings no longer stops with a fatal error when the stored settings are damaged (not a list of values).
+* Fix: With WPML, the title and description of Bizum, Google Pay and Inespay can now be translated, as the card gateway's already could.
 * Tweak: Tested up to WordPress 7.1 and WooCommerce 11.2 (checked on PHP 8.4).
 * Fix: In the Blocks checkout, Inespay was shown to customers outside Spain, Portugal and Italy (on older WooCommerce versions, with a generic label and no icon). It is now offered only for an address in those countries, as in the classic checkout.
 * Fix: In the Blocks checkout, the Spanish translation of the payment methods' script was never loaded (it showed "Inespay Bank Transfer" untranslated when no title was set).

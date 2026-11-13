@@ -15,7 +15,7 @@ const { test, expect } = require( '@playwright/test' );
  * this test (docs/playground.md) is priced at 200.50 — exactly the pre-fix
  * bug's failure case. Only the gateway list needs to be checked; no payment
  * needs to complete. Added to the cart via its product page (not a
- * hardcoded post ID + "?add-to-cart="), since a fresh `wp-env clean all`
+ * hardcoded post ID + "?add-to-cart="), since a fresh site (`scripts/keel-site create`)
  * install won't necessarily reassign the same numeric ID this product got
  * when it was first created, but its slug is deterministic from its name.
  */

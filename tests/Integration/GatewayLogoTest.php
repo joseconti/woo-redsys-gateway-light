@@ -9,7 +9,7 @@
  * when it is saved and when it is used: a value saved before this rule
  * existed is still in the database.
  *
- * Runs only inside wp-env's tests-cli container — see
+ * Runs only on a playground site (scripts/keel-site test integration) — see
  * tests/bootstrap-integration.php.
  *
  * @package WooCommerce Redsys Gateway Light

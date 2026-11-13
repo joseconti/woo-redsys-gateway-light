@@ -3,7 +3,7 @@ const { test, expect } = require( '@playwright/test' );
 
 /**
  * Checkout smoke test: guest checkout with the Google Pay (redirection)
- * gateway, through WordPress + WooCommerce + this plugin in the wp-env
+ * gateway, through WordPress + WooCommerce + this plugin in the playground
  * playground (docs/playground.md). Mirrors checkout-redsys.spec.js —
  * Google Pay generates the same kind of self-submitting
  * Ds_MerchantParameters/Ds_Signature form as Redsys, against the same

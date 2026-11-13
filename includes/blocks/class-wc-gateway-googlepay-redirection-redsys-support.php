@@ -84,6 +84,11 @@ final class WC_Gateway_GooglePay_Redirection_Redsys_Support extends AbstractPaym
 	 * @return array
 	 */
 	public function get_payment_method_data() {
+		/**
+		 * Filters the checkout icon URL of Apple/Google Pay redirection.
+		 *
+		 * @param string $icon_url URL of the icon: the logo set in the settings, or the bundled one.
+		 */
 		$icon = apply_filters( 'woocommerce_googlepayredirecredsys_icon', REDSYS_PLUGIN_URL . 'assets/images/GPay-peque.svg' );
 		return array(
 			'title'       => WCRedL()->get_redsys_option( 'title', 'googlepayredirecredsys' ),

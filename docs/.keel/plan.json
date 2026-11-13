@@ -13,38 +13,41 @@
     "docs/sprints/sprint-8.md",
     "docs/sprints/sprint-9.md",
     "docs/sprints/sprint-10.md",
+    "docs/sprints/sprint-11.md",
+    "docs/sprints/sprint-12.md",
+    "docs/sprints/sprint-13.md",
     "docs/sprints/deferred.md"
   ],
   "current_sprint": 9,
   "reconciliation_status": "reconciled",
   "totals": {
-    "original_estimated_hours": 90.4,
-    "completed_original_hours": 89.4,
-    "actual_hours": 33.4561,
+    "original_estimated_hours": 95.4,
+    "completed_original_hours": 94.4,
+    "actual_hours": 34.4619,
     "remaining_hours": 1,
-    "deviation_hours": -55.9439,
-    "pace_factor": 0.188607,
-    "projected_remaining_hours": 0.1886,
+    "deviation_hours": -59.9381,
+    "pace_factor": 0.183219,
+    "projected_remaining_hours": 0.1832,
     "reconciliation_status": "reconciled",
     "scope_delta": {
-      "added_scope_hours": 2.5,
+      "added_scope_hours": 7.5,
       "extracted_hours": 1.75,
       "explicit_residual_reestimate_hours": 0
     },
-    "percent_done": 98.89,
+    "percent_done": 98.95,
     "unit": "hours of AI working time plus supervision",
     "spent_unfinished_hours": 0,
-    "slices_total": 87,
-    "slices_done": 85,
+    "slices_total": 90,
+    "slices_done": 88,
     "slices_pending": 1,
     "slices_dropped": 1,
     "slices_unreconciled": 0,
     "pace_sample": {
-      "slices": 66,
-      "estimated_hours": 59.15,
-      "actual_hours": 11.1561,
-      "deviation_hours": -47.9939,
-      "deviation_percent": -81.14,
+      "slices": 68,
+      "estimated_hours": 63.65,
+      "actual_hours": 11.6619,
+      "deviation_hours": -51.9881,
+      "deviation_percent": -81.68,
       "provisional": false
     }
   },
@@ -59,7 +62,7 @@
       "actual_hours": 20,
       "remaining_hours": 0,
       "deviation_hours": 0,
-      "pace_factor": 0.188607,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -295,7 +298,7 @@
       "actual_hours": 4.2175,
       "remaining_hours": 0,
       "deviation_hours": -5.5325,
-      "pace_factor": 0.188607,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -459,7 +462,7 @@
       "actual_hours": 7.0276,
       "remaining_hours": 0,
       "deviation_hours": -42.6224,
-      "pace_factor": 0.188607,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -1680,7 +1683,7 @@
       "actual_hours": 0.0989,
       "remaining_hours": 0,
       "deviation_hours": -1.4011,
-      "pace_factor": 0.188607,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -1742,7 +1745,7 @@
       "actual_hours": 1.4502,
       "remaining_hours": 0,
       "deviation_hours": -2.0498,
-      "pace_factor": 0.188607,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -1998,7 +2001,7 @@
       "actual_hours": 0.1014,
       "remaining_hours": 0,
       "deviation_hours": -0.6486,
-      "pace_factor": 0.188607,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2066,7 +2069,7 @@
       "actual_hours": 0.2556,
       "remaining_hours": 0,
       "deviation_hours": -1.2444,
-      "pace_factor": 0.188607,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2131,7 +2134,7 @@
       "actual_hours": 0.2397,
       "remaining_hours": 0,
       "deviation_hours": -1.0103,
-      "pace_factor": 0.188607,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2257,8 +2260,8 @@
       "actual_hours": 0.0119,
       "remaining_hours": 1,
       "deviation_hours": -0.4881,
-      "pace_factor": 0.188607,
-      "projected_remaining_hours": 0.1886,
+      "pace_factor": 0.183219,
+      "projected_remaining_hours": 0.1832,
       "reconciliation_status": "reconciled",
       "scope_delta": {
         "added_scope_hours": 1.5,
@@ -2307,7 +2310,7 @@
         {
           "id": "S-102",
           "title": "PHPCS findings of D-102 that have one fix and change no behaviour — the 19 hooks without a hook comment, 7 alignments, 3 doc lines in lower case, the mt_rand() fallback annotated",
-          "status": "not-started",
+          "status": "in-progress",
           "original_hours": 1,
           "residual_hours": 1,
           "change_kind": "added",
@@ -2316,7 +2319,7 @@
             "S-102"
           ],
           "estimate_changes": [],
-          "actual_hours": null,
+          "actual_hours": 0,
           "actual_source": "measured",
           "depends_on": [
             "S-101"
@@ -2349,7 +2352,7 @@
       "actual_hours": 0.0533,
       "remaining_hours": 0,
       "deviation_hours": -0.9467,
-      "pace_factor": 0.188607,
+      "pace_factor": 0.183219,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2398,6 +2401,194 @@
             "exclusive_resources": [],
             "parallel": "serial",
             "serial_reason": "one bookkeeping slice on develop"
+          }
+        }
+      ]
+    },
+    {
+      "sprint": 11,
+      "goal": "Move the playground from wp-env/Docker to the shared Parallels VM keel-development (D-114)",
+      "status": "done",
+      "file": "docs/sprints/sprint-11.md",
+      "original_estimated_hours": 3,
+      "completed_original_hours": 3,
+      "actual_hours": 0.3358,
+      "remaining_hours": 0,
+      "deviation_hours": -2.6642,
+      "pace_factor": 0.183219,
+      "projected_remaining_hours": 0,
+      "reconciliation_status": "reconciled",
+      "scope_delta": {
+        "added_scope_hours": 3,
+        "extracted_hours": 0,
+        "explicit_residual_reestimate_hours": 0
+      },
+      "percent_done": 100,
+      "unit": "hours of AI working time plus supervision",
+      "spent_unfinished_hours": 0,
+      "slices_total": 1,
+      "slices_done": 1,
+      "slices_pending": 0,
+      "slices_dropped": 0,
+      "slices_unreconciled": 0,
+      "slices": [
+        {
+          "id": "S-104",
+          "title": "Playground on parallels-shared — scripts/keel-site for the wrgl (floor) and wrgl-ceiling sites, the test runner, doctor, setup, tunnel and Playwright moved off wp-env, full suite on both sites compared with Docker, then this project's Docker resources removed; the Lite plugin never shares a site with the premium plugin",
+          "status": "done",
+          "original_hours": 3,
+          "residual_hours": 0,
+          "change_kind": "added",
+          "parent_slice": null,
+          "owns": [
+            "S-104"
+          ],
+          "estimate_changes": [],
+          "actual_hours": 0.3358,
+          "actual_source": "measured",
+          "depends_on": [],
+          "criteria": [],
+          "execution": {
+            "write_paths": [
+              "scripts/",
+              "playwright.config.js",
+              "tests/",
+              "docs/",
+              ".gitattributes"
+            ],
+            "contracts": {
+              "reads": [],
+              "writes": []
+            },
+            "exclusive_resources": [
+              "keel-development"
+            ],
+            "parallel": "serial",
+            "serial_reason": "one shared VM, one test lane"
+          }
+        }
+      ]
+    },
+    {
+      "sprint": 12,
+      "goal": "Rebuild recipe for this project's machines and the shared VM keel-development (Keel machine recipe)",
+      "status": "done",
+      "file": "docs/sprints/sprint-12.md",
+      "original_estimated_hours": 0.5,
+      "completed_original_hours": 0.5,
+      "actual_hours": 0.5,
+      "remaining_hours": 0,
+      "deviation_hours": 0,
+      "pace_factor": 0.183219,
+      "projected_remaining_hours": 0,
+      "reconciliation_status": "reconciled",
+      "scope_delta": {
+        "added_scope_hours": 0.5,
+        "extracted_hours": 0,
+        "explicit_residual_reestimate_hours": 0
+      },
+      "percent_done": 100,
+      "unit": "hours of AI working time plus supervision",
+      "spent_unfinished_hours": 0,
+      "slices_total": 1,
+      "slices_done": 1,
+      "slices_pending": 0,
+      "slices_dropped": 0,
+      "slices_unreconciled": 0,
+      "slices": [
+        {
+          "id": "S-105",
+          "title": "docs/machines/ — this project's recipe for wrgl and wrgl-ceiling, plus the shared VM's recipe and provisioning scripts (base revision 2026-11-10-1) moved in from ~/Parallels/keel-development-kit",
+          "status": "done",
+          "original_hours": 0.5,
+          "residual_hours": 0,
+          "change_kind": "added",
+          "parent_slice": null,
+          "owns": [
+            "S-105"
+          ],
+          "estimate_changes": [],
+          "actual_hours": 0.5,
+          "actual_source": "estimated",
+          "depends_on": [],
+          "criteria": [],
+          "execution": {
+            "write_paths": [
+              "docs/machines/",
+              "docs/PROGRESS.md"
+            ],
+            "contracts": {
+              "reads": [],
+              "writes": []
+            },
+            "exclusive_resources": [
+              "keel-development"
+            ],
+            "parallel": "serial",
+            "serial_reason": "documents one shared VM"
+          }
+        }
+      ]
+    },
+    {
+      "sprint": 13,
+      "goal": "7.1.0 carries the next-version work — work/after-7.1.0 folded into the release, readme changelog unified, develop is the new candidate (D-115)",
+      "status": "done",
+      "file": "docs/sprints/sprint-13.md",
+      "original_estimated_hours": 1.5,
+      "completed_original_hours": 1.5,
+      "actual_hours": 0.17,
+      "remaining_hours": 0,
+      "deviation_hours": -1.33,
+      "pace_factor": 0.183219,
+      "projected_remaining_hours": 0,
+      "reconciliation_status": "reconciled",
+      "scope_delta": {
+        "added_scope_hours": 1.5,
+        "extracted_hours": 0,
+        "explicit_residual_reestimate_hours": 0
+      },
+      "percent_done": 100,
+      "unit": "hours of AI working time plus supervision",
+      "spent_unfinished_hours": 0,
+      "slices_total": 1,
+      "slices_done": 1,
+      "slices_pending": 0,
+      "slices_dropped": 0,
+      "slices_unreconciled": 0,
+      "slices": [
+        {
+          "id": "S-106",
+          "title": "Fold the Unreleased changelog into 7.1.0, merge work/after-7.1.0 into develop, full suite on the new candidate (floor and ceiling)",
+          "status": "done",
+          "original_hours": 1.5,
+          "residual_hours": 0,
+          "change_kind": "added",
+          "parent_slice": null,
+          "owns": [
+            "S-106"
+          ],
+          "estimate_changes": [],
+          "actual_hours": 0.17,
+          "actual_source": "measured",
+          "depends_on": [],
+          "criteria": [],
+          "execution": {
+            "write_paths": [
+              "readme.txt",
+              "docs/PROGRESS.md",
+              "docs/decisions.md",
+              "docs/07-release.md"
+            ],
+            "contracts": {
+              "reads": [],
+              "writes": []
+            },
+            "exclusive_resources": [
+              "keel-development"
+            ],
+            "parallel": "serial",
+            "serial_reason": "the release candidate and the one test lane"
           }
         }
       ]
@@ -2467,6 +2658,48 @@
       "explicit_residual_reestimates": 0,
       "remaining_after": 1,
       "file": "docs/sprints/sprint-10.md"
+    },
+    {
+      "id": "R11-01",
+      "date": "2026-11-07",
+      "reason": "D-114 — the owner approved the migration; S-104 added",
+      "slices": [
+        "S-104"
+      ],
+      "remaining_before": 1,
+      "completed_residual": 0,
+      "added_scope": 3,
+      "explicit_residual_reestimates": 0,
+      "remaining_after": 4,
+      "file": "docs/sprints/sprint-11.md"
+    },
+    {
+      "id": "R12-01",
+      "date": "2026-11-10",
+      "reason": "the owner asked that every machine be rebuildable from documents in each repository; S-105 added",
+      "slices": [
+        "S-105"
+      ],
+      "remaining_before": 1,
+      "completed_residual": 0.5,
+      "added_scope": 0.5,
+      "explicit_residual_reestimates": 0,
+      "remaining_after": 1,
+      "file": "docs/sprints/sprint-12.md"
+    },
+    {
+      "id": "R13-01",
+      "date": "2026-11-13",
+      "reason": "D-115 — the owner asked for develop to carry the correct version and a fixed readme.txt so they can release now; S-106 added",
+      "slices": [
+        "S-106"
+      ],
+      "remaining_before": 1,
+      "completed_residual": 0,
+      "added_scope": 1.5,
+      "explicit_residual_reestimates": 0,
+      "remaining_after": 2.5,
+      "file": "docs/sprints/sprint-13.md"
     }
   ],
   "deferred": [

@@ -54,7 +54,8 @@ class WC_Gateway_Redsys_Global_Lite {
 
 		if ( ! empty( $options ) ) {
 			$redsys_options = maybe_unserialize( $options );
-			if ( array_key_exists( $option, $redsys_options ) ) {
+			// A corrupted or hand-edited settings row may hold anything: only an array has keys.
+			if ( is_array( $redsys_options ) && array_key_exists( $option, $redsys_options ) ) {
 				$option_value = $redsys_options[ $option ];
 				return $option_value;
 			} else {
@@ -717,9 +718,9 @@ class WC_Gateway_Redsys_Global_Lite {
 					continue;
 				}
 			}
-		} else {
-			return '2';
 		}
+		// A language missing from the table gets the same English code as an empty table.
+		return '2';
 	}
 	/**
 	 * Check if an order exists.
@@ -868,6 +869,11 @@ class WC_Gateway_Redsys_Global_Lite {
 
 		$status = array();
 		$status = redsys_return_status_paid();
+		/**
+		 * Filters the order statuses (without the wc- prefix) returned by get_status_pending().
+		 *
+		 * @param array $status Order statuses.
+		 */
 		return apply_filters( 'redsys_status_pending', $status );
 	}
 	/**
@@ -980,13 +986,13 @@ class WC_Gateway_Redsys_Global_Lite {
 					if ( $valid_token ) {
 						return true;
 					}
-					break;
+					continue;
 				} else {
 					continue;
 				}
 			}
-			return false;
 		}
+		return false;
 	}
 	/**
 	 * Get the Redsys users token.

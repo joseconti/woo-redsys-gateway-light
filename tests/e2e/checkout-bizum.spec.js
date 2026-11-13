@@ -3,7 +3,7 @@ const { test, expect } = require( '@playwright/test' );
 
 /**
  * Checkout smoke test: guest checkout with the Bizum gateway, through
- * WordPress + WooCommerce + this plugin in the wp-env playground
+ * WordPress + WooCommerce + this plugin in the playground (scripts/keel-site)
  * (docs/playground.md). Mirrors checkout-redsys.spec.js — Bizum generates
  * the same kind of self-submitting Ds_MerchantParameters/Ds_Signature form
  * as Redsys, against the same *.redsys.es sandbox, so the coverage shape is

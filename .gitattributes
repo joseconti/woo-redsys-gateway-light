@@ -29,7 +29,6 @@ CLAUDE.md export-ignore
 AGENTS.md export-ignore
 docs/ export-ignore
 scripts/ export-ignore
-.wp-env.json export-ignore
 README.md export-ignore
 .agents/ export-ignore
 .codex/ export-ignore
@@ -42,4 +41,3 @@ composer.lock export-ignore
 phpunit.xml.dist export-ignore
 phpunit-integration.xml.dist export-ignore
 playwright.config.js export-ignore
-.wp-env.ceiling.json export-ignore

@@ -15,7 +15,7 @@
  *
  * Slice S-075 (self-audit: a documented extension point with no test).
  *
- * Runs only inside wp-env's tests-cli container — see
+ * Runs only on a playground site (scripts/keel-site test integration) — see
  * tests/bootstrap-integration.php.
  *
  * @package WooCommerce Redsys Gateway Light
@@ -130,10 +130,6 @@ class DocumentedHooksFireTest extends WP_UnitTestCase {
 		$order->set_total( 12.34 );
 		$order->save();
 		$gateway = $this->configured_gateway( $class );
-		if ( 'WC_Gateway_GooglePay_Redirection_Redsys' === $class ) {
-			// Pre-existing and deferred (S-042): this class reads the billing name through the generic meta API.
-			$this->setExpectedIncorrectUsage( 'is_internal_meta_key' );
-		}
 
 		$seen     = array();
 		$callback = function ( $args ) use ( &$seen ) {

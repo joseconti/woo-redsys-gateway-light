@@ -18,10 +18,10 @@
 #   --json               Emit the same result as machine-readable JSON instead
 #                       of the human table. Combine with --check/--plan/--fix.
 #
-# This project's playground (docs/playground.md) is `wp-env`, which needs a
-# working Docker daemon. Node/npm are needed to run `npx wp-env` and the
-# front-end build (`npm run build`). PHP is used by phpcs/phpcbf locally but
-# is NOT required to run wp-env itself (PHP runs inside the containers).
+# This project's playground (docs/playground.md, D-114) is two sites on the
+# shared Parallels VM keel-development, driven by scripts/keel-site. Node/npm
+# are needed for Playwright and the front-end build (`npm run build`); PHP and
+# Composer on the host install vendor/, which the VM reads through the share.
 #
 # Compiled from docs/03-technical-plan.md "## Environment requirements".
 # The three browser-MCP rows and the permission-mode row are ADVISORY: they
@@ -148,30 +148,27 @@ else
 	add_row "npm" "absent" "any" "MISSING" "blocking" "install Node.js (npm ships with it)"
 fi
 
-# --- Docker CLI ------------------------------------------------------------
-if command -v docker >/dev/null 2>&1; then
-	DOCKER_V=$(docker version --format '{{.Client.Version}}' 2>/dev/null || echo "")
-	if [ -n "$DOCKER_V" ]; then
-		add_row "Docker (CLI)" "$DOCKER_V" "any" "OK" "blocking" "—"
+# --- Parallels and the shared VM (D-114) ----------------------------------
+if command -v prlctl >/dev/null 2>&1 && prlctl list -a >/dev/null 2>&1; then
+	add_row "Parallels (prlctl)" "usable" "any" "OK" "blocking" "—"
+	VM_STATE=$(prlctl status keel-development 2>/dev/null | awk '{print $NF}')
+	if [ "$VM_STATE" = "running" ]; then
+		add_row "keel-development VM" "running" "running" "OK" "blocking" "—"
 	else
-		add_row "Docker (CLI)" "present, version unreadable" "any" "NOT OPERATIONAL" "blocking" "reinstall Docker Desktop / Docker Engine"
+		add_row "keel-development VM" "${VM_STATE:-absent}" "running" "NOT OPERATIONAL" "blocking" "scripts/keel-site start"
 	fi
+	# --- the playground sites of THIS repository (a state, not an install) --
+	if [ "$VM_STATE" = "running" ] && scripts/keel-site doctor >/dev/null 2>&1; then
+		add_row "playground sites (wrgl, wrgl-ceiling)" "http 200, plugin mounted, premium plugin absent" "healthy" "OK" "blocking" "—"
+	else
+		add_row "playground sites (wrgl, wrgl-ceiling)" "not healthy" "healthy" "NOT OPERATIONAL" "blocking" "scripts/keel-site doctor (rebuild a site: scripts/keel-site --site <name> create)"
+	fi
+elif command -v prlctl >/dev/null 2>&1; then
+	add_row "Parallels (prlctl)" "installed, list refused" "usable" "NOT OPERATIONAL" "blocking" "check the Parallels edition and licence (prlctl needs Pro or Business)"
 else
-	add_row "Docker (CLI)" "absent" "any" "MISSING" "blocking" "install Docker Desktop (macOS/Windows) or Docker Engine (Linux); Colima is an MIT-licensed drop-in on macOS/Linux"
+	add_row "Parallels (prlctl)" "absent" "usable" "MISSING" "blocking" "the playground runs on the shared Parallels VM (docs/playground.md); Keel never installs Parallels"
 fi
 
-# --- Docker daemon -----------------------------------------------------
-if command -v docker >/dev/null 2>&1; then
-	if docker info >/dev/null 2>&1; then
-		add_row "Docker (daemon)" "responding" "running" "OK" "blocking" "—"
-	else
-		add_row "Docker (daemon)" "not responding" "running" "NOT OPERATIONAL" "blocking" "start Docker Desktop, or 'colima start' / 'systemctl start docker'"
-	fi
-else
-	add_row "Docker (daemon)" "n/a — CLI absent" "running" "MISSING" "blocking" "install Docker first"
-fi
-
-# --- npx / wp-env (via @wordpress/env devDependency, run through npx) ---
 NPX_BIN=$(find_tool npx)
 if [ -n "$NPX_BIN" ]; then
 	add_row "npx" "present$(where npx "$NPX_BIN")" "any" "OK" "blocking" "—"
@@ -179,44 +176,13 @@ else
 	add_row "npx" "absent" "any" "MISSING" "blocking" "install Node.js (npx ships with npm >=5.2)"
 fi
 
-# wp-env itself is a devDependency of @wordpress/scripts's sibling package,
-# invoked as `npx wp-env`. It only resolves once `npm install` has run.
-if [ -d "node_modules/.bin" ] && [ -x "node_modules/.bin/wp-env" ]; then
-	add_row "wp-env (local)" "installed (node_modules/.bin/wp-env)" "any" "OK" "optional" "—"
-else
-	add_row "wp-env (local)" "not installed" "any" "MISSING" "optional" "npm install (adds @wordpress/env as a devDependency if not already present) — npx wp-env also works without a local install, it fetches on first run"
-	NEED_NPM_INSTALL=1
-fi
-
-# --- wp-env playground of THIS repository (a state, not an install) -----
-# Another project's wp-env on the same machine is not this project's
-# environment: only a running container that bind-mounts this repository
-# counts.
-WPENV_UP=0
-if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
-	for cid in $(docker ps -q 2>/dev/null); do
-		mounts=$(docker inspect --format '{{range .Mounts}}{{.Source}}{{"\n"}}{{end}}' "$cid" 2>/dev/null)
-		if printf '%s\n' "$mounts" | grep -qxF -e "$ROOT" -e "/host_mnt$ROOT"; then
-			WPENV_UP=1
-		fi
-	done
-	if [ "$WPENV_UP" -eq 1 ]; then
-		add_row "wp-env playground" "running (a container mounts this repo)" "running for tests" "OK" "optional" "—"
-	else
-		add_row "wp-env playground" "not running for this repo" "running for tests" "NOT OPERATIONAL" "optional" "npx wp-env start"
-	fi
-else
-	add_row "wp-env playground" "n/a — Docker not responding" "running for tests" "NOT OPERATIONAL" "optional" "start Docker, then: npx wp-env start"
-fi
-
-# --- PHPUnit (project-local, installed by Composer INSIDE wp-env) -------
-PLUGIN_DIR=$(basename "$ROOT")
-COMPOSER_CMD="npx wp-env run cli bash -c \"cd wp-content/plugins/$PLUGIN_DIR && composer install\""
+# --- PHPUnit (project-local, installed by Composer on the host) ----------
+COMPOSER_CMD="composer install"
 if [ -f "vendor/bin/phpunit" ]; then
 	add_row "PHPUnit (vendor/)" "installed (vendor/bin/phpunit)" "^9.6" "OK" "blocking" "—"
 else
-	add_row "PHPUnit (vendor/)" "absent" "^9.6" "MISSING" "blocking" "with wp-env running: $COMPOSER_CMD"
-	MANUAL_CMDS+=("$COMPOSER_CMD   # needs 'npx wp-env start' first; Composer runs inside the cli container")
+	add_row "PHPUnit (vendor/)" "absent" "^9.6" "MISSING" "blocking" "$COMPOSER_CMD (on the host; the VM reads vendor/ through the share)"
+	MANUAL_CMDS+=("$COMPOSER_CMD   # on the host; the VM reads vendor/ through the share")
 fi
 
 # --- Playwright (the e2e driver) and its Chromium binary ----------------
@@ -269,7 +235,7 @@ else
 	NEED_PW_INSTALL=1
 fi
 
-# --- PHP (used for phpcs/phpcbf locally; NOT required to run wp-env) ----
+# --- PHP (used for phpcs/phpcbf and Composer on the host) ----------------
 if command -v php >/dev/null 2>&1; then
 	PHP_V=$(php -r 'echo PHP_VERSION;' 2>/dev/null || echo "")
 	if [ -n "$PHP_V" ]; then
@@ -278,7 +244,7 @@ if command -v php >/dev/null 2>&1; then
 		add_row "PHP (local, for phpcs)" "present, version unreadable" ">=7.4 recommended" "NOT OPERATIONAL" "optional" "reinstall PHP"
 	fi
 else
-	add_row "PHP (local, for phpcs)" "absent" ">=7.4 recommended" "MISSING" "optional" "install PHP locally to run phpcs outside Docker (not required — wp-env's own containers carry PHP)"
+	add_row "PHP (local, for phpcs)" "absent" ">=7.4 recommended" "MISSING" "optional" "install PHP locally (phpcs and Composer run on the host)"
 fi
 
 # --- cloudflared: the inbound tunnel (scripts/playground-tunnel, D-093) ----
@@ -583,8 +549,8 @@ print_plan() {
 		for c in "${MANUAL_CMDS[@]}"; do echo "  $c"; done
 	fi
 	echo
-	echo "Node.js and Docker themselves are NOT installed by this script — install"
-	echo "them yourself (see --check), or via nvm / mise / Docker Desktop / Colima."
+	echo "Node.js and Parallels themselves are NOT installed by this script — install"
+	echo "them yourself (see --check), or Node.js via nvm / mise."
 }
 
 case "$MODE" in

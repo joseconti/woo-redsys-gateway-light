@@ -3,7 +3,7 @@ const { test, expect } = require( '@playwright/test' );
 
 /**
  * Checkout smoke test: guest checkout with the Redsys (card redirection)
- * gateway, through WordPress + WooCommerce + this plugin in the wp-env
+ * gateway, through WordPress + WooCommerce + this plugin in the playground
  * playground (docs/playground.md).
  *
  * Scope: proves the classic (shortcode) checkout → gateway selection →

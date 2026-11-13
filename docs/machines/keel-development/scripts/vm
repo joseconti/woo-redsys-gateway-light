@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec ssh -i "$HOME/.ssh/keel_development" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR keel@10.211.55.9 "$@"

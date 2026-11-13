@@ -120,8 +120,18 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 
 			$logo_url = $this->get_option( 'logo' );
 			if ( ! empty( $logo_url ) ) {
+				/**
+				 * Filters the checkout icon URL of Inespay.
+				 *
+				 * @param string $icon_url URL of the icon: the logo set in the settings, or the bundled one.
+				 */
 				$this->icon = apply_filters( 'woocommerce_' . $this->id . '_icon', $logo_url );
 			} else {
+				/**
+				 * Filters the checkout icon URL of Inespay.
+				 *
+				 * @param string $icon_url URL of the icon: the logo set in the settings, or the bundled one.
+				 */
 				$this->icon = apply_filters( 'woocommerce_' . $this->id . '_icon', REDSYS_PLUGIN_URL . 'assets/images/inespay.svg' );
 			}
 			// WooCommerce prints the icon inside an image tag without escaping it.
@@ -696,9 +706,16 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 				}
 
 				// Store payment meta.
-				WCRedL()->update_order_meta( $order->get_id(), array( '_payment_method' => $this->id ) );
+				// The order's own setter: `_payment_method` is WooCommerce internal meta (L-004).
+				$order->set_payment_method( $this->id );
+				$order->save();
 				WCRedL()->update_order_meta( $order->get_id(), array( '_redsys_done' => 'yes' ) );
 
+				/**
+				 * Fires after an Inespay payment is confirmed by a verified callback and the order is completed.
+				 *
+				 * @param int $order_id Order ID.
+				 */
 				do_action( 'inespay_post_payment_complete', $order->get_id() );
 			} else {
 				$order->add_order_note(

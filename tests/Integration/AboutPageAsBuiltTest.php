@@ -8,7 +8,7 @@
  * The page in a real browser session, and the refusal a user without
  * `manage_options` gets, are driven in tests/e2e/as-built-screens.spec.js.
  *
- * Runs only inside wp-env's tests-cli container — see
+ * Runs only on a playground site (scripts/keel-site test integration) — see
  * tests/bootstrap-integration.php.
  *
  * @package WooCommerce Redsys Gateway Light

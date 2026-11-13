@@ -5,7 +5,7 @@
  * settings, signing secrets included, the payment tokens and the order
  * data stay, so a reinstall needs no bank data. Slice S-081.
  *
- * Runs only inside wp-env's tests-cli container — see
+ * Runs only on a playground site (scripts/keel-site test integration) — see
  * tests/bootstrap-integration.php.
  *
  * @package WooCommerce Redsys Gateway Light

@@ -11,7 +11,7 @@
  * string, which raises an "Array to string conversion" warning. Slice S-072;
  * the sibling of S-064.
  *
- * Runs only inside wp-env's tests-cli container — see
+ * Runs only on a playground site (scripts/keel-site test integration) — see
  * tests/bootstrap-integration.php.
  *
  * @package WooCommerce Redsys Gateway Light

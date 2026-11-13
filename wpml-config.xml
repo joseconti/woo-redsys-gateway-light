@@ -4,7 +4,15 @@
 			<key name="title" />
 			<key name="description" />
 		</key>
-		<key name="woocommerce_iupay_settings">
+		<key name="woocommerce_bizumredsys_settings">
+			<key name="title" />
+			<key name="description" />
+		</key>
+		<key name="woocommerce_googlepayredirecredsys_settings">
+			<key name="title" />
+			<key name="description" />
+		</key>
+		<key name="woocommerce_inespayredsys_settings">
 			<key name="title" />
 			<key name="description" />
 		</key>

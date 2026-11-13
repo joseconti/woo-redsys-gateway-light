@@ -59,7 +59,6 @@ cd "$ROOT" || exit 2
 
 INTEGRATION_BRANCH="develop"
 PLUGIN_DIR=$(basename "$ROOT")
-E2E_PORT="8888"
 NL='
 '
 
@@ -137,9 +136,9 @@ tests/bootstrap-integration.php | test bootstrap
 webpack.config.js | build configuration
 bin/* | build script
 phpcs.xml | build configuration
-.wp-env.json | playground configuration
-.wp-env.override.json | playground configuration
 .wp-env-mu-plugins/* | playground configuration (mu-plugin loaded on every playground request)
+scripts/keel-site | playground configuration
+scripts/playground-setup | playground configuration (the seed every spec relies on)
 .github/workflows/* | CI configuration
 scripts/keel-affected-tests | the selector itself
 EOF
@@ -637,9 +636,9 @@ if [ -z "$SELECTED" ]; then
 	fi
 else
 	echo "selected:"
-	print_group "unit (PHPUnit, wp-env cli)" "$SEL_UNIT"
-	print_group "integration (PHPUnit, wp-env tests-cli)" "$SEL_INTEGRATION"
-	print_group "e2e (Playwright, headless Chromium against wp-env)" "$SEL_E2E"
+	print_group "unit (PHPUnit, keel-site test unit)" "$SEL_UNIT"
+	print_group "integration (PHPUnit, keel-site test integration)" "$SEL_INTEGRATION"
+	print_group "e2e (Playwright, headless Chromium against the keel-development site)" "$SEL_E2E"
 	if [ -n "$GAPS" ]; then
 		echo "coverage gaps (reported, not passed over):"
 		printf '%s\n' "$GAPS" | sed 's/^/  /'
@@ -698,54 +697,34 @@ else
 	done
 fi
 
-# The running container that bind-mounts THIS repository. Another project's
-# wp-env on the same machine is not this project's environment.
-WPENV_UP=0
-WPENV_PORT_OK=0
-DOCKER_STATE="ok"
-if ! command -v docker >/dev/null 2>&1; then
-	DOCKER_STATE="absent"
-elif ! docker info >/dev/null 2>&1; then
-	DOCKER_STATE="down"
-else
-	for cid in $(docker ps -q 2>/dev/null); do
-		info=$(docker inspect --format '{{range .Mounts}}{{.Source}}{{"\n"}}{{end}}PORTS {{range $p, $b := .NetworkSettings.Ports}}{{range $b}}{{.HostPort}} {{end}}{{end}}' "$cid" 2>/dev/null)
-		case "$NL$info" in
-			*"$NL$ROOT$NL"*|*"$NL/host_mnt$ROOT$NL"*)
-				WPENV_UP=1
-				case "$info" in *"PORTS "*"$E2E_PORT "*) WPENV_PORT_OK=1 ;; esac
-				;;
-		esac
-	done
+# The playground is this project's site on the shared Parallels VM (D-114);
+# KEEL_SITE picks it (wrgl = floor, the default). `keel-site doctor` checks
+# the VM, both sites, the plugin mount and that the premium plugin is absent.
+SITE_STATE="ok"
+if ! command -v prlctl >/dev/null 2>&1; then
+	SITE_STATE="absent"
+elif ! scripts/keel-site doctor >/dev/null 2>&1; then
+	SITE_STATE="down"
 fi
 
 MISSING=""
 NEED_PHP=0
 [ -n "$SEL_UNIT$SEL_INTEGRATION" ] && NEED_PHP=1
 
-if [ "$DOCKER_STATE" = "absent" ]; then
-	add MISSING "Docker is not installed — the wp-env playground needs it (scripts/keel-doctor --check)"
-elif [ "$DOCKER_STATE" = "down" ]; then
-	add MISSING "the Docker daemon is not responding — start it (Docker Desktop, or 'colima start'), then: npx wp-env start"
+if [ "$SITE_STATE" = "absent" ]; then
+	add MISSING "Parallels (prlctl) is not available — the playground lives on the shared VM keel-development (docs/playground.md)"
+elif [ "$SITE_STATE" = "down" ]; then
+	add MISSING "the playground site is not healthy — see: scripts/keel-site doctor (start the VM with: scripts/keel-site start)"
 fi
 if [ -z "$NODE_DIR" ]; then
 	add MISSING "Node.js was not found on PATH nor under ~/.nvm, mise, volta or Homebrew — install it (scripts/keel-doctor --check)"
 fi
-if [ ! -x node_modules/.bin/wp-env ]; then
-	add MISSING "wp-env is not installed in node_modules — run: npm install"
-fi
-if [ "$DOCKER_STATE" = "ok" ] && [ "$WPENV_UP" -eq 0 ]; then
-	add MISSING "the wp-env playground of THIS repository is not running (no running container mounts $ROOT) — start it with: npx wp-env start"
-fi
 if [ "$NEED_PHP" -eq 1 ] && [ ! -f vendor/bin/phpunit ]; then
-	add MISSING "PHPUnit is not installed in vendor/ — with wp-env running: npx wp-env run cli bash -c \"cd wp-content/plugins/$PLUGIN_DIR && composer install\""
+	add MISSING "PHPUnit is not installed in vendor/ — run composer install on the host (the VM reads vendor/ through the share)"
 fi
 if [ -n "$SEL_E2E" ]; then
 	if [ ! -x node_modules/.bin/playwright ]; then
 		add MISSING "Playwright is not installed in node_modules — run: npm install && npx playwright install chromium"
-	fi
-	if [ "$WPENV_UP" -eq 1 ] && [ "$WPENV_PORT_OK" -eq 0 ]; then
-		add MISSING "this repository's wp-env is not the one published on localhost:$E2E_PORT (playwright.config.js baseURL) — stop the other environment and run: npx wp-env start"
 	fi
 fi
 
@@ -763,23 +742,15 @@ run_node() {
 	PATH="$NODE_DIR:$PATH" "node_modules/.bin/$bin" "$@" </dev/null
 }
 
-# run_phpunit <wp-env container> <phpunit args> <selected files> <all files of the suite>
+# run_phpunit <suite> <selected files> <all files of the suite>
 run_phpunit() {
-	local container="$1" args="$2" files="$3" suite_all="$4" inner f
-	inner="cd wp-content/plugins/$PLUGIN_DIR && "
+	local suite="$1" files="$2" suite_all="$3"
 	if [ "$files" = "$suite_all" ]; then
-		inner="${inner}vendor/bin/phpunit $args"
+		scripts/keel-site test "$suite"
 	else
-		inner="${inner}rc=0;"
-		while IFS= read -r f; do
-			inner="$inner vendor/bin/phpunit $args $f || rc=1;"
-		done <<EOF
-$files
-EOF
-		inner="$inner exit \$rc"
+		# shellcheck disable=SC2086
+		scripts/keel-site test "$suite" $files
 	fi
-	echo "\$ npx wp-env run $container bash -c \"$inner\""
-	run_node wp-env run "$container" bash -c "$inner"
 }
 
 suite_files() {
@@ -789,11 +760,11 @@ suite_files() {
 
 if [ -n "$SEL_UNIT" ]; then
 	echo "== unit =="
-	run_phpunit cli "" "$SEL_UNIT" "$(suite_files 'tests/Unit/*Test.php')" || RESULT=1
+	run_phpunit unit "$SEL_UNIT" "$(suite_files 'tests/Unit/*Test.php')" || RESULT=1
 fi
 if [ -n "$SEL_INTEGRATION" ]; then
 	echo "== integration =="
-	run_phpunit tests-cli "-c phpunit-integration.xml.dist" "$SEL_INTEGRATION" "$(suite_files 'tests/Integration/*Test.php')" || RESULT=1
+	run_phpunit integration "$SEL_INTEGRATION" "$(suite_files 'tests/Integration/*Test.php')" || RESULT=1
 fi
 if [ -n "$SEL_E2E" ]; then
 	echo "== e2e =="

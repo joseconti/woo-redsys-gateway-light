@@ -5,7 +5,7 @@
  * Unlike tests/bootstrap.php (true unit tests, no WordPress), this suite
  * exercises code that genuinely depends on WordPress/WooCommerce being
  * loaded — e.g. WC_Gateway_redsys, which extends WC_Payment_Gateway. It
- * runs only inside the wp-env `tests-cli` container, which already provides
+ * runs only on a playground site through `scripts/keel-site test integration`, which provides
  * the WordPress core PHPUnit test scaffold at WP_TESTS_DIR (see
  * docs/playground.md).
  *
@@ -18,7 +18,7 @@ if ( ! $_tests_dir ) {
 }
 
 if ( ! file_exists( "{$_tests_dir}/includes/functions.php" ) ) {
-	fwrite( STDERR, "Could not find {$_tests_dir}/includes/functions.php — this suite must run inside wp-env's tests-cli container (WP_TESTS_DIR is set there). See docs/03-technical-plan.md.\n" );
+	fwrite( STDERR, "Could not find {$_tests_dir}/includes/functions.php — this suite must run on a playground site: scripts/keel-site test integration (it sets WP_TESTS_DIR). See docs/03-technical-plan.md.\n" );
 	exit( 1 );
 }
 
