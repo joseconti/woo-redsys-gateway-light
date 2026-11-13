@@ -99,7 +99,7 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == Changelog ==
 
-== Unreleased ==
+== 7.1.0 ==
 
 * Readme: "Requires at least" now says WordPress 5.9, the minimum of the WooCommerce version this plugin requires (it said 4.0).
 * Fix: When the same Redsys return reached the order-received page in parallel requests, each could wait and complete the order; now only one does.
@@ -111,9 +111,6 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 * Fix: With debug enabled, a refund of an order without its Redsys order number now writes "Refund Failed: No transaction ID" to the log instead of a PHP warning.
 * Fix: With PHP 8, reading the gateway settings no longer stops with a fatal error when the stored settings are damaged (not a list of values).
 * Fix: With WPML, the title and description of Bizum, Google Pay and Inespay can now be translated, as the card gateway's already could.
-
-== 7.1.0 ==
-
 * Tweak: Tested up to WordPress 7.1 and WooCommerce 11.2 (checked on PHP 8.4).
 * Fix: In the Blocks checkout, Inespay was shown to customers outside Spain, Portugal and Italy (on older WooCommerce versions, with a generic label and no icon). It is now offered only for an address in those countries, as in the classic checkout.
 * Fix: In the Blocks checkout, the Spanish translation of the payment methods' script was never loaded (it showed "Inespay Bank Transfer" untranslated when no title was set).
