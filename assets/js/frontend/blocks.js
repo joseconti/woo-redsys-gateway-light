@@ -1,1 +1,221 @@
-(()=>{"use strict";var e={20(e,t,s){var r=s(609),n=Symbol.for("react.element"),i=(Symbol.for("react.fragment"),Object.prototype.hasOwnProperty),a=r.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED.ReactCurrentOwner,o={key:!0,ref:!0,__self:!0,__source:!0};function d(e,t,s){var r,d={},l=null,c=null;for(r in void 0!==s&&(l=""+s),void 0!==t.key&&(l=""+t.key),void 0!==t.ref&&(c=t.ref),t)i.call(t,r)&&!o.hasOwnProperty(r)&&(d[r]=t[r]);if(e&&e.defaultProps)for(r in t=e.defaultProps)void 0===d[r]&&(d[r]=t[r]);return{$$typeof:n,type:e,key:l,ref:c,props:d,_owner:a.current}}t.jsx=d,t.jsxs=d},848(e,t,s){e.exports=s(20)},609(e){e.exports=window.React}},t={};const s=window.wp.i18n,r=window.wc.wcBlocksRegistry,n=window.wp.htmlEntities,i=window.wc.wcSettings;var a=function s(r){var n=t[r];if(void 0!==n)return n.exports;var i=t[r]={exports:{}};return e[r](i,i.exports,s),i.exports}(848);const o=(0,i.getSetting)("redsys_data",{}),d=(0,i.getSetting)("bizumredsys_data",{}),l=(0,i.getSetting)("googlepayredirecredsys_data",{}),c=(0,i.getSetting)("inespayredsys_data",{}),p=(0,s.__)("Redsys","woo-redsys-gateway-light"),y=(0,s.__)("Bizum","woo-redsys-gateway-light"),x=(0,s.__)("Google Pay","woo-redsys-gateway-light"),g=(0,s.__)("Inespay Bank Transfer","woo-redsys-gateway-light"),m=(0,n.decodeEntities)(o.title)||p,u=(0,n.decodeEntities)(d.title)||y,f=(0,n.decodeEntities)(l.title)||x,w=(0,n.decodeEntities)(c.title)||g,_=()=>(0,n.decodeEntities)(o.description||""),j=()=>(0,n.decodeEntities)(d.description||""),h=()=>(0,n.decodeEntities)(l.description||""),b=()=>(0,n.decodeEntities)(c.description||""),P=e=>{const{PaymentMethodLabel:t}=e.components,s=o.icon;return(0,a.jsxs)("div",{style:{display:"flex",alignItems:"center"},children:[(0,a.jsx)(t,{text:m}),s&&(0,a.jsx)("img",{src:s,alt:m,style:{marginLeft:"8px",maxHeight:"24px"}})]})},v=e=>{const{PaymentMethodLabel:t}=e.components,s=d.icon;return(0,a.jsxs)("div",{style:{display:"flex",alignItems:"center"},children:[(0,a.jsx)(t,{text:u}),s&&(0,a.jsx)("img",{src:s,alt:u,style:{marginLeft:"8px",maxHeight:"24px"}})]})},E=e=>{const{PaymentMethodLabel:t}=e.components,s=l.icon;return(0,a.jsxs)("div",{style:{display:"flex",alignItems:"center"},children:[(0,a.jsx)(t,{text:f}),s&&(0,a.jsx)("img",{src:s,alt:f,style:{marginLeft:"8px",maxHeight:"24px"}})]})},L=e=>{const{PaymentMethodLabel:t}=e.components,s=c.icon;return(0,a.jsxs)("div",{style:{display:"flex",alignItems:"center"},children:[(0,a.jsx)(t,{text:w}),s&&(0,a.jsx)("img",{src:s,alt:w,style:{marginLeft:"8px",maxHeight:"24px"}})]})},M={name:"redsys",label:(0,a.jsx)(P,{}),content:(0,a.jsx)(_,{}),edit:(0,a.jsx)(_,{}),canMakePayment:()=>!0,ariaLabel:m,supports:{features:o.supports}},k={name:"bizumredsys",label:(0,a.jsx)(v,{}),content:(0,a.jsx)(j,{}),edit:(0,a.jsx)(j,{}),canMakePayment:()=>!0,ariaLabel:u,supports:{features:d.supports}},S={name:"googlepayredirecredsys",label:(0,a.jsx)(E,{}),content:(0,a.jsx)(h,{}),edit:(0,a.jsx)(h,{}),canMakePayment:()=>!0,ariaLabel:f,supports:{features:l.supports}},I={name:"inespayredsys",label:(0,a.jsx)(L,{}),content:(0,a.jsx)(b,{}),edit:(0,a.jsx)(b,{}),canMakePayment:()=>!0,ariaLabel:w,supports:{features:c.supports}};(0,r.registerPaymentMethod)(M),(0,r.registerPaymentMethod)(k),(0,r.registerPaymentMethod)(S),(0,r.registerPaymentMethod)(I)})();
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+
+;// external ["wp","element"]
+const external_wp_element_namespaceObject = window["wp"]["element"];
+;// external ["wp","i18n"]
+const external_wp_i18n_namespaceObject = window["wp"]["i18n"];
+;// external ["wc","wcBlocksRegistry"]
+const external_wc_wcBlocksRegistry_namespaceObject = window["wc"]["wcBlocksRegistry"];
+;// external ["wp","htmlEntities"]
+const external_wp_htmlEntities_namespaceObject = window["wp"]["htmlEntities"];
+;// external ["wc","wcSettings"]
+const external_wc_wcSettings_namespaceObject = window["wc"]["wcSettings"];
+;// ./resources/js/frontend/index.js
+/**
+ * JSX is compiled to createElement() from @wordpress/element on purpose.
+ *
+ * The build tools' default (the automatic JSX runtime) makes the script
+ * depend on the `react-jsx-runtime` handle, which WordPress only registers
+ * from 6.6 on: on an older WordPress the script would not load and the
+ * gateways would vanish from the Blocks checkout. `wp-element` exists on
+ * every WordPress that has blocks and uses the site's own React.
+ *
+ * @jsxRuntime classic
+ * @jsx createElement
+ */
+
+
+
+
+
+const settings = (0,external_wc_wcSettings_namespaceObject.getSetting)('redsys_data', {});
+const settingsbizumredsys = (0,external_wc_wcSettings_namespaceObject.getSetting)('bizumredsys_data', {});
+const settingsgpayredsys = (0,external_wc_wcSettings_namespaceObject.getSetting)('googlepayredirecredsys_data', {});
+const settingsinespayredsys = (0,external_wc_wcSettings_namespaceObject.getSetting)('inespayredsys_data', {});
+const defaultLabel = (0,external_wp_i18n_namespaceObject.__)('Redsys', 'woo-redsys-gateway-light');
+const defaultLabelBizum = (0,external_wp_i18n_namespaceObject.__)('Bizum', 'woo-redsys-gateway-light');
+const defaultLabelGpayRed = (0,external_wp_i18n_namespaceObject.__)('Google Pay', 'woo-redsys-gateway-light');
+const defaultLabelInespay = (0,external_wp_i18n_namespaceObject.__)('Inespay Bank Transfer', 'woo-redsys-gateway-light');
+const label = (0,external_wp_htmlEntities_namespaceObject.decodeEntities)(settings.title) || defaultLabel;
+const labelbizum = (0,external_wp_htmlEntities_namespaceObject.decodeEntities)(settingsbizumredsys.title) || defaultLabelBizum;
+const labelgpayred = (0,external_wp_htmlEntities_namespaceObject.decodeEntities)(settingsgpayredsys.title) || defaultLabelGpayRed;
+const labelinespay = (0,external_wp_htmlEntities_namespaceObject.decodeEntities)(settingsinespayredsys.title) || defaultLabelInespay;
+/**
+ * Content component
+ */
+const Content = () => {
+  return (0,external_wp_htmlEntities_namespaceObject.decodeEntities)(settings.description || '');
+};
+const Contentbizum = () => {
+  return (0,external_wp_htmlEntities_namespaceObject.decodeEntities)(settingsbizumredsys.description || '');
+};
+const Contengpayred = () => {
+  return (0,external_wp_htmlEntities_namespaceObject.decodeEntities)(settingsgpayredsys.description || '');
+};
+const Contentinespay = () => {
+  return (0,external_wp_htmlEntities_namespaceObject.decodeEntities)(settingsinespayredsys.description || '');
+};
+/**
+ * Label component
+ *
+ * @param {*} props Props from payment API.
+ */
+const Label = props => {
+  const {
+    PaymentMethodLabel
+  } = props.components;
+  const icon = settings.icon;
+  return (0,external_wp_element_namespaceObject.createElement)("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center'
+    }
+  }, (0,external_wp_element_namespaceObject.createElement)(PaymentMethodLabel, {
+    text: label
+  }), icon && (0,external_wp_element_namespaceObject.createElement)("img", {
+    src: icon,
+    alt: label,
+    style: {
+      marginLeft: '8px',
+      maxHeight: '24px'
+    }
+  }));
+};
+const Labelbizum = props => {
+  const {
+    PaymentMethodLabel
+  } = props.components;
+  const icon = settingsbizumredsys.icon;
+  return (0,external_wp_element_namespaceObject.createElement)("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center'
+    }
+  }, (0,external_wp_element_namespaceObject.createElement)(PaymentMethodLabel, {
+    text: labelbizum
+  }), icon && (0,external_wp_element_namespaceObject.createElement)("img", {
+    src: icon,
+    alt: labelbizum,
+    style: {
+      marginLeft: '8px',
+      maxHeight: '24px'
+    }
+  }));
+};
+const Labelgpayred = props => {
+  const {
+    PaymentMethodLabel
+  } = props.components;
+  const icon = settingsgpayredsys.icon;
+  return (0,external_wp_element_namespaceObject.createElement)("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center'
+    }
+  }, (0,external_wp_element_namespaceObject.createElement)(PaymentMethodLabel, {
+    text: labelgpayred
+  }), icon && (0,external_wp_element_namespaceObject.createElement)("img", {
+    src: icon,
+    alt: labelgpayred,
+    style: {
+      marginLeft: '8px',
+      maxHeight: '24px'
+    }
+  }));
+};
+const Labelinespay = props => {
+  const {
+    PaymentMethodLabel
+  } = props.components;
+  const icon = settingsinespayredsys.icon;
+  return (0,external_wp_element_namespaceObject.createElement)("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center'
+    }
+  }, (0,external_wp_element_namespaceObject.createElement)(PaymentMethodLabel, {
+    text: labelinespay
+  }), icon && (0,external_wp_element_namespaceObject.createElement)("img", {
+    src: icon,
+    alt: labelinespay,
+    style: {
+      marginLeft: '8px',
+      maxHeight: '24px'
+    }
+  }));
+};
+
+/**
+ * Dummy payment method config object.
+ */
+const Redsys = {
+  name: "redsys",
+  label: (0,external_wp_element_namespaceObject.createElement)(Label, null),
+  content: (0,external_wp_element_namespaceObject.createElement)(Content, null),
+  edit: (0,external_wp_element_namespaceObject.createElement)(Content, null),
+  canMakePayment: () => true,
+  ariaLabel: label,
+  supports: {
+    features: settings.supports
+  }
+};
+const Bizum = {
+  name: "bizumredsys",
+  label: (0,external_wp_element_namespaceObject.createElement)(Labelbizum, null),
+  content: (0,external_wp_element_namespaceObject.createElement)(Contentbizum, null),
+  edit: (0,external_wp_element_namespaceObject.createElement)(Contentbizum, null),
+  canMakePayment: () => true,
+  ariaLabel: labelbizum,
+  supports: {
+    features: settingsbizumredsys.supports
+  }
+};
+const GPayRed = {
+  name: "googlepayredirecredsys",
+  label: (0,external_wp_element_namespaceObject.createElement)(Labelgpayred, null),
+  content: (0,external_wp_element_namespaceObject.createElement)(Contengpayred, null),
+  edit: (0,external_wp_element_namespaceObject.createElement)(Contengpayred, null),
+  canMakePayment: () => true,
+  ariaLabel: labelgpayred,
+  supports: {
+    features: settingsgpayredsys.supports
+  }
+};
+/**
+ * Inespay serves only the countries the plugin hands over (S-066): the
+ * shipping country when there is one, else the billing country, the same
+ * order the classic checkout uses. Without that list — the plugin handed no
+ * data because the customer is elsewhere — it is not offered at all.
+ *
+ * @param {Object} cart Data the Blocks checkout passes to canMakePayment.
+ * @return {boolean} Whether Inespay can be offered for this address.
+ */
+const canPayWithInespay = cart => {
+  const countries = Array.isArray(settingsinespayredsys.countries) ? settingsinespayredsys.countries : [];
+  if (!countries.length) {
+    return false;
+  }
+  const shipping = cart && cart.shippingAddress && cart.shippingAddress.country || '';
+  const billing = cart && cart.billingAddress && cart.billingAddress.country || cart && cart.billingData && cart.billingData.country || '';
+  const country = (shipping || billing).toUpperCase();
+  // No address typed yet: the server already decided from the session.
+  return '' === country || countries.indexOf(country) !== -1;
+};
+const Inespay = {
+  name: "inespayredsys",
+  label: (0,external_wp_element_namespaceObject.createElement)(Labelinespay, null),
+  content: (0,external_wp_element_namespaceObject.createElement)(Contentinespay, null),
+  edit: (0,external_wp_element_namespaceObject.createElement)(Contentinespay, null),
+  canMakePayment: canPayWithInespay,
+  ariaLabel: labelinespay,
+  supports: {
+    features: settingsinespayredsys.supports
+  }
+};
+(0,external_wc_wcBlocksRegistry_namespaceObject.registerPaymentMethod)(Redsys);
+(0,external_wc_wcBlocksRegistry_namespaceObject.registerPaymentMethod)(Bizum);
+(0,external_wc_wcBlocksRegistry_namespaceObject.registerPaymentMethod)(GPayRed);
+(0,external_wc_wcBlocksRegistry_namespaceObject.registerPaymentMethod)(Inespay);
+/******/ })()
+;

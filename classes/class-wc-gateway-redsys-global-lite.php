@@ -1079,16 +1079,72 @@ class WC_Gateway_Redsys_Global_Lite {
 	/**
 	 * Clean the order number.
 	 *
+	 * The "1 billion bug": for an order_id of 10+ digits, prepare_order_number()
+	 * already overwrites its high-order digits with the random prefix when
+	 * building the 12-character Ds_Order, so they are never recoverable from
+	 * the Ds_Order string itself once the mapping transient (1h TTL) has
+	 * expired — the substr()/ltrim() fallback below is lossy for those IDs.
+	 * Before falling back to it, reverse-look up the order by the Ds_Order
+	 * persisted in postmeta at payment time, which has no such loss.
+	 *
 	 * @param string $ordernumber The order number to clean.
 	 * @return string The cleaned order number.
 	 */
 	public function clean_order_number( $ordernumber ) {
-		$real_order = get_transient( 'redys_order_temp_' . $ordernumber );
+		// Callers pass what a notification carried, before its signature is
+		// verified. Anything that is not an order number names no order.
+		if ( ! is_string( $ordernumber ) && ! is_int( $ordernumber ) ) {
+			return '';
+		}
+		$ordernumber = (string) $ordernumber;
+		$real_order  = get_transient( 'redys_order_temp_' . $ordernumber );
 		if ( $real_order ) {
 			return $real_order;
-		} else {
-			return ltrim( substr( $ordernumber, 3 ), '0' );
 		}
+		$found = $this->get_order_id_by_redsys_order_number( $ordernumber );
+		if ( $found ) {
+			return (string) $found;
+		}
+		return ltrim( substr( $ordernumber, 3 ), '0' );
+	}
+	/**
+	 * Reverse-look up the real order ID from a Ds_Order value persisted in
+	 * postmeta at payment time (`_payment_order_number_redsys`).
+	 *
+	 * @since 7.1.0
+	 * @param string $ordernumber The Ds_Order value received from Redsys.
+	 * @return int|false The order ID if found, false otherwise.
+	 */
+	public function get_order_id_by_redsys_order_number( $ordernumber ) {
+		$ordernumber = (string) $ordernumber;
+		if ( '' === $ordernumber ) {
+			return false;
+		}
+		$args = array(
+			'limit'  => 1,
+			'return' => 'ids',
+			'status' => 'any',
+		);
+		// WooCommerce 9.2+ reports `meta_query` as unsupported on the legacy
+		// (posts) order storage; there the lookup goes through WP_Query's own
+		// meta_key/meta_value instead.
+		if ( class_exists( 'Automattic\\WooCommerce\\Utilities\\OrderUtil' ) && \Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled() ) {
+			$args['meta_query'] = array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+				array(
+					'key'     => '_payment_order_number_redsys',
+					'value'   => $ordernumber,
+					'compare' => '=',
+				),
+			);
+		} else {
+			$args['meta_key']   = '_payment_order_number_redsys'; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
+			$args['meta_value'] = $ordernumber; // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value
+		}
+		$orders = wc_get_orders( $args );
+		if ( ! empty( $orders ) ) {
+			return (int) $orders[0];
+		}
+		return false;
 	}
 	/**
 	 * Prepare the order number.
@@ -1097,8 +1153,15 @@ class WC_Gateway_Redsys_Global_Lite {
 	 * @return string The prepared order number.
 	 */
 	public function prepare_order_number( $order_id ) {
-		$transaction_id  = str_pad( $order_id, 12, '0', STR_PAD_LEFT );
-		$transaction_id1 = wp_rand( 1, 999 ); // lets to create a random number.
+		$transaction_id = str_pad( $order_id, 12, '0', STR_PAD_LEFT );
+		// Always exactly 3 digits: substr_replace() below always removes the
+		// first 3 characters, so a shorter replacement (wp_rand(1,999) can
+		// return 1 or 2 digits) would silently shrink the result below 12
+		// characters. clean_order_number()'s fallback (used once the
+		// order-number-mapping transient below has expired) then strips a
+		// fixed 3 characters and would eat into the real order ID, resolving
+		// to the wrong order — this keeps that invariant true.
+		$transaction_id1 = wp_rand( 100, 999 );
 		$transaction_id2 = substr_replace( $transaction_id, $transaction_id1, 0, -9 ); // new order number.
 		set_transient( 'redys_order_temp_' . $transaction_id2, $order_id, 3600 );
 		return $transaction_id2;
@@ -1146,6 +1209,31 @@ class WC_Gateway_Redsys_Global_Lite {
 			$description = __( 'Order', 'woo-redsys-gateway-light' ) . ' ' . $order->get_order_number();
 		}
 		return $description;
+	}
+	/**
+	 * The order's cancel URL, as a URL — never as HTML.
+	 *
+	 * `WC_Order::get_cancel_order_url()` returns the address already escaped
+	 * for HTML (`&amp;` for every `&`), which is right inside an `href` and
+	 * wrong in `DS_MERCHANT_URLKO`: Redsys sends the browser to it as it is,
+	 * and WooCommerce then receives parameters named `amp;order_id` and
+	 * `amp;_wpnonce`. One canonical answer for every gateway.
+	 *
+	 * @since 7.1.0
+	 * @param WC_Order|object $order Order object.
+	 * @return string Cancel URL with literal `&` separators, or '' when it cannot be built.
+	 */
+	public function get_cancel_url_raw( $order ) {
+		if ( ! is_object( $order ) ) {
+			return '';
+		}
+		if ( is_callable( array( $order, 'get_cancel_order_url_raw' ) ) ) {
+			return (string) $order->get_cancel_order_url_raw();
+		}
+		if ( is_callable( array( $order, 'get_cancel_order_url' ) ) ) {
+			return html_entity_decode( (string) $order->get_cancel_order_url(), ENT_QUOTES, 'UTF-8' );
+		}
+		return '';
 	}
 	/**
 	 * Get the PSD2 argument for the Redsys payment gateway.

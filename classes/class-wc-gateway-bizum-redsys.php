@@ -280,6 +280,9 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			 */
 			$this->icon = apply_filters( 'woocommerce_' . $this->id . '_icon', REDSYS_PLUGIN_URL . 'assets/images/bizum.png' );
 		}
+		// WooCommerce prints the icon inside an image tag without escaping it.
+		$this->icon = esc_url( $this->icon );
+
 		$this->has_fields           = false;
 		$this->liveurl              = 'https://sis.redsys.es/sis/realizarPago';
 		$this->testurl              = 'https://sis-t.redsys.es:25443/sis/realizarPago';
@@ -409,6 +412,21 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	}
 
 	/**
+	 * Validate the Logo setting: it is the URL of an image and nothing else.
+	 *
+	 * The value becomes the gateway icon, which WooCommerce prints inside an
+	 * image tag on the checkout, so anything that is not part of a URL is
+	 * dropped when the settings are saved.
+	 *
+	 * @since 7.1.0
+	 * @param string $key   Field key.
+	 * @param string $value Posted value.
+	 * @return string A clean URL, or an empty string for the default icon.
+	 */
+	public function validate_logo_field( $key, $value ) {
+		return esc_url_raw( trim( (string) wp_unslash( $value ) ) );
+	}
+	/**
 	 * Initialise Gateway Settings Form Fields
 	 *
 	 * @return void
@@ -499,13 +517,13 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			),
 			'secretsha256'     => array(
 				'title'       => __( 'Encryption secret passphrase SHA-256', 'woo-redsys-gateway-light' ),
-				'type'        => 'text',
+				'type'        => 'password',
 				'description' => __( 'Encryption secret passphrase SHA-256 provided by your bank.', 'woo-redsys-gateway-light' ),
 				'desc_tip'    => true,
 			),
 			'customtestsha256' => array(
 				'title'       => __( 'TEST MODE: Encryption secret passphrase SHA-256', 'woo-redsys-gateway-light' ),
-				'type'        => 'text',
+				'type'        => 'password',
 				'description' => __( 'Encryption secret passphrase SHA-256 provided by your bank for test mode.', 'woo-redsys-gateway-light' ),
 				'desc_tip'    => true,
 			),
@@ -625,6 +643,43 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		}
 	}
 	/**
+	 * Tell whether an amount is above this gateway's transaction limit.
+	 *
+	 * @since 7.1.0
+	 * @param float|string $total Amount to pay.
+	 * @return bool False when no limit is set.
+	 */
+	public function is_over_transaction_limit( $total ) {
+		$limit = (float) $this->transactionlimit;
+		return $limit > 0 && (float) $total > $limit;
+	}
+
+	/**
+	 * The amount the customer is about to pay with the gateway being offered.
+	 *
+	 * On the order-pay page it is the total of that order: the cart is usually
+	 * empty there. Anywhere else it is the cart total, including in a Store API
+	 * request from the Blocks checkout, which is not "the checkout page".
+	 *
+	 * @since 7.1.0
+	 * @return float|null Null when there is neither an order to pay nor a cart.
+	 */
+	private function get_amount_to_pay() {
+		global $wp;
+
+		if ( isset( $wp->query_vars['order-pay'] ) ) {
+			$order = wc_get_order( absint( $wp->query_vars['order-pay'] ) );
+			if ( $order ) {
+				return (float) $order->get_total();
+			}
+		}
+		if ( function_exists( 'WC' ) && WC()->cart ) {
+			return (float) WC()->cart->total;
+		}
+		return null;
+	}
+
+	/**
 	 * Disable bizum
 	 *
 	 * @param array $available_gateways Available gateways.
@@ -633,24 +688,21 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	 */
 	public function disable_bizum( $available_gateways ) {
 
-		if ( ! is_admin() && is_checkout() ) {
-			$total = (int) WC()->cart->total;
-			$limit = (int) $this->transactionlimit;
-			if ( ! empty( $limit ) && $limit > 0 ) {
-				$result = $limit - $total;
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', ' ' );
-					$this->log->add( 'bizumredsys', '$total: ' . $total );
-					$this->log->add( 'bizumredsys', '$limit: ' . $limit );
-					$this->log->add( 'bizumredsys', '$result: ' . $result );
-					$this->log->add( 'bizumredsys', ' ' );
-				}
-				if ( $result > 0 ) {
-					return $available_gateways;
-				} else {
-					unset( $available_gateways['bizumredsys'] );
-				}
-			}
+		if ( is_admin() ) {
+			return $available_gateways;
+		}
+		// Amounts are compared as floats: integer casts cut the cents off both
+		// values, which shrank a limit like 200.50 to 200. A total equal to
+		// the limit is still within it.
+		$total = $this->get_amount_to_pay();
+		if ( 'yes' === $this->debug ) {
+			$this->log->add( 'bizumredsys', ' ' );
+			$this->log->add( 'bizumredsys', '$total: ' . $total );
+			$this->log->add( 'bizumredsys', '$limit: ' . (float) $this->transactionlimit );
+			$this->log->add( 'bizumredsys', ' ' );
+		}
+		if ( null !== $total && $this->is_over_transaction_limit( $total ) ) {
+			unset( $available_gateways['bizumredsys'] );
 		}
 		return $available_gateways;
 	}
@@ -799,7 +851,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		} else {
 			$gatewaylanguage = '001';
 		}
-		$returnfromredsys   = $order->get_cancel_order_url();
+		$returnfromredsys   = WCRedL()->get_cancel_url_raw( $order );
 		$dsmerchantterminal = $this->terminal;
 		if ( 'yes' === $this->not_use_https ) {
 				$final_notify_url = $this->notify_url_not_https;
@@ -890,7 +942,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			'woocommerce',
 			'jQuery( function( $ ) {
 		$("body").block({
-			message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', WC()->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . __( 'Thank you for your order. We are now redirecting you to Bizum to make the payment.', 'woo-redsys-gateway-light' ) . '",
+			message: "<img src=\"' . esc_url( apply_filters( 'woocommerce_ajax_loader_url', WC()->plugin_url() . '/assets/images/select2-spinner.gif' ) ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . esc_js( esc_html__( 'Thank you for your order. We are now redirecting you to Bizum to make the payment.', 'woo-redsys-gateway-light' ) ) . '\",
 			overlayCSS:
 			{
 				background: "#fff",
@@ -911,7 +963,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		);
 		return '<form action="' . esc_url( $redsys_adr ) . '" method="post" id="redsys_payment_form" target="_top">
 		' . implode( '', $form_inputs ) . '
-		<input type="submit" class="button-alt" id="submit_redsys_payment_form" value="' . __( 'Pay with Bizum', 'woo-redsys-gateway-light' ) . '" /> <a class="button cancel" href="' . esc_url( $order->get_cancel_order_url() ) . '">' . __( 'Cancel order &amp; restore cart', 'woo-redsys-gateway-light' ) . '</a>
+		<input type="submit" class="button-alt" id="submit_redsys_payment_form" value=\"' . esc_attr__( 'Pay with Bizum', 'woo-redsys-gateway-light' ) . '\" /> <a class="button cancel" href="' . esc_url( $order->get_cancel_order_url() ) . '">' . esc_html__( 'Cancel order &amp; restore cart', 'woo-redsys-gateway-light' ) . '</a>
 		</form>';
 	}
 	/**
@@ -922,6 +974,17 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	 */
 	public function process_payment( $order_id ) {
 		$order = WCRedL()->get_order( $order_id );
+
+		// The limit is checked here too: the list of offered gateways is not the
+		// only way to reach this method (order-pay page, Blocks checkout).
+		if ( $this->is_over_transaction_limit( $order->get_total() ) ) {
+			wc_add_notice( __( 'The order total is above the maximum amount this payment method accepts. Please choose another payment method.', 'woo-redsys-gateway-light' ), 'error' );
+			return array(
+				'result'   => 'failure',
+				'redirect' => wc_get_checkout_url(),
+			);
+		}
+
 		return array(
 			'result'   => 'success',
 			'redirect' => $order->get_checkout_payment_url( true ),
@@ -955,6 +1018,13 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				'href'  => array(),
 			),
 		);
+		// This page can be opened without process_payment(): the order-pay address
+		// of a pending Bizum order renders it directly. The limit holds here too.
+		$order_to_pay = wc_get_order( $order );
+		if ( $order_to_pay && $this->is_over_transaction_limit( $order_to_pay->get_total() ) ) {
+			echo '<p>' . esc_html__( 'The order total is above the maximum amount this payment method accepts. Please choose another payment method.', 'woo-redsys-gateway-light' ) . '</p>';
+			return;
+		}
 		echo '<p>' . esc_html__( 'Thank you for your order, please click the button below to pay with Bizum.', 'woo-redsys-gateway-light' ) . '</p>';
 		echo wp_kses( $this->generate_redsys_form( $order ), $allowed_html );
 	}
@@ -965,6 +1035,57 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 	/**
 	 * Copyright: (C) 2013 - 2021 José Conti
 	 */
+	/**
+	 * Resolve the SHA-256 secret to verify an already-decoded notification
+	 * against: an order-level override (a short-lived transient set at
+	 * checkout, or the persisted order meta) takes precedence over the
+	 * gateway's own settings-based secret. $mi_obj must already have had
+	 * decode_merchant_parameters() called on it, so Ds_Order is available.
+	 *
+	 * check_ipn_request_is_valid() and successful_request() both call this
+	 * SAME method rather than each re-implementing the resolution — a past
+	 * bug had successful_request() using only the live-mode settings secret,
+	 * ignoring test mode and per-order overrides (see docs/lessons-learned.md).
+	 *
+	 * @since 7.1.0
+	 * @param RedsysLiteAPI $mi_obj Notification data, already decoded.
+	 * @return string
+	 */
+	private function resolve_notification_secret( $mi_obj ) {
+		// The payload is the caller's until its signature is verified: an order
+		// number that is not a string names no order.
+		$order_id          = $mi_obj->get_parameter( 'Ds_Order' );
+		$order_id          = is_string( $order_id ) ? $order_id : '';
+		$secretsha256      = get_transient( 'redsys_signature_' . sanitize_title( $order_id ) );
+		$order2            = WCRedL()->clean_order_number( $order_id );
+		$secretsha256_meta = WCRedL()->get_order_meta( $order2, '_redsys_secretsha256', true );
+
+		// WCRedL()->get_order() does `new WC_Order( $order_id )`, which throws
+		// on an invalid/nonexistent ID — reachable here from an unauthenticated
+		// caller's Ds_Order value, before any signature has been verified.
+		// Fall back to the guest/no-user secret rather than letting that
+		// exception surface as an uncaught 500.
+		try {
+			$order   = WCRedL()->get_order( $order2 );
+			$user_id = $order->get_user_id();
+		} catch ( Exception $e ) {
+			$user_id = 0;
+		}
+		$usesecretsha256 = $this->get_redsys_sha256( $user_id );
+
+		if ( $secretsha256_meta ) {
+			$usesecretsha256 = $secretsha256_meta;
+		} elseif ( ! empty( $secretsha256 ) ) {
+			$usesecretsha256 = $secretsha256;
+		}
+
+		if ( 'yes' === $this->debug ) {
+			$this->log->add( 'bizumredsys', 'resolve_notification_secret: order=' . $order_id . ' source=' . ( $secretsha256_meta ? 'meta' : ( $secretsha256 ? 'transient' : 'settings' ) ) );
+		}
+
+		return $usesecretsha256;
+	}
+
 	public function check_ipn_request_is_valid() {
 
 		if ( 'yes' === $this->debug ) {
@@ -981,6 +1102,9 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			$usesecretsha256 = $this->secretsha256;
 		}
 		if ( $usesecretsha256 ) {
+			// Both are used below whatever the request carries.
+			$data        = '';
+			$remote_sign = '';
 			if ( isset( $_POST['Ds_SignatureVersion'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
 				$version = sanitize_text_field( wp_unslash( $_POST['Ds_SignatureVersion'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing
 				// Sanitize and process the data.
@@ -995,55 +1119,18 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				}
 				// Sanitize and process the data.
 			}
-			$mi_obj            = new RedsysLiteAPI();
-			$decodec           = $mi_obj->decode_merchant_parameters( $data );
-			$order_id          = $mi_obj->get_parameter( 'Ds_Order' );
-			$secretsha256      = get_transient( 'redsys_signature_' . sanitize_title( $order_id ) );
-			$order1            = $order_id;
-			$order2            = WCRedL()->clean_order_number( $order1 );
-			$secretsha256_meta = WCRedL()->get_order_meta( $order2, '_redsys_secretsha256', true );
+			$mi_obj          = new RedsysLiteAPI();
+			$decodec         = $mi_obj->decode_merchant_parameters( $data );
+			$order_id        = $mi_obj->get_parameter( 'Ds_Order' );
+			$order_id        = is_string( $order_id ) ? $order_id : '';
+			$usesecretsha256 = $this->resolve_notification_secret( $mi_obj );
 
 			if ( 'yes' === $this->debug ) {
-				$this->log->add( 'bizumredsys', ' ' );
 				$this->log->add( 'bizumredsys', 'Signature from Redsys: ' . $remote_sign );
-				$this->log->add( 'bizumredsys', 'Name transient remote: redsys_signature_' . sanitize_title( $order_id ) );
-				$this->log->add( 'bizumredsys', 'Secret SHA256 transcient: ' . $secretsha256 );
-				$this->log->add( 'bizumredsys', ' ' );
 			}
 
-			if ( 'yes' === $this->debug ) {
-				$order_id = $mi_obj->get_parameter( 'Ds_Order' );
-				$this->log->add( 'bizumredsys', 'Order ID: ' . $order_id );
-			}
-			$order           = WCRedL()->get_order( $order2 );
-			$user_id         = $order->get_user_id();
-			$usesecretsha256 = $this->get_redsys_sha256( $user_id );
-			if ( empty( $secretsha256 ) && ! $secretsha256_meta ) {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', ' ' );
-					$this->log->add( 'bizumredsys', 'Using $usesecretsha256 Settings' );
-					$this->log->add( 'bizumredsys', 'Secret SHA256 Settings: ' . $usesecretsha256 );
-					$this->log->add( 'bizumredsys', ' ' );
-				}
-			} elseif ( $secretsha256_meta ) {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', ' ' );
-					$this->log->add( 'bizumredsys', 'Using $secretsha256_meta Meta' );
-					$this->log->add( 'bizumredsys', 'Secret SHA256 Meta: ' . $secretsha256_meta );
-					$this->log->add( 'bizumredsys', ' ' );
-				}
-				$usesecretsha256 = $secretsha256_meta;
-			} else {
-				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', ' ' );
-					$this->log->add( 'bizumredsys', 'Using $secretsha256 Transcient' );
-					$this->log->add( 'bizumredsys', 'Secret SHA256 Transcient: ' . $secretsha256 );
-					$this->log->add( 'bizumredsys', ' ' );
-				}
-				$usesecretsha256 = $secretsha256;
-			}
 			$localsecret = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
-			if ( $localsecret === $remote_sign ) {
+			if ( hash_equals( $localsecret, $remote_sign ) ) {
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', 'Received valid notification from Servired/RedSys' );
 					$this->log->add( 'bizumredsys', $data );
@@ -1092,6 +1179,42 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		}
 	}
 	/**
+	 * Tell whether a return or notification carries a signature made with this gateway's secret.
+	 *
+	 * Verifies and nothing else: no order is changed and nothing waits. The
+	 * order-received fallback asks this before it spends its five-second wait
+	 * on a request (redsyslite_mark_order_as_paid()). successful_request()
+	 * still verifies on its own.
+	 *
+	 * @since 7.1.0
+	 * @param array $params Ds_MerchantParameters and Ds_Signature, as received.
+	 * @return bool
+	 */
+	public function is_valid_return( $params ) {
+		if ( ! is_array( $params ) || empty( $params['Ds_MerchantParameters'] ) || empty( $params['Ds_Signature'] ) ) {
+			return false;
+		}
+		if ( 'yes' === $this->testmode ) {
+			$usesecretsha256 = ! empty( $this->customtestsha256 ) ? $this->customtestsha256 : $this->secretsha256;
+		} else {
+			$usesecretsha256 = $this->secretsha256;
+		}
+		// Fail closed: without a secret there is nothing to verify against.
+		if ( empty( $usesecretsha256 ) ) {
+			return false;
+		}
+		$data        = RedsysLiteAPI::sanitize_merchant_parameters( wp_unslash( $params['Ds_MerchantParameters'] ) );
+		$remote_sign = sanitize_text_field( wp_unslash( $params['Ds_Signature'] ) );
+		$mi_obj      = new RedsysLiteAPI();
+		// The secret that signed it can be the order's own (per-user test mode): same resolution as successful_request().
+		$mi_obj->decode_merchant_parameters( $data );
+		$usesecretsha256 = $this->resolve_notification_secret( $mi_obj );
+		if ( empty( $usesecretsha256 ) ) {
+			return false;
+		}
+		return hash_equals( $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data ), $remote_sign );
+	}
+	/**
 	 * Successful Payment!
 	 *
 	 * @param array $params Post data successsful request.
@@ -1124,16 +1247,22 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		}
 
 		$mi_obj            = new RedsysLiteAPI();
-		$usesecretsha256   = $this->secretsha256;
 		$dscardnumbercompl = '';
 		$dsexpiration      = '';
 		$dsmerchantidenti  = '';
 		$dscardnumber4     = '';
 		$dsexpiryyear      = '';
 		$dsexpirymonth     = '';
-		$decodedata        = $mi_obj->decode_merchant_parameters( $data );
 
-		// Fail closed: without a real SHA256 secret the HMAC is attacker-computable, so refuse to process.
+		// Same test/live gate check_ipn_request_is_valid() uses: without a real
+		// SHA256 secret configured for this mode, the HMAC is attacker-computable,
+		// so refuse to process before even decoding.
+		if ( 'yes' === $this->testmode ) {
+			$usesecretsha256 = ! empty( $this->customtestsha256 ) ? $this->customtestsha256 : $this->secretsha256;
+		} else {
+			$usesecretsha256 = $this->secretsha256;
+		}
+
 		if ( empty( $usesecretsha256 ) ) {
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'bizumredsys', 'Payment rejected in successful_request: no SHA256 secret configured.' );
@@ -1141,12 +1270,18 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			return;
 		}
 
+		// Resolve the ACTUAL secret to verify against — same method
+		// check_ipn_request_is_valid() uses, so test mode and any per-order
+		// override are both honored (see resolve_notification_secret()'s docblock).
+		$decodedata      = $mi_obj->decode_merchant_parameters( $data );
+		$usesecretsha256 = $this->resolve_notification_secret( $mi_obj );
+
 		$localsecret = $mi_obj->create_merchant_signature_notif( $usesecretsha256, $data );
 
 		// Verify cryptographic signature to prevent payment forgery.
-		if ( $localsecret !== $remote_sign ) {
+		if ( ! hash_equals( $localsecret, $remote_sign ) ) {
 			if ( 'yes' === $this->debug ) {
-				$this->log->add( 'bizumredsys', 'Signature verification failed in successful_request. Local: ' . $localsecret . ' Remote: ' . $remote_sign );
+				$this->log->add( 'bizumredsys', 'Signature verification failed in successful_request.' );
 			}
 			return;
 		}
@@ -1157,8 +1292,8 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		$currency_code     = $mi_obj->get_parameter( 'Ds_Currency' );
 		$response          = $mi_obj->get_parameter( 'Ds_Response' );
 		$id_trans          = $mi_obj->get_parameter( 'Ds_AuthorisationCode' );
-		$dsdate            = htmlspecialchars_decode( $mi_obj->get_parameter( 'Ds_Date' ) );
-		$dshour            = htmlspecialchars_decode( $mi_obj->get_parameter( 'Ds_Hour' ) );
+		$dsdate            = htmlspecialchars_decode( (string) $mi_obj->get_parameter( 'Ds_Date' ) );
+		$dshour            = htmlspecialchars_decode( (string) $mi_obj->get_parameter( 'Ds_Hour' ) );
 		$dstermnal         = $mi_obj->get_parameter( 'Ds_Terminal' );
 		$dsmerchandata     = $mi_obj->get_parameter( 'Ds_MerchantData' );
 		$dssucurepayment   = $mi_obj->get_parameter( 'Ds_SecurePayment' );
@@ -1179,10 +1314,10 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		$is_paid           = WCRedL()->is_paid( $order->get_id() );
 
 		if ( 'yes' === $this->debug ) {
-			$this->log->add( 'bizumredsys', 'SHA256 Settings: ' . $usesecretsha256 );
-			$this->log->add( 'bizumredsys', 'SHA256 Transcient: ' . $secretsha256 );
+			// Presence only: the signing secret itself never goes to the log.
+			$this->log->add( 'bizumredsys', 'SHA256 Settings: ' . ( $usesecretsha256 ? 'set' : 'empty' ) );
+			$this->log->add( 'bizumredsys', 'SHA256 Transcient: ' . ( $secretsha256 ? 'set' : 'empty' ) );
 			$this->log->add( 'bizumredsys', 'decode_merchant_parameters: ' . $decodedata );
-			$this->log->add( 'bizumredsys', 'create_merchant_signature_notif: ' . $localsecret );
 			$this->log->add( 'bizumredsys', 'Ds_Amount: ' . $total );
 			$this->log->add( 'bizumredsys', 'Ds_Order: ' . $ordermi );
 			$this->log->add( 'bizumredsys', '$order_id: ' . $order2 );
@@ -1212,7 +1347,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', 'Response 900 (refund)' );
 				}
-				set_transient( $order->get_id() . '_redsys_refund', 'yes' );
+				$this->set_refund_confirmed( $order->get_id() );
 
 				if ( 'yes' === $this->debug ) {
 					$this->log->add( 'bizumredsys', 'WCRedL()->update_order_meta to "refund yes"' );
@@ -1358,7 +1493,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			if ( ! empty( $secretsha256 ) ) {
 				WCRedL()->update_order_meta( $order->get_id(), '_redsys_secretsha256', $secretsha256 );
 				if ( 'yes' === $this->debug ) {
-					$this->log->add( 'bizumredsys', '_redsys_secretsha256 saved: ' . $secretsha256 );
+					$this->log->add( 'bizumredsys', '_redsys_secretsha256 saved' );
 				}
 			} elseif ( 'yes' === $this->debug ) {
 				$this->log->add( 'bizumredsys', ' ' );
@@ -1450,11 +1585,11 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			$secretsha256 = $secretsha256_meta;
 			if ( 'yes' === $this->debug ) {
 				$this->log->add( 'bizumredsys', __( 'Using meta for SHA256', 'woo-redsys-gateway-light' ) );
-				$this->log->add( 'bizumredsys', __( 'The SHA256 Meta is: ', 'woo-redsys-gateway-light' ) . $secretsha256 );
+				$this->log->add( 'bizumredsys', __( 'The SHA256 Meta is: ', 'woo-redsys-gateway-light' ) . ( $secretsha256 ? 'set' : 'empty' ) );
 			}
 		} elseif ( 'yes' === $this->debug ) {
 			$this->log->add( 'bizumredsys', __( 'Using settings for SHA256', 'woo-redsys-gateway-light' ) );
-			$this->log->add( 'bizumredsys', __( 'The SHA256 settings is: ', 'woo-redsys-gateway-light' ) . $secretsha256 );
+			$this->log->add( 'bizumredsys', __( 'The SHA256 settings is: ', 'woo-redsys-gateway-light' ) . ( $secretsha256 ? 'set' : 'empty' ) );
 		}
 		if ( 'yes' === $this->not_use_https ) {
 			$final_notify_url = $this->notify_url_not_https;
@@ -1478,7 +1613,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'bizumredsys', __( 'Authorization Date : ', 'woo-redsys-gateway-light' ) . $autorization_date );
 			$this->log->add( 'bizumredsys', __( 'Currency Codey : ', 'woo-redsys-gateway-light' ) . $currencycode );
 			$this->log->add( 'bizumredsys', __( 'Terminal : ', 'woo-redsys-gateway-light' ) . $terminal );
-			$this->log->add( 'bizumredsys', __( 'SHA256 : ', 'woo-redsys-gateway-light' ) . $secretsha256_meta );
+			$this->log->add( 'bizumredsys', __( 'SHA256 : ', 'woo-redsys-gateway-light' ) . ( $secretsha256_meta ? 'set' : 'empty' ) );
 
 		}
 
@@ -1497,7 +1632,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		$mi_obj->set_parameter( 'DS_MERCHANT_TERMINAL', $terminal );
 		$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTURL', $final_notify_url );
 		$mi_obj->set_parameter( 'DS_MERCHANT_URLOK', add_query_arg( 'utm_nooverride', '1', $this->get_return_url( $order ) ) );
-		$mi_obj->set_parameter( 'DS_MERCHANT_URLKO', $order->get_cancel_order_url() );
+		$mi_obj->set_parameter( 'DS_MERCHANT_URLKO', WCRedL()->get_cancel_url_raw( $order ) );
 		$mi_obj->set_parameter( 'DS_MERCHANT_CONSUMERLANGUAGE', '001' );
 		$mi_obj->set_parameter( 'DS_MERCHANT_PRODUCTDESCRIPTION', WCRedL()->product_description( $order, $this->id ) );
 		$mi_obj->set_parameter( 'DS_MERCHANT_MERCHANTNAME', $this->commercename );
@@ -1516,7 +1651,7 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 			$this->log->add( 'bizumredsys', __( 'DS_MERCHANT_TERMINAL : ', 'woo-redsys-gateway-light' ) . $terminal );
 			$this->log->add( 'bizumredsys', __( 'DS_MERCHANT_MERCHANTURL : ', 'woo-redsys-gateway-light' ) . $final_notify_url );
 			$this->log->add( 'bizumredsys', __( 'DS_MERCHANT_URLOK : ', 'woo-redsys-gateway-light' ) . add_query_arg( 'utm_nooverride', '1', $this->get_return_url( $order ) ) );
-			$this->log->add( 'bizumredsys', __( 'DS_MERCHANT_URLKO : ', 'woo-redsys-gateway-light' ) . $order->get_cancel_order_url() );
+			$this->log->add( 'bizumredsys', __( 'DS_MERCHANT_URLKO : ', 'woo-redsys-gateway-light' ) . WCRedL()->get_cancel_url_raw( $order ) );
 			$this->log->add( 'bizumredsys', __( 'DS_MERCHANT_CONSUMERLANGUAGE : 001', 'woo-redsys-gateway-light' ) );
 			$this->log->add( 'bizumredsys', __( 'DS_MERCHANT_PRODUCTDESCRIPTION : ', 'woo-redsys-gateway-light' ) . WCRedL()->product_description( $order, $this->id ) );
 			$this->log->add( 'bizumredsys', __( 'DS_MERCHANT_MERCHANTNAME : ', 'woo-redsys-gateway-light' ) . $this->commercename );
@@ -1551,11 +1686,26 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				$this->log->add( 'bizumredsys', __( 'There is an error', 'woo-redsys-gateway-light' ) );
 				$this->log->add( 'bizumredsys', '*********************************' );
 				$this->log->add( 'bizumredsys', ' ' );
-				$this->log->add( 'bizumredsys', __( 'The error is : ', 'woo-redsys-gateway-light' ) . $post_arg );
+				$this->log->add( 'bizumredsys', __( 'The error is : ', 'woo-redsys-gateway-light' ) . $post_arg->get_error_message() );
 			}
 			return $post_arg;
 		}
 		return true;
+	}
+	/**
+	 * Record that Redsys confirmed a refund of this order.
+	 *
+	 * Called by the notification handler. process_refund() is waiting for it
+	 * and uses it once. It expires on its own: a confirmation nobody was
+	 * waiting for (it came late, or the refund was made in the Redsys back
+	 * office) must not be there to answer for a later refund.
+	 *
+	 * @since 7.1.0
+	 * @param int $order_id Order ID.
+	 * @return void
+	 */
+	public function set_refund_confirmed( $order_id ) {
+		set_transient( $order_id . '_redsys_refund', 'yes', 10 * MINUTE_IN_SECONDS );
 	}
 	/**
 	 * Check Redsys Refund
@@ -1594,6 +1744,12 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 		set_time_limit( 0 );
 		$order = wc_get_order( $order_id );
 
+		// An explicit amount of zero is not "no amount given": refunding the
+		// whole order for it would move money nobody asked to move.
+		if ( null !== $amount && '' !== $amount && round( (float) $amount, 2 ) <= 0 ) {
+			return new WP_Error( 'error', __( 'The refund amount must be greater than zero.', 'woo-redsys-gateway-light' ) );
+		}
+
 		$transaction_id = WCRedL()->get_order_meta( $order_id, '_payment_order_number_redsys', true );
 		if ( 'yes' === $this->debug ) {
 			$this->log->add( 'bizumredsys', __( '$order_id#: ', 'woo-redsys-gateway-light' ) . $transaction_id );
@@ -1609,6 +1765,16 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				$this->log->add( 'bizumredsys', __( 'check_redsys_refund Asking for order #: ', 'woo-redsys-gateway-light' ) . $order_id );
 			}
 
+			// Re-save the Ds_Order -> order_id mapping now, with a 24h TTL: the
+			// mapping created by prepare_order_number() at payment time (1h TTL)
+			// is long gone by the time a refund is requested, and the real
+			// order_id is known for certain right here.
+			set_transient( 'redys_order_temp_' . $transaction_id, $order_id, DAY_IN_SECONDS );
+
+			// A confirmation left over from an earlier refund of this order must not
+			// answer for this one: only what arrives from here on counts.
+			delete_transient( $order_id . '_redsys_refund' );
+
 			$refund_asked = $this->ask_for_refund( $order_id, $transaction_id, $order_total_sign );
 
 			if ( is_wp_error( $refund_asked ) ) {
@@ -1617,12 +1783,21 @@ class WC_Gateway_Bizum_Redsys extends WC_Payment_Gateway {
 				}
 				return new WP_Error( 'error', $refund_asked->get_error_message() );
 			}
-			$x = 0;
+			/**
+			 * Filters how many more times, five seconds apart, the gateway looks for
+			 * Redsys's confirmation of a refund after the first look.
+			 *
+			 * @since 7.1.0
+			 * @param int $attempts Further looks after the first. Default 20 (about 105 seconds in all).
+			 * @param int $order_id Order being refunded.
+			 */
+			$attempts = (int) apply_filters( 'woocommerce_' . $this->id . '_refund_confirmation_attempts', 20, $order_id );
+			$x        = 0;
 			do {
 				sleep( 5 );
 				$result = $this->check_redsys_refund( $order_id );
 				++$x;
-			} while ( $x <= 20 && false === $result );
+			} while ( $x <= $attempts && false === $result );
 			if ( 'yes' === $this->debug && $result ) {
 				$this->log->add( 'bizumredsys', __( 'check_redsys_refund = true ', 'woo-redsys-gateway-light' ) . $result );
 				$this->log->add( 'bizumredsys', ' ' );

@@ -1,0 +1,44 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx wp-env start)",
+      "Bash(npx wp-env stop)",
+      "Bash(npx wp-env run cli bash -c \"cd wp-content/plugins/woo-redsys-gateway-light && composer install\")",
+      "Bash(npx wp-env run cli bash -c \"cd wp-content/plugins/woo-redsys-gateway-light && vendor/bin/phpunit\")",
+      "Bash(npx wp-env run tests-cli bash -c \"cd wp-content/plugins/woo-redsys-gateway-light && vendor/bin/phpunit -c phpunit-integration.xml.dist\")",
+      "Bash(npx playwright test:*)",
+      "Bash(npm run test:e2e)",
+      "Bash(npm run build)",
+      "Bash(./scripts/keel-verify:*)",
+      "Bash(scripts/keel-verify:*)",
+      "Bash(./scripts/keel-handoff-verify:*)",
+      "Bash(scripts/keel-handoff-verify:*)",
+      "Bash(./scripts/keel-doctor)",
+      "Bash(./scripts/keel-doctor --check:*)",
+      "Bash(./scripts/keel-doctor --plan:*)",
+      "Bash(./scripts/keel-affected-tests:*)",
+      "Bash(scripts/keel-affected-tests:*)",
+      "Bash(./scripts/keel-plan:*)",
+      "Bash(scripts/keel-plan:*)",
+      "Bash(./scripts/keel-time:*)",
+      "Bash(scripts/keel-time:*)",
+      "Bash(./scripts/keel-close:*)",
+      "Bash(./scripts/keel-chain-check:*)",
+      "Bash(./scripts/keel-continue:*)",
+      "Bash(.githooks/pre-commit --scan-tree)",
+      "Edit(/tests/**)"
+    ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/keel-stop-hook"
+          }
+        ]
+      }
+    ]
+  }
+}

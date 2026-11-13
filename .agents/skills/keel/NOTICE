@@ -1,0 +1,30 @@
+Keel — project lifecycle skill (idea → release)
+Copyright (C) 2026 José Conti
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+The full license text is in the LICENSE file.
+
+Third-party methodology
+-----------------------
+references/security-audit.md adapts the audit METHOD (reconnaissance,
+coverage-led hunting, a candidate gate, independent validation, the
+confirmed / needs_validation / rejected verdicts, and a report derived
+only from verified records) of Cloudflare's security-audit-skill,
+https://github.com/cloudflare/security-audit-skill, licensed under the
+MIT License, Copyright (c) Cloudflare, Inc. No text or code from that
+project is copied; its hunting modules, schema, validators and sandbox
+procedure are not used.
+The current version is recorded in the SKILL.md frontmatter (`metadata.version`)
+and in CHANGELOG.md. The frontmatter is the source of truth.

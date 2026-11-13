@@ -25,7 +25,7 @@ WordPress plugin / WooCommerce extension (D-001). Security profile: `references/
 - Must stay compatible with WooCommerce's Settings API, classic checkout, AND Blocks checkout simultaneously (four gateway classes each implement both).
 - Must interoperate with Redsys's external redirection + signature-verification protocol, which the plugin does not control.
 - WordPress.org distribution rules apply: GPL-2.0-or-later compatible license (D-003), no external dependency bundling beyond what WordPress.org tooling allows.
-- No Composer/dependency manager — the Redsys signature logic is hand-rolled (`includes/class-redsysliteapi.php`).
+- No runtime Composer/dependency manager — the Redsys signature logic is hand-rolled (`includes/class-redsysliteapi.php`). Composer is used for dev-only test tooling (PHPUnit), never shipped.
 
 ## Competitive scan
 Not run — adoption treats the competitive scan as recommended-but-optional (per `references/adoption.md` step 3) and it was skipped for this pass. It feeds the roadmap rather than gating adoption. If useful for prioritizing new features later, it can be run then.
@@ -48,6 +48,32 @@ No (D-005).
 
 ## Client budget
 No (D-010).
+
+## Environment & test drivers (step 5a preflight)
+Recorded 2026-10-06 from a real `scripts/keel-doctor --check` run on the user's Mac (Darwin 27.0.0, arm64), during the Keel v6.5.0 reconciliation. Adoption predates this step, so this is its first record. Nothing was installed and nothing was started for it.
+
+- This session can run commands where the repo lives: **yes** — a shell on the machine holding the repository.
+- Environment restrictions found: none of the measured kind (network, deletion, localhost and the repository are all reachable from one filesystem). One fact about the shell: the assistant's non-interactive shell does not have Node on its `PATH` (`node`, `npm`, `npx` live under `~/.nvm/versions/node/v24.21.0/bin`, loaded by the interactive profile only). The doctor and `scripts/keel-affected-tests` corroborate that location instead of reporting Node as missing.
+- `claude` on PATH: **yes** — `~/.local/bin/claude` (card: `Chaining: start`, D-015).
+- Machines in play: one — the user's machine, the repo host and the test runner are the same Mac.
+- Present on the test machine:
+  - Node.js 24.21.0, npm 11.19.0, npx (under `~/.nvm`, see above) — required >= 18: `OK`
+  - Docker CLI 29.8.1: `OK`; Docker daemon responding: `OK`
+  - PHP 8.5.11 on the host (`/opt/homebrew/bin/php`): `OK`, optional — the tests run on PHP 7.4 inside wp-env, not on this
+  - python3 (`/usr/bin/python3`)
+- Missing or not operational (nothing installed at this step):
+  - `@wordpress/env` in `node_modules`: `MISSING`, optional — `npm install` (`node_modules/` is absent in this checkout)
+  - wp-env playground of this repository: `NOT OPERATIONAL` — Docker is up but no running container mounts this repository (another project's wp-env was running on the machine at the time; it is not this project's environment) — `npx wp-env start`
+  - PHPUnit in `vendor/`: `MISSING`, blocking — with the playground running, `composer install` inside the `cli` container
+  - `@playwright/test` in `node_modules`: `MISSING`, blocking — `npm install`
+  - Playwright Chromium: `MISSING`, blocking — a build is cached in `~/Library/Caches/ms-playwright`, but the revision this project needs is unknown until `npm install`; then `npx playwright install chromium` (a few hundred MB)
+  - Consequence, stated plainly: **no test suite could be run on this machine at the moment of this record.** The doctor exits non-zero until the three blocking rows are installed.
+- Advisory rows: permission mode `auto` — `OK`; browser MCP registered at user level — none, `OK`; project `.mcp.json` — none (the browser is driven by the test runner only), `OK`; Playwright browsers orphaned to PID 1 — 0, `OK`.
+- Notification channel: not probed by the doctor (a script cannot probe the assistant's notification tool). The card records `PushNotification` as delivering (D-011).
+- Impossible on this machine: nothing — the project has no Apple, Android or native-desktop surface.
+- Screen-stealing verdict per platform: web storefront and admin → Playwright, **headless**; HTTP endpoints and PHP logic → PHPUnit / `curl` in containers, **headless**. No surface takes the screen; no mitigation is needed.
+- Licence or privilege consequences flagged to the user: Docker Desktop's licence (paid for organisations of 250+ employees or over $10M revenue; Colima is the MIT alternative). No sudo and no `docker` group change is involved on macOS.
+- Installing the missing pieces: **offered, not yet answered** — `scripts/keel-doctor --plan` prints the exact list (`npm install`, `npx playwright install chromium`; then, with the playground started, `composer install` in the `cli` container). The user's answer is recorded here when given.
 
 ## Preliminary estimate
 Not produced — this is an adoption of an already-shipped, mature project, not a from-zero build. Estimates for specific future work (issue fixes, new features) will be produced per `references/estimation-budget.md` when that work is scoped.

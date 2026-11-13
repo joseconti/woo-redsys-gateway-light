@@ -12,7 +12,8 @@ This project is developed under the [Keel](https://github.com/joseconti/keel-ski
 
 ```bash
 npm install
-npm run build     # compiles resources/js/frontend/index.js → assets/js/frontend/blocks.js
+npm run build:assets   # resources/js/frontend/index.js → assets/js/frontend/blocks.js + blocks.min.js; assets/css/*.css → *.min.css
+npm run build     # the same, then the translations (requires WP-CLI)
 npm run start      # watch mode
 npm run i18n:pot   # regenerates languages/*.pot (requires WP-CLI)
 ```

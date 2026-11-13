@@ -68,7 +68,7 @@ if ( ! class_exists( 'Redsys_Lite_Apps_Plugins' ) ) :
 							$plugin,
 							array(
 								'label'     => __( 'Free', 'woo-redsys-gateway-light' ),
-								'fg'        => '#2a7d4f',
+								'fg'        => '#24703f',
 								'bg'        => '#edf7f0',
 								'border'    => '#cce8d6',
 								'uppercase' => true,
@@ -248,7 +248,7 @@ if ( ! class_exists( 'Redsys_Lite_Apps_Plugins' ) ) :
 							<h4 style="<?php echo esc_attr( $name_style ); ?>"><?php echo esc_html( $item['name'] ); ?></h4>
 							<?php self::render_badge( $badge ); ?>
 						</div>
-						<span style="font-size:11.5px; color:#8c8f94;"><?php echo esc_html( $item['host'] ); ?></span>
+						<span style="font-size:11.5px; color:#646970;"><?php echo esc_html( $item['host'] ); ?></span>
 					</div>
 				</div>
 				<p style="font-size:13px; line-height:1.55; color:#50575e; margin:12px 0 16px; flex:1;"><?php echo esc_html( $item['desc'] ); ?></p>
@@ -291,7 +291,7 @@ if ( ! class_exists( 'Redsys_Lite_Apps_Plugins' ) ) :
 				<div style="<?php echo esc_attr( $icon_style ); ?>"><?php echo esc_html( $web['ini'] ); ?></div>
 				<div style="flex:1; min-width:0;">
 					<h4 style="font-size:14.5px; font-weight:600; color:#1d2327; margin:1px 0; line-height:1.3;"><?php echo esc_html( $web['name'] ); ?></h4>
-					<span style="font-size:11.5px; color:#8c8f94;"><?php echo esc_html( $web['host'] ); ?></span>
+					<span style="font-size:11.5px; color:#646970;"><?php echo esc_html( $web['host'] ); ?></span>
 					<p style="font-size:13px; line-height:1.55; color:#50575e; margin:9px 0 0;"><?php echo esc_html( $web['desc'] ); ?></p>
 				</div>
 			</a>
@@ -311,7 +311,7 @@ if ( ! class_exists( 'Redsys_Lite_Apps_Plugins' ) ) :
 				<div style="<?php echo esc_attr( $icon_style ); ?>"><?php echo esc_html( $profile['ini'] ); ?></div>
 				<div>
 					<div style="font-size:14px; font-weight:600; color:#1d2327; line-height:1.2;"><?php echo esc_html( $profile['name'] ); ?></div>
-					<div style="font-size:11.5px; color:#8c8f94;"><?php echo esc_html( $profile['host'] ); ?></div>
+					<div style="font-size:11.5px; color:#646970;"><?php echo esc_html( $profile['host'] ); ?></div>
 				</div>
 			</a>
 			<?php
@@ -403,7 +403,7 @@ if ( ! class_exists( 'Redsys_Lite_Apps_Plugins' ) ) :
 				array(
 					'ini'  => 'AU',
 					'bg'   => '#e8f3ea',
-					'fg'   => '#2a7d4f',
+					'fg'   => '#24703f',
 					'name' => 'WooCommerce Autónomos',
 					'desc' => __( 'Adapts WooCommerce to freelancer (autónomos) invoicing in Spain: IRPF withholding and tax fields.', 'woo-redsys-gateway-light' ),
 					'url'  => 'https://wordpress.org/plugins/autonomos/',
@@ -438,7 +438,7 @@ if ( ! class_exists( 'Redsys_Lite_Apps_Plugins' ) ) :
 				array(
 					'ini'  => 'AS',
 					'bg'   => '#fbeee2',
-					'fg'   => '#a85d1f',
+					'fg'   => '#9a541b',
 					'name' => 'Advanced Subscriptions for WooCommerce',
 					'desc' => __( 'Advanced subscriptions and recurring payments, with flexible renewal and billing rules.', 'woo-redsys-gateway-light' ),
 					'url'  => 'https://advancedsubscriptionswc.com/',
@@ -462,7 +462,7 @@ if ( ! class_exists( 'Redsys_Lite_Apps_Plugins' ) ) :
 				array(
 					'ini'  => 'AP',
 					'bg'   => '#e8f3ea',
-					'fg'   => '#2a7d4f',
+					'fg'   => '#24703f',
 					'name' => 'WooCommerce Autónomos Premium',
 					'desc' => __( 'Complete tax invoicing for freelancers and SMEs: invoice series, IRPF, equivalence surcharge.', 'woo-redsys-gateway-light' ),
 					'url'  => 'https://plugins.joseconti.com/product/woocommerce-autonomos-premium/',
@@ -494,7 +494,7 @@ if ( ! class_exists( 'Redsys_Lite_Apps_Plugins' ) ) :
 				array(
 					'ini'  => 'DW',
 					'bg'   => '#fbf2e0',
-					'fg'   => '#9a7311',
+					'fg'   => '#86630e',
 					'name' => 'DemoWP',
 					'desc' => __( 'Create temporary WordPress demos and sandboxes so your customers can try your products.', 'woo-redsys-gateway-light' ),
 					'url'  => 'https://plugins.joseconti.com/product/demowp-crea-demos-sandbox-temporales-en-wordpress-para-tus-productos/',
@@ -537,7 +537,7 @@ if ( ! class_exists( 'Redsys_Lite_Apps_Plugins' ) ) :
 				array(
 					'ini'  => 'NGO',
 					'bg'   => '#e8f3ea',
-					'fg'   => '#2a7d4f',
+					'fg'   => '#24703f',
 					'name' => __( 'Nonprofit program', 'woo-redsys-gateway-light' ),
 					'desc' => __( 'Premium plugins free for registered nonprofits.', 'woo-redsys-gateway-light' ),
 					'url'  => 'https://nonprofits.joseconti.com/',
@@ -553,7 +553,7 @@ if ( ! class_exists( 'Redsys_Lite_Apps_Plugins' ) ) :
 				array(
 					'ini'  => 'CAT',
 					'bg'   => '#fbeee2',
-					'fg'   => '#a85d1f',
+					'fg'   => '#9a541b',
 					'name' => __( 'Full premium plugin catalog', 'woo-redsys-gateway-light' ),
 					'desc' => __( 'Online store with all available premium plugins.', 'woo-redsys-gateway-light' ),
 					'url'  => 'https://plugins.joseconti.com/tienda/',

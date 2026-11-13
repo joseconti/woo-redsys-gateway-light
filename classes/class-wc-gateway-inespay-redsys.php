@@ -124,6 +124,8 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 			} else {
 				$this->icon = apply_filters( 'woocommerce_' . $this->id . '_icon', REDSYS_PLUGIN_URL . 'assets/images/inespay.svg' );
 			}
+			// WooCommerce prints the icon inside an image tag without escaping it.
+			$this->icon = esc_url( $this->icon );
 
 			$this->supports = array(
 				'products',
@@ -154,12 +156,24 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 		}
 
 		/**
+		 * The countries Inespay serves, as ISO 3166-1 alpha-2 codes. The classic
+		 * checkout, the Blocks support class and the Blocks script all read it
+		 * (S-066).
+		 *
+		 * @since 7.1.0
+		 * @return string[]
+		 */
+		public static function allowed_countries() {
+			return array( 'ES', 'PT', 'IT' );
+		}
+
+		/**
 		 * Check if the customer billing/shipping country is allowed.
 		 *
 		 * @return bool
 		 */
 		protected function is_allowed_country() {
-			$allowed  = array( 'ES', 'PT', 'IT' );
+			$allowed  = self::allowed_countries();
 			$customer = WC()->customer;
 			$billing  = $customer ? $customer->get_billing_country() : '';
 			$shipping = $customer ? $customer->get_shipping_country() : '';
@@ -191,20 +205,57 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 		}
 
 		/**
+		 * Tell whether an amount is above this gateway's transaction limit.
+		 *
+		 * @since 7.1.0
+		 * @param float|string $total Amount to pay.
+		 * @return bool False when no limit is set.
+		 */
+		public function is_over_transaction_limit( $total ) {
+			$limit = (float) $this->transactionlimit;
+			return $limit > 0 && (float) $total > $limit;
+		}
+
+		/**
+		 * The amount the customer is about to pay with the gateway being offered.
+		 *
+		 * On the order-pay page it is the total of that order: the cart is usually
+		 * empty there. Anywhere else it is the cart total, including in a Store API
+		 * request from the Blocks checkout, which is not "the checkout page".
+		 *
+		 * @since 7.1.0
+		 * @return float|null Null when there is neither an order to pay nor a cart.
+		 */
+		private function get_amount_to_pay() {
+			global $wp;
+
+			if ( isset( $wp->query_vars['order-pay'] ) ) {
+				$order = wc_get_order( absint( $wp->query_vars['order-pay'] ) );
+				if ( $order ) {
+					return (float) $order->get_total();
+				}
+			}
+			if ( function_exists( 'WC' ) && WC()->cart ) {
+				return (float) WC()->cart->total;
+			}
+			return null;
+		}
+
+		/**
 		 * Disable gateway based on transaction limit.
 		 *
 		 * @param array $available_gateways Available gateways.
 		 * @return array
 		 */
 		public function disable_inespay( $available_gateways ) {
-			if ( ! is_admin() && is_checkout() ) {
-				$total = (int) WC()->cart->total;
-				$limit = (int) $this->transactionlimit;
-				if ( ! empty( $limit ) && $limit > 0 ) {
-					if ( $total > $limit ) {
-						unset( $available_gateways['inespayredsys'] );
-					}
-				}
+			if ( is_admin() ) {
+				return $available_gateways;
+			}
+			// Amounts are compared as floats: an (int) cast truncated a total
+			// like 200.50 down to 200, letting it pass a limit of 200.
+			$total = $this->get_amount_to_pay();
+			if ( null !== $total && $this->is_over_transaction_limit( $total ) ) {
+				unset( $available_gateways['inespayredsys'] );
 			}
 			return $available_gateways;
 		}
@@ -255,6 +306,22 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 		}
 
 		/**
+		 * Validate the Logo setting: it is the URL of an image and nothing else.
+		 *
+		 * The value becomes the gateway icon, which WooCommerce prints inside an
+		 * image tag on the checkout, so anything that is not part of a URL is
+		 * dropped when the settings are saved.
+		 *
+		 * @since 7.1.0
+		 * @param string $key   Field key.
+		 * @param string $value Posted value.
+		 * @return string A clean URL, or an empty string for the default icon.
+		 */
+		public function validate_logo_field( $key, $value ) {
+			return esc_url_raw( trim( (string) wp_unslash( $value ) ) );
+		}
+
+		/**
 		 * Initialise settings form fields.
 		 */
 		public function init_form_fields() {
@@ -286,7 +353,7 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 				),
 				'api_key'          => array(
 					'title'       => __( 'API Key', 'woo-redsys-gateway-light' ),
-					'type'        => 'text',
+					'type'        => 'password',
 					'description' => __( 'API Key from your Inespay project.', 'woo-redsys-gateway-light' ),
 					'desc_tip'    => true,
 				),
@@ -350,6 +417,16 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 		 */
 		public function process_payment( $order_id ) {
 			$order = wc_get_order( $order_id );
+
+			// The limit is checked here too: the list of offered gateways is not the
+			// only way to reach this method (order-pay page, Blocks checkout).
+			if ( $this->is_over_transaction_limit( $order->get_total() ) ) {
+				wc_add_notice( __( 'The order total is above the maximum amount this payment method accepts. Please choose another payment method.', 'woo-redsys-gateway-light' ), 'error' );
+				return array(
+					'result'   => 'failure',
+					'redirect' => wc_get_checkout_url(),
+				);
+			}
 
 			if ( ! $this->api_key || ! $this->api_token ) {
 				wc_add_notice( __( 'Payment error: Inespay credentials are missing.', 'woo-redsys-gateway-light' ), 'error' );
@@ -543,6 +620,29 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 				wp_die( 'OK', '', array( 'response' => 200 ) );
 			}
 
+			// An OK/SETTLED callback for an order that's already resolved
+			// (paid, completed, or refunded) is not a new payment — it can be
+			// a refund confirmation reusing the same status codes, or a
+			// retried/duplicate notification. Treat it as informational only,
+			// so it doesn't re-fire payment_complete()'s side effects (the
+			// "payment completed" note, the payment-method/_redsys_done meta,
+			// and inespay_post_payment_complete) under a misleading label.
+			if ( ! empty( $data['codStatus'] ) && in_array( $data['codStatus'], array( 'OK', 'SETTLED' ), true ) && ! $order->needs_payment() ) {
+				$order->add_order_note(
+					sprintf(
+						/* translators: 1: Inespay ID, 2: Status, 3: current order status */
+						__( 'Inespay callback received for an already-resolved order (current status: %3$s). ID: %1$s, Status: %2$s', 'woo-redsys-gateway-light' ),
+						esc_html( $data['singlePayinId'] ),
+						esc_html( $data['codStatus'] ),
+						esc_html( $order->get_status() )
+					)
+				);
+				if ( 'yes' === $this->debug ) {
+					$this->log->add( 'inespayredsys', 'Callback for already-resolved order ' . $order->get_id() . ' (status ' . $order->get_status() . '); not re-processing as a payment completion.' );
+				}
+				wp_die( 'OK', '', array( 'response' => 200 ) );
+			}
+
 			if ( ! empty( $data['codStatus'] ) && in_array( $data['codStatus'], array( 'OK', 'SETTLED' ), true ) ) {
 
 				// SECURITY: verify the signed amount matches the order total (defence in depth).
@@ -649,7 +749,10 @@ if ( ! class_exists( 'WC_Gateway_Inespay_Redsys' ) ) :
 				return new WP_Error( 'inespay_refund_missing_payin', __( 'No Inespay payment ID found for this order.', 'woo-redsys-gateway-light' ) );
 			}
 
-			$refund_amount = $amount ? $amount : $order->get_total();
+			// A falsy check here treated an explicit refund amount of 0 the
+			// same as "not given," silently refunding the full order total
+			// instead of nothing — check for null specifically.
+			$refund_amount = null !== $amount ? $amount : $order->get_total();
 			/* translators: 1: Order number, 2: Refund reason. */
 			$description = sprintf( __( 'Refund order %1$s %2$s', 'woo-redsys-gateway-light' ), $order->get_order_number(), $reason );
 			$payload     = array(

@@ -8,12 +8,12 @@
  * Requires Plugins: woocommerce
  * Plugin URI: https://wordpress.org/plugins/woo-redsys-gateway-light/
  * Description: Extends WooCommerce with a RedSys gateway. This is a Lite version, if you want many more, check the premium version https://woocommerce.com/products/redsys-gateway/
- * Version: 7.0.2
+ * Version: 7.1.0
  * Author: José Conti
  * Author URI: https://plugins.joseconti.com/
- * Tested up to: 7.0
+ * Tested up to: 7.1
  * WC requires at least: 7.4
- * WC tested up to: 10.9
+ * WC tested up to: 11.2
  * Text Domain: woo-redsys-gateway-light
  * Domain Path: /languages/
  * Copyright: (C) 2017 - 2025 José Conti.
@@ -21,7 +21,11 @@
  * License URI: http://www.gnu.org/licenses/gpl-2.0.html
  */
 
-define( 'REDSYS_WOOCOMMERCE_VERSION', '7.0.2' );
+if ( ! defined( 'ABSPATH' ) ) {
+	exit; // Exit if accessed directly.
+}
+
+define( 'REDSYS_WOOCOMMERCE_VERSION', '7.1.0' );
 define( 'REDSYS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 if ( ! defined( 'REDSYS_PLUGIN_PATH' ) ) {
 	define( 'REDSYS_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
@@ -40,6 +44,20 @@ if ( ! defined( 'REDSYS_PLUGIN_DATA_URL' ) ) {
 }
 if ( ! defined( 'REDSYS_PLUGIN_CLASS_PATH' ) ) {
 	define( 'REDSYS_PLUGIN_CLASS_PATH', REDSYS_PLUGIN_PATH . 'classes/' );
+}
+
+/**
+ * Suffix of the stylesheet or script file to load.
+ *
+ * Every shipped stylesheet and script exists as a readable source and a
+ * minified file built from it. Production loads the minified one; with
+ * WordPress's SCRIPT_DEBUG on, the readable one is served instead.
+ *
+ * @since 7.1.0
+ * @return string '.min', or '' when SCRIPT_DEBUG is on.
+ */
+function redsyslite_asset_suffix() {
+	return ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : '.min';
 }
 
 add_action( 'plugins_loaded', 'redsys_language_init', 10 );
@@ -87,7 +105,7 @@ function redsys_styles_css( $hook ) {
 	if ( $redsys_about !== $hook ) {
 		return;
 	} else {
-		wp_register_style( 'aboutRedsys', REDSYS_PLUGIN_URL . 'assets/css/welcome.css', array(), '1.2.0' );
+		wp_register_style( 'aboutRedsys', REDSYS_PLUGIN_URL . 'assets/css/welcome' . redsyslite_asset_suffix() . '.css', array(), '1.2.0' );
 		wp_enqueue_style( 'aboutRedsys' );
 	}
 }
@@ -95,8 +113,30 @@ add_action( 'admin_enqueue_scripts', 'redsys_styles_css' );
 
 /**
  * Redsys Redirect to Welcome/About Page.
+ *
+ * Runs on admin_init, which also fires for admin-ajax.php and admin-post.php
+ * requests, including those of visitors who are not logged in. The welcome is
+ * for a user who can open the About page, on a screen they asked for (not an
+ * AJAX call, not a submitted form): anyone else must not be redirected, and
+ * must not use up the one-time welcome either.
+ *
+ * @return void
  */
 function redsys_welcome_splash() {
+	// wp_doing_ajax() exists from WordPress 4.7; this file also loads on older ones.
+	$doing_ajax = function_exists( 'wp_doing_ajax' ) ? wp_doing_ajax() : ( defined( 'DOING_AJAX' ) && DOING_AJAX );
+	// A submitted form has to reach its own handler; the welcome waits for the next screen.
+	$is_post = isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD'];
+	if ( $doing_ajax || $is_post || ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	// The About page is registered only when WooCommerce is loaded: without it
+	// the redirect would lead to a permission error and use up the welcome.
+	if ( ! class_exists( 'WooCommerce' ) ) {
+		return;
+	}
+
 	$seur_parent = redsys_get_parent_page();
 
 	if ( get_option( 'woocommerce-redsys-version' ) === REDSYS_WOOCOMMERCE_VERSION ) {
@@ -128,7 +168,7 @@ function redsys_css_lite() {
 	$current_screen = get_current_screen();
 
 	if ( 'woocommerce_page_wc-settings' === $current_screen->id ) {
-		wp_register_style( 'redsys-css', plugins_url( 'assets/css/redsys-css.css', __FILE__ ), array(), REDSYS_WOOCOMMERCE_VERSION );
+		wp_register_style( 'redsys-css', plugins_url( 'assets/css/redsys-css' . redsyslite_asset_suffix() . '.css', __FILE__ ), array(), REDSYS_WOOCOMMERCE_VERSION );
 		wp_enqueue_style( 'redsys-css' );
 	}
 }
@@ -184,14 +224,23 @@ function woocommerce_gateway_redsys_init() {
 	);
 	/**
 	 * Redsys Notice version.
+	 *
+	 * Shown to, and dismissed by, users who manage the store: dismissing it
+	 * hides it for everyone.
+	 *
+	 * @return void
 	 */
 	function redsys_lite_add_notice_new_version() {
+
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			return;
+		}
 
 		$version = get_option( 'hide-new-version-redsys-notice' );
 
 		if ( REDSYS_WOOCOMMERCE_VERSION !== $version ) {
 			if ( isset( $_REQUEST['redsys-hide-new-version'] ) && 'hide-new-version-redsys' === $_REQUEST['redsys-hide-new-version'] ) {
-				$nonce = sanitize_text_field( $_REQUEST['_redsys_hide_new_version_nonce'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+				$nonce = isset( $_REQUEST['_redsys_hide_new_version_nonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_redsys_hide_new_version_nonce'] ) ) : '';
 				if ( wp_verify_nonce( $nonce, 'redsys_hide_new_version_nonce' ) ) {
 					update_option( 'hide-new-version-redsys-notice', REDSYS_WOOCOMMERCE_VERSION );
 				}
@@ -224,14 +273,23 @@ function woocommerce_gateway_redsys_init() {
 
 	/**
 	 * Redsys ask for Telegram.
+	 *
+	 * Shown to, and dismissed by, users who manage the store: dismissing it
+	 * hides it for everyone.
+	 *
+	 * @return void
 	 */
 	function redsys_lite_ask_for_telegram() {
+
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			return;
+		}
 
 		$status = get_option( 'telegram-redsys-notice' );
 
 		if ( 'yes' !== $status ) {
 			if ( isset( $_REQUEST['redsys-telegram'] ) && 'telegram-redsys' === $_REQUEST['redsys-telegram'] ) {
-				$nonce = sanitize_text_field( $_REQUEST['_redsys_telegram_nonce'] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash,WordPress.Security.ValidatedSanitizedInput.InputNotValidated
+				$nonce = isset( $_REQUEST['_redsys_telegram_nonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['_redsys_telegram_nonce'] ) ) : '';
 				if ( wp_verify_nonce( $nonce, 'redsys_telegram_nonce' ) ) {
 					update_option( 'telegram-redsys-notice', 'yes' );
 				}
@@ -258,7 +316,7 @@ function woocommerce_gateway_redsys_init() {
 	 * Redsys notice CSS.
 	 */
 	function redsys_lite_notice_style() {
-		wp_register_style( 'redsys_notice_css', REDSYS_PLUGIN_URL . 'assets/css/redsys-notice.css', false, REDSYS_WOOCOMMERCE_VERSION );
+		wp_register_style( 'redsys_notice_css', REDSYS_PLUGIN_URL . 'assets/css/redsys-notice' . redsyslite_asset_suffix() . '.css', false, REDSYS_WOOCOMMERCE_VERSION );
 		wp_enqueue_style( 'redsys_notice_css' );
 	}
 	add_action( 'admin_enqueue_scripts', 'redsys_lite_notice_style' );
@@ -375,18 +433,14 @@ function woocommerce_gateway_redsys_init() {
 }
 
 /**
- * Mark order as paid.
+ * Forzar recarga del pedido desde la BD para evitar doble notificación
+ * si algún hook cargó el pedido antes del sleep y quedó cacheado.
+ * Compatibilidad con CPT (wp_posts) y HPOS (custom tables).
  *
+ * @since 7.1.0
  * @param int $order_id Order ID.
  */
-function redsyslite_mark_order_as_paid( $order_id ) {
-
-	// Este sleep es para evitar que se ejecute el código antes de que se haya procesado el pago en el caso en que llegue la notificación IPN.
-	sleep( 5 );
-
-	// Forzar recarga del pedido desde la BD para evitar doble notificación
-	// si algún hook cargó el pedido antes del sleep y quedó cacheado.
-	// Compatibilidad con CPT (wp_posts) y HPOS (custom tables).
+function redsyslite_bust_order_cache( $order_id ) {
 	clean_post_cache( $order_id );
 	wp_cache_delete( $order_id, 'posts' );
 	wp_cache_delete( $order_id, 'post_meta' );
@@ -396,26 +450,125 @@ function redsyslite_mark_order_as_paid( $order_id ) {
 		$order_cache = wc_get_container()->get( \Automattic\WooCommerce\Caches\OrderCache::class );
 		$order_cache->remove( $order_id );
 	}
-
-	$is_redsys_order = WCRedL()->is_redsys_order( $order_id );
-	$is_paid         = WCRedL()->is_paid( $order_id );
-	$order           = wc_get_order( $order_id );
-
-	if ( ( $order && $is_redsys_order && ! $is_paid ) ) {
-		// Check the Redsys URL.
-		if ( isset( $_GET['Ds_MerchantParameters'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$params          = array(
-				'Ds_MerchantParameters' => sanitize_text_field( wp_unslash( $_GET['Ds_MerchantParameters'] ) ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				'Ds_Signature'          => isset( $_GET['Ds_Signature'] ) ? sanitize_text_field( wp_unslash( $_GET['Ds_Signature'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			);
-			$payment_method  = $order->get_payment_method();
-			$payment_gateway = WC_Payment_Gateways::instance()->payment_gateways()[ $payment_method ];
-			if ( $payment_gateway && method_exists( $payment_gateway, 'successful_request' ) ) {
-				$payment_gateway->successful_request( $params );
-			}
-		}
-	}
 }
+
+/**
+ * Mark order as paid.
+ *
+ * Fallback for the order-received page: when the customer comes back from
+ * Redsys with a signed return and the server-to-server notification has not
+ * arrived, the return itself completes the order.
+ *
+ * Everything that costs nothing is checked before the five-second wait, and
+ * the wait is spent only on a return that carries a valid signature. An
+ * unsigned request must not be able to hold a PHP worker, whatever order it
+ * names and however many orders its sender has. See docs/threat-model.md.
+ *
+ * @since 7.1.0
+ * @param int $order_id Order ID.
+ */
+function redsyslite_mark_order_as_paid( $order_id ) {
+
+	if ( ! isset( $_GET['Ds_MerchantParameters'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return;
+	}
+
+	// One attempt per order every 30 seconds.
+	$attempt_guard = 'redsyslite_mark_paid_attempt_' . $order_id;
+	if ( get_transient( $attempt_guard ) ) {
+		return;
+	}
+
+	// Only an unpaid order of one of these gateways has anything to wait for.
+	redsyslite_bust_order_cache( $order_id );
+	$order = wc_get_order( $order_id );
+	if ( ! $order || ! WCRedL()->is_redsys_order( $order_id ) || WCRedL()->is_paid( $order_id ) ) {
+		return;
+	}
+
+	$params = array(
+		'Ds_MerchantParameters' => sanitize_text_field( wp_unslash( $_GET['Ds_MerchantParameters'] ) ), // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		'Ds_Signature'          => isset( $_GET['Ds_Signature'] ) ? sanitize_text_field( wp_unslash( $_GET['Ds_Signature'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		'Ds_SignatureVersion'   => isset( $_GET['Ds_SignatureVersion'] ) ? sanitize_text_field( wp_unslash( $_GET['Ds_SignatureVersion'] ) ) : '', // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	);
+
+	$gateways        = WC_Payment_Gateways::instance()->payment_gateways();
+	$payment_method  = $order->get_payment_method();
+	$payment_gateway = isset( $gateways[ $payment_method ] ) ? $gateways[ $payment_method ] : null;
+	if ( ! $payment_gateway || ! method_exists( $payment_gateway, 'successful_request' ) || ! method_exists( $payment_gateway, 'is_valid_return' ) ) {
+		return;
+	}
+
+	// The return has to be this order's own. The order number it names is
+	// looked up in the mapping kept since the payment form was built; when
+	// that says another order, nothing else is worth doing.
+	$api = new RedsysLiteAPI();
+	$api->decode_merchant_parameters( RedsysLiteAPI::sanitize_merchant_parameters( $params['Ds_MerchantParameters'] ) );
+	$ds_order = $api->get_parameter( 'Ds_Order' );
+	if ( ! is_string( $ds_order ) || '' === $ds_order ) {
+		return;
+	}
+	$mapped_order = get_transient( 'redys_order_temp_' . $ds_order );
+	if ( $mapped_order && (int) $mapped_order !== (int) $order_id ) {
+		return;
+	}
+
+	// The signature comes before the wait. A request that fails it does not
+	// use up the order's attempt either: the genuine return may be next.
+	if ( ! $payment_gateway->is_valid_return( $params ) ) {
+		return;
+	}
+
+	// Signed, but the mapping had expired: resolve it the way the notification
+	// handler does. One genuine return must not buy a wait on another order.
+	if ( ! $mapped_order && (int) WCRedL()->clean_order_number( $ds_order ) !== (int) $order_id ) {
+		return;
+	}
+	set_transient( $attempt_guard, 1, 30 );
+
+	// Give the server-to-server notification time to arrive and be processed first.
+	sleep( 5 );
+
+	redsyslite_bust_order_cache( $order_id );
+	if ( WCRedL()->is_paid( $order_id ) ) {
+		return;
+	}
+
+	$payment_gateway->successful_request( $params );
+}
+
+/**
+ * Lets WooCommerce treat the customer's return from Redsys as the cancellation it is.
+ *
+ * When a payment is cancelled or refused, Redsys notifies the shop server to server
+ * (the order becomes `cancelled`) and then sends the customer to the order's cancel
+ * URL. WooCommerce only cancels `pending` and `failed` orders, so it answered that
+ * return with "Your order can no longer be cancelled". For the one order named in a
+ * verified cancel request, already cancelled and paid through one of these gateways,
+ * `cancelled` is accepted and WooCommerce shows its own "Your order was cancelled".
+ *
+ * @since 7.1.0
+ * @param array         $statuses Order statuses WooCommerce allows a customer to cancel.
+ * @param WC_Order|null $order    Order being checked.
+ * @return array
+ */
+function redsyslite_allow_cancel_return_for_cancelled_order( $statuses, $order = null ) {
+	if ( ! is_array( $statuses ) || ! $order instanceof WC_Order || ! isset( $_GET['cancel_order'], $_GET['order_id'], $_GET['_wpnonce'] ) ) {
+		return $statuses;
+	}
+	if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'woocommerce-cancel_order' ) ) {
+		return $statuses;
+	}
+	if ( absint( $_GET['order_id'] ) !== $order->get_id() || ! $order->has_status( 'cancelled' ) ) {
+		return $statuses;
+	}
+	if ( ! in_array( $order->get_payment_method(), array( 'redsys', 'bizumredsys', 'googlepayredirecredsys' ), true ) ) {
+		return $statuses;
+	}
+	$statuses[] = 'cancelled';
+	return $statuses;
+}
+add_filter( 'woocommerce_valid_order_statuses_for_cancel', 'redsyslite_allow_cancel_return_for_cancelled_order', 10, 2 );
 
 /**
  * Ejecuta redsys_mark_order_as_paid desde wp_head si estamos en la página de "order received"
@@ -429,7 +582,9 @@ add_action( 'wp_head', 'redsyslite_force_mark_order_as_paid_on_thankyou_page' );
  * @return void
  */
 function redsyslite_force_mark_order_as_paid_on_thankyou_page() {
-	if ( ! is_order_received_page() ) {
+	// Hooked at file scope, so it also runs when WooCommerce is not loaded:
+	// without it there is no order-received page, and nothing to do.
+	if ( ! function_exists( 'is_order_received_page' ) || ! function_exists( 'WCRedL' ) || ! is_order_received_page() ) {
 		return;
 	}
 

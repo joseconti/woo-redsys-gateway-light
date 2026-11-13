@@ -1,0 +1,248 @@
+#!/bin/sh
+#
+# playground-tunnel — let Redsys/Inespay reach the wp-env playground
+# (Keel references/inbound-tunnel.md; docs/playground.md "Inbound tunnel";
+# inventory in docs/03-technical-plan.md "Inbound calls"). D-093.
+#
+#   scripts/playground-tunnel               Open a Cloudflare quick tunnel to the
+#                                           playground, point WordPress at it,
+#                                           print the URL and the four
+#                                           notification endpoints, wait.
+#                                           Ctrl-C closes it and restores localhost.
+#   scripts/playground-tunnel --url <https> Point WordPress at a tunnel that is
+#                                           ALREADY open (opens nothing). Undo
+#                                           with --restore.
+#   scripts/playground-tunnel --restore     Point WordPress back at localhost.
+#                                           Idempotent.
+#
+# Exit codes: 0 done, 2 could not run. Nothing is installed by this script
+# (scripts/keel-doctor reports the cloudflared row).
+#
+# What "pointing" means here (the three settings of the inbound-tunnel contract):
+#   1. Public base URL: the WP_HOME and WP_SITEURL constants in wp-config.php,
+#      via `wp config set` inside the cli container. Every gateway builds its
+#      notification URL from home_url(), so this is the one switch.
+#   2. Proxy scheme: a must-use plugin trusting X-Forwarded-Proto: https is
+#      written to .wp-env-mu-plugins/ (mapped to wp-content/mu-plugins) while
+#      the tunnel is up and deleted on restore. Playground-only: that directory
+#      is export-ignored and never ships.
+#   3. Host allow-list: WordPress has none; nothing to change.
+#
+# Exposure: while a tunnel is up, anyone with its URL reaches this playground
+# (admin/password included). Only the synthetic wp-env playground is ever
+# tunnelled, and the script refuses to run while any enabled gateway is out of
+# test mode. Do not paste the URL into commits, issues or public notes.
+#
+# Closing: Ctrl-C in a terminal, or `kill -TERM <pid>` (the PID is printed).
+# A shell started with SIGINT already ignored (a background job, an
+# assistant's tool shell) cannot trap it — POSIX forbids it — so from there
+# use TERM. SIGKILL cannot be trapped by anything: run --restore after it.
+#
+# WP_ENV_CONFIG selects another instance (the ceiling one), as in
+# scripts/playground-setup. PLAYGROUND_TUNNEL_TIMEOUT bounds the URL poll
+# (seconds, default 30).
+
+set -u
+
+cd "$(git rev-parse --show-toplevel 2>/dev/null || echo .)" || exit 2
+
+ME="playground-tunnel"
+SHIM=".wp-env-mu-plugins/keel-playground-tunnel-https.php"
+TIMEOUT="${PLAYGROUND_TUNNEL_TIMEOUT:-30}"
+GATEWAYS="redsys bizumredsys googlepayredirecredsys inespayredsys"
+
+say() { echo "$ME: $*"; }
+fail() { echo "$ME: $*" >&2; exit 2; }
+
+usage() {
+	sed -n '3,16p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+# --- arguments ------------------------------------------------------------
+MODE="open"
+TUNNEL_URL=""
+case "${1:-}" in
+	"") ;;
+	--url)
+		MODE="attach"
+		TUNNEL_URL="${2:-}"
+		[ -n "$TUNNEL_URL" ] || fail "--url needs an https:// URL"
+		;;
+	--restore) MODE="restore" ;;
+	-h|--help) usage; exit 0 ;;
+	*) usage >&2; exit 2 ;;
+esac
+
+# --- the playground's port, read from its own configuration ---------------
+CONFIG="${WP_ENV_CONFIG:-.wp-env.json}"
+[ -f "$CONFIG" ] || fail "no $CONFIG in $(pwd) — this script drives this repository's wp-env playground"
+json_port() { [ -f "$1" ] && sed -n 's/^[[:space:]]*"port"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$1" | head -1; }
+PORT=""
+[ -z "${WP_ENV_CONFIG:-}" ] && PORT=$(json_port .wp-env.override.json)
+[ -n "$PORT" ] || PORT=$(json_port "$CONFIG")
+[ -n "$PORT" ] || PORT="${WP_ENV_PORT:-8888}" # wp-env's documented default
+LOCAL="http://localhost:$PORT"
+
+wpenv_run() { if [ -n "${WP_ENV_CONFIG:-}" ]; then npx wp-env run --config "$WP_ENV_CONFIG" "$@"; else npx wp-env run "$@"; fi; }
+wp() { wpenv_run cli wp "$@" 2>/dev/null; }
+
+# --- preflight: nothing changes until all of this holds ---------------------
+preflight_playground() {
+	command -v curl >/dev/null 2>&1 || fail "curl not found"
+	code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$LOCAL/" 2>/dev/null)
+	[ -n "$code" ] && [ "$code" != "000" ] || fail "nothing answers on $LOCAL — start the playground: npx wp-env start"
+	# The port answering is not enough: it must be THIS repository's instance.
+	CURRENT=$(wp option get home | tr -d '\r')
+	[ -n "$CURRENT" ] || fail "wp-env has no running instance for $(pwd) (another checkout's playground may hold port $PORT) — npx wp-env start"
+}
+
+preflight_sandbox() {
+	live=""
+	for g in $GATEWAYS; do
+		s=$(wp option get "woocommerce_${g}_settings" --format=json | tr -d ' \r')
+		case "$s" in *'"enabled":"yes"'*) ;; *) continue ;; esac
+		case "$s" in *'"testmode":"yes"'*) ;; *) live="$live $g" ;; esac
+	done
+	[ -z "$live" ] || fail "refusing to expose the playground: enabled gateway(s) not in test mode:$live (sandbox credentials only)"
+}
+
+find_cloudflared() {
+	CF=$(command -v cloudflared 2>/dev/null)
+	if [ -z "$CF" ]; then
+		for c in /opt/homebrew/bin/cloudflared /usr/local/bin/cloudflared; do
+			[ -x "$c" ] && CF="$c" && break
+		done
+	fi
+	[ -n "$CF" ] || fail "cloudflared not found — macOS: brew install cloudflared; Linux/Windows: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/ (or open any tunnel yourself and use --url)"
+	for f in "$HOME/.cloudflared/config.yml" "$HOME/.cloudflared/config.yaml"; do
+		[ -f "$f" ] && fail "$f exists, and a quick tunnel refuses to start with it. It is your configuration: this script will not move or edit it. Open your own tunnel and use --url <https-url>"
+	done
+}
+
+# --- pointing and restoring ---------------------------------------------------
+point() {
+	base="$1"
+	cat > "$SHIM" <<'PHP'
+<?php
+/**
+ * Playground-only. Written by scripts/playground-tunnel while an inbound tunnel
+ * is open; deleted on restore. Never part of the plugin: trusting a forwarded
+ * header unconditionally is a vulnerability on a server not behind that proxy.
+ */
+if ( isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && 'https' === $_SERVER['HTTP_X_FORWARDED_PROTO'] ) {
+	$_SERVER['HTTPS'] = 'on';
+}
+PHP
+	wp config set WP_HOME "$base" --type=constant >/dev/null || return 1
+	wp config set WP_SITEURL "$base" --type=constant >/dev/null || return 1
+	now=$(wp config get WP_HOME | tr -d '\r')
+	[ "$now" = "$base" ] || return 1
+}
+
+restore() {
+	ok=0
+	rm -f "$SHIM" || ok=1
+	wp config set WP_HOME "$LOCAL" --type=constant >/dev/null || ok=1
+	wp config set WP_SITEURL "$LOCAL" --type=constant >/dev/null || ok=1
+	now=$(wp config get WP_HOME | tr -d '\r')
+	[ "$now" = "$LOCAL" ] || ok=1
+	if [ "$ok" -eq 0 ]; then
+		say "playground back on $LOCAL (WP_HOME/WP_SITEURL restored, HTTPS shim removed)"
+	else
+		echo "$ME: RESTORE INCOMPLETE — run scripts/playground-tunnel --restore (WP_HOME is now: ${now:-unreadable})" >&2
+	fi
+	return "$ok"
+}
+
+endpoints() {
+	say "notification endpoints the gateways will now send to the provider:"
+	for g in redsys bizumredsys googlepayredirecredsys; do
+		echo "  $1/?wc-api=WC_Gateway_$g"
+	done
+	echo "  $1/?wc-api=wc_gateway_inespayredsys"
+}
+
+# --- modes --------------------------------------------------------------------
+if [ "$MODE" = "restore" ]; then
+	preflight_playground
+	restore || exit 2
+	exit 0
+fi
+
+if [ "$MODE" = "attach" ]; then
+	case "$TUNNEL_URL" in https://?*) ;; *) fail "--url must be an https:// URL (got: $TUNNEL_URL)" ;; esac
+	TUNNEL_URL="${TUNNEL_URL%/}"
+	preflight_playground
+	preflight_sandbox
+	if ! point "$TUNNEL_URL"; then
+		restore
+		fail "could not point the playground at $TUNNEL_URL (restored)"
+	fi
+	say "playground now answers as $TUNNEL_URL (was $CURRENT)"
+	endpoints "$TUNNEL_URL"
+	say "when the exercise ends: scripts/playground-tunnel --restore"
+	exit 0
+fi
+
+# MODE=open
+find_cloudflared
+preflight_playground
+preflight_sandbox
+
+LOG=$(mktemp "${TMPDIR:-/tmp}/playground-tunnel.XXXXXX") || fail "mktemp failed"
+CF_PID=""
+CHANGED=0
+cleanup() {
+	status=$?
+	trap - EXIT INT TERM HUP
+	if [ -n "$CF_PID" ] && kill -0 "$CF_PID" 2>/dev/null; then
+		kill "$CF_PID" 2>/dev/null
+		wait "$CF_PID" 2>/dev/null
+		say "tunnel closed"
+	fi
+	rm -f "$LOG"
+	if [ "$CHANGED" -eq 1 ]; then
+		restore || status=2
+	fi
+	exit "$status"
+}
+trap cleanup EXIT
+trap 'exit 0' INT TERM HUP
+
+"$CF" tunnel --url "$LOCAL" --no-autoupdate >"$LOG" 2>&1 &
+CF_PID=$!
+
+URL=""
+i=0
+while [ "$i" -lt "$TIMEOUT" ]; do
+	URL=$(grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' "$LOG" 2>/dev/null | head -1)
+	[ -n "$URL" ] && break
+	kill -0 "$CF_PID" 2>/dev/null || break
+	sleep 1
+	i=$((i + 1))
+done
+if [ -z "$URL" ]; then
+	echo "$ME: no tunnel URL after ${i}s; last lines of cloudflared's output:" >&2
+	tail -n 20 "$LOG" >&2
+	exit 2
+fi
+
+CHANGED=1
+point "$URL" || { echo "$ME: could not point the playground at the tunnel" >&2; exit 2; }
+
+# The hostname can take a few seconds to resolve; bounded, informative only.
+i=0
+while [ "$i" -lt "$TIMEOUT" ]; do
+	code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$URL/" 2>/dev/null)
+	[ -n "$code" ] && [ "$code" != "000" ] && break
+	sleep 1
+	i=$((i + 1))
+done
+[ "$i" -lt "$TIMEOUT" ] || say "warning: $URL did not answer within ${TIMEOUT}s yet (DNS may still be propagating)"
+
+say "tunnel open: $URL -> $LOCAL (was $CURRENT)"
+endpoints "$URL"
+say "the playground is PUBLIC while this runs. Ctrl-C (or: kill -TERM $$) closes the tunnel and restores $LOCAL."
+wait "$CF_PID"
+say "cloudflared exited"
+exit 0

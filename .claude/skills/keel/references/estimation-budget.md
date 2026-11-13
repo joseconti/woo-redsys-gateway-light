@@ -11,6 +11,8 @@ Load this reference at these moments, and only these:
 - The user asks "what would this cost / how long will this take" at any point.
 - **End of every working session (and every phase/sprint close)** → append the session's row to `docs/token-ledger.md` (see "The token ledger" below — one line, cheap).
 
+Parallel development changes elapsed time, not approved scope. Reports keep four figures separate: wall-clock elapsed time, summed worker effort, coordinator review/integration effort, and token/API usage where observable. Two workers active for one hour contribute two worker-hours and one elapsed hour. Coordinator waiting is not counted again as implementation effort. Scheduling never reduces `residual_hours`; only integrated completion or a recorded scope change does. Do not quote a speedup until a real-project pilot measures one.
+
 Whether a client budget exists at all is decided once — at Phase 1 step 10, with one question: is there a client to bill or a quote to produce? — and recorded in the PROGRESS.md project card as `Client budget: yes/no`. `docs/estimate.md` and `docs/token-ledger.md` are unconditional: every project gets them, client or not. `docs/budget.md` is produced only when `Client budget: yes`; when `Client budget: no`, the rate, currency and budget-language questions are never asked.
 
 ## The rule this reference exists for (UNBREAKABLE)
@@ -35,7 +37,9 @@ Baseline table — adjust per project and say why (state the scope basis next to
 | Phase 2 — functional spec, flows, technical plan | 1–3 h (scales with features/flows) |
 | Phase 3 — design brief + Design producing the handoff | 1–4 h (scales with screens; template reuse lowers it) |
 | Phase 4 — handoff audit, BUILD-SPEC, guided external setup | 1–3 h (scales with setup items / Design Requests) |
-| Phase 5 — development | the bulk: **0.5–2 h per slice** (code + tests + docs + test point) |
+| Phase 5 — development | the bulk: **0.5–2 h per slice** (code + tests + docs + test point) — and once a project has measured slices, start from THEIR measured hours for the same kind of slice (`docs/sessions.md`), not from this range |
+
+**On a project that carries a sprint plan, the Phase 5 approved line is DERIVED, not estimated twice.** Each slice's immutable `original_hours` is its approved partida, and this line is their sum. Current remaining work is separately the sum of `residual_hours`; an extraction reconciles parent ownership and residuals in the same checkpoint, never by subtracting elapsed time. `scripts/keel-verify` fails overlapping ownership, unexplained residual changes, and an unreconciled changed plan. Deferred items carry their own original/residual estimates but are NOT in this release total. **Actuals live beside both estimates, per slice:** the commit that marks a slice `done` writes its `actual_hours`; it never overwrites either estimate. `docs/.keel/plan.json` carries original, residual, actual and reconciliation status separately. Both the residual balance and a conditional projection using the cumulative measured actual/original ratio of completed slices are shown at every session close and on a "how long is left?" question (formula and unavailable-data rules in `references/project-state.md`, "Remaining-time projection"), and at release it is what the Phase 7 reconciliation compares against the estimate alongside the token ledger.
 | Phase 6 — documentation consolidation | 1–2 h |
 | Phase 7 — release | 0.5–1.5 h |
 | Phase 8 — website (only if intent = yes; usually quoted separately) | 3–8 h |
@@ -201,7 +205,7 @@ How to get the numbers, in order of preference:
 1. **Measured** — whatever the environment exposes: a session cost/usage counter (e.g. Claude Code's `/cost`, Codex's `/status`, Gemini CLI's `/stats`), API usage logs, or the provider's console/dashboard (ask the user to read it out when exact figures matter).
 2. **Estimated** — when nothing is exposed (typical in subscription apps): estimate from the volume actually produced and read (≈ 4 characters per token in English), state the method, round up. Never leave the row blank because measurement was unavailable — and never present an estimated row as measured.
 
-At release, Phase 7 runs the **final reconciliation** as part of its artifacts: total the ledger by model, price it at verified current prices, compute the deviation vs the estimate (tokens and cost; hours too if the user tracked them), report it to the user plainly, and record the calibration lesson — every finished project makes the next project's estimate better.
+At release, Phase 7 runs the **final reconciliation** as part of its artifacts: total the ledger by model, price it at verified current prices, compute the deviation vs the estimate (tokens and cost, and hours — always, from `docs/sessions.md`'s clock-measured totals against the plan's estimated hours), report it to the user plainly, and record the calibration lesson — every finished project makes the next project's estimate better.
 
 ## Scope changes (after a budget exists)
 

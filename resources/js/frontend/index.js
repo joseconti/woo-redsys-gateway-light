@@ -1,4 +1,17 @@
 
+/**
+ * JSX is compiled to createElement() from @wordpress/element on purpose.
+ *
+ * The build tools' default (the automatic JSX runtime) makes the script
+ * depend on the `react-jsx-runtime` handle, which WordPress only registers
+ * from 6.6 on: on an older WordPress the script would not load and the
+ * gateways would vanish from the Blocks checkout. `wp-element` exists on
+ * every WordPress that has blocks and uses the site's own React.
+ *
+ * @jsxRuntime classic
+ * @jsx createElement
+ */
+import { createElement } from '@wordpress/element';
 import { sprintf, __ } from '@wordpress/i18n';
 import { registerPaymentMethod } from '@woocommerce/blocks-registry';
 import { decodeEntities } from '@wordpress/html-entities';
@@ -151,12 +164,32 @@ const GPayRed = {
 		features: settingsgpayredsys.supports,
 	},
 };
+/**
+ * Inespay serves only the countries the plugin hands over (S-066): the
+ * shipping country when there is one, else the billing country, the same
+ * order the classic checkout uses. Without that list — the plugin handed no
+ * data because the customer is elsewhere — it is not offered at all.
+ *
+ * @param {Object} cart Data the Blocks checkout passes to canMakePayment.
+ * @return {boolean} Whether Inespay can be offered for this address.
+ */
+const canPayWithInespay = ( cart ) => {
+	const countries = Array.isArray( settingsinespayredsys.countries ) ? settingsinespayredsys.countries : [];
+	if ( ! countries.length ) {
+		return false;
+	}
+	const shipping = ( cart && cart.shippingAddress && cart.shippingAddress.country ) || '';
+	const billing = ( cart && cart.billingAddress && cart.billingAddress.country ) || ( cart && cart.billingData && cart.billingData.country ) || '';
+	const country = ( shipping || billing ).toUpperCase();
+	// No address typed yet: the server already decided from the session.
+	return '' === country || countries.indexOf( country ) !== -1;
+};
 const Inespay = {
 	name: "inespayredsys",
 	label: <Labelinespay />,
 	content: <Contentinespay />,
 	edit: <Contentinespay />,
-	canMakePayment: () => true,
+	canMakePayment: canPayWithInespay,
 	ariaLabel: labelinespay,
 	supports: {
 		features: settingsinespayredsys.supports,
