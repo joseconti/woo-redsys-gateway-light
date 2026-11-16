@@ -28,7 +28,7 @@ slices:
     depends_on: []
     criteria: []
     execution:
-      write_paths: [woocommerce-redsys.php, classes/class-wc-gateway-redsys.php, classes/class-wc-gateway-bizum-redsys.php, classes/class-wc-gateway-googlepay-redirection-redsys.php, tests/Integration/RedirectFormEscapingTest.php, tests/Integration/RedirectAutoSubmitTest.php, tests/e2e/checkout-redsys.spec.js, tests/e2e/checkout-bizum.spec.js, tests/e2e/checkout-googlepay.spec.js, readme.txt, docs/api/INDEX.md]
+      write_paths: [woocommerce-redsys.php, classes/class-wc-gateway-redsys.php, classes/class-wc-gateway-bizum-redsys.php, classes/class-wc-gateway-googlepay-redirection-redsys.php, tests/Integration/RedirectFormEscapingTest.php, tests/Integration/RedirectAutoSubmitTest.php, tests/e2e/checkout-redsys.spec.js, tests/e2e/checkout-bizum.spec.js, tests/e2e/checkout-googlepay.spec.js, readme.txt, docs/api/INDEX.md, docs/reference/classes.md, docs/reference/hooks-and-extension-points.md, docs/reference/endpoints.md, docs/reference/functions.md, docs/flows/, scripts/keel-verify, docs/estimate.md, docs/sessions.md]
       contracts:
         reads: []
         writes: []
@@ -41,3 +41,4 @@ slices:
 
 - Acceptance: on a block theme and on a classic theme, opening the order-pay page of a card, Bizum or Google Pay order sends the browser to Redsys with no click; reproduction tests seen failing first, then green. Hours are AI working time plus supervision.
 - Close-out: S-107 done 2026-11-16 (measured 0.73 h). Full suite GREEN on the floor site on the candidate (41 unit, 418 integration, 67 browser); affected checkout, accessibility and cancel-return specs also run on the ceiling — green except the four known admin help-tip axe scans (S-083, D-114). Live check without mocks: card, Bizum and Google Pay order-pay pages land on sis-t.redsys.es on both sites.
+- Close of S-107 (commit 95ec175, inside its measured time): line references in docs/flows and docs/reference re-pointed (the gateway code moved; several were stale before 7.1.0), keel-verify check 1 reads `= x =` changelog headings, estimate 97.4 h, two session rows recomputed and S-106 listed in its session's Done column.

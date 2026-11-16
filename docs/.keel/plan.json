@@ -2649,7 +2649,15 @@
               "tests/e2e/checkout-bizum.spec.js",
               "tests/e2e/checkout-googlepay.spec.js",
               "readme.txt",
-              "docs/api/INDEX.md"
+              "docs/api/INDEX.md",
+              "docs/reference/classes.md",
+              "docs/reference/hooks-and-extension-points.md",
+              "docs/reference/endpoints.md",
+              "docs/reference/functions.md",
+              "docs/flows/",
+              "scripts/keel-verify",
+              "docs/estimate.md",
+              "docs/sessions.md"
             ],
             "contracts": {
               "reads": [],
