@@ -29,7 +29,7 @@
 - Notify: `PushNotification` tool (desktop + phone via Remote Control) — delivers (D-011)
 - Chaining: start (D-015) — a clean close-out opens and submits a fresh Claude Code CLI session automatically via `osascript`/Terminal.app; verified end-to-end on macOS with `claude` on PATH at `~/.local/bin/claude`
 - Chaining model: opus (D-037) — every chained chat launches with `claude --model opus`
-- Chain verified: 2026-10-06, tier start, Keel 6.5.0, keel-continue b8796f66873c0ff2, row claude:0a2731fe91ba319a
+- Chain verified: 2026-11-16, tier start, Keel 7.6.0, keel-continue b0d6eddc354d1ee8, row claude:0a2731fe91ba319a
 - Test-first policy: pure-logic (D-036)
 - Push test scope: affected — the default, never asked
 - Sprints: on — the default, never asked
