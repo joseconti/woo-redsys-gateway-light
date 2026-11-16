@@ -77,9 +77,9 @@ sequenceDiagram
 `AC-01`, `AC-02`, `AC-05`, `AC-15`, `AC-16`, `AC-45`; the notification half is `AC-03`, `AC-04`, `AC-06` to `AC-14` (see `docs/flows/notification-handling.md`).
 
 ## Source files
-- `classes/class-wc-gateway-redsys.php` — `__construct()` line 238, `is_valid_for_use()` 331, `get_redsys_args()` 573, `generate_redsys_form()` 711, `process_payment()` 809, `receipt_page()` 821, `warning_checkout_test_mode()` 1437.
-- `classes/class-wc-gateway-redsys-global-lite.php` — `prepare_order_number()` line 1155.
-- `classes/class-wc-gateway-redsys-psd2-light.php` — `get_acctinfo()` line 571.
+- `classes/class-wc-gateway-redsys.php` — `__construct()` line 238, `is_valid_for_use()` 341, `get_redsys_args()` 583, `generate_redsys_form()` 726, `process_payment()` 780, `receipt_page()` 792, `warning_checkout_test_mode()` 1397.
+- `classes/class-wc-gateway-redsys-global-lite.php` — `prepare_order_number()` line 1213.
+- `classes/class-wc-gateway-redsys-psd2-light.php` — `get_acctinfo()` line 564.
 - `includes/class-redsysliteapi.php` — `create_merchant_parameters()` line 182, `create_merchant_signature()` 195.
 - `includes/blocks/class-wc-gateway-redsys-lite-support.php` — Blocks registration.
 - `woocommerce-redsys.php` — gateway registration (`woocommerce_add_gateway_redsys_gateway()`, line 271).
