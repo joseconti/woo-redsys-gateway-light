@@ -1,5 +1,6 @@
 // @ts-check
 const { test, expect } = require( '@playwright/test' );
+const { holdRedsysNavigation } = require( './fixtures/redsys-navigation' );
 
 /**
  * Checkout smoke test: guest checkout with the Redsys gateway through the
@@ -19,7 +20,8 @@ const { test, expect } = require( '@playwright/test' );
  */
 
 test( 'guest checkout via the Blocks checkout with the Redsys gateway generates a correctly-signed payment form', async ( { page } ) => {
-	await page.route( '**/*redsys.es/**', ( route ) => route.abort() );
+	// The automatic submit of the payment form is recorded and cancelled (S-107).
+	await holdRedsysNavigation( page );
 
 	await page.goto( '/?add-to-cart=10' );
 

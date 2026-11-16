@@ -18,10 +18,9 @@ class RedirectFormEscapingTest extends WP_UnitTestCase {
 
 	public function set_up() {
 		parent::set_up();
-		if ( ! wp_script_is( 'woocommerce', 'registered' ) ) {
-			wp_register_script( 'woocommerce', 'https://example.invalid/woocommerce.js', array(), '1', true );
+		if ( wp_script_is( 'redsyslite-redirect', 'registered' ) ) {
+			wp_scripts()->registered['redsyslite-redirect']->extra['after'] = array();
 		}
-		wp_scripts()->registered['woocommerce']->extra['after'] = array();
 		add_filter( 'gettext', array( $this, 'hostile_translation' ), 10, 3 );
 	}
 
@@ -75,7 +74,7 @@ class RedirectFormEscapingTest extends WP_UnitTestCase {
 		ob_start();
 		$gateway->receipt_page( $order->get_id() );
 		$page   = ob_get_clean();
-		$script = implode( "\n", (array) wp_scripts()->get_data( 'woocommerce', 'after' ) );
+		$script = implode( "\n", (array) wp_scripts()->get_data( 'redsyslite-redirect', 'after' ) );
 
 		$this->assertStringContainsString( 'id="redsys_payment_form"', $page, 'The form is printed.' );
 		$this->assertStringNotContainsString( 'redsyslite-injected"', $page, 'No element from a translation reaches the page.' );
@@ -106,9 +105,9 @@ class RedirectFormEscapingTest extends WP_UnitTestCase {
 		ob_start();
 		$gateway->receipt_page( $order->get_id() );
 		ob_end_clean();
-		$default = implode( "\n", (array) wp_scripts()->get_data( 'woocommerce', 'after' ) );
+		$default = implode( "\n", (array) wp_scripts()->get_data( 'redsyslite-redirect', 'after' ) );
 
-		wp_scripts()->registered['woocommerce']->extra['after'] = array();
+		wp_scripts()->registered['redsyslite-redirect']->extra['after'] = array();
 		$loader = static function () {
 			return 'https://example.invalid/redsyslite-loader.gif';
 		};
@@ -117,7 +116,7 @@ class RedirectFormEscapingTest extends WP_UnitTestCase {
 		$gateway->receipt_page( $order->get_id() );
 		ob_end_clean();
 		remove_filter( 'woocommerce_ajax_loader_url', $loader );
-		$filtered = implode( "\n", (array) wp_scripts()->get_data( 'woocommerce', 'after' ) );
+		$filtered = implode( "\n", (array) wp_scripts()->get_data( 'redsyslite-redirect', 'after' ) );
 
 		$this->assertStringContainsString( 'select2-spinner.gif', $default, 'Without a listener the spinner is WooCommerce\'s own.' );
 		$this->assertStringNotContainsString( 'redsyslite-loader.gif', $default );

@@ -16,30 +16,31 @@
     "docs/sprints/sprint-11.md",
     "docs/sprints/sprint-12.md",
     "docs/sprints/sprint-13.md",
+    "docs/sprints/sprint-14.md",
     "docs/sprints/deferred.md"
   ],
   "current_sprint": 9,
   "reconciliation_status": "reconciled",
   "totals": {
-    "original_estimated_hours": 95.4,
+    "original_estimated_hours": 97.4,
     "completed_original_hours": 94.4,
     "actual_hours": 34.4619,
-    "remaining_hours": 1,
+    "remaining_hours": 3,
     "deviation_hours": -59.9381,
     "pace_factor": 0.183219,
-    "projected_remaining_hours": 0.1832,
+    "projected_remaining_hours": 0.5497,
     "reconciliation_status": "reconciled",
     "scope_delta": {
-      "added_scope_hours": 7.5,
+      "added_scope_hours": 9.5,
       "extracted_hours": 1.75,
       "explicit_residual_reestimate_hours": 0
     },
-    "percent_done": 98.95,
+    "percent_done": 96.92,
     "unit": "hours of AI working time plus supervision",
     "spent_unfinished_hours": 0,
-    "slices_total": 90,
+    "slices_total": 91,
     "slices_done": 88,
-    "slices_pending": 1,
+    "slices_pending": 2,
     "slices_dropped": 1,
     "slices_unreconciled": 0,
     "pace_sample": {
@@ -2592,6 +2593,76 @@
           }
         }
       ]
+    },
+    {
+      "sprint": 14,
+      "goal": "Hotfix 7.1.1 — the redirect gateways submit the payment form to Redsys on their own again (D-116)",
+      "status": "in-progress",
+      "file": "docs/sprints/sprint-14.md",
+      "original_estimated_hours": 2,
+      "completed_original_hours": 0,
+      "actual_hours": 0,
+      "remaining_hours": 2,
+      "deviation_hours": 0,
+      "pace_factor": 0.183219,
+      "projected_remaining_hours": 0.3664,
+      "reconciliation_status": "reconciled",
+      "scope_delta": {
+        "added_scope_hours": 2,
+        "extracted_hours": 0,
+        "explicit_residual_reestimate_hours": 0
+      },
+      "percent_done": 0,
+      "unit": "hours of AI working time plus supervision",
+      "spent_unfinished_hours": 0,
+      "slices_total": 1,
+      "slices_done": 0,
+      "slices_pending": 1,
+      "slices_dropped": 0,
+      "slices_unreconciled": 0,
+      "slices": [
+        {
+          "id": "S-107",
+          "title": "Auto-submit of the redirect form restored for card (both branches), Bizum and Google Pay — the inline script no longer depends on WooCommerce's handle being registered when the receipt page renders (block themes); reproduction tests first; version 7.1.1",
+          "status": "in-progress",
+          "original_hours": 2,
+          "residual_hours": 2,
+          "change_kind": "added",
+          "parent_slice": null,
+          "owns": [
+            "S-107"
+          ],
+          "estimate_changes": [],
+          "actual_hours": null,
+          "actual_source": null,
+          "depends_on": [],
+          "criteria": [],
+          "execution": {
+            "write_paths": [
+              "woocommerce-redsys.php",
+              "classes/class-wc-gateway-redsys.php",
+              "classes/class-wc-gateway-bizum-redsys.php",
+              "classes/class-wc-gateway-googlepay-redirection-redsys.php",
+              "tests/Integration/RedirectFormEscapingTest.php",
+              "tests/Integration/RedirectAutoSubmitTest.php",
+              "tests/e2e/checkout-redsys.spec.js",
+              "tests/e2e/checkout-bizum.spec.js",
+              "tests/e2e/checkout-googlepay.spec.js",
+              "readme.txt",
+              "docs/api/INDEX.md"
+            ],
+            "contracts": {
+              "reads": [],
+              "writes": []
+            },
+            "exclusive_resources": [
+              "keel-development"
+            ],
+            "parallel": "serial",
+            "serial_reason": "one hotfix branch and the one test lane"
+          }
+        }
+      ]
     }
   ],
   "scope_reconciliations": [
@@ -2700,6 +2771,20 @@
       "explicit_residual_reestimates": 0,
       "remaining_after": 2.5,
       "file": "docs/sprints/sprint-13.md"
+    },
+    {
+      "id": "R14-01",
+      "date": "2026-11-16",
+      "reason": "D-116 — the owner reported that the order-pay page no longer sends the customer to Redsys automatically; S-107 added",
+      "slices": [
+        "S-107"
+      ],
+      "remaining_before": 1,
+      "completed_residual": 0,
+      "added_scope": 2,
+      "explicit_residual_reestimates": 0,
+      "remaining_after": 3,
+      "file": "docs/sprints/sprint-14.md"
     }
   ],
   "deferred": [

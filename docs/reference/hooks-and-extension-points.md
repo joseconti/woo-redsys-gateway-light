@@ -2,7 +2,7 @@
 
 > As-built reference, written from the code on 2026-10-06. It lists every action and filter this plugin **fires** — every `do_action()` and `apply_filters()` call in the plugin's own PHP (`woocommerce-redsys.php`, `about-redsys.php`, `classes/`, `includes/`), excluding `vendor/`, `node_modules/` and `tests/`. The plugin has no `do_action_ref_array()`, `apply_filters_ref_array()` or deprecated-hook calls.
 >
-> Count: **34 call sites, 20 distinct hook names** — 6 actions and 14 filters. One of the filters (`woocommerce_ajax_loader_url`) belongs to WooCommerce and is only applied here.
+> Count: **31 call sites, 20 distinct hook names** — 6 actions and 14 filters. One of the filters (`woocommerce_ajax_loader_url`) belongs to WooCommerce and is only applied here.
 >
 > "Since" is the `@since` tag in the source docblock where one exists. Those tags are not consistent with the plugin's release history and were not checked against it; treat them as the author's annotation, not as a verified version.
 
@@ -32,7 +32,7 @@ Every example is ordinary WordPress code. Put it in a small plugin of your own o
 | 17 | `redsys_lite_apps_plugins_webs` | filter | `includes/class-redsys-lite-apps-plugins.php:570` |
 | 18 | `redsys_lite_apps_plugins_skills` | filter | `includes/class-redsys-lite-apps-plugins.php:634` |
 | 19 | `redsys_lite_apps_plugins_profiles` | filter | `includes/class-redsys-lite-apps-plugins.php:674` |
-| 20 | `woocommerce_ajax_loader_url` (WooCommerce's own) | filter | `classes/class-wc-gateway-redsys.php:739`, `:778`; `classes/class-wc-gateway-bizum-redsys.php:945`; `classes/class-wc-gateway-googlepay-redirection-redsys.php:757` |
+| 20 | `woocommerce_ajax_loader_url` (WooCommerce's own) | filter | `classes/class-wc-gateway-redsys-global-lite.php:193` (`add_redirect_script()`, shared by the card, Bizum and Google Pay gateways since 7.1.1) |
 | 21 | `woocommerce_redsys_refund_confirmation_attempts`, `woocommerce_bizumredsys_refund_confirmation_attempts`, `woocommerce_googlepayredirecredsys_refund_confirmation_attempts` | filter | `classes/class-wc-gateway-redsys.php:1388`; `classes/class-wc-gateway-bizum-redsys.php:1794`; `classes/class-wc-gateway-googlepay-redirection-redsys.php:1589` |
 
 Five of these names are built at run time from the gateway ID (`'valid_' . $this->id . '_standard_ipn_request'`, `'woocommerce_' . $this->id . '_icon'`, `'woocommerce_' . $this->id . '_args'`, `$this->id . '_post_payment_complete'`, `$this->id . '_post_payment_error'`). The names above are the resolved ones; searching the code for the full string does not find those call sites.
@@ -266,7 +266,7 @@ add_filter(
 ### 20. `woocommerce_ajax_loader_url` (WooCommerce's filter, applied here)
 
 - **Kind:** filter, owned by WooCommerce — documented here because this plugin applies it, not because it defines it.
-- **Applied from:** `generate_redsys_form()` — `classes/class-wc-gateway-redsys.php:739` and `:778`, `classes/class-wc-gateway-bizum-redsys.php:945`, `classes/class-wc-gateway-googlepay-redirection-redsys.php:757`.
+- **Applied from:** `WC_Gateway_Redsys_Global_Lite::add_redirect_script()` — `classes/class-wc-gateway-redsys-global-lite.php:193` — which `generate_redsys_form()` of the card (both branches), Bizum and Google Pay gateways calls (since 7.1.1; before, each gateway applied it itself).
 - **Parameters:**
   - `$url` (`string`) — the spinner image shown in the "redirecting" overlay on the order-pay page; default WooCommerce's `assets/images/select2-spinner.gif`.
 - **When:** each time the order-pay form is built for a card, Bizum or Google Pay order.
