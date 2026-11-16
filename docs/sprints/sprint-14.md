@@ -2,7 +2,7 @@
 schema: keel.sprint/2
 sprint: 14
 goal: Hotfix 7.1.1 — the redirect gateways submit the payment form to Redsys on their own again (D-116)
-status: in-progress
+status: done
 scope_reconciliations:
   - id: R14-01
     date: 2026-11-16
@@ -16,9 +16,11 @@ scope_reconciliations:
 slices:
   - id: S-107
     title: Auto-submit of the redirect form restored for card (both branches), Bizum and Google Pay — the inline script no longer depends on WooCommerce's handle being registered when the receipt page renders (block themes); reproduction tests first; version 7.1.1
-    status: in-progress
+    status: done
     original_hours: 2
-    residual_hours: 2
+    actual_hours: 0.7269
+    actual_source: measured
+    residual_hours: 0
     change_kind: added
     parent_slice: null
     owns: [S-107]
@@ -38,3 +40,4 @@ slices:
 # Sprint 14 — Hotfix 7.1.1
 
 - Acceptance: on a block theme and on a classic theme, opening the order-pay page of a card, Bizum or Google Pay order sends the browser to Redsys with no click; reproduction tests seen failing first, then green. Hours are AI working time plus supervision.
+- Close-out: S-107 done 2026-11-16 (measured 0.73 h). Full suite GREEN on the floor site on the candidate (41 unit, 418 integration, 67 browser); affected checkout, accessibility and cancel-return specs also run on the ceiling — green except the four known admin help-tip axe scans (S-083, D-114). Live check without mocks: card, Bizum and Google Pay order-pay pages land on sis-t.redsys.es on both sites.
