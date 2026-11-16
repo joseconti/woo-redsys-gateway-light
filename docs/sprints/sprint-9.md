@@ -40,7 +40,7 @@ slices:
     status: in-progress
     original_hours: 1
     actual_hours: 0.2769
-    residual_hours: 0.25
+    residual_hours: 1
     actual_source: measured
     change_kind: added
     parent_slice: null
