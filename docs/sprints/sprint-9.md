@@ -39,14 +39,15 @@ slices:
     title: PHPCS findings of D-102 that have one fix and change no behaviour — the 19 hooks without a hook comment, 7 alignments, 3 doc lines in lower case, the mt_rand() fallback annotated
     status: in-progress
     original_hours: 1
-    actual_hours: 0
-    residual_hours: 1
+    actual_hours: 0.2769
+    residual_hours: 0.25
     actual_source: measured
     change_kind: added
     parent_slice: null
     owns: [S-102]
     estimate_changes: []
     depends_on: [S-101]
+    waiting_on: the playground VM keel-development answering again (2026-11-16 — browser ERR_ADDRESS_UNREACHABLE, prlctl exec refused); the code is on work/s-102 (a9e26c6), not pushed, its affected tests not yet run
     criteria: []
     execution:
       write_paths: [classes/, includes/, woocommerce-redsys.php]
