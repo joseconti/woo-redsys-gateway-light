@@ -37,10 +37,10 @@ The contract is Keel's `references/project-state.md`: "Sprint files (Phase 5) �
 | [12](sprint-12.md) | Rebuild recipe for this project's machines and the shared VM keel-development (Keel machine recipe) | done | 1 / 1 | 0.5 | 0.5 | 0.5 | 0 | 0 | 100 |
 | [13](sprint-13.md) | 7.1.0 carries the next-version work — work/after-7.1.0 folded into the release, readme changelog unified, develop is the new candidate (D-115) | done | 1 / 1 | 1.5 | 1.5 | 0.17 | 0 | 0 | 100 |
 | [14](sprint-14.md) | Hotfix 7.1.1 — the redirect gateways submit the payment form to Redsys on their own again (D-116) | done | 1 / 1 | 2 | 2 | 0.73 | 0 | 0 | 100 |
-| [15](sprint-15.md) | Keel v7.5.0 → v7.6.0 reconciliation, and the follow-ups that 7.1.0's publication on WordPress.org (2026-11-13) unblocked | in-progress | 1 / 2 | 2 | 0.5 | 0.3 | 1.5 | 0.28 | 25 |
-| **Total** | | | 90 / 92 | 99.4 | 96.9 | 35.49 | 2.5 | 0.47 | 97.5 |
+| [15](sprint-15.md) | Keel v7.5.0 → v7.6.0 reconciliation, and the follow-ups that 7.1.0's publication on WordPress.org (2026-11-13) unblocked | done | 2 / 2 | 2 | 2 | 0.28 | 0 | 0 | 100 |
+| **Total** | | | 91 / 92 | 99.4 | 98.4 | 35.47 | 1 | 0.19 | 99 |
 
-All figures are hours of AI working time plus supervision. Contingency is not included, and neither is the backlog in [`deferred.md`](deferred.md) (8 items, 8 h). Pace factor: 0.1887 (69 measured slices). Balance: reconciled.
+All figures are hours of AI working time plus supervision. Contingency is not included, and neither is the backlog in [`deferred.md`](deferred.md) (8 items, 8 h). Pace factor: 0.188 (70 measured slices). Balance: reconciled.
 <!-- keel-plan:index:end -->
 
 ## Related files

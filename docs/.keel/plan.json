@@ -23,42 +23,41 @@
   "current_sprint": 9,
   "reconciliation_status": "reconciled",
   "queue": {
-    "workable": 2,
+    "workable": 1,
     "waiting": 0,
     "workable_slices": [
-      "S-102",
-      "S-108"
+      "S-102"
     ],
     "waiting_on": []
   },
   "totals": {
     "original_estimated_hours": 99.4,
-    "completed_original_hours": 96.9,
-    "actual_hours": 35.4888,
-    "remaining_hours": 2.5,
-    "deviation_hours": -61.4112,
-    "pace_factor": 0.18871,
-    "projected_remaining_hours": 0.4718,
+    "completed_original_hours": 98.4,
+    "actual_hours": 35.4724,
+    "remaining_hours": 1,
+    "deviation_hours": -62.9276,
+    "pace_factor": 0.187973,
+    "projected_remaining_hours": 0.188,
     "reconciliation_status": "reconciled",
     "scope_delta": {
       "added_scope_hours": 11.5,
       "extracted_hours": 1.75,
       "explicit_residual_reestimate_hours": 0
     },
-    "percent_done": 97.48,
+    "percent_done": 98.99,
     "unit": "hours of AI working time plus supervision",
     "spent_unfinished_hours": 0,
     "slices_total": 93,
-    "slices_done": 90,
-    "slices_pending": 2,
+    "slices_done": 91,
+    "slices_pending": 1,
     "slices_dropped": 1,
     "slices_unreconciled": 0,
     "pace_sample": {
-      "slices": 69,
-      "estimated_hours": 65.65,
-      "actual_hours": 12.3888,
-      "deviation_hours": -53.2612,
-      "deviation_percent": -81.13,
+      "slices": 70,
+      "estimated_hours": 67.15,
+      "actual_hours": 12.6224,
+      "deviation_hours": -54.5276,
+      "deviation_percent": -81.2,
       "provisional": false
     }
   },
@@ -73,7 +72,7 @@
       "actual_hours": 20,
       "remaining_hours": 0,
       "deviation_hours": 0,
-      "pace_factor": 0.18871,
+      "pace_factor": 0.187973,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -320,7 +319,7 @@
       "actual_hours": 4.2175,
       "remaining_hours": 0,
       "deviation_hours": -5.5325,
-      "pace_factor": 0.18871,
+      "pace_factor": 0.187973,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -491,7 +490,7 @@
       "actual_hours": 7.0276,
       "remaining_hours": 0,
       "deviation_hours": -42.6224,
-      "pace_factor": 0.18871,
+      "pace_factor": 0.187973,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -1765,7 +1764,7 @@
       "actual_hours": 0.0989,
       "remaining_hours": 0,
       "deviation_hours": -1.4011,
-      "pace_factor": 0.18871,
+      "pace_factor": 0.187973,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -1828,7 +1827,7 @@
       "actual_hours": 1.4502,
       "remaining_hours": 0,
       "deviation_hours": -2.0498,
-      "pace_factor": 0.18871,
+      "pace_factor": 0.187973,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2091,7 +2090,7 @@
       "actual_hours": 0.1014,
       "remaining_hours": 0,
       "deviation_hours": -0.6486,
-      "pace_factor": 0.18871,
+      "pace_factor": 0.187973,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2160,7 +2159,7 @@
       "actual_hours": 0.2556,
       "remaining_hours": 0,
       "deviation_hours": -1.2444,
-      "pace_factor": 0.18871,
+      "pace_factor": 0.187973,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2226,7 +2225,7 @@
       "actual_hours": 0.2397,
       "remaining_hours": 0,
       "deviation_hours": -1.0103,
-      "pace_factor": 0.18871,
+      "pace_factor": 0.187973,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2355,8 +2354,8 @@
       "actual_hours": 0.0119,
       "remaining_hours": 1,
       "deviation_hours": -0.4881,
-      "pace_factor": 0.18871,
-      "projected_remaining_hours": 0.1887,
+      "pace_factor": 0.187973,
+      "projected_remaining_hours": 0.188,
       "reconciliation_status": "reconciled",
       "scope_delta": {
         "added_scope_hours": 1.5,
@@ -2449,7 +2448,7 @@
       "actual_hours": 0.0533,
       "remaining_hours": 0,
       "deviation_hours": -0.9467,
-      "pace_factor": 0.18871,
+      "pace_factor": 0.187973,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2513,7 +2512,7 @@
       "actual_hours": 0.3358,
       "remaining_hours": 0,
       "deviation_hours": -2.6642,
-      "pace_factor": 0.18871,
+      "pace_factor": 0.187973,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2578,7 +2577,7 @@
       "actual_hours": 0.5,
       "remaining_hours": 0,
       "deviation_hours": 0,
-      "pace_factor": 0.18871,
+      "pace_factor": 0.187973,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2640,7 +2639,7 @@
       "actual_hours": 0.17,
       "remaining_hours": 0,
       "deviation_hours": -1.33,
-      "pace_factor": 0.18871,
+      "pace_factor": 0.187973,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2704,7 +2703,7 @@
       "actual_hours": 0.7269,
       "remaining_hours": 0,
       "deviation_hours": -1.2731,
-      "pace_factor": 0.18871,
+      "pace_factor": 0.187973,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2776,43 +2775,43 @@
     {
       "sprint": 15,
       "goal": "Keel v7.5.0 → v7.6.0 reconciliation, and the follow-ups that 7.1.0's publication on WordPress.org (2026-11-13) unblocked",
-      "status": "in-progress",
+      "status": "done",
       "file": "docs/sprints/sprint-15.md",
       "original_estimated_hours": 2,
-      "completed_original_hours": 0.5,
-      "actual_hours": 0.3,
-      "remaining_hours": 1.5,
-      "deviation_hours": -0.2,
-      "pace_factor": 0.18871,
-      "projected_remaining_hours": 0.2831,
+      "completed_original_hours": 2,
+      "actual_hours": 0.2836,
+      "remaining_hours": 0,
+      "deviation_hours": -1.7164,
+      "pace_factor": 0.187973,
+      "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
         "added_scope_hours": 2,
         "extracted_hours": 0,
         "explicit_residual_reestimate_hours": 0
       },
-      "percent_done": 25,
+      "percent_done": 100,
       "unit": "hours of AI working time plus supervision",
       "spent_unfinished_hours": 0,
       "slices_total": 2,
-      "slices_done": 1,
-      "slices_pending": 1,
+      "slices_done": 2,
+      "slices_pending": 0,
       "slices_dropped": 0,
       "slices_unreconciled": 0,
       "slices": [
         {
           "id": "S-108",
           "title": "Keel v7.5.0 → v7.6.0 reconciliation — embedded copies and lock stamp, keel-continue rests on an idle queue (queue.workable, idle-links breaker, exec claude), keel-chain-check row 7c, plan.json carries queue and waiting_on, machine-recipe standing check, conformance sweep",
-          "status": "in-progress",
+          "status": "done",
           "original_hours": 1.5,
-          "residual_hours": 1.5,
+          "residual_hours": 0,
           "change_kind": "added",
           "parent_slice": null,
           "owns": [
             "S-108"
           ],
           "estimate_changes": [],
-          "actual_hours": 0,
+          "actual_hours": 0.2336,
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
@@ -2853,7 +2852,7 @@
             "S-109"
           ],
           "estimate_changes": [],
-          "actual_hours": 0.3,
+          "actual_hours": 0.05,
           "actual_source": "estimated",
           "depends_on": [],
           "criteria": [],
