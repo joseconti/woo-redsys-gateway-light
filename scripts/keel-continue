@@ -336,6 +336,80 @@ if _missing=$(capability_missing); then
 	print_prompt "capability-missing" "missing capability — $_missing. Nothing can be launched from here."
 fi
 
+# --- 3a. The queue, before claiming either brake: REST --------------------------
+# Contract: references/project-state.md, "When the queue is idle". REST is the
+# third verdict beside DEGRADE and TERMINAL: everything is in order and no
+# assistant can move the work until someone outside it acts. A REST claims no
+# receipt and no ledger entry, because nothing fires.
+rest() {
+	"$SCRIPT_DIR/keel-handoff-verify" --release >/dev/null 2>&1
+	echo "RESTED — $1"
+	echo "NOTIFY: the chain rests ($1)."
+	echo
+	echo "--- Paste this into a new chat to continue ---"
+	if [ "$HANDOFF_STATE" = "clean" ] && [ -n "$(handoff_body)" ]; then
+		handoff_body
+	else
+		echo "$FALLBACK_PROMPT"
+	fi
+	echo "--- end of prompt ---"
+	echo "RESULT: RESTED ($2)"
+	exit 0
+}
+PLAN_JSON="$REPO_ROOT/docs/.keel/plan.json"
+QUEUE_WORKABLE=""
+QUEUE_WAITING=""
+if [ -f "$PLAN_JSON" ]; then
+	QUEUE_WORKABLE=$(python3 -c 'import json,sys
+try:
+    q = json.load(open(sys.argv[1]))["queue"]
+    print(int(q["workable"]))
+except Exception:
+    pass' "$PLAN_JSON" 2>/dev/null)
+	QUEUE_WAITING=$(python3 -c 'import json,sys
+try:
+    print("; ".join(json.load(open(sys.argv[1]))["queue"].get("waiting_on") or []))
+except Exception:
+    pass' "$PLAN_JSON" 2>/dev/null)
+fi
+case "$QUEUE_WORKABLE" in
+"")
+	# No plan (or unparseable): the hand-off's label is the only signal left.
+	case "$HDR_HANDOVER" in
+	blocked* | idle*)
+		rest "no plan, and the hand-off says '${HDR_HANDOVER}' — there is no work for a new chat" "idle-queue"
+		;;
+	esac
+	;;
+0)
+	rest "docs/.keel/plan.json lists no workable slice (queue.workable = 0); waiting on: ${QUEUE_WAITING:-nothing named}" "idle-queue"
+	;;
+esac
+
+# The idle-link breaker: two fires in a row with nothing landed outside the
+# bookkeeping files → REST. Kept outside the repository, like the lane.
+IDLE_FILE="$STATE_ROOT/idle-links-$REPO_KEY"
+HEAD_NOW=$(git rev-parse HEAD 2>/dev/null)
+IDLE_COUNT=0
+IDLE_HEAD=""
+if [ -f "$IDLE_FILE" ]; then
+	IDLE_HEAD=$(sed -n 1p "$IDLE_FILE" 2>/dev/null)
+	IDLE_COUNT=$(sed -n 2p "$IDLE_FILE" 2>/dev/null)
+	case "$IDLE_COUNT" in "" | *[!0-9]*) IDLE_COUNT=0 ;; esac
+fi
+if [ -n "$IDLE_HEAD" ] && git cat-file -e "$IDLE_HEAD^{commit}" 2>/dev/null; then
+	if [ -n "$(git log --format=%H "$IDLE_HEAD..HEAD" -- . ':!docs/sprints' ':!docs/.keel' ':!docs/PROGRESS.md' ':!docs/sessions.md' ':!docs/token-ledger.md' 2>/dev/null | head -1)" ]; then
+		IDLE_COUNT=0
+	else
+		IDLE_COUNT=$((IDLE_COUNT + 1))
+	fi
+else
+	IDLE_COUNT=0
+fi
+if [ "$IDLE_COUNT" -ge 2 ]; then
+	rest "the idle-link breaker tripped: the last two fires came from sessions that committed nothing but bookkeeping ($IDLE_FILE)" "idle-breaker"
+fi
+
 # --- Lane busy: TERMINAL ------------------------------------------------------
 LANE_OUT=$("$SCRIPT_DIR/keel-handoff-verify" --lane 2>&1)
 if printf '%s\n' "$LANE_OUT" | grep -q '^Lane: BUSY'; then
@@ -403,6 +477,10 @@ echo "$NOW_EPOCH" >>"$COUNTER_FILE"
 if [ "$SESSION_RC" -ne 0 ]; then
 	echo "NOTE: this session's identity could not be established from the process tree (no tool row matched an ancestor); the fire ledger entry is keyed to the parent process and may not protect a later attempt. The launch receipt still does."
 fi
+
+# Record this fire for the idle-link breaker.
+mkdir -p "$STATE_ROOT" 2>/dev/null
+printf '%s\n%s\n' "$HEAD_NOW" "$IDLE_COUNT" >"$IDLE_FILE" 2>/dev/null
 
 # --- Hand the lane back IMMEDIATELY BEFORE firing -----------------------------
 "$SCRIPT_DIR/keel-handoff-verify" --release

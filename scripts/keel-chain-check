@@ -26,6 +26,7 @@
 #   Section A (every mode):  1 card  2 launcher  3 verifier  4 allow-list
 #                            5 permission mode  6 env.PATH  7 hand-off ignored
 #                            7a fire ledger  7b both invokers on one brake
+#                            7c the launcher rests on an idle queue
 #   Section B (`start`):     8 command resolves under the DECLARED PATH
 #                            9 lane reachable  10 the four launch bugs
 #                            10a model passed  10b post-commit hook  11 proof
@@ -501,6 +502,20 @@ else
 	row 7b FAIL "both invokers of keel-continue share one brake" "$R7B Fix: regenerate the named script from the contract — a brake only one of two callers consults is a coincidence."
 fi
 
+# --- 7c. The launcher rests on an idle queue ------------------------------------
+R7C=""
+if ! code_lines "$LAUNCHER" | grep -q 'queue.workable\|\["queue"\]'; then
+	R7C="$R7C scripts/keel-continue does not read queue.workable from docs/.keel/plan.json before claiming a brake;"
+fi
+if ! code_lines "$LAUNCHER" | grep -q 'idle-links-\$REPO_KEY'; then
+	R7C="$R7C scripts/keel-continue keeps no idle-links-<repo-key> breaker;"
+fi
+if [ -z "$R7C" ]; then
+	row 7c OK "the launcher rests on an idle queue" "scripts/keel-continue reads queue.workable (falling back to a blocked/idle hand-off with no plan) and keeps the idle-links breaker"
+else
+	row 7c FAIL "the launcher rests on an idle queue" "$R7C Fix: regenerate scripts/keel-continue from the contract (point 3a) — without it a queue where every slice waits on a person chains empty sessions."
+fi
+
 # =============================================================================
 # Section B — `start`-only rows
 # =============================================================================
@@ -565,7 +580,9 @@ if ! cat $LAUNCH_SOURCES 2>/dev/null | grep -v -E '^[[:space:]]*#' | grep -q 'ch
 	R10="$R10 no launch script file is made executable (the command must be a script run by path);"
 fi
 _verify=$(code_lines "$LAUNCHER" | grep 'keel-handoff-verify" --no-lane' | head -1 | cut -d: -f1)
-_release=$(code_lines "$LAUNCHER" | grep 'keel-handoff-verify" --release' | head -1 | cut -d: -f1)
+# The release that matters is the one IMMEDIATELY before the fire; a REST
+# path (3a) releases the lane earlier and exits without firing.
+_release=$(code_lines "$LAUNCHER" | grep 'keel-handoff-verify" --release' | awk -F: -v f="${_fire:-0}" '$1 < f { l = $1 } END { print l }')
 if [ -z "$_verify" ] || [ -z "$_release" ] || [ -z "${_fire:-}" ] || [ "$_verify" -ge "$_fire" ] || [ "$_release" -ge "$_fire" ] || [ $((_fire - _release)) -gt 3 ]; then
 	R10="$R10 scripts/keel-continue does not verify before the fire and release the lane immediately before it (verify line ${_verify:-none}, release line ${_release:-none}, fire line ${_fire:-none});"
 fi
