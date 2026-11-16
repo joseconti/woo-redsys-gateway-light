@@ -170,6 +170,58 @@ class WC_Gateway_Redsys_Global_Lite {
 		return str_replace( $search, $replace, $out );
 	}
 	/**
+	 * Queues the script that shows the "redirecting" overlay and submits the
+	 * payment form (#redsys_payment_form) of the order-pay page on its own.
+	 *
+	 * The script gets its own handle, registered here, instead of riding on
+	 * WooCommerce's `woocommerce` handle: with a block theme the page content
+	 * (and so receipt_page()) is rendered before wp_enqueue_scripts, when that
+	 * handle does not exist yet, and WordPress silently drops an inline script
+	 * attached to an unregistered handle (the 7.1.0 defect, S-107). The overlay
+	 * is drawn only when jQuery BlockUI is loaded; the form is submitted either way.
+	 *
+	 * @since 7.1.1
+	 * @param string $message Message of the overlay, unescaped (it is escaped here).
+	 * @return void
+	 */
+	public function add_redirect_script( $message ) {
+		/**
+		 * Filters the spinner image of the "redirecting" overlay (WooCommerce's own filter).
+		 *
+		 * @param string $url URL of the spinner image.
+		 */
+		$loader_url = apply_filters( 'woocommerce_ajax_loader_url', WC()->plugin_url() . '/assets/images/select2-spinner.gif' );
+		if ( ! wp_script_is( 'redsyslite-redirect', 'registered' ) ) {
+			wp_register_script( 'redsyslite-redirect', false, array( 'jquery' ), REDSYS_WOOCOMMERCE_VERSION, true );
+		}
+		wp_add_inline_script(
+			'redsyslite-redirect',
+			'jQuery( function( $ ) {
+	if ( $.fn.block ) {
+		$("body").block({
+			message: "<img src=\"' . esc_url( $loader_url ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . esc_js( esc_html( $message ) ) . '",
+			overlayCSS:
+			{
+				background: "#fff",
+				opacity: 0.6
+			},
+			css: {
+				padding:		20,
+				textAlign:		"center",
+				color:			"#555",
+				border:			"3px solid #aaa",
+				backgroundColor:"#fff",
+				cursor:			"wait",
+				lineHeight:		"32px"
+			}
+		});
+	}
+	$("#submit_redsys_payment_form").click();
+} );'
+		);
+		wp_enqueue_script( 'redsyslite-redirect' );
+	}
+	/**
 	 * Get the order object by order ID.
 	 *
 	 * @param int $order_id The ID of the order.

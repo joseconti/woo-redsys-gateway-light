@@ -1,5 +1,6 @@
 // @ts-check
 const { test, expect } = require( '@playwright/test' );
+const { holdRedsysNavigation } = require( './fixtures/redsys-navigation' );
 const fs = require( 'fs' );
 const path = require( 'path' );
 
@@ -133,8 +134,9 @@ test.describe( 'classic checkout', () => {
 
 	for ( const gateway of GATEWAYS.filter( ( g ) => g.form ) ) {
 		test( `payment form of ${ gateway.id } has no WCAG 2.2 AA violation`, async ( { page } ) => {
-			// Never let a real request reach Redsys's infrastructure.
-			await page.route( '**/*redsys.es/**', ( route ) => route.abort() );
+			// Never let a real request reach Redsys's infrastructure; the automatic
+			// submit of the payment form is recorded and cancelled (S-107).
+			await holdRedsysNavigation( page );
 			await page.goto( '/?add-to-cart=10' );
 			await page.goto( '/checkout/' );
 			await fillClassicCheckout( page );
