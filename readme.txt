@@ -1,11 +1,11 @@
 === Payment Gateway for Redsys & WooCommerce Lite ===
 Contributors: j.conti
-Tags: woocommerce, redsys, bizum, google pay, apple pay, inespay
+Tags: woocommerce, redsys, bizum, google pay, apple pay
 Requires at least: 5.9
 Tested up to: 7.1
 Requires PHP: 7.0
 Donate link: https://plugins.joseconti.com/product-category/plugins/donaciones/
-Stable tag: 7.1.0
+Stable tag: 7.1.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 WC requires at least: 7.4
@@ -99,7 +99,12 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 == Changelog ==
 
-== 7.1.0 ==
+= 7.1.1 =
+
+* Fix: The order-pay page again sends the customer to Redsys automatically for card, Bizum and Google Pay payments; in 7.1.0 the customer had to click the payment button. The redirect script stopped running with block themes, and a quoting error broke it with every theme.
+* Readme: version headings in the changelog use the right heading level, and the plugin lists five tags, so WordPress.org shows the page correctly.
+
+= 7.1.0 =
 
 * Readme: "Requires at least" now says WordPress 5.9, the minimum of the WooCommerce version this plugin requires (it said 4.0).
 * Fix: When the same Redsys return reached the order-received page in parallel requests, each could wait and complete the order; now only one does.
@@ -156,49 +161,49 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 * Fix: Replaced a deprecated WooCommerce function (wc_enqueue_js()) with wp_add_inline_script() on the order-received page (props to the reporter of issue #93 on WordPress.org).
 * Fix: Payment and refund notifications for orders with 10+ digit IDs (common on long-running stores using WooCommerce's order tables) could resolve to the wrong order, or fail with a fatal error, once the short-lived internal order-number mapping expired. Notifications now also fall back to a permanent record of the order number, and refunds refresh that record with a longer validity window at the time the refund is requested.
 
-== 7.0.2 ==
+= 7.0.2 =
 
 * Security Fix: Added Inespay notification signature (signatureDataReturn / HMAC-SHA256) and amount verification in the Inespay callback to prevent unauthenticated payment forgery. The 7.0.1 signature hardening did not cover the Inespay gateway. Thanks to Shivamani Vastrala for the responsible disclosure.
 * Fix: Restored the "+" characters in the received Ds_MerchantParameters before validating the notification. On some servers/proxies the "+" of the standard Base64 arrives as a space and sanitize_text_field() collapsed it, breaking the JSON decoding and the signature check (signature did not match), so valid payments were rejected. Applied to the Redsys, Bizum and Google Pay gateways.
 * Fix: The merchant SHA-256 secret key is now trimmed before use, so accidental leading/trailing spaces no longer cause signature mismatches.
 
-== 7.0.1 ==
+= 7.0.1 =
 
 * Security Fix: Added cryptographic signature (Ds_Signature) verification in successful_request() for Redsys, Bizum, and Google Pay gateways to prevent payment forgery via the Order Received page.
 * Fix: Test SHA-256 secret was being overwritten with the production secret in successful_request(), causing signature validation failures in test mode.
 
-== 7.0.0 ==
+= 7.0.0 =
 
 * NEW: Plugin renamed to "Payment Gateway for Redsys & WooCommerce".
 * NEW: Added Inespay payment gateway.
 * Several code improvements and fixes.
 
-== 6.5.0 ==
+= 6.5.0 =
 
 * Added translation files to /languages plugin folder.
 
-== 6.4.0 ==
+= 6.4.0 =
 
 * Updated hook for mark payments as made bu URL Params.
 * Fixed Redsys Data translation in Thankyou Page.
 
-== 6.3.1 ==
+= 6.3.1 =
 
 * Fixed fatal error in Bizum notification.
 * Fixed PHP Warning:  Undefined variable $redsys.
 * Fixed PHP Warning:  Attempt to read property "debug" on null in woocommerce-redsys.php on line 317
 
-== 6.3.0 ==
+= 6.3.0 =
 
 * Fixed Google Pay logo checkout.
 * Now orders are marked as paid if Redsys adds parameters to the URL.
 
-== 6.2.2 ==
+= 6.2.2 =
 
 * Updated escaping in Bizum from esc_html_ to kses.
 * Removed Merchant Module.
 
-== 6.2.1 ==
+= 6.2.1 =
 
 * Fixed Deprecated $logo.
 * Added elseif.
@@ -209,24 +214,24 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 * Moved Class inicialization.
 * Removed iUpay Strings.
 
-== 6.2.0 ==
+= 6.2.0 =
 
 * Fixed a double “Code” tag in Redsys redirection description. https://github.com/joseconti/woo-redsys-gateway-light/issues/22
 * Fixed many Deprecated.
 
-== 6.1.3 ==
+= 6.1.3 =
 
 * FIX: Refunds in Google Pay redirection.
 
-== 6.1.2 ==
+= 6.1.2 =
 
 * FIX: Enhanced update_order_meta() for accept array() values.
 
-== 6.1.1 ==
+= 6.1.1 =
 
 * FIX: API function ERROR
 
-== 6.1.0 ==
+= 6.1.0 =
 
 * NEW: Removed support for PHP < 7.
 * UPDATE: Compatibility with PHP 8.2 & 8.3
@@ -234,32 +239,32 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 * UPDATE: Some Links
 * FIX: Fixed an issue where Redsys notification to the site would fail if the terminal was in test mode and the real SHA256 was not entered in Bizum and Google Pay redirection.
 
-== 6.0.0 ==
+= 6.0.0 =
 
 * NEW: Added Google Pay redirection.
 * UPDATE: Many links updated.
 
-== 5.3.0 ==
+= 5.3.0 =
 
 * FIXED: Fixed Bizum redirection with some themes.
 * FIXED: Fixed One Billion Order Bug.
 * UPDATE: Merged some security Pulls from Github React.
 * UPDATE: Declared compatibility with WooCommerce 8.3 & WordPress 6.4.
 
-== 5.2.2 ==
+= 5.2.2 =
 
 * FIXED: Fixed refunds with Redsys redirection.
 
-== 5.2.1 ==
+= 5.2.1 =
 
 * FIXED: Fixed a problem with Italy. This update is mandatory!
 
-== 5.2.0 ==
+= 5.2.0 =
 
 * Improved: Country code EMV3DS
 * Improved: Phone country code.
 
-== 5.1.0 ==
+= 5.1.0 =
 
 * NEW: Bizum Checkout logo customization.
 * NEW: Added option What to do after payment to Bizum.
@@ -267,137 +272,137 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 * FIXED: A fatal error when Bizum Payment is not paid.
 * FIXED: Fixed Bizum update status.
 
-== 5.0.1 ==
+= 5.0.1 =
 * FIXED: Fixed an error cleaning Order number.
 
-== 5.0.0 ==
+= 5.0.0 =
 * NEW: HPOS compatibility.
 * NEW: Declared WordPress 6.1 compatibility.
 * NEW: Declared WooCommerce 7.1 compatibility.
 * Fixed: The default Redsys logo at Checkout is shown again.
 * Fixed: Fixed a problem with Bizum. Under some circumstances, orders were not marked as paid.
 
-== 4.0.0 ==
+= 4.0.0 =
 * NEW: WooCommerce Checkout Block Compatibility.
 * NEW: Refactoring for add code order.
 * NEW: Added LWV SCA.
 
-== 3.0.6 ==
+= 3.0.6 =
 * FIXED: fixed a bug introduced in v3.0.5. Now refunds are marked again as refunds.
 
-== 3.0.5 ==
+= 3.0.5 =
 * NEW: Now check if the Order is paid before taking action. Related problem > https://wordpress.org/support/topic/pedido-cancelado-por-redsys-despues-del-pago/#post-15280747
 
-== 3.0.4 ==
+= 3.0.4 =
 * NEW: Now you can set a limit cart amount for use Bizum.
 * NEW: Now the customer name is sent to Redsys.
 * Fixed Thank you page error when directly acceded without associated order ID.
 
 
-== 3.0.3 ==
+= 3.0.3 =
 * Fixed missing translation string (The Redsys Authorization number is:)
 * Fixed Bizum field duplication. Some servers make fatal errors.
 * Declared compatibility with WordPress 5.7
 * Declared compatibility with WooCommerce 5.3
 
-== 3.0.2 ==
+= 3.0.2 =
 * Fixed an issue where the Redsys authorization number message was displayed on the thank you page even if the order was not with Redsys.
 * Fixed all Bizum text-domain that I had inherited from the premium plugin.
 * Fixed: Now, the checkout warning about test mode is not shown if the gateway is disabled in WooCommerce.
 * Declared compatibility with WooCommerce 4.9
 
-== 3.0.1 ==
+= 3.0.1 =
 * Fixed a problem with PHP 8.0
 
-== 3.0.0 ==
+= 3.0.0 =
 * New: Added PSD2 Compatibility
 * New: Added Bizum
 * Declared compatibility with WooCommerce 4.7
 * Declared compatibility with WordPress 5.6
 
-== 2.1.0 ==
+= 2.1.0 =
 * New: Added a notice in the checkout when Redsys for WooCommerce is in Test Mode.
 * Fixed PHP Notices when you visit the callback URL.
 * Fixed the Admin Notice URL.
 * Declared compatibility with WooCommerce 4.2
 
-== 2.0.1 ==
+= 2.0.1 =
 * Declared compatibility with WooCommerce 4.1
 
-== 2.0.0 ==
+= 2.0.0 =
 * New: Added refunds.
 
-== 1.5.0 ==
+= 1.5.0 =
 * New: Added new Redsys Languages.
 * Removed export tab
 * Declared compatibility with WooCommerce 4.0
 
-== 1.4.1 ==
+= 1.4.1 =
 * Fixed a bug with the SHA256 Test field
 
-== 1.4.0 ==
+= 1.4.0 =
 * NEW: Added a new settings field for SHA256 Test mode.
 
-== 1.3.10 ==
+= 1.3.10 =
 * Now, when an Order is canceled on Redsys side, it is canceled in WooCommerce.
 * Removed PSD2 / SCA notice.
 * Added Telegram Redsys Channel notice.
 
-== 1.3.9 ==
+= 1.3.9 =
 * Fixed ARS (Peso argentino) currency
 * Added a notice linking to PSD2 / SCA. Post.
 * Fixed translation domain on some strings
 
-== 1.3.8 ==
+= 1.3.8 =
 * Added MXN currency
 * Fixed a problem with amounts less than 1.
 * Declared compatibility with WooCommerce 3.7
 
-== 1.3.7 ==
+= 1.3.7 =
 * Added +230 new currencies supported by Redsys.
 * Added an admin notice to link to a post explaining new features.
 
-== 1.3.6 ==
+= 1.3.6 =
 * Improved WooCommerce Order processing when "Mark as completed" is selected.
 * Improved some string translations.
 
-== 1.3.5 ==
+= 1.3.5 =
 * Now, if an Order is canceled by Redsys, it is canceled at WooCommerce
 
-== 1.3.4 ==
+= 1.3.4 =
 * Fixed dismissible admin_notice. Now you can dismiss it forever.
 
-== 1.3.3 ==
+= 1.3.3 =
 * Removed admin notice about SHA256.
 * Added notice about Forums help.
 
-== 1.3.2 ==
+= 1.3.2 =
 * Fixed URLs on the About page.
 * Fixed encoded Date & hour at order edit page.
 
-== 1.3.1.1 ==
+= 1.3.1.1 =
 * Missing CSS file.
 
-== 1.3.1 ==
+= 1.3.1 =
 * Added useful links on Redsys Settings.
 
-== 1.3.0 ==
+= 1.3.0 =
 * Now you can select if the order has to be marked as complete or as Processing (WooCommerce Default).
 
-== 1.2.2 ==
+= 1.2.2 =
 * Fixed a translation error.
 
-== 1.2.1 ==
+= 1.2.1 =
 * Fixed a problem in some server settings that the plugin crashed at activation.
 
-== 1.2.0 ==
+= 1.2.0 =
 * Removed iupay and added payment options in Redsys setting page. Now you can select if you want Iupay or not from settings.
 * Fix: Fixed a bug with amounts less than 1€.
 
-== 1.1.1 ==
+= 1.1.1 =
 * Removed message about Mcrypt when PHP is 7.0 or above
 
-== 1.1.0 ==
+= 1.1.0 =
 * Added Redsys API for PHP 5.x and 7.x
 * Added ability to customize checkout logo.
 
@@ -410,6 +415,9 @@ Check [Redsys for WooCommerce Premium version](https://plugins.joseconti.com/pro
 
 
 == Upgrade Notice ==
+
+= 7.1.1 =
+Fixes the automatic redirect to Redsys from the order-pay page (card, Bizum and Google Pay), broken in 7.1.0. Update if you run 7.1.0.
 
 = 7.1.0 =
 Security and reliability release: fixes unpaid test-mode Bizum and Google Pay payments, refund matching on long order IDs, and notification hardening. If you enabled Google Pay debug logging, delete its old logs (WooCommerce > Status > Logs): they may contain your signing secret.

@@ -75,7 +75,7 @@ sequenceDiagram
 `AC-34`, `AC-35`, `AC-43`, `AC-44`, `AC-46`; the callback half is `AC-36` to `AC-42`.
 
 ## Source files
-- `classes/class-wc-gateway-inespay-redsys.php` — `__construct()` line 117, `is_allowed_country()` 175, `is_available()` 195, `disable_inespay()` 250, `init_form_fields()` 327, `process_payment()` 418, `get_api_url()` 825, `warning_checkout_test_mode_inespay()` 854.
-- `classes/class-wc-gateway-redsys-global-lite.php` — `prepare_order_number()` line 1155, `redsys_amount_format()` 1175, `update_order_meta()` 203.
+- `classes/class-wc-gateway-inespay-redsys.php` — `__construct()` line 117, `is_allowed_country()` 185, `is_available()` 205, `disable_inespay()` 260, `init_form_fields()` 337, `process_payment()` 428, `get_api_url()` 842, `warning_checkout_test_mode_inespay()` 871.
+- `classes/class-wc-gateway-redsys-global-lite.php` — `prepare_order_number()` line 1213, `redsys_amount_format()` 1233, `update_order_meta()` 256.
 - `includes/blocks/class-wc-gateway-inespay-lite-support.php` — Blocks registration and the country rule.
 - `.wp-env-mu-plugins/inespay-http-stub.php` — test-only stub of the Inespay API used by the end-to-end test; not shipped.

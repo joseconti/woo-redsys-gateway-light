@@ -157,3 +157,11 @@
 - Fix: the audit re-run on a detached, read-only worktree (`git worktree add --detach /tmp/redsys-audit-wt <commit>`) plus the diff written to a file.
 - Check added: none mechanical.
 - Rule for next time: a background reading agent gets a worktree pinned to the commit it reviews, never the live checkout, whenever the session may switch branches while it runs.
+
+## L-020 — A redirect page's tests checked the form and never the redirect
+- Where: 7.1.0 (#93 and S-073), found by the owner in 7.1.1 (S-107).
+- What failed first: the order-pay page stopped sending customers to Redsys; every test stayed green because the e2e specs asserted the form's fields and aborted any request to Redsys, so a page that never submitted looked the same as one that did. Their `**/*redsys.es/**` glob did not even match the sandbox URL (it carries a port).
+- Cause: the behaviour the customer sees (leaving for Redsys without a click) was not an assertion anywhere; `wp_add_inline_script()` on an unregistered handle fails silently, and a broken JS string fails only in a browser.
+- Fix: the e2e specs wait for the automatic submit; an integration test prints the queued scripts with WooCommerce's handle registered late (block theme) and early (classic).
+- Check added: `RedirectAutoSubmitTest` and the `submitted()` assertion in the three checkout specs.
+- Rule for next time: a page whose job is to move the user on is tested by asserting the move, not the markup that should cause it; network blocks in specs use a regular expression that covers ports.

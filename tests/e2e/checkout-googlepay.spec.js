@@ -1,5 +1,6 @@
 // @ts-check
 const { test, expect } = require( '@playwright/test' );
+const { holdRedsysNavigation } = require( './fixtures/redsys-navigation' );
 
 /**
  * Checkout smoke test: guest checkout with the Google Pay (redirection)
@@ -16,7 +17,9 @@ const { test, expect } = require( '@playwright/test' );
  */
 
 test( 'guest checkout with the Google Pay gateway generates a correctly-signed payment form', async ( { page } ) => {
-	await page.route( '**/*redsys.es/**', ( route ) => route.abort() );
+	// Never let a real request reach Redsys's infrastructure; the automatic
+	// submit of the payment form is recorded and cancelled (S-107).
+	const redsys = await holdRedsysNavigation( page );
 
 	await page.goto( '/?add-to-cart=10' );
 
@@ -64,4 +67,7 @@ test( 'guest checkout with the Google Pay gateway generates a correctly-signed p
 	const decoded = JSON.parse( Buffer.from( merchantParameters, 'base64' ).toString( 'utf8' ) );
 	expect( decoded.DS_MERCHANT_MERCHANTCODE ).toBe( '999008881' );
 	expect( decoded.DS_MERCHANT_TERMINAL ).toBe( '1' );
+
+	// The page sends the customer to Redsys with no click (the 7.1.0 defect, S-107).
+	await redsys.submitted();
 } );

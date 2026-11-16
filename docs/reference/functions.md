@@ -140,7 +140,7 @@ redsyslite_uninstall_site( ! redsyslite_premium_is_installed() );
 | `redsys_css_lite` | `(): void` (`woocommerce-redsys.php:165`) | `admin_enqueue_scripts` | Enqueues `assets/css/redsys-css.css` on the WooCommerce settings screen. |
 | `redsys_lite_notice_style` | `(): void` (`woocommerce-redsys.php:318`) | `admin_enqueue_scripts` | Enqueues `assets/css/redsys-notice.css` on every admin screen. After WooCommerce. |
 | `add_redsys_meta_box` | `( WC_Order $post_or_order_object ): void` (`woocommerce-redsys.php:343`) | `woocommerce_admin_order_data_after_billing_address` | Prints the payment details block on the admin order screen for Redsys-type orders. After WooCommerce. |
-| `mostrar_numero_autentificacion` | `( string $text, WC_Order $order ): string` (`woocommerce-redsys.php:607`) | filter `woocommerce_thankyou_order_received_text`, 20 | Returns the transaction-details text for a paid Redsys-type order, otherwise `$text` unchanged. |
+| `mostrar_numero_autentificacion` | `( string $text, WC_Order $order ): string` (`woocommerce-redsys.php:664`) | filter `woocommerce_thankyou_order_received_text`, 20 | Returns the transaction-details text for a paid Redsys-type order, otherwise `$text` unchanged. |
 | `redsys_lite_add_head_text` | `(): void` (`woocommerce-redsys.php:376`) | `wp_head` | Prints an HTML comment with the plugin name and version on every front-end page. After WooCommerce. |
 
 

@@ -78,7 +78,7 @@ sequenceDiagram
 `AC-17`, `AC-24`, `AC-46`; the notification half is `AC-18` to `AC-23`.
 
 ## Source files
-- `classes/class-wc-gateway-bizum-redsys.php` — `__construct()` line 259, `init_form_fields()` 434, `check_user_test_mode()` 564, `disable_bizum()` 689, `get_redsys_url_gateway()` 715, `get_redsys_sha256()` 787, `get_redsys_args()` 838, `generate_redsys_form()` 922, `process_payment()` 975, `receipt_page()` 1001, `warning_checkout_test_mode_bizum()` 1850.
-- `classes/class-wc-gateway-redsys-global-lite.php` — `prepare_order_number()` line 1155, `product_description()` 1186.
+- `classes/class-wc-gateway-bizum-redsys.php` — `__construct()` line 259, `init_form_fields()` 434, `check_user_test_mode()` 564, `disable_bizum()` 689, `get_redsys_url_gateway()` 715, `get_redsys_sha256()` 787, `get_redsys_args()` 838, `generate_redsys_form()` 922, `process_payment()` 953, `receipt_page()` 979, `warning_checkout_test_mode_bizum()` 1810.
+- `classes/class-wc-gateway-redsys-global-lite.php` — `prepare_order_number()` line 1213, `product_description()` 1244.
 - `includes/class-redsysliteapi.php` — request encoding and signature.
 - `includes/blocks/class-wc-gateway-bizum-lite-support.php` — Blocks registration.

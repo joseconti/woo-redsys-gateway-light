@@ -16,38 +16,50 @@
     "docs/sprints/sprint-11.md",
     "docs/sprints/sprint-12.md",
     "docs/sprints/sprint-13.md",
+    "docs/sprints/sprint-14.md",
+    "docs/sprints/sprint-15.md",
     "docs/sprints/deferred.md"
   ],
   "current_sprint": 9,
   "reconciliation_status": "reconciled",
+  "queue": {
+    "workable": 3,
+    "waiting": 0,
+    "workable_slices": [
+      "S-102",
+      "S-108",
+      "S-109"
+    ],
+    "waiting_on": []
+  },
   "totals": {
-    "original_estimated_hours": 95.4,
-    "completed_original_hours": 94.4,
-    "actual_hours": 34.4619,
-    "remaining_hours": 1,
-    "deviation_hours": -59.9381,
-    "pace_factor": 0.183219,
-    "projected_remaining_hours": 0.1832,
+    "original_estimated_hours": 99.4,
+    "completed_original_hours": 96.4,
+    "actual_hours": 35.1888,
+    "remaining_hours": 3,
+    "deviation_hours": -61.2112,
+    "pace_factor": 0.18871,
+    "projected_remaining_hours": 0.5661,
     "reconciliation_status": "reconciled",
     "scope_delta": {
-      "added_scope_hours": 7.5,
+      "added_scope_hours": 11.5,
       "extracted_hours": 1.75,
       "explicit_residual_reestimate_hours": 0
     },
-    "percent_done": 98.95,
+    "percent_done": 96.98,
     "unit": "hours of AI working time plus supervision",
     "spent_unfinished_hours": 0,
-    "slices_total": 90,
-    "slices_done": 88,
-    "slices_pending": 1,
+    "slices_total": 93,
+    "slices_done": 89,
+    "slices_pending": 3,
     "slices_dropped": 1,
     "slices_unreconciled": 0,
     "pace_sample": {
-      "slices": 68,
-      "estimated_hours": 63.65,
-      "actual_hours": 11.6619,
-      "deviation_hours": -51.9881,
-      "deviation_percent": -81.68,
+      "slices": 69,
+      "estimated_hours": 65.65,
+      "actual_hours": 12.3888,
+      "deviation_hours": -53.2612,
+      "deviation_percent": -81.13,
       "provisional": false
     }
   },
@@ -62,7 +74,7 @@
       "actual_hours": 20,
       "remaining_hours": 0,
       "deviation_hours": 0,
-      "pace_factor": 0.183219,
+      "pace_factor": 0.18871,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -94,7 +106,8 @@
           "actual_hours": 1,
           "actual_source": "estimated",
           "depends_on": [],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-002",
@@ -113,7 +126,8 @@
           "depends_on": [
             "S-001"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-003",
@@ -132,7 +146,8 @@
           "depends_on": [
             "S-002"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-004",
@@ -151,7 +166,8 @@
           "depends_on": [
             "S-003"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-005",
@@ -170,7 +186,8 @@
           "depends_on": [
             "S-002"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-006",
@@ -189,7 +206,8 @@
           "depends_on": [
             "S-003"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-007",
@@ -208,7 +226,8 @@
           "depends_on": [
             "S-006"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-008",
@@ -227,7 +246,8 @@
           "depends_on": [
             "S-003"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-009",
@@ -246,7 +266,8 @@
           "depends_on": [
             "S-007"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-010",
@@ -265,7 +286,8 @@
           "depends_on": [
             "S-008"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-011",
@@ -284,7 +306,8 @@
           "depends_on": [
             "S-009"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         }
       ]
     },
@@ -298,7 +321,7 @@
       "actual_hours": 4.2175,
       "remaining_hours": 0,
       "deviation_hours": -5.5325,
-      "pace_factor": 0.183219,
+      "pace_factor": 0.18871,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -330,7 +353,8 @@
           "actual_hours": 0.5,
           "actual_source": "estimated",
           "depends_on": [],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-021",
@@ -349,7 +373,8 @@
           "depends_on": [
             "S-020"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-022",
@@ -368,7 +393,8 @@
           "depends_on": [
             "S-020"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-023",
@@ -387,7 +413,8 @@
           "depends_on": [
             "S-020"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-024",
@@ -406,7 +433,8 @@
           "depends_on": [
             "S-020"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-025",
@@ -425,7 +453,8 @@
           "depends_on": [
             "S-020"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-026",
@@ -448,7 +477,8 @@
             "S-024",
             "S-025"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         }
       ]
     },
@@ -462,7 +492,7 @@
       "actual_hours": 7.0276,
       "remaining_hours": 0,
       "deviation_hours": -42.6224,
-      "pace_factor": 0.183219,
+      "pace_factor": 0.18871,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -494,7 +524,8 @@
           "actual_hours": 0.1892,
           "actual_source": "measured",
           "depends_on": [],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-027",
@@ -513,7 +544,8 @@
           "depends_on": [
             "S-036"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-028",
@@ -530,7 +562,8 @@
           "actual_hours": 0.2872,
           "actual_source": "measured",
           "depends_on": [],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-029",
@@ -549,7 +582,8 @@
           "depends_on": [
             "S-036"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-031",
@@ -566,7 +600,8 @@
           "actual_hours": 0.0936,
           "actual_source": "measured",
           "depends_on": [],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-035",
@@ -585,7 +620,8 @@
           "depends_on": [
             "S-036"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-037",
@@ -614,6 +650,7 @@
             "S-036"
           ],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "docs/keel-conformance.md",
@@ -652,7 +689,8 @@
           "depends_on": [
             "S-036"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-039",
@@ -671,7 +709,8 @@
           "depends_on": [
             "S-036"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-043",
@@ -690,7 +729,8 @@
           "depends_on": [
             "S-036"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-044",
@@ -709,7 +749,8 @@
           "depends_on": [
             "S-036"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-045",
@@ -728,7 +769,8 @@
           "depends_on": [
             "S-036"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-046",
@@ -747,7 +789,8 @@
           "depends_on": [
             "S-036"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-047",
@@ -766,7 +809,8 @@
           "depends_on": [
             "S-036"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-048",
@@ -785,7 +829,8 @@
           "depends_on": [
             "S-036"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-049",
@@ -804,7 +849,8 @@
           "depends_on": [
             "S-036"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-050",
@@ -823,7 +869,8 @@
           "depends_on": [
             "S-036"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-051",
@@ -842,7 +889,8 @@
           "depends_on": [
             "S-036"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-054",
@@ -869,7 +917,8 @@
             "S-050",
             "S-051"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-052",
@@ -896,7 +945,8 @@
             "S-050",
             "S-051"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-056",
@@ -915,7 +965,8 @@
           "depends_on": [
             "S-029"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-032",
@@ -944,6 +995,7 @@
             "S-056"
           ],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "docs/07-release.md",
@@ -989,7 +1041,8 @@
           "depends_on": [
             "S-036"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-059",
@@ -1008,7 +1061,8 @@
           "depends_on": [
             "S-032"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-060",
@@ -1071,7 +1125,8 @@
             "AC-55",
             "AC-56",
             "AC-57"
-          ]
+          ],
+          "waiting_on": null
         },
         {
           "id": "S-061",
@@ -1090,7 +1145,8 @@
           "depends_on": [
             "S-052"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-062",
@@ -1109,7 +1165,8 @@
           "depends_on": [
             "S-058"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-063",
@@ -1128,7 +1185,8 @@
           "depends_on": [
             "S-058"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-064",
@@ -1147,7 +1205,8 @@
           "depends_on": [
             "S-058"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-067",
@@ -1166,7 +1225,8 @@
           "depends_on": [
             "S-060"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-068",
@@ -1185,7 +1245,8 @@
           "depends_on": [
             "S-067"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-069",
@@ -1204,7 +1265,8 @@
           "depends_on": [
             "S-061"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-070",
@@ -1223,7 +1285,8 @@
           "depends_on": [
             "S-061"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-071",
@@ -1242,7 +1305,8 @@
           "depends_on": [
             "S-060"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-072",
@@ -1261,7 +1325,8 @@
           "depends_on": [
             "S-069"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-075",
@@ -1280,7 +1345,8 @@
           "depends_on": [
             "S-070"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-076",
@@ -1299,7 +1365,8 @@
           "depends_on": [
             "S-072"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-077",
@@ -1316,7 +1383,8 @@
           "actual_hours": null,
           "actual_source": "estimated",
           "depends_on": [],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-078",
@@ -1335,7 +1403,8 @@
           "depends_on": [
             "S-076"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-079",
@@ -1352,7 +1421,8 @@
           "actual_hours": 0.0058,
           "actual_source": "measured",
           "depends_on": [],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-066",
@@ -1369,7 +1439,8 @@
           "actual_hours": 0.0258,
           "actual_source": "measured",
           "depends_on": [],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-073",
@@ -1386,7 +1457,8 @@
           "actual_hours": 0.0278,
           "actual_source": "measured",
           "depends_on": [],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-074",
@@ -1403,7 +1475,8 @@
           "actual_hours": 0.0189,
           "actual_source": "measured",
           "depends_on": [],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-080",
@@ -1420,7 +1493,8 @@
           "actual_hours": 0.3361,
           "actual_source": "measured",
           "depends_on": [],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-081",
@@ -1437,7 +1511,8 @@
           "actual_hours": 0.0392,
           "actual_source": "measured",
           "depends_on": [],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-082",
@@ -1454,7 +1529,8 @@
           "actual_hours": 0.0789,
           "actual_source": "measured",
           "depends_on": [],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-083",
@@ -1478,7 +1554,8 @@
             "S-081",
             "S-082"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-084",
@@ -1496,6 +1573,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "CLAUDE.md",
@@ -1533,7 +1611,8 @@
           "actual_hours": 0.2472,
           "actual_source": "measured",
           "depends_on": [],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-086",
@@ -1552,7 +1631,8 @@
           "depends_on": [
             "S-085"
           ],
-          "criteria": []
+          "criteria": [],
+          "waiting_on": null
         },
         {
           "id": "S-087",
@@ -1570,6 +1650,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "scripts/playground-tunnel",
@@ -1609,6 +1690,7 @@
             "S-085"
           ],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "scripts/keel-parallel",
@@ -1651,6 +1733,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "package-lock.json",
@@ -1683,7 +1766,7 @@
       "actual_hours": 0.0989,
       "remaining_hours": 0,
       "deviation_hours": -1.4011,
-      "pace_factor": 0.183219,
+      "pace_factor": 0.18871,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -1716,6 +1799,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "docs/07-release.md",
@@ -1745,7 +1829,7 @@
       "actual_hours": 1.4502,
       "remaining_hours": 0,
       "deviation_hours": -2.0498,
-      "pace_factor": 0.183219,
+      "pace_factor": 0.18871,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -1778,6 +1862,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "classes/",
@@ -1812,6 +1897,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "languages/",
@@ -1845,6 +1931,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "classes/",
@@ -1877,6 +1964,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "classes/",
@@ -1909,6 +1997,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "classes/",
@@ -1941,6 +2030,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "classes/",
@@ -1973,6 +2063,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "classes/",
@@ -2001,7 +2092,7 @@
       "actual_hours": 0.1014,
       "remaining_hours": 0,
       "deviation_hours": -0.6486,
-      "pace_factor": 0.183219,
+      "pace_factor": 0.18871,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2034,6 +2125,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "bin/build_i18n.sh",
@@ -2069,7 +2161,7 @@
       "actual_hours": 0.2556,
       "remaining_hours": 0,
       "deviation_hours": -1.2444,
-      "pace_factor": 0.183219,
+      "pace_factor": 0.18871,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2102,6 +2194,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "classes/",
@@ -2134,7 +2227,7 @@
       "actual_hours": 0.2397,
       "remaining_hours": 0,
       "deviation_hours": -1.0103,
-      "pace_factor": 0.183219,
+      "pace_factor": 0.18871,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2167,6 +2260,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "classes/class-wc-gateway-redsys-psd2-light.php",
@@ -2200,6 +2294,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "classes/class-wc-gateway-redsys-global-lite.php",
@@ -2234,6 +2329,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "wpml-config.xml",
@@ -2260,8 +2356,8 @@
       "actual_hours": 0.0119,
       "remaining_hours": 1,
       "deviation_hours": -0.4881,
-      "pace_factor": 0.183219,
-      "projected_remaining_hours": 0.1832,
+      "pace_factor": 0.18871,
+      "projected_remaining_hours": 0.1887,
       "reconciliation_status": "reconciled",
       "scope_delta": {
         "added_scope_hours": 1.5,
@@ -2293,6 +2389,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "phpcs.xml",
@@ -2325,6 +2422,7 @@
             "S-101"
           ],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "classes/",
@@ -2352,7 +2450,7 @@
       "actual_hours": 0.0533,
       "remaining_hours": 0,
       "deviation_hours": -0.9467,
-      "pace_factor": 0.183219,
+      "pace_factor": 0.18871,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2385,6 +2483,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               ".claude/skills/keel/",
@@ -2415,7 +2514,7 @@
       "actual_hours": 0.3358,
       "remaining_hours": 0,
       "deviation_hours": -2.6642,
-      "pace_factor": 0.183219,
+      "pace_factor": 0.18871,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2448,6 +2547,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "scripts/",
@@ -2479,7 +2579,7 @@
       "actual_hours": 0.5,
       "remaining_hours": 0,
       "deviation_hours": 0,
-      "pace_factor": 0.183219,
+      "pace_factor": 0.18871,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2512,6 +2612,7 @@
           "actual_source": "estimated",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "docs/machines/",
@@ -2540,7 +2641,7 @@
       "actual_hours": 0.17,
       "remaining_hours": 0,
       "deviation_hours": -1.33,
-      "pace_factor": 0.183219,
+      "pace_factor": 0.18871,
       "projected_remaining_hours": 0,
       "reconciliation_status": "reconciled",
       "scope_delta": {
@@ -2573,6 +2674,7 @@
           "actual_source": "measured",
           "depends_on": [],
           "criteria": [],
+          "waiting_on": null,
           "execution": {
             "write_paths": [
               "readme.txt",
@@ -2589,6 +2691,188 @@
             ],
             "parallel": "serial",
             "serial_reason": "the release candidate and the one test lane"
+          }
+        }
+      ]
+    },
+    {
+      "sprint": 14,
+      "goal": "Hotfix 7.1.1 — the redirect gateways submit the payment form to Redsys on their own again (D-116)",
+      "status": "done",
+      "file": "docs/sprints/sprint-14.md",
+      "original_estimated_hours": 2,
+      "completed_original_hours": 2,
+      "actual_hours": 0.7269,
+      "remaining_hours": 0,
+      "deviation_hours": -1.2731,
+      "pace_factor": 0.18871,
+      "projected_remaining_hours": 0,
+      "reconciliation_status": "reconciled",
+      "scope_delta": {
+        "added_scope_hours": 2,
+        "extracted_hours": 0,
+        "explicit_residual_reestimate_hours": 0
+      },
+      "percent_done": 100,
+      "unit": "hours of AI working time plus supervision",
+      "spent_unfinished_hours": 0,
+      "slices_total": 1,
+      "slices_done": 1,
+      "slices_pending": 0,
+      "slices_dropped": 0,
+      "slices_unreconciled": 0,
+      "slices": [
+        {
+          "id": "S-107",
+          "title": "Auto-submit of the redirect form restored for card (both branches), Bizum and Google Pay — the inline script no longer depends on WooCommerce's handle being registered when the receipt page renders (block themes); reproduction tests first; version 7.1.1",
+          "status": "done",
+          "original_hours": 2,
+          "residual_hours": 0,
+          "change_kind": "added",
+          "parent_slice": null,
+          "owns": [
+            "S-107"
+          ],
+          "estimate_changes": [],
+          "actual_hours": 0.7269,
+          "actual_source": "measured",
+          "depends_on": [],
+          "criteria": [],
+          "waiting_on": null,
+          "execution": {
+            "write_paths": [
+              "woocommerce-redsys.php",
+              "classes/class-wc-gateway-redsys.php",
+              "classes/class-wc-gateway-bizum-redsys.php",
+              "classes/class-wc-gateway-googlepay-redirection-redsys.php",
+              "tests/Integration/RedirectFormEscapingTest.php",
+              "tests/Integration/RedirectAutoSubmitTest.php",
+              "tests/e2e/checkout-redsys.spec.js",
+              "tests/e2e/checkout-bizum.spec.js",
+              "tests/e2e/checkout-googlepay.spec.js",
+              "readme.txt",
+              "docs/api/INDEX.md",
+              "docs/reference/classes.md",
+              "docs/reference/hooks-and-extension-points.md",
+              "docs/reference/endpoints.md",
+              "docs/reference/functions.md",
+              "docs/flows/",
+              "scripts/keel-verify",
+              "docs/estimate.md",
+              "docs/sessions.md"
+            ],
+            "contracts": {
+              "reads": [],
+              "writes": []
+            },
+            "exclusive_resources": [
+              "keel-development"
+            ],
+            "parallel": "serial",
+            "serial_reason": "one hotfix branch and the one test lane"
+          }
+        }
+      ]
+    },
+    {
+      "sprint": 15,
+      "goal": "Keel v7.5.0 → v7.6.0 reconciliation, and the follow-ups that 7.1.0's publication on WordPress.org (2026-11-13) unblocked",
+      "status": "in-progress",
+      "file": "docs/sprints/sprint-15.md",
+      "original_estimated_hours": 2,
+      "completed_original_hours": 0,
+      "actual_hours": 0,
+      "remaining_hours": 2,
+      "deviation_hours": 0,
+      "pace_factor": 0.18871,
+      "projected_remaining_hours": 0.3774,
+      "reconciliation_status": "reconciled",
+      "scope_delta": {
+        "added_scope_hours": 2,
+        "extracted_hours": 0,
+        "explicit_residual_reestimate_hours": 0
+      },
+      "percent_done": 0,
+      "unit": "hours of AI working time plus supervision",
+      "spent_unfinished_hours": 0,
+      "slices_total": 2,
+      "slices_done": 0,
+      "slices_pending": 2,
+      "slices_dropped": 0,
+      "slices_unreconciled": 0,
+      "slices": [
+        {
+          "id": "S-108",
+          "title": "Keel v7.5.0 → v7.6.0 reconciliation — embedded copies and lock stamp, keel-continue rests on an idle queue (queue.workable, idle-links breaker, exec claude), keel-chain-check row 7c, plan.json carries queue and waiting_on, machine-recipe standing check, conformance sweep",
+          "status": "not-started",
+          "original_hours": 1.5,
+          "residual_hours": 1.5,
+          "change_kind": "added",
+          "parent_slice": null,
+          "owns": [
+            "S-108"
+          ],
+          "estimate_changes": [],
+          "actual_hours": 0,
+          "actual_source": "measured",
+          "depends_on": [],
+          "criteria": [],
+          "waiting_on": null,
+          "execution": {
+            "write_paths": [
+              ".claude/skills/keel/",
+              ".agents/skills/keel/",
+              "CLAUDE.md",
+              "AGENTS.md",
+              "scripts/keel-continue",
+              "scripts/keel-chain-check",
+              "scripts/keel-plan",
+              "scripts/keel-verify",
+              "docs/keel-conformance.md",
+              "docs/PROGRESS.md",
+              "docs/decisions.md",
+              "docs/sprints/"
+            ],
+            "contracts": {
+              "reads": [],
+              "writes": []
+            },
+            "exclusive_resources": [],
+            "parallel": "serial",
+            "serial_reason": "bookkeeping and Keel scaffolding, coordinator-owned"
+          }
+        },
+        {
+          "id": "S-109",
+          "title": "7.1.0 published — inbound issue sweep, reporter replies where the fix is testable in 7.1.0, docs/issues.md and PROGRESS brought in line (Phase 7 of 7.1.0 done, project in maintenance)",
+          "status": "not-started",
+          "original_hours": 0.5,
+          "residual_hours": 0.5,
+          "change_kind": "added",
+          "parent_slice": null,
+          "owns": [
+            "S-109"
+          ],
+          "estimate_changes": [],
+          "actual_hours": 0,
+          "actual_source": "measured",
+          "depends_on": [],
+          "criteria": [],
+          "waiting_on": null,
+          "execution": {
+            "write_paths": [
+              "docs/issues.md",
+              "docs/PROGRESS.md",
+              "docs/07-release.md",
+              "docs/decisions.md"
+            ],
+            "contracts": {
+              "reads": [],
+              "writes": []
+            },
+            "exclusive_resources": [],
+            "parallel": "serial",
+            "serial_reason": "bookkeeping, coordinator-owned"
           }
         }
       ]
@@ -2700,6 +2984,35 @@
       "explicit_residual_reestimates": 0,
       "remaining_after": 2.5,
       "file": "docs/sprints/sprint-13.md"
+    },
+    {
+      "id": "R14-01",
+      "date": "2026-11-16",
+      "reason": "D-116 — the owner reported that the order-pay page no longer sends the customer to Redsys automatically; S-107 added",
+      "slices": [
+        "S-107"
+      ],
+      "remaining_before": 1,
+      "completed_residual": 0,
+      "added_scope": 2,
+      "explicit_residual_reestimates": 0,
+      "remaining_after": 3,
+      "file": "docs/sprints/sprint-14.md"
+    },
+    {
+      "id": "R15-01",
+      "date": "2026-11-16",
+      "reason": "Keel v7.6.0 running against a v7.5.0 baseline (mandatory reconciliation); 7.1.0 found published (origin/master 622d01f, tag v7.1.0, WordPress.org serves 7.1.0) — S-108 and S-109 added",
+      "slices": [
+        "S-108",
+        "S-109"
+      ],
+      "remaining_before": 1,
+      "completed_residual": 0,
+      "added_scope": 2,
+      "explicit_residual_reestimates": 0,
+      "remaining_after": 3,
+      "file": "docs/sprints/sprint-15.md"
     }
   ],
   "deferred": [
@@ -2718,7 +3031,8 @@
       "target": null,
       "reason": "D-025 — the user chose to leave it documented and decide later; it is load-bearing for the per-user test mode",
       "depends_on": [],
-      "criteria": []
+      "criteria": [],
+      "waiting_on": null
     },
     {
       "id": "S-040",
@@ -2735,7 +3049,8 @@
       "target": null,
       "reason": "D-052 — request data, lower risk than the secret; a debug log exists to show it, so what to keep is a product choice. Sprint 5's security review (2026-10-21) noted that Inespay's handle_callback() logs the raw callback body (debtor name and account) BEFORE its signature is verified, when debug is on — same item",
       "depends_on": [],
-      "criteria": []
+      "criteria": [],
+      "waiting_on": null
     },
     {
       "id": "S-041",
@@ -2761,7 +3076,8 @@
       "target": null,
       "reason": "D-052 — triaged only; none blocks the release of the pending fixes",
       "depends_on": [],
-      "criteria": []
+      "criteria": [],
+      "waiting_on": null
     },
     {
       "id": "S-053",
@@ -2787,7 +3103,8 @@
       "target": null,
       "reason": "D-056 — none has an affected principal; triage with the user after the confirmed findings are fixed. D-065 — the scoped re-audit added 18 notes (local report of the `476d52e` run); one of them, an uncaught error on PHP 8 for a Bizum notification posted without its signature-version field, was fixed as S-064. D-078 — the second pass of the gate read added four (the signature transient deleted before verification; currency, merchant code and terminal of a signed notification not compared; an undefined variable in a debug line of process_refund(); maybe_unserialize() on an option), in the local run of `5e31697`. Sprint 5's security review added: get_acctinfo() with a `$user_id` of a user that does not exist would fatal on get_userdata() false (no caller passes one today), and a shop manager paying someone else's order while logged in gets the 3DS account figures of their own account",
       "depends_on": [],
-      "criteria": []
+      "criteria": [],
+      "waiting_on": null
     },
     {
       "id": "S-057",
@@ -2804,7 +3121,8 @@
       "target": null,
       "reason": "D-067 — the colours are WooCommerce's stylesheet, not this plugin's; giving the buttons colours of their own is a visual decision for the user, and the result on a current WooCommerce has not been observed",
       "depends_on": [],
-      "criteria": []
+      "criteria": [],
+      "waiting_on": null
     },
     {
       "id": "S-030",
@@ -2823,7 +3141,8 @@
       "depends_on": [
         "S-029"
       ],
-      "criteria": []
+      "criteria": [],
+      "waiting_on": null
     },
     {
       "id": "S-090",
@@ -2840,7 +3159,8 @@
       "target": null,
       "reason": "D-099 — acknowledged, not validated, for 7.1.0; the owner runs the payments after the release and anything found goes into 7.1.1",
       "depends_on": [],
-      "criteria": []
+      "criteria": [],
+      "waiting_on": null
     },
     {
       "id": "S-093",
@@ -2866,7 +3186,8 @@
       "target": null,
       "reason": "D-102 — self-audit answer 1; the tools ran once outside the repository; installing them changes composer.json and the playground, so it waits for the tag",
       "depends_on": [],
-      "criteria": []
+      "criteria": [],
+      "waiting_on": null
     }
   ]
 }

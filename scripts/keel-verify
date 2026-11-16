@@ -120,7 +120,7 @@ README_FILE="readme.txt"
 HEADER_VERSION=$(grep -m1 -oE '^ \* Version:[[:space:]]*[0-9][0-9A-Za-z.\-]*' "$MAIN_FILE" | sed -E 's/^ \* Version:[[:space:]]*//')
 CONST_VERSION=$(grep -m1 -oE "REDSYS_WOOCOMMERCE_VERSION',[[:space:]]*'[0-9][0-9A-Za-z.\-]*" "$MAIN_FILE" | sed -E "s/.*'([0-9][0-9A-Za-z.\-]*)/\1/")
 STABLE_TAG=$(grep -m1 -oE '^Stable tag:[[:space:]]*[0-9][0-9A-Za-z.\-]*' "$README_FILE" | sed -E 's/^Stable tag:[[:space:]]*//')
-CHANGELOG_TOP=$(awk '/== Changelog ==/{found=1; next} found && /^== [0-9]/{gsub(/^== /,""); gsub(/ ==$/,""); print; exit}' "$README_FILE")
+CHANGELOG_TOP=$(awk '/== Changelog ==/{found=1; next} found && /^=+ [0-9]/{gsub(/^=+ /,""); gsub(/ =+$/,""); print; exit}' "$README_FILE")
 
 if [ -z "$HEADER_VERSION" ]; then fail "$MAIN_FILE: could not find 'Version:' header"; fi
 if [ -z "$CONST_VERSION" ]; then fail "$MAIN_FILE: could not find REDSYS_WOOCOMMERCE_VERSION constant"; fi

@@ -389,6 +389,10 @@ def clean_item(path, item, deferred, schema=None):
         result["actual_source"] = source
     result["depends_on"] = [str(x) for x in depends]
     result["criteria"] = [str(x) for x in criteria]
+    waiting = item.get("waiting_on")
+    if waiting is not None and not isinstance(waiting, str):
+        waiting = str(waiting)
+    result["waiting_on"] = waiting if waiting else None
     if "execution" in item:
         if schema != "keel.sprint/2":
             raise PlanError("%s: an execution mapping needs schema keel.sprint/2 (this file is %s)" % (where, schema))
@@ -588,7 +592,8 @@ def slice_record(s, deferred):
         pairs += [("target", s["target"]), ("reason", s["reason"])]
     else:
         pairs += [("actual_hours", num(s["actual_hours"])), ("actual_source", s["actual_source"])]
-    pairs += [("depends_on", s["depends_on"]), ("criteria", s["criteria"])]
+    pairs += [("depends_on", s["depends_on"]), ("criteria", s["criteria"]),
+              ("waiting_on", s.get("waiting_on"))]
     if "execution" in s:
         pairs.append(("execution", s["execution"]))
     return ordered(pairs)
@@ -621,6 +626,20 @@ def compute(sprints, deferred):
         ("deviation_percent", num((factor - 1) * 100, 2) if factor is not None else None),
         ("provisional", bool(sample) and len(sample) < PROVISIONAL_BELOW),
     ])))
+    # The queue the launcher reads (references/project-state.md, "When the queue
+    # is idle"): workable = not-started/in-progress, waiting_on null, every
+    # depends_on done; waiting = not done and waiting_on set.
+    status_of = dict((s["id"], s["status"]) for s in every)
+    workable = [s["id"] for s in every
+                if s["status"] in ("not-started", "in-progress") and not s.get("waiting_on")
+                and all(status_of.get(d) == "done" for d in s["depends_on"])]
+    waiting = [s for s in every if s["status"] != "done" and s.get("waiting_on")]
+    queue = ordered([
+        ("workable", len(workable)),
+        ("waiting", len(waiting)),
+        ("workable_slices", workable),
+        ("waiting_on", ["%s: %s" % (s["id"], s["waiting_on"]) for s in waiting]),
+    ])
     sources = [s["file"] for s in sprints]
     if os.path.isfile(DEFERRED):
         sources.append(rel(DEFERRED))
@@ -631,6 +650,7 @@ def compute(sprints, deferred):
         ("sources", sources),
         ("current_sprint", current),
         ("reconciliation_status", dict(totals)["reconciliation_status"]),
+        ("queue", queue),
         ("totals", ordered(totals)),
         ("sprints", out_sprints),
         ("scope_reconciliations", records),

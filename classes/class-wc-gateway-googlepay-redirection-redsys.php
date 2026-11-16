@@ -750,35 +750,7 @@ class WC_Gateway_GooglePay_Redirection_Redsys extends WC_Payment_Gateway {
 		foreach ( $redsys_args as $key => $value ) {
 			$form_inputs[] = '<input type="hidden" name="' . $key . '" value="' . esc_attr( $value ) . '" />';
 		}
-		/**
-		 * Filters the spinner image of the "redirecting" overlay (WooCommerce's own filter).
-		 *
-		 * @param string $url URL of the spinner image.
-		 */
-		$loader_url = apply_filters( 'woocommerce_ajax_loader_url', WC()->plugin_url() . '/assets/images/select2-spinner.gif' );
-		wp_add_inline_script(
-			'woocommerce',
-			'jQuery( function( $ ) {
-		$("body").block({
-			message: "<img src=\"' . esc_url( $loader_url ) . '\" alt=\"Redirecting&hellip;\" style=\"float:left; margin-right: 10px;\" />' . esc_js( esc_html__( 'Thank you for your order. We are now redirecting you to Redsys to make the payment.', 'woo-redsys-gateway-light' ) ) . '\",
-			overlayCSS:
-			{
-				background: "#fff",
-				opacity: 0.6
-			},
-			css: {
-				padding:		20,
-				textAlign:		"center",
-				color:			"#555",
-				border:			"3px solid #aaa",
-				backgroundColor:"#fff",
-				cursor:			"wait",
-				lineHeight:		"32px"
-			}
-		});
-	jQuery("#submit_redsys_payment_form").click();
-	} );'
-		);
+		WCRedL()->add_redirect_script( __( 'Thank you for your order. We are now redirecting you to Redsys to make the payment.', 'woo-redsys-gateway-light' ) );
 		return '<form action="' . esc_url( $redsys_adr ) . '" method="post" id="redsys_payment_form" target="_top">
 		' . implode( '', $form_inputs ) . '
 		<input type="submit" class="button-alt" id="submit_redsys_payment_form" value=\"' . esc_attr__( 'Pay with Gpay', 'woo-redsys-gateway-light' ) . '\" /> <a class="button cancel" href="' . esc_url( $order->get_cancel_order_url() ) . '">' . esc_html__( 'Cancel order &amp; restore cart', 'woo-redsys-gateway-light' ) . '</a>
