@@ -56,7 +56,6 @@
 
 ## Open items
 - Unresolved user questions: permission to open a public tunnel, to drive `scripts/playground-tunnel` live on the new host (D-114). None for 7.1.0 — the two acceptances and the upgrade-notice wording closed by D-106. Closed by D-099 on 2026-10-21: the version, the 7.0.3-hotfix choice (moot), the accessibility pass (accepted shortfall), SA-06/SA-13/SA-20 and the tunnel payment (acknowledged; S-090 after the release), the changelog wording, D-053's choice, how the package is built, and the forum replies (posted after publication). Offered, not required: a second playground on a current PHP 8.x is moot (the ceiling runs PHP 8.4); adding `scripts/playground-setup` to the committed allow-list (D-043).
-- Released (informational — nothing to work): **7.1.0** (2026-11-13, tag `v7.1.0`) and **7.1.1** (2026-11-16, tag `v7.1.1`, GitHub release created at the owner's request — D-117). Nothing queued for `master`.
 - For the owner (parked — waiting on the owner), before tagging (found 2026-10-21 17:10, informational, nothing changed): the local tag `v7.0.2` points at `93f9fc8` ("headers updata", 2026-06-26) while `origin`'s `v7.0.2` points at `267a6bf` (the Dependabot merge #92, 2026-06-27) — `git fetch --tags` refuses to clobber it. Pre-existing; Keel never moves a tag. Push only the new tag (`git push origin v7.1.0`), never `--tags`, or decide which `v7.0.2` is right first.
 - Open Design Requests: none — no design system in place
 - Unverified external steps/assets: none
