@@ -2,13 +2,13 @@
 
 > Living log of forge issues (GitHub, `joseconti/woo-redsys-gateway-light`). Inventory first, one entry per issue worked.
 > Updated the moment an issue is triaged, worked, or closed.
-> Last inbound sweep: 2026-10-21 17:05 (sprint 6 close — `gh issue list`: the same six open issues, none updated since 2026-09-16; nothing new). Before it, 2026-10-21 15:41 (sprint 3 close — six open issues, no new issue or comment since the 13:45 sweep. Earlier, 13:45, session close — `gh issue list --state all`: six open issues, none new since #112 on 2026-09-16; no new comment; seventeen open Dependabot PRs (#94–#116, development dependencies only), triaged 2026-10-21 by S-089 — all superseded on `develop`, see "Dependabot pull requests" below. Outside the forge, two WordPress.org support threads report D-023 on 7.0.2 — recorded in `docs/PROGRESS.md`; replies drafted, not posted, waiting for the owner)
+> Last inbound sweep: 2026-11-16 19:36 (S-109 — `gh issue list --state all`: no issue created or updated since 2026-09-16; #93 closed by its reporter 2026-08-01; #112 open, no reporter reply). Before it, 2026-10-21 17:05 (sprint 6 close — `gh issue list`: the same six open issues, none updated since 2026-09-16; nothing new). Before it, 2026-10-21 15:41 (sprint 3 close — six open issues, no new issue or comment since the 13:45 sweep. Earlier, 13:45, session close — `gh issue list --state all`: six open issues, none new since #112 on 2026-09-16; no new comment; seventeen open Dependabot PRs (#94–#116, development dependencies only), triaged 2026-10-21 by S-089 — all superseded on `develop`, see "Dependabot pull requests" below. Outside the forge, two WordPress.org support threads report D-023 on 7.0.2 — recorded in `docs/PROGRESS.md`; replies drafted, not posted, waiting for the owner)
 
 ## Inventory
 | # | Title | Type | Priority | Status | Entry |
 |---|-------|------|----------|--------|-------|
-| 112 | Mensaje "Your order can no longer be cancelled" al cancelar el usuario el pago en Redsys | bug | medium | resolved (fix ships in 7.1.0, not yet published) | E-002 |
-| 93 | wc_enqueue_js() deprecada desde WooCommerce 10.4 (avisos en la página de pago) | bug | medium | resolved (fix ships in 7.1.0, not yet published) | E-001 |
+| 112 | Mensaje "Your order can no longer be cancelled" al cancelar el usuario el pago en Redsys | bug | medium | released in 7.1.0 (7.1.1 recommended); awaiting reporter | E-002 |
+| 93 | wc_enqueue_js() deprecada desde WooCommerce 10.4 (avisos en la página de pago) | bug | medium | released in 7.1.0; its change broke the order-pay auto-submit, repaired in 7.1.1 (D-116); closed by the reporter 2026-08-01 | E-001 |
 | 34 | Falta el text domain | bug | low | resolved (moot — file rewritten since) | — |
 | 21 | Posible error en string | bug | low | won't fix (dead code, not used in Lite) | — |
 | 12 | PHP Fatal error: Uncaught Error: Call to a member function update_meta_data() on bool | bug | high | resolved (already fixed in shipped code) | — |
@@ -38,7 +38,7 @@
 - Resolution: `WCRedL()->get_cancel_url_raw()` for every non-markup use in the card, Bizum and Google Pay gateways; a callback on `woocommerce_valid_order_statuses_for_cancel` that accepts the one already cancelled order named in a verified cancel request, so WooCommerce shows "Your order was cancelled." (D-053). The reporter's second option; the choice is the assistant's and awaits the maintainer's confirmation before release.
 - Changes: `classes/class-wc-gateway-redsys-global-lite.php`, the three gateway classes, `woocommerce-redsys.php`, `tests/Integration/CancelUrlTest.php`, `tests/e2e/cancel-return-redsys.spec.js` — slice S-038.
 - Verification: `docs/05-test-points.md`, S-038 row. Not verified: a real refused payment against Redsys, and the reporter's WPML setup.
-- Replies: none yet.
+- Replies: beat 2 — 2026-11-16, in Spanish (the reporter's language): both defects explained, fix released in 7.1.0, update to 7.1.1 recommended, asked to confirm on their WPML setup; left open. https://github.com/joseconti/woo-redsys-gateway-light/issues/112#issuecomment-6925374980
 - Deploy: not yet — needs the next release before the reporter can test it.
 - Closed by: still open — never closed by Keel on its own reading of the code.
 - Inbound: none since the report (2026-09-16).

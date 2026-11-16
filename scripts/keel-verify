@@ -71,6 +71,10 @@
 #       `symbol()` line number in docs/flows/ is that function's definition
 #       (S-068).
 #   29. Package boundary: `git archive` ships runtime files only (S-032).
+#   31. Machine recipe drift (Keel v7.6.0): docs/machines/recipe.md exists,
+#       names the same keel-base-rev as docs/machines/keel-development/, and
+#       where prlctl can read the shared VM, that revision matches the VM's
+#       own description (N/A on that part when the VM is unreachable).
 #   30. Split-work regressions (Keel v6.6.0): scratch plans run through
 #       `scripts/keel-plan` — an unchanged-scope split conserves the balance,
 #       completing an extracted child removes only its residual, added scope
@@ -2258,6 +2262,32 @@ sys.exit(1 if STATE["failed"] else 0)
 KEEL_PY
 	[ $? -eq 0 ] || FAIL=1
 fi
+
+# --- 31. Machine recipe drift ------------------------------------------------
+begin 31 "Machine recipe matches the shared VM's base revision"
+if [ ! -f docs/machines/recipe.md ] || [ ! -f docs/machines/keel-development/recipe.md ]; then
+	fail "docs/machines/recipe.md or docs/machines/keel-development/recipe.md is missing"
+else
+	_rev_proj=$(grep -o 'keel-base-rev=[0-9-]*' docs/machines/recipe.md | head -1)
+	_rev_base=$(grep -o 'keel-base-rev=[0-9-]*' docs/machines/keel-development/recipe.md | head -1)
+	if [ -z "$_rev_proj" ] || [ "$_rev_proj" != "$_rev_base" ]; then
+		fail "docs/machines/recipe.md names '${_rev_proj:-none}' but docs/machines/keel-development/recipe.md names '${_rev_base:-none}'"
+	else
+		_rev_vm=""
+		if command -v prlctl >/dev/null 2>&1; then
+			_rev_vm=$(prlctl list -i keel-development 2>/dev/null | grep -o 'keel-base-rev=[0-9-]*' | head -1)
+		fi
+		if [ -z "$_rev_vm" ]; then
+			echo "N/A:  the shared VM keel-development cannot be read here (no prlctl, or no such VM); the recipe names $_rev_proj"
+			CUR_T="$CUR_T (VM part N/A)"
+		elif [ "$_rev_vm" != "$_rev_proj" ]; then
+			fail "the VM says $_rev_vm, the recipe copy says $_rev_proj — refresh docs/machines/keel-development/ from the running VM"
+		else
+			ok "recipe, base copy and the running VM agree on $_rev_vm"
+		fi
+	fi
+fi
+end_check
 
 echo
 echo "== Summary =="

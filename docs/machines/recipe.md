@@ -2,7 +2,7 @@
 
 > Machines: two tenants, `wrgl` and `wrgl-ceiling`, on the shared Parallels VM `keel-development`.
 > Host: parallels-shared (D-114).
-> Base: `docs/machines/keel-development/`, revision **keel-base-rev=2026-11-10-1**.
+> Base: `docs/machines/keel-development/`, revision **keel-base-rev=2026-11-12-1**.
 > Last updated: 2026-11-10 — written from the running VM and `scripts/keel-site`.
 > Last rebuilt from this recipe: **never — unproven** (the sites were last rebuilt with
 > `scripts/keel-site create` on 2026-11-07, S-104; the VM itself has not been rebuilt from `keel-development/`).

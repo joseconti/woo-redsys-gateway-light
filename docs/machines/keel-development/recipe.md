@@ -1,7 +1,7 @@
 # Machine recipe — `keel-development` (the shared Parallels VM)
 
-> Base revision: **keel-base-rev=2026-11-10-1** (the VM's own description carries the same value).
-> Last updated: 2026-11-10 — written from the running VM (`prlctl list -i`, package list, apt history,
+> Base revision: **keel-base-rev=2026-11-12-1** (the VM's own description carries the same value).
+> Last updated: 2026-11-12 — klytos tenant added (D-121); versions re-read from the running VM. Previously 2026-11-10 — written from the running VM (`prlctl list -i`, package list, apt history,
 > `/srv/keel/sites/*/site.env`, Apache vhosts, systemd units), not from memory.
 > Last rebuilt from this recipe: **never — unproven**. The scripts are the ones that built the VM on
 > 2026-10-31, updated with what was installed on it since; no rebuild has followed them yet.
@@ -49,7 +49,8 @@ projects' next session start.
 - `/etc/hosts`: `127.0.0.1 api.keel.test licenses.keel.test client.keel.test` (connected-sites test names).
 - `keel-mounts` systemd oneshot after `prltoolsd`, restoring every site's read-only bind mount at boot
   (`docs/machines/keel-development/scripts/keel-mounts.sh`). It reads `share=` and `slug=` from each `site.env`; PrestaShop sites use
-  `psrg_share=` and `module_target=` and are mounted by that project's own `scripts/keel-site`.
+  `psrg_share=` and `module_target=` and are mounted by that project's own `scripts/keel-site`; the klytos site
+  uses `klytos_share=` and is not mounted at all (rsync copy by that project's `scripts/keel-site sync`).
 - Directories: `/srv/keel/sites/<site>/` (one per tenant), `/srv/keel/wp-tests`, `/srv/keel/cache`.
 
 ## 5. Isolation and sharing
@@ -58,9 +59,9 @@ projects' next session start.
   database and database user, Apache vhost on its own port. Created by each project's `scripts/keel-site create`.
 - Parallels default sharing OFF: `prlctl set keel-development --shared-cloud off --smart-mount off --shf-host-defined off`,
   then `sudo systemctl restart prltoolsd` in the guest; `ls /media/psf` must list only the project shares.
-- Project shares (read-only, one repository each): `aswc`, `mcm`, `psrg`, `redsys`, `wrgl`.
+- Project shares (read-only, one repository each): `aswc`, `klytos`, `mcm`, `psrg`, `redsys`, `wrgl`.
 
-## 6. Tenants (2026-11-10) and what each added to the VM
+## 6. Tenants (2026-11-12) and what each added to the VM
 
 | Site(s) | Port(s) | PHP | Owner repository | Share |
 |---|---|---|---|---|
@@ -69,6 +70,7 @@ projects' next session start.
 | `aswc` | 8104 | 7.4 | advanced-subscriptions-for-woocommerce | `aswc` |
 | `psrg17`, `psrg82`, `psrg90`, `psrg91`, `psrg92` | 8111–8115 | 7.4, 8.1, 8.4, 8.4, 8.4 | ps_redsys_gateway | `psrg` |
 | `mcm` | 8892 | 8.3 | mcp-content-manager-for-wordpress | `mcm` |
+| `klytos` (+ disposable `klytos-install`, created for one installer test and retired) | 8121 (8122) | 8.3 | klytos | `klytos` — synced COPY, not a mount (Klytos writes its own tree; see that repo's `docs/machines/recipe.md`) |
 | DeCA MariaDB 10.6.28 tenant `ks_deca` | 127.0.0.1:3316 | — | deca-pretiumgestion-com | — |
 | PostgreSQL 16 database `keel_fs_synthetic_pg` | 5432 | 8.4 (`php8.4-pgsql`) | facturascripts_mcp (inferred from the name) | — |
 
@@ -105,7 +107,7 @@ docs/machines/keel-development/scripts/vm 'sudo bash -s' < docs/machines/keel-de
 docs/machines/keel-development/scripts/vm 'sudo bash -s' < docs/machines/keel-development/scripts/local-ca.sh          # 5. CA and wildcard; ends in CA-READY
 docs/machines/keel-development/scripts/vm 'sudo bash -s' < docs/machines/keel-development/scripts/keel-mounts.sh       # 6. the boot-time mount service
 docs/machines/keel-development/scripts/vm "echo '127.0.0.1 api.keel.test licenses.keel.test client.keel.test' | sudo tee -a /etc/hosts"
-prlctl set keel-development --description "keel-lease: owner=shared-plugin-host until=never keel-base-rev=2026-11-10-1"
+prlctl set keel-development --description "keel-lease: owner=shared-plugin-host until=never keel-base-rev=2026-11-12-1"
 prlctl snapshot keel-development --name baseline         # 7. snapshot of the empty, provisioned VM
 ```
 
