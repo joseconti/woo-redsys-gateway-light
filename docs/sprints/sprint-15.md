@@ -16,7 +16,7 @@ scope_reconciliations:
 slices:
   - id: S-108
     title: Keel v7.5.0 → v7.6.0 reconciliation — embedded copies and lock stamp, keel-continue rests on an idle queue (queue.workable, idle-links breaker, exec claude), keel-chain-check row 7c, plan.json carries queue and waiting_on, machine-recipe standing check, conformance sweep
-    status: not-started
+    status: in-progress
     original_hours: 1.5
     actual_hours: 0
     actual_source: measured
@@ -38,7 +38,7 @@ slices:
       serial_reason: bookkeeping and Keel scaffolding, coordinator-owned
   - id: S-109
     title: 7.1.0 published — inbound issue sweep, reporter replies where the fix is testable in 7.1.0, docs/issues.md and PROGRESS brought in line (Phase 7 of 7.1.0 done, project in maintenance)
-    status: not-started
+    status: in-progress
     original_hours: 0.5
     actual_hours: 0
     actual_source: measured
@@ -63,3 +63,4 @@ slices:
 # Sprint 15 — Keel v7.6.0 and the 7.1.0 follow-ups
 
 - Acceptance: `Keel baseline: v7.6.0` with the conformance sweep complete and every standing check passing; `docs/issues.md` and `docs/PROGRESS.md` describe 7.1.0 as published. Hours are AI working time plus supervision.
+- Progress (2026-11-16 19:30): S-108 — copies, lock stamp, launcher REST path, chain-check 7c and plan queue done and smoke-proven (843bd73, 84da8fa); left: the docs/machines/ refresh to keel-base-rev 2026-11-12-1 (checked against the VM), the keel-verify drift check, the conformance sweep and the baseline. S-109 — 7.1.1 published by the owner, GitHub release v7.1.1 created on request (D-117, 792c39f); left: the issue sweep and the replies on #112 and #93, docs/issues.md.

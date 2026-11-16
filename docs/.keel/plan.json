@@ -2804,7 +2804,7 @@
         {
           "id": "S-108",
           "title": "Keel v7.5.0 → v7.6.0 reconciliation — embedded copies and lock stamp, keel-continue rests on an idle queue (queue.workable, idle-links breaker, exec claude), keel-chain-check row 7c, plan.json carries queue and waiting_on, machine-recipe standing check, conformance sweep",
-          "status": "not-started",
+          "status": "in-progress",
           "original_hours": 1.5,
           "residual_hours": 1.5,
           "change_kind": "added",
@@ -2845,7 +2845,7 @@
         {
           "id": "S-109",
           "title": "7.1.0 published — inbound issue sweep, reporter replies where the fix is testable in 7.1.0, docs/issues.md and PROGRESS brought in line (Phase 7 of 7.1.0 done, project in maintenance)",
-          "status": "not-started",
+          "status": "in-progress",
           "original_hours": 0.5,
           "residual_hours": 0.5,
           "change_kind": "added",
